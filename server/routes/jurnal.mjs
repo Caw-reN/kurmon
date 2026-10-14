@@ -382,10 +382,14 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         if (nis) {
           employeeToNisMap[nis.toLowerCase()] = nis;
           siswaByNis.set(nis.toLowerCase(), nis);
+          if (nis.length === 9) {
+            const eight = nis.slice(1).toLowerCase();
+            employeeToNisMap[eight] = nis;
+            siswaByNis.set(eight, nis);
+          }
         }
         const name = String(s.name || s.nama || '').trim().toLowerCase();
         if (name) {
-          employeeToNisMap[name] = nis;
           siswaByName.set(name, nis);
         }
       });
@@ -396,7 +400,8 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           const hNis = String(h.nis || '').trim().toLowerCase();
           const hName = String(h.name || '').trim().toLowerCase();
           // O(1) Map lookup — tidak lagi O(n) per item
-          const canonNis = siswaByNis.get(hNis) || siswaByName.get(hName);
+          // Hanya mapping jika hNis benar-benar terdaftar di siswa kelas ini
+          const canonNis = siswaByNis.get(hNis);
           if (canonNis) {
             employeeToNisMap[hNis] = canonNis;
           }
@@ -407,14 +412,10 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
 
       // Suffix matching lookup for machine IDs that might be 8 digits instead of 9 digits (e.g. missing leading '2')
       const resolveEmpToNis = (rawEmp) => {
-        if (employeeToNisMap[rawEmp]) return employeeToNisMap[rawEmp];
-        for (const [sNis, canonNis] of siswaByNis.entries()) {
-          if (sNis.length >= 5 && rawEmp.length >= 5 && (sNis.endsWith(rawEmp) || rawEmp.endsWith(sNis))) {
-            employeeToNisMap[rawEmp] = canonNis; // Cache for next logs
-            return canonNis;
-          }
-        }
-        return null;
+        if (!rawEmp) return null;
+        const lower = String(rawEmp).trim().toLowerCase();
+        if (employeeToNisMap[lower]) return employeeToNisMap[lower];
+        return siswaByNis.get(lower) || null;
       };
 
       // 3. Ambil data absensi manual (sakit/izin/alpa/terlambat/dispen)

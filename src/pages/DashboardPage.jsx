@@ -377,10 +377,12 @@ export default function DashboardPage({
   }, [classes, teachers, subjects, schedule, rooms]);
 
   const activeRole = currentUser?.role ==="superadmin" ?"admin" : currentUser?.role;
-  const activeDivision = activeRole ==="waka" ? (currentUser?.division ||"kurikulum") :"";
+  const activeDivision = String(activeRole || "").startsWith("waka_")
+    ? activeRole.replace("waka_", "")
+    : (activeRole === "waka" ? (currentUser?.division || "kurikulum") : "");
   const isTeacher = activeRole ==="guru";
   const isKepsek = activeRole ==="kepsek";
-  const isWaka = activeRole ==="waka";
+  const isWaka = activeRole ==="waka" || String(activeRole || "").startsWith("waka_");
   const isTU = activeRole ==="tu" || activeRole ==="tata_usaha";
   const isSuperAdmin = activeRole === "admin";
 
@@ -390,12 +392,16 @@ export default function DashboardPage({
     const r = (currentUser.role || '').toLowerCase();
     if (r === 'superadmin' || r === 'admin') parts.push('Super Admin');
     else if (r === 'kepsek') parts.push('Kepala Sekolah');
-    else if (r === 'waka') {
-      const div = currentUser.division ? `Waka ${currentUser.division.charAt(0).toUpperCase() + currentUser.division.slice(1)}` : 'Waka';
+    else if (r === 'waka' || r.startsWith('waka_')) {
+      const divRaw = currentUser.division || r.replace('waka_', '');
+      const div = divRaw ? `Waka ${divRaw.charAt(0).toUpperCase() + divRaw.slice(1)}` : 'Waka';
       parts.push(div);
     } else if (r === 'tu' || r === 'tata_usaha') parts.push('Tata Usaha');
     else if (r === 'karyawan') parts.push('Karyawan');
-    else parts.push('Guru');
+    else if (r.startsWith('custom_')) {
+      const custName = r.replace('custom_', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      parts.push(custName);
+    } else parts.push('Guru');
 
     if (currentUser.isWalas || currentUser.walasClass) {
       parts.push(`Wali Kelas ${currentUser.walasClass || ''}`.trim());
@@ -2805,6 +2811,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   }, []);
 
   // ── Role-guard ──
+  const isKaryawan = currentUser?.role === 'karyawan' || currentUser?.role === 'staf';
   const canSeeTeacherAttendance = isSuperAdmin || isKepsek || isTU ||
     (isWaka && (activeDivision === 'kurikulum' || activeDivision === 'kesiswaan'));
   const canSeeStudentAttendance = isSuperAdmin || isKepsek || isTU ||

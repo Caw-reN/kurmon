@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { 
-  UserCheck, Wand2, Users, CheckCircle2, AlertTriangle, Building2, 
+  UserCheck, Wand2, Users, CheckCircle2, AlertTriangle, AlertCircle, Building2, 
   ChevronDown, Info, Search, X, Edit2, ChevronLeft, ChevronRight, Check, RefreshCw,
   GraduationCap, Sparkles, Filter
 } from 'lucide-react';

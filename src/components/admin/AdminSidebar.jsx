@@ -452,8 +452,9 @@ export default function AdminSidebar({
           <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
             {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
             {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
+            {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
             {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
-            {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Pengaturan User" })}
+            {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
           </SidebarGroup>
         )}
       </nav>

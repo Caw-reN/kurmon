@@ -13,6 +13,7 @@ export async function handleDataRoutes(req, res, url, ctx) {
     syncAllUsersToModules,
     toPublicPayload,
     sanitizePayload,
+    normalizeServerRole,
     logAudit
   } = ctx;
 
@@ -180,12 +181,15 @@ export async function handleDataRoutes(req, res, url, ctx) {
     // rolePermissions, featureSettings, dll). Hanya admin/waka/TU yang boleh mengakses.
     // Sebelumnya hanya ada requireAuthenticated → guru biasa bisa privilege escalation.
     const _session = getSession(req);
-    const _role = String(_session?.role || '').toLowerCase().trim();
+    const _rawRole = String(_session?.role || '').toLowerCase().trim();
+    const _role = normalizeServerRole ? normalizeServerRole(_rawRole) : _rawRole;
+    const isWaka = _role === 'waka' || _rawRole.startsWith('waka');
+    const isCustom = _role.startsWith('custom_') || _rawRole.startsWith('custom_');
     const DATA_SAVE_ALLOWED_ROLES = [
       'admin', 'superadmin', 'tu', 'tata_usaha',
-      'waka', 'waka_kurikulum', 'kepsek',
+      'waka', 'kepsek', 'sekretaris_tu', 'bendahara'
     ];
-    if (!DATA_SAVE_ALLOWED_ROLES.includes(_role)) {
+    if (!DATA_SAVE_ALLOWED_ROLES.includes(_role) && !isWaka && !isCustom) {
       send(req, res, 403, {
         ok: false,
         error: 'Hanya admin, waka, atau TU yang dapat menyimpan data sistem.'

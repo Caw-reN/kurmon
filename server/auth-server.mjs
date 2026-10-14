@@ -3,7 +3,7 @@ import { safeLog, safeWarn, safeError, maskSensitiveData } from "./utils/logger.
 import { handlePklRoutes } from "./routes/pkl.mjs";
 import { handleBkRoutes, initBkTables } from "./routes/bk.mjs";
 import { handleHikvisionRoutes, autoLinkHikvisionStudents, autoLinkHikvisionTeachersAndStaffs } from "./routes/hikvision.mjs";
-import { handlePushRoutes, initializeWebPush } from "./routes/push.mjs";
+import { handlePushRoutes, initializeWebPush, checkAndSendTeacherScheduleReminders } from "./routes/push.mjs";
 import { handleKedisiplinanRoutes } from "./routes/kedisiplinan.mjs";
 import { handleDataRoutes } from "./routes/data.mjs";
 import { handleAuthRoutes } from "./routes/auth.mjs";
@@ -555,11 +555,17 @@ async function autoSyncStudentAttendanceToAppData() {
     const allNisList = studentsRes.rows.map(r => String(r.payload?.nis || "").trim().toLowerCase());
     const nisSet = new Set(allNisList);
 
+    const nis8Map = new Map();
+    allNisList.forEach(nis => {
+      if (nis.length === 9) nis8Map.set(nis.slice(1), nis);
+    });
+
     const resolveNis = (machineId) => {
       const mid = String(machineId || '').trim().toLowerCase();
       if (!mid) return null;
       if (nisSet.has(mid)) return mid;
-      return allNisList.find(dbNis => dbNis.length >= 5 && mid.length >= 5 && (dbNis.endsWith(mid) || mid.endsWith(dbNis))) || null;
+      if (nis8Map.has(mid)) return nis8Map.get(mid);
+      return null;
     };
 
     // Ambil log siswa 3 hari terakhir
@@ -1802,11 +1808,15 @@ const normalizeServerRole = (role, defaultRole = "guru") => {
   if (normalized === "kepsek" || normalized === "waka" || normalized === "kaprog" || normalized === "guru" || normalized === "tu" || normalized === "tata_usaha" || normalized === "karyawan" || normalized === "staff") {
     return (normalized === "tata_usaha" ? "tu" : (normalized === "staff" ? "karyawan" : normalized));
   }
+  if (normalized.startsWith("custom_")) return normalized;
   if (normalized === "hubin" || normalized === "sarpras" || normalized === "kurikulum" || normalized === "bk") return normalized;
   if (normalized.startsWith("waka_")) return "waka";
   if (normalized === "siswa") return "siswa";
   if (normalized === "walas" || normalized === "walikelas") return "walas";
   if (normalized === "sekretaris_tu" || normalized === "bendahara") return "tu";
+  if (["bpbk", "pembina_osis", "sekretaris_osis", "sekretaris_kesiswaan", "anggota_kesiswaan", "sekretaris_kurikulum", "anggota_kurikulum", "sekretaris_hubin", "anggota_hubin", "sekretaris_sarpras", "anggota_sarpras"].includes(normalized)) {
+    return normalized;
+  }
   return defaultRole;
 };
 const isAdminRole = (role) => normalizeServerRole(role) === "admin";
@@ -1829,8 +1839,22 @@ const requireAdminOrTu = (req, res) => {
 
 const requireAuthenticated = (req, res) => {
   const session = getSession(req);
-  const allowed = ["admin", "guru", "kepsek", "waka", "kaprog", "hubin", "sarpras", "kurikulum", "siswa", "walas", "tu", "bk", "karyawan", "staff"];
-  if (session && allowed.includes(normalizeServerRole(session.role))) return session;
+  if (!session || !session.role) {
+    send(req, res, 403, { ok: false, error: "Sesi login diperlukan." });
+    return null;
+  }
+  const role = normalizeServerRole(session.role);
+  const allowed = [
+    "admin", "guru", "kepsek", "waka", "kaprog", "hubin", "sarpras", 
+    "kurikulum", "siswa", "walas", "tu", "bk", "karyawan", "staff",
+    "bpbk", "pembina_osis", "sekretaris_osis", "sekretaris_kesiswaan", 
+    "anggota_kesiswaan", "sekretaris_kurikulum", "anggota_kurikulum", 
+    "sekretaris_hubin", "anggota_hubin", "sekretaris_sarpras", 
+    "anggota_sarpras", "sekretaris_tu", "bendahara"
+  ];
+  if (allowed.includes(role) || (typeof role === "string" && role.startsWith("custom_"))) {
+    return session;
+  }
   send(req, res, 403, { ok: false, error: "Sesi login diperlukan." });
   return null;
 };
@@ -5757,6 +5781,18 @@ const server = createServer(async (req, res) => {
   } catch (error) {
     console.error("Auth server error:", error);
     send(req, res, 500, { ok: false, error: error.message || "Internal server error" });
+  }
+});
+
+// ==================== TEACHER SCHEDULE PUSH NOTIFICATION CRON ====================
+// Berjalan setiap menit untuk memeriksa jadwal mengajar dan mengirim Push Notification ke HP guru tepat waktu
+cron.schedule('* * * * *', async () => {
+  if (dbPool) {
+    try {
+      await checkAndSendTeacherScheduleReminders(dbPool);
+    } catch (e) {
+      console.error("[CRON] Gagal memproses pengingat jadwal guru:", e.message);
+    }
   }
 });
 

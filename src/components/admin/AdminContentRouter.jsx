@@ -346,6 +346,8 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
               rolePermissions={context.rolePermissions}
               adminUser={context.adminUser}
               syncAuthSnapshotNow={context.syncAuthSnapshotNow}
+              activeTab={context.activeTab}
+              setActiveTab={context.setActiveTab}
             />
           </Suspense>
         );

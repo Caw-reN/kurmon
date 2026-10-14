@@ -786,7 +786,7 @@ export default function KepsekExecutiveDashboard({
   const appStoreSchoolProfile = useAppStore(state => state.schoolProfile);
   const schoolProfile = dataStoreSchoolProfile || appStoreSchoolProfile || appSettings?.schoolProfile || {};
 
-  const kopLogo = schoolProfile?.logo_url || appSettings?.logoWebUrl || appSettings?.logoUrl || '/images/logo-sekolah.png' || '/favicon.ico';
+  const kopLogo = schoolProfile?.logo_url || appSettings?.logoWebUrl || appSettings?.logoUrl || '/images/logo-sekolah.png';
   const kopBaris1 = appSettings?.kopSuratBaris1 || 'PEMERINTAH DAERAH PROVINSI JAWA BARAT';
   const kopBaris2 = appSettings?.kopSuratBaris2 || 'DINAS PENDIDIKAN';
   const kopBaris3 = appSettings?.kopSuratBaris3 || schoolProfile?.nama_sekolah || 'SMK KARYA GUNA 2 BEKASI';

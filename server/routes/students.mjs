@@ -71,8 +71,11 @@ export async function handleStudentRoutes(req, res, url, ctx) {
   if (url.pathname === '/api/students/save' && req.method === 'POST') {
     const session = requireAuthenticated(req, res);
     if (!session) return true;
-    if (!['admin', 'superadmin', 'tu'].includes(normalizeServerRole(session.role))) {
-      send(req, res, 403, { ok: false, error: 'Hanya admin yang dapat menyimpan data' });
+    const sRole = normalizeServerRole(session.role);
+    const isWaka = sRole === 'waka' || String(session.role || '').toLowerCase().startsWith('waka');
+    const isCustom = sRole.startsWith('custom_') || String(session.role || '').toLowerCase().startsWith('custom_');
+    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom) {
+      send(req, res, 403, { ok: false, error: 'Hanya admin, waka, atau TU yang dapat menyimpan data siswa' });
       return true;
     }
 

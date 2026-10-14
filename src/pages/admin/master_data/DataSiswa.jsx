@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Users, CheckCircle2, XCircle, Search, Save, Upload, Download, 
-  ChevronRight, X, AlertCircle, Building2, UserCheck, Filter, RefreshCw, ArrowUpDown,
-  GraduationCap, Briefcase, Calendar, Check, Clock, Sparkles, Layers,
-  Compass, FileSpreadsheet, CheckCheck, HelpCircle
+  Users, CheckCircle2, XCircle, Search, Upload, Download, 
+  ChevronRight, X, AlertCircle, Building2, Filter, RefreshCw, ArrowUpDown,
+  GraduationCap, Check,
+  Compass, FileSpreadsheet, CheckCheck
 } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
@@ -592,6 +592,42 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
       showToast("Gagal menghubungi server.", "error");
     } finally {
       setIsProcessingImport(false);
+    }
+  };
+
+  // === EKSEKUSI SIMPAN PENUGASAN TUNGGAL (MODAL) ===
+  const handleSaveAssignment = async () => {
+    if (!selectedSiswa) return;
+    setIsSavingSettings(true);
+    const token = getToken();
+    try {
+      const payload = {
+        updates: [{
+          nis: selectedSiswa.nis,
+          location_id: selectedSiswa.perusahaanId ? Number(selectedSiswa.perusahaanId) : null,
+          teacher_code: selectedSiswa.guruPembimbingCode || null
+        }]
+      };
+      const res = await fetch("/api/monitoring/pkl-students/bulk", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        showToast(`Penugasan PKL untuk ${selectedSiswa.nama || 'siswa'} berhasil disimpan!`);
+        setSelectedSiswa(null);
+        fetchPKLData();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast("Gagal menyimpan penugasan: " + (data.error || "Terjadi kesalahan"), "error");
+      }
+    } catch (e) {
+      showToast("Gagal menghubungi server.", "error");
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 

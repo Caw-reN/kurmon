@@ -3,10 +3,11 @@ import {
   Shield, Users, UserCog, Search, ChevronDown, ChevronRight, Edit2, 
   Building2, AlertCircle, Sparkles, UserPlus, 
   RotateCcw, Info, BookOpen, GraduationCap, 
-  HeartHandshake, Landmark, ShieldCheck
+  HeartHandshake, Landmark, ShieldCheck, Key, History
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button, UISelect, Modal } from '../../../components/ui.jsx';
+import { normalizeUserRole } from '../../../utils/constants.js';
 
 // ─── DEFINISI ORGANOGRAM STRUKTUR SEKOLAH ──────────────────────────────────────
 const ORGANOGRAM = [
@@ -164,6 +165,8 @@ function getCurrentPositionValue(person, classes = []) {
     return subrole || 'tu';
   }
   if (role === 'waka') return `waka_${division || 'kurikulum'}`;
+  if (role.startsWith('custom_')) return role;
+  if (subrole && subrole.startsWith('custom_')) return subrole;
   if (subrole) return subrole;
 
   const code = String(person.code || person.id || '').trim();
@@ -178,7 +181,6 @@ function getCurrentPositionValue(person, classes = []) {
 
   if (role === 'guru') return subrole || 'guru';
   if (role === 'karyawan') return subrole || 'karyawan';
-  if (role.startsWith('custom_')) return role;
   if (person._source === 'staff') {
     if (division.includes('tata usaha') || division.includes('tu') || division.includes('bendahara')) {
       return 'tu';
@@ -392,7 +394,9 @@ export default function ManajemenRole(props) {
     currentUser,
     adminUser,
     syncAuthSnapshotNow,
-    rolePermissions
+    rolePermissions,
+    activeTab,
+    setActiveTab
   } = props;
 
   const [activeView, setActiveView] = useState('organogram'); // 'organogram' | 'assignment'
@@ -548,11 +552,11 @@ export default function ManajemenRole(props) {
       subrole: selectedOpt.subrole
     };
 
-    if (targetPerson._source === 'staff' && selectedPosition.startsWith('custom_')) {
+    if (selectedPosition.startsWith('custom_')) {
       changes = {
         role: selectedPosition,
         division: '',
-        subrole: ''
+        subrole: selectedPosition
       };
     }
 
@@ -641,12 +645,17 @@ export default function ManajemenRole(props) {
     }
   };
 
-  if (!isSuperAdminRole(currentUser?.role)) {
+  const activeRole = normalizeUserRole(currentUser?.role);
+  const isSuper = (typeof isSuperAdminRole === 'function' ? isSuperAdminRole(activeRole) : activeRole === 'admin') || activeRole === 'admin' || activeRole === 'superadmin';
+  const rolePerm = rolePermissions?.[activeRole]?.manajemen_role;
+  const isAllowed = isSuper || (rolePerm && rolePerm !== 'none' && rolePerm !== 'nonaktif');
+
+  if (!isAllowed) {
     return (
       <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-10 text-center max-w-md mx-auto mt-10 shadow-sm">
         <AlertCircle size={40} className="mx-auto text-slate-300 mb-3" />
-        <h3 className="text-base font-black text-slate-700">Akses SuperAdmin Diperlukan</h3>
-        <p className="text-sm text-slate-400 mt-1">Halaman ini hanya dapat diakses oleh SuperAdmin.</p>
+        <h3 className="text-base font-black text-slate-700">Akses Terbatas</h3>
+        <p className="text-sm text-slate-400 mt-1">Halaman Struktur & Jabatan hanya dapat diakses oleh Administrator atau akun yang diberikan izin.</p>
       </div>
     );
   }
@@ -661,12 +670,17 @@ export default function ManajemenRole(props) {
         title="Struktur & Jabatan Staf"
         description="Kelola susunan hierarki organisasi sekolah, tunjuk Waka, Tim Kurikulum, Kesiswaan, Tata Usaha, dan pembagian tugas staf."
         icon={Shield}
-        tabs={[
+        tabs={setActiveTab ? [
+          { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
+          { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+          { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+        ] : [
           { id: 'organogram', label: 'Bagan Struktur Sekolah', icon: Building2 },
           { id: 'assignment', label: 'Daftar Penugasan Jabatan', icon: UserCog },
         ]}
-        activeTab={activeView}
-        onTabChange={setActiveView}
+        activeTab={setActiveTab ? (activeTab || "manajemen_role") : activeView}
+        onTabChange={setActiveTab || setActiveView}
         customButtons={
           <Button
             type="button"
@@ -677,6 +691,36 @@ export default function ManajemenRole(props) {
           </Button>
         }
       />
+
+      {/* Sub-view Switcher Toggle */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex p-1 bg-slate-100/90 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveView('organogram')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
+              activeView === 'organogram'
+                ? 'bg-white text-slate-800 shadow-xs border border-slate-200/70'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
+            }`}
+          >
+            <Building2 size={14} />
+            <span>Bagan Struktur Sekolah</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveView('assignment')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all cursor-pointer ${
+              activeView === 'assignment'
+                ? 'bg-white text-slate-800 shadow-xs border border-slate-200/70'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
+            }`}
+          >
+            <UserCog size={14} />
+            <span>Daftar Penugasan Jabatan</span>
+          </button>
+        </div>
+      </div>
 
       {/* Guide Banner */}
       <div className="p-4 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">

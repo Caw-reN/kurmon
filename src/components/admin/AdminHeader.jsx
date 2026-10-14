@@ -7,9 +7,8 @@ import { Clock, MessageSquare,
   MonitorSmartphone, UserCog, User, HardDrive,
   HelpCircle, Menu, Bell, LogOut, PanelLeftClose, PanelLeftOpen
 } from'lucide-react';
-import { useAppStore } from'../../store/useAppStore.js';
-;
-import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification } from'../../utils/pushUtils.js';
+import { useAppStore } from '../../store/useAppStore.js';
+import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
 
 
 const GuidePortalButton = ({ onClick }) => {
@@ -180,6 +179,9 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
     return typeof window !=="undefined" &&"Notification" in window ? Notification.permission :"unsupported";
   });
 
+  const [isTestingPush, setIsTestingPush] = useState(false);
+  const [testFeedback, setTestFeedback] = useState(null);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     if (!showNotifDropdown) return;
@@ -195,28 +197,67 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNotifDropdown]);
 
+  // Cek apakah permission sudah granted saat dropdown dibuka
+  useEffect(() => {
+    if (showNotifDropdown && typeof window !== "undefined" && "Notification" in window) {
+      setNotifPermission(Notification.permission);
+      if (Notification.permission === "granted") {
+        checkPushSubscription().then(isSub => {
+          if (!isSub) {
+            requestPushPermissionAndSubscribe().catch(() => {});
+          }
+        });
+      }
+    }
+  }, [showNotifDropdown]);
+
   const requestPushPermission = async () => {
-    if (typeof window ==="undefined" || !("Notification" in window)) return;
+    if (typeof window === "undefined" || !("Notification" in window)) return;
     try {
-      if (notifPermission ==="granted") {
+      if (notifPermission === "granted") {
         const isSubscribed = await checkPushSubscription();
         if (!isSubscribed) {
           await requestPushPermissionAndSubscribe();
-          await testPushNotification();
-        } else {
-          await testPushNotification();
         }
+        await handleTestGenericPush();
         return;
       }
 
       await requestPushPermissionAndSubscribe();
       setNotifPermission("granted");
-      await testPushNotification();
+      await handleTestGenericPush();
     } catch (err) {
       console.error("Error requesting notification permission:", err);
-      if (err.message.includes('ditolak')) {
+      if (err.message && err.message.includes('ditolak')) {
         setNotifPermission("denied");
       }
+      setTestFeedback({ ok: false, message: err.message || 'Gagal mengaktifkan notifikasi.' });
+    }
+  };
+
+  const handleTestGenericPush = async () => {
+    setIsTestingPush(true);
+    setTestFeedback(null);
+    try {
+      const res = await testPushNotification();
+      setTestFeedback({ ok: res.ok, message: res.message || 'Notifikasi test terkirim!' });
+    } catch (e) {
+      setTestFeedback({ ok: false, message: e.message || 'Gagal mengirim notifikasi test.' });
+    } finally {
+      setIsTestingPush(false);
+    }
+  };
+
+  const handleTestSchedulePush = async () => {
+    setIsTestingPush(true);
+    setTestFeedback(null);
+    try {
+      const res = await testScheduleReminderNotification();
+      setTestFeedback({ ok: res.ok, message: res.message || 'Pengingat jadwal berhasil dikirim ke HP!' });
+    } catch (e) {
+      setTestFeedback({ ok: false, message: e.message || 'Gagal mengirim pengingat jadwal.' });
+    } finally {
+      setIsTestingPush(false);
     }
   };
 
@@ -342,22 +383,85 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                 </button>
               </div>
 
-              {/* Realtime Notification Consent Prompt */}
-              {notifPermission ==="default" && (
+              {/* Realtime Notification Status / Prompt */}
+              {notifPermission === "granted" && (
+                <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-2 shrink-0">
+                  <div className="flex items-start gap-2.5">
+                    <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                      <CheckCircle2 size={14} />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[11px] font-black text-emerald-950 leading-tight">Push Notifikasi HP Aktif</span>
+                      </div>
+                      <span className="text-[9.5px] font-semibold text-emerald-800/80 mt-0.5 leading-snug">
+                        Pengingat jam mengajar otomatis akan masuk ke HP Anda saat waktu KBM tiba.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <button
+                      type="button"
+                      disabled={isTestingPush}
+                      onClick={handleTestGenericPush}
+                      className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-[var(--ui-radius-small)] text-emerald-900 text-[10px] font-bold transition-all shadow-2xs active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      {isTestingPush ? 'Mengirim...' : 'Tes Notif HP'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isTestingPush}
+                      onClick={handleTestSchedulePush}
+                      className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] text-[10px] font-black transition-all shadow-2xs active:scale-95 cursor-pointer disabled:opacity-50"
+                    >
+                      {isTestingPush ? 'Mengirim...' : 'Uji Pengingat Jadwal'}
+                    </button>
+                  </div>
+
+                  {testFeedback && (
+                    <div className={`text-[9.5px] font-bold px-2 py-1 rounded ${testFeedback.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-800'}`}>
+                      {testFeedback.message}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {notifPermission === "default" && (
                 <div className="bg-primary/10 border border-primary/20 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-2 shrink-0">
                   <div className="flex items-start gap-2.5">
                     <Bell className="text-primary w-4 h-4 shrink-0 mt-0.5" />
                     <div className="flex flex-col">
                       <span className="text-[11px] font-black text-slate-800 leading-tight">Aktifkan Notifikasi Realtime</span>
-                      <span className="text-[9.5px] font-semibold text-slate-500 mt-0.5 leading-tight">Terima info absensi &amp; piket langsung di layar Anda secara instan.</span>
+                      <span className="text-[9.5px] font-semibold text-slate-500 mt-0.5 leading-tight">Terima pengingat jadwal mengajar &amp; info absensi langsung di HP Anda.</span>
                     </div>
                   </div>
                   <button
                     onClick={requestPushPermission}
                     className="w-full py-1.5 text-white font-bold text-[10px] rounded-[var(--ui-radius-small)] active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5"
-                    style={{ backgroundColor: appSettings?.primaryColor ||"var(--ui-primary)" }}
+                    style={{ backgroundColor: appSettings?.primaryColor || "var(--ui-primary)" }}
                   >
                     <span>Izinkan Sekarang</span>
+                  </button>
+                </div>
+              )}
+
+              {notifPermission === "denied" && (
+                <div className="bg-amber-50/80 border border-amber-200 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
+                    <Bell size={13} className="text-amber-600 shrink-0" />
+                    <span>Izin Notifikasi Diblokir Browser</span>
+                  </div>
+                  <span className="text-[9.5px] text-amber-800 leading-snug">
+                    Klik ikon gembok di sebelah kiri alamat web browser, ubah Notifikasi menjadi Izinkan (Allow), lalu klik tombol di bawah.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={requestPushPermission}
+                    className="mt-1 w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none"
+                  >
+                    Coba Aktifkan Ulang
                   </button>
                 </div>
               )}

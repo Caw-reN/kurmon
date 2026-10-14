@@ -261,6 +261,7 @@ export default function SuperAdminAttendanceOverrideModal({ isOpen, onClose, onS
                 <option value="Izin">Izin</option>
                 <option value="Sakit">Sakit</option>
                 <option value="PraPKL">PraPKL</option>
+                <option value="PKL">PKL (Sedang PKL / Magang)</option>
                 <option value="Dinas Luar">Dinas Luar</option>
                 <option value="Alpa">Alpa</option>
               </select>

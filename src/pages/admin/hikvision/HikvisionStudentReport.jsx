@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -192,8 +192,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     let initialUrl = null;
     let initialId = null;
 
-    if (pd && (["Sakit", "Izin", "Alpa", "Terlambat", "PraPKL"].includes(pd.status) || String(pd.status || '').startsWith("PKL"))) {
+    if (pd && (["Sakit", "Izin", "Alpa", "Terlambat", "PraPKL", "Hadir"].includes(pd.status) || String(pd.status || '').startsWith("PKL"))) {
         initialStatus = pd.status;
+        initialKet = pd.keterangan || pd.note || "";
+        initialUrl = pd.gdrive_url || null;
+        initialId = pd.id || null;
+    } else if (pd && (pd.in || pd.out)) {
+        initialStatus = pd.isLate ? "Terlambat" : "Hadir";
         initialKet = pd.keterangan || pd.note || "";
         initialUrl = pd.gdrive_url || null;
         initialId = pd.id || null;
@@ -310,48 +315,115 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   };
 
   const getCellStyle = (dayData) => {
-    const status = dayData.status || (dayData.isLate ?"Terlambat" : (dayData.in || dayData.out ?"Hadir" :""));
+    const rawNote = String(dayData.note || dayData.keterangan || '').trim();
+    const isInternalNote = rawNote.startsWith("Dari mesin") || rawNote.startsWith("Mesin [IP") || rawNote.startsWith("Alpa Otomatis");
+    const cleanNote = !isInternalNote ? rawNote : '';
+    const noteLower = cleanNote.toLowerCase();
+
+    const isMesinError = noteLower.includes('mesin error') || 
+      noteLower.includes('tidak terbaca') || 
+      noteLower.includes('mesin rusak') || 
+      noteLower.includes('alat error') || 
+      noteLower.includes('mesin offline') ||
+      noteLower.includes('mati listrik');
+
+    const isLupaAbsen = noteLower.includes('lupa absen') || 
+      noteLower.includes('lupa tap') || 
+      noteLower.includes('lupa bawa') || 
+      noteLower.includes('ketinggalan kartu') || 
+      (noteLower.includes('lupa') && !isMesinError);
+
+    const isDispensasi = noteLower.includes('dispensasi') || 
+      noteLower.includes('tugas sekolah') || 
+      noteLower.includes('dinas luar') ||
+      noteLower.includes('lomba');
+
+    const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
     
     if (status === "Mutasi" || dayData.isMutasi) {
       return {
         className: "bg-slate-100 text-slate-500 font-bold border border-slate-200/80",
-        style: { color: "#64748b" }
+        style: { color: "#64748b" },
+        noteText: cleanNote
       };
     }
+
+    // ⚡ Catatan Khusus: Mesin Error / Tidak Terbaca (Warna Biru Langit / Sky Modern)
+    if (isMesinError) {
+      return {
+        className: "bg-sky-50 text-sky-950 font-black border-2 border-sky-400 shadow-xs",
+        style: { color: "#0369a1" },
+        isMesinError: true,
+        noteText: cleanNote
+      };
+    }
+
+    // ⚠️ Catatan Khusus: Lupa Absen / Lupa Tap (Warna Amber / Oranye Modern)
+    if (isLupaAbsen) {
+      return {
+        className: "bg-amber-100/90 text-amber-950 font-black border-2 border-amber-400 shadow-xs",
+        style: { color: "#92400e" },
+        isLupaAbsen: true,
+        noteText: cleanNote
+      };
+    }
+
+    // 🏆 Catatan Khusus: Dispensasi (Warna Teal Modern)
+    if (isDispensasi) {
+      return {
+        className: "bg-teal-50 text-teal-950 font-black border-2 border-teal-400 shadow-xs",
+        style: { color: "#115e59" },
+        isDispensasi: true,
+        noteText: cleanNote
+      };
+    }
+
     if (status === "PKL" || String(status || '').startsWith("PKL") || dayData.isPkl) {
       return {
         className: "bg-indigo-100 text-indigo-900 font-black border border-indigo-200",
-        style: { color: "#3730a3" }
+        style: { color: "#3730a3" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     if (status === "PraPKL" || status === "Pra-PKL" || status === "Pra PKL") {
       return {
         className: "bg-teal-100 text-teal-900 font-black border border-teal-200",
-        style: { color: "#134e4a" }
+        style: { color: "#134e4a" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     if (status ==="Alpa") {
       return {
         className:"bg-slate-950 text-white font-bold",
-        style: { color:"#ffffff" }
+        style: { color:"#ffffff" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     if (status ==="Sakit") {
       return {
         className:"bg-amber-100 text-amber-800 font-bold",
-        style: { color:"#92400e" }
+        style: { color:"#92400e" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     if (status ==="Izin") {
       return {
         className:"bg-indigo-100 text-indigo-800 font-bold",
-        style: { color:"#1e40af" }
+        style: { color:"#1e40af" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     if (status ==="Terlambat" || dayData.isLate) {
       return {
         className:"bg-rose-100 text-rose-800 font-bold",
-        style: { color:"#b91c1c" }
+        style: { color:"#b91c1c" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     const inTime = formatAttendanceTime(dayData.in);
@@ -359,12 +431,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     if (!inTime && Boolean(outTime)) {
       return {
         className: "bg-amber-50/90 text-amber-950 font-bold border border-amber-300 shadow-2xs",
-        style: { color: "#78350f" }
+        style: { color: "#78350f" },
+        hasCustomNote: Boolean(cleanNote),
+        noteText: cleanNote
       };
     }
     return {
-      className:"bg-emerald-100 text-emerald-800 font-bold",
-      style: { color:"#166534" }
+      className: `bg-emerald-100 text-emerald-800 font-bold ${cleanNote ? 'ring-1 ring-emerald-400' : ''}`,
+      style: { color: "#166534" },
+      hasCustomNote: Boolean(cleanNote),
+      noteText: cleanNote
     };
   };
 
@@ -2207,6 +2283,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span> Tdk Absen Pagi</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> ⚡ Mesin Error</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> ⚠️ Lupa Absen</span>
+              <span className="flex items-center gap-1.5 text-indigo-700 font-extrabold"><FileText size={11} className="inline shrink-0" /> Catatan Khusus</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span> PraPKL</span>
@@ -2319,38 +2398,71 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               {dayData?.pending_permission && (
                                  <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
                               )}
-                               <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] ${cellColors.className}`} style={cellColors.style}>
-                                  {["Sakit","Izin","Alpa","Mutasi","PraPKL"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
-                                    <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
-                                      <span className="font-extrabold">{dayData.status === "Mutasi" ? "MUTASI" : dayData.status === "PraPKL" ? "PraPKL" : dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
-                                    </div>
-                                  ) : (() => {
-                                     const inTime = formatAttendanceTime(dayData.in);
-                                     const outTime = formatAttendanceTime(dayData.out);
-                                     const rawNote = dayData.note || '';
-                                     const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
-                                     const isMissingIn = !inTime && Boolean(outTime);
+                                <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] relative ${cellColors.className}`} style={cellColors.style}>
+                                   {Boolean(cellColors.noteText) && !cellColors.isMesinError && !cellColors.isLupaAbsen && !cellColors.isDispensasi && (
+                                     <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-2xs" title={`Catatan: ${cellColors.noteText}`} />
+                                   )}
+                                   {["Sakit","Izin","Alpa","Mutasi","PraPKL"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
+                                     <div className="py-1 flex flex-col items-center justify-center min-h-[32px]">
+                                       {cellColors.isMesinError && (
+                                         <span className="mb-0.5 inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight">
+                                           <Zap size={7} className="text-sky-700" /> Mesin
+                                         </span>
+                                       )}
+                                       {cellColors.isLupaAbsen && (
+                                         <span className="mb-0.5 inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight">
+                                           <AlertCircle size={7} className="text-amber-800" /> Lupa
+                                         </span>
+                                       )}
+                                       <span className="font-extrabold">{dayData.status === "Mutasi" ? "MUTASI" : dayData.status === "PraPKL" ? "PraPKL" : dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
+                                     </div>
+                                   ) : (() => {
+                                      const inTime = formatAttendanceTime(dayData.in);
+                                      const outTime = formatAttendanceTime(dayData.out);
+                                      const noteText = cellColors.noteText || '';
+                                      const isMissingIn = !inTime && Boolean(outTime);
 
-                                     const titleAttr = isMissingIn 
-                                       ? (noteText ? `Catatan: ${noteText} (Tidak Absen Pagi - Hanya Pulang: ${outTime})` : `Tidak Absen Pagi (Hanya Tap Pulang: ${outTime})`)
-                                       : (noteText ? `Catatan: ${noteText}` : undefined);
+                                      const titleSegments = [];
+                                      if (cellColors.isMesinError) titleSegments.push("⚡ Mesin Error / Tidak Terbaca");
+                                      if (cellColors.isLupaAbsen) titleSegments.push("⚠️ Lupa Absen / Lupa Tap");
+                                      if (cellColors.isDispensasi) titleSegments.push("🏆 Dispensasi");
+                                      if (noteText) titleSegments.push(`Catatan: ${noteText}`);
+                                      if (isMissingIn) titleSegments.push(`Tidak Absen Pagi (Hanya Pulang: ${outTime})`);
+                                      const titleAttr = titleSegments.length > 0 ? titleSegments.join(" | ") : undefined;
 
-                                     return (
-                                       <div title={titleAttr}>
-                                         {isMissingIn ? (
-                                           <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
-                                             <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
-                                             <span className="tracking-tight">Tdk Absen</span>
-                                           </div>
-                                         ) : (
-                                           <div>{inTime || '--:--'}</div>
-                                         )}
-                                         <div className="border-t border-black/10 my-0.5"></div>
-                                         <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
-                                       </div>
-                                     );
-                                   })()}
-                               </div>
+                                      return (
+                                        <div title={titleAttr}>
+                                          {cellColors.isMesinError && (
+                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
+                                              <Zap size={7} className="shrink-0 text-sky-700" />
+                                              <span>Mesin Err</span>
+                                            </div>
+                                          )}
+                                          {cellColors.isLupaAbsen && (
+                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
+                                              <AlertCircle size={7} className="shrink-0 text-amber-800" />
+                                              <span>Lupa Tap</span>
+                                            </div>
+                                          )}
+                                          {cellColors.isDispensasi && (
+                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-teal-200/90 text-teal-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
+                                              <span>Dispen</span>
+                                            </div>
+                                          )}
+                                          {isMissingIn ? (
+                                            <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
+                                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
+                                              <span className="tracking-tight">Tdk Absen</span>
+                                            </div>
+                                          ) : (
+                                            <div>{inTime || '--:--'}</div>
+                                          )}
+                                          <div className="border-t border-black/10 my-0.5"></div>
+                                          <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
+                                        </div>
+                                      );
+                                    })()}
+                                </div>
                             </td>
                          );
                       })}
@@ -2524,15 +2636,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                    onChange={(e) => setPermissionForm({ ...permissionForm, status: e.target.value })}
                    className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-black focus:outline-[var(--ui-primary)]"
                  >
+                   <option value="Hadir">Hadir (Tepat Waktu / Hadir di Kelas)</option>
                    <option value="Sakit">Sakit</option>
                    <option value="Izin">Izin</option>
                    <option value="PraPKL">PraPKL</option>
+                   <option value="PKL">PKL (Sedang PKL / Magang)</option>
                    <option value="Terlambat">Terlambat (Tetap Masuk)</option>
                    <option value="Alpa">Alpa (Tanpa Keterangan)</option>
                  </UISelect>
                </div>
 
-               {["Sakit","Izin","Terlambat","PraPKL"].includes(permissionForm.status) && (
+               {["Sakit","Izin","Terlambat","PraPKL","PKL"].includes(permissionForm.status) && (
                  <div>
                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
                      Upload Surat / Bukti (Gambar)
@@ -2562,17 +2676,78 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                  </div>
                )}
 
-               <div>
-                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Keterangan / Alasan</label>
-                 <textarea
-                   required
-                   rows={3}
-                   value={permissionForm.keterangan}
-                   onChange={(e) => setPermissionForm({ ...permissionForm, keterangan: e.target.value })}
-                   placeholder="Tulis alasan ketidakhadiran siswa di sini..."
-                   className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)]"
-                 />
-               </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Keterangan / Catatan Absen</label>
+                    <span className="text-[9px] text-slate-400 font-bold">Pilih Cepat Catatan:</span>
+                  </div>
+
+                  {/* Preset Quick Note Chips */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setPermissionForm(prev => ({ 
+                        ...prev, 
+                        keterangan: "Mesin error / tidak terbaca", 
+                        status: prev.status === "Alpa" || !prev.status ? "Hadir" : prev.status 
+                      }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-sky-50 text-sky-800 border border-sky-300 hover:bg-sky-100 hover:border-sky-400 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                    >
+                      <Zap size={10} className="text-sky-600" /> Mesin Error
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPermissionForm(prev => ({ 
+                        ...prev, 
+                        keterangan: "Lupa absen / lupa tap", 
+                        status: prev.status === "Alpa" || !prev.status ? "Hadir" : prev.status 
+                      }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 hover:border-amber-400 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
+                    >
+                      <AlertCircle size={10} className="text-amber-600" /> Lupa Absen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPermissionForm(prev => ({ 
+                        ...prev, 
+                        keterangan: "Kartu tertinggal / rusak", 
+                        status: prev.status === "Alpa" || !prev.status ? "Hadir" : prev.status 
+                      }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 hover:border-purple-400 transition-all shadow-2xs cursor-pointer"
+                    >
+                      🪪 Kartu Tertinggal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPermissionForm(prev => ({ 
+                        ...prev, 
+                        keterangan: "Dispensasi sekolah / tugas", 
+                        status: prev.status === "Alpa" || !prev.status ? "Izin" : prev.status 
+                      }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 hover:border-teal-400 transition-all shadow-2xs cursor-pointer"
+                    >
+                      🏆 Dispensasi
+                    </button>
+                    {permissionForm.keterangan && (
+                      <button
+                        type="button"
+                        onClick={() => setPermissionForm(prev => ({ ...prev, keterangan: "" }))}
+                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+                      >
+                        ✕ Kosongkan
+                      </button>
+                    )}
+                  </div>
+
+                  <textarea
+                    required
+                    rows={3}
+                    value={permissionForm.keterangan}
+                    onChange={(e) => setPermissionForm({ ...permissionForm, keterangan: e.target.value })}
+                    placeholder="Tulis catatan (misal: Mesin error tidak terbaca, siswa hadir di kelas)..."
+                    className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)]"
+                  />
+                </div>
 
                 <div className="text-[9px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-[var(--ui-radius-small)] border border-amber-100 leading-normal flex items-start gap-1.5">
                   <AlertTriangle size={13} className="shrink-0 text-amber-600 mt-0.5" />

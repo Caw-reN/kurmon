@@ -905,38 +905,6 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     }
   };
 
-  const handleManualSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.teacherCode) return showToast("Pilih guru terlebih dahulu!","warning");
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/hikvision/manual-attendance", {
-        method:"POST",
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
-        },
-        body: JSON.stringify(form)
-      });
-      const json = await res.json();
-      if (json.ok) {
-        showToast(`Berhasil menyimpan status ${form.status} untuk guru!`);
-        setIsModalOpen(false);
-        setForm({
-          teacherCode:"",
-          date: new Date().toISOString().split('T')[0],
-          status:"Izin",
-          note:""
-        });
-        fetchData();
-      } else {
-        showToast(json.error ||"Gagal menyimpan absensi manual","error");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("Kesalahan jaringan.","error");
-    }
-    setSubmitting(false);
-  };
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 

@@ -187,30 +187,27 @@ export default function TabPengaturanUser(props) {
     let success = false;
     let targetName = "";
 
-    if (request.role === "guru" || request.role === "waka" || request.role === "kepsek") {
-      const targetTeacher = teachers.find(t => sameText(t.code, request.username) || sameText(t.name, request.username));
-      if (targetTeacher) {
-        targetName = targetTeacher.name;
-        const nextTeachers = teachers.map(t => sameText(t.code, targetTeacher.code) ? { ...t, password: nextPasswordHash } : t);
-        if (setTeachers) setTeachers(nextTeachers);
-        const nextRequests = passwordResetRequests.map(r => r.id === request.id ? { ...r, status: "approved" } : r);
-        updatePasswordResetRequest(request.id, { status: "approved" });
-        await saveDatabaseNow({ teachers: nextTeachers, passwordResetRequests: nextRequests }, "reset password user");
-        if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, nextTeachers, "sinkronisasi reset password");
-        success = true;
-      }
-    } else if (request.role === "karyawan") {
-      const targetStaff = (staffs || []).find(s => sameText(s.code, request.username) || sameText(s.staff_code, request.username) || sameText(s.name, request.username));
-      if (targetStaff) {
-        targetName = targetStaff.name;
-        const nextStaffs = (staffs || []).map(s => (sameText(s.code, targetStaff.code) || sameText(s.staff_code, targetStaff.staff_code)) ? { ...s, password: nextPasswordHash } : s);
-        if (setStaffs) setStaffs(nextStaffs);
-        const nextRequests = passwordResetRequests.map(r => r.id === request.id ? { ...r, status: "approved" } : r);
-        updatePasswordResetRequest(request.id, { status: "approved" });
-        await saveDatabaseNow({ staffs: nextStaffs, passwordResetRequests: nextRequests }, "reset password karyawan");
-        if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, teachers, nextStaffs, "sinkronisasi reset password karyawan");
-        success = true;
-      }
+    const targetTeacher = teachers.find(t => sameText(t.code, request.username) || sameText(t.name, request.username));
+    const targetStaff = (staffs || []).find(s => sameText(s.code, request.username) || sameText(s.staff_code, request.username) || sameText(s.name, request.username));
+
+    if (targetTeacher) {
+      targetName = targetTeacher.name;
+      const nextTeachers = teachers.map(t => sameText(t.code, targetTeacher.code) ? { ...t, password: nextPasswordHash } : t);
+      if (setTeachers) setTeachers(nextTeachers);
+      const nextRequests = passwordResetRequests.map(r => r.id === request.id ? { ...r, status: "approved" } : r);
+      updatePasswordResetRequest(request.id, { status: "approved" });
+      await saveDatabaseNow({ teachers: nextTeachers, passwordResetRequests: nextRequests }, "reset password user");
+      if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, nextTeachers, staffs || [], "sinkronisasi reset password");
+      success = true;
+    } else if (targetStaff) {
+      targetName = targetStaff.name;
+      const nextStaffs = (staffs || []).map(s => (sameText(s.code, targetStaff.code) || sameText(s.staff_code, targetStaff.staff_code)) ? { ...s, password: nextPasswordHash } : s);
+      if (setStaffs) setStaffs(nextStaffs);
+      const nextRequests = passwordResetRequests.map(r => r.id === request.id ? { ...r, status: "approved" } : r);
+      updatePasswordResetRequest(request.id, { status: "approved" });
+      await saveDatabaseNow({ staffs: nextStaffs, passwordResetRequests: nextRequests }, "reset password karyawan");
+      if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, teachers || [], nextStaffs, "sinkronisasi reset password karyawan");
+      success = true;
     }
 
     if (success) {
@@ -305,6 +302,7 @@ export default function TabPengaturanUser(props) {
         icon={Users}
         tabs={[
           { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
           { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
           { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
         ]}
@@ -583,7 +581,8 @@ export default function TabPengaturanUser(props) {
                 filteredUsers.map((user, idx) => {
                   const isCurrentSession = currentUser?.code && sameText(currentUser.code, user.code);
                   const isStaff = user._source === 'staffs';
-                  const roleLabel = getRoleKeyLabel(user.subrole || user.role);
+                  const roleKeyForLabel = user.subrole || (user.role === 'waka' && user.division ? `waka_${user.division}` : user.role);
+                  const roleLabel = getRoleKeyLabel(roleKeyForLabel);
 
                   return (
                     <tr key={`${user._source}_${user.code}`} className="hover:bg-slate-50/70 transition-colors">
@@ -631,9 +630,6 @@ export default function TabPengaturanUser(props) {
                         }`}>
                           <Shield size={10} />
                           <span>{roleLabel.label || user.role}</span>
-                          {user.division && user.role === 'waka' && (
-                            <span className="text-[9px] font-normal opacity-80">({user.division})</span>
-                          )}
                         </span>
                       </td>
 

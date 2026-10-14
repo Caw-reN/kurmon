@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { getRoleKeyLabel } from '../../../utils/constants.js';
+import { DEFAULT_ROLE_PERMISSIONS } from '../../../store/useAppStore.js';
 
 // ─── METADATA MODUL & MENU APLIKASI ──────────────────────────────────────────
 const ALL_TABS_METADATA = {
@@ -167,19 +168,17 @@ export default function TabHakAkses(props) {
 
   // Sync state with selected role
   useEffect(() => {
-    if (rolePermissions && rolePermissions[selectedRoleKey]) {
-      const allowedTabs = rolePermissions[selectedRoleKey];
-      let normalized = {};
-      if (Array.isArray(allowedTabs)) {
-        allowedTabs.forEach(t => {
-          normalized[t] = 'edit';
-        });
-      } else {
-        normalized = { ...allowedTabs };
-      }
-      setLocalPermissions(normalized);
-      setIsModified(false);
+    const raw = rolePermissions?.[selectedRoleKey] || DEFAULT_ROLE_PERMISSIONS?.[selectedRoleKey] || {};
+    let normalized = {};
+    if (Array.isArray(raw)) {
+      raw.forEach(t => {
+        normalized[t] = 'edit';
+      });
+    } else {
+      normalized = { ...raw };
     }
+    setLocalPermissions(normalized);
+    setIsModified(false);
   }, [rolePermissions, selectedRoleKey]);
 
   const getRoleLabelExtended = (key) => {
@@ -247,14 +246,21 @@ export default function TabHakAkses(props) {
   const handleUpdateRole = async () => {
     if (!ensureDatabaseReadyForWrite('mengubah hak akses')) return;
     try {
+      const isCustom = selectedRoleKey.startsWith('custom_');
+      const preservedLabel = isCustom ? (rolePermissions?.[selectedRoleKey]?.__label || localPermissions.__label || selectedRoleKey.replace('custom_', '')) : undefined;
+      const cleanPermissions = { ...localPermissions };
+      if (preservedLabel) {
+        cleanPermissions.__label = preservedLabel;
+      }
+
       // Update store lokal
       await updateRolePermissions({
-        [selectedRoleKey]: localPermissions
+        [selectedRoleKey]: cleanPermissions
       });
       // Simpan ke database server agar persisten
       const nextRolePermissions = {
         ...(rolePermissions || {}),
-        [selectedRoleKey]: localPermissions
+        [selectedRoleKey]: cleanPermissions
       };
       await saveDatabaseNow({ rolePermissions: nextRolePermissions }, 'menyimpan hak akses role');
       // Sync auth snapshot agar user yang sedang login langsung merasakan perubahan
@@ -370,8 +376,9 @@ export default function TabHakAkses(props) {
 
     try {
       let templatePerms = {};
-      if (templateRoleKey && rolePermissions && rolePermissions[templateRoleKey]) {
-        templatePerms = { ...rolePermissions[templateRoleKey] };
+      const sourceTemplate = rolePermissions?.[templateRoleKey] || DEFAULT_ROLE_PERMISSIONS?.[templateRoleKey];
+      if (sourceTemplate) {
+        templatePerms = { ...sourceTemplate };
         // Hapus __label dari template agar tidak tercopy
         delete templatePerms.__label;
       }
@@ -413,6 +420,7 @@ export default function TabHakAkses(props) {
         icon={UserCog}
         tabs={[
           { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
           { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
           { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
         ]}
@@ -471,8 +479,9 @@ export default function TabHakAkses(props) {
                 <div className="space-y-1">
                   {grp.roles.map(r => {
                     const isSelected = selectedRoleKey === r.key;
-                    const count = typeof rolePermissions[r.key] === 'object' && rolePermissions[r.key] !== null
-                      ? Object.keys(rolePermissions[r.key]).filter(k => k !== '__label' && rolePermissions[r.key][k] && rolePermissions[r.key][k] !== 'nonaktif').length
+                    const rolePermObj = rolePermissions?.[r.key] || DEFAULT_ROLE_PERMISSIONS?.[r.key] || {};
+                    const count = typeof rolePermObj === 'object' && rolePermObj !== null
+                      ? Object.keys(rolePermObj).filter(k => k !== '__label' && rolePermObj[k] && rolePermObj[k] !== 'nonaktif').length
                       : 0;
 
                     return (

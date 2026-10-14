@@ -18,12 +18,10 @@ export async function autoLinkHikvisionStudents(dbPool) {
 
       const matched = students.find(s => {
         const sNis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
-        const sName = String(s.name || s.nama || '').trim().toLowerCase();
-        return (
-          (sNis && hNis && sNis === hNis) ||
-          (sName && hName && sName === hName) ||
-          (hNis && sNis && hNis.length >= 5 && sNis.length >= 5 && (sNis.endsWith(hNis) || hNis.endsWith(sNis)))
-        );
+        if (sNis && hNis && sNis === hNis) return true;
+        // Pemetaan 8 angka mesin ke 9 angka NIS resmi siswa (misal: 62710079 -> 262710079)
+        if (sNis && hNis && sNis.length === 9 && hNis.length === 8 && sNis.slice(1) === hNis) return true;
+        return false;
       });
 
       if (matched) {
@@ -641,10 +639,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const allNisList = studentsRes.rows.map(r => String(r.payload.nis || "").trim().toLowerCase());
         const nisSet = new Set(allNisList);
         
+        const nis8Map = new Map();
+        allNisList.forEach(nis => {
+          if (nis.length === 9) nis8Map.set(nis.slice(1), nis);
+        });
+
         const resolveNis = (machineId) => {
+           if (!machineId) return null;
            const mid = machineId.trim().toLowerCase();
            if (nisSet.has(mid)) return mid;
-           return allNisList.find(dbNis => dbNis.length >= 5 && mid.length >= 5 && (dbNis.endsWith(mid) || mid.endsWith(dbNis)));
+           if (nis8Map.has(mid)) return nis8Map.get(mid);
+           return null;
         };
 
         const allPulledNis = new Set();
@@ -2145,7 +2150,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 days: {}
             };
             employeeToNisMap[String(s.nis).toLowerCase()] = s.nis;
-            if (s.name) employeeToNisMap[String(s.name).trim().toLowerCase()] = s.nis;
+            if (s.nis && String(s.nis).length === 9) {
+              employeeToNisMap[String(s.nis).slice(1).toLowerCase()] = s.nis;
+            }
         });
 
         // Also include mutated students from siswa_keluar if not already in matrix
@@ -2170,7 +2177,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   days: {}
                 };
                 employeeToNisMap[String(mStud.nis).toLowerCase()] = mStud.nis;
-                if (mStud.nama) employeeToNisMap[String(mStud.nama).trim().toLowerCase()] = mStud.nis;
               }
             }
           });
@@ -2180,15 +2186,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const hikStudentsRes = await dbPool.query("SELECT nis, name FROM hikvision_students");
           hikStudentsRes.rows.forEach(h => {
             const hNis = String(h.nis || '').trim().toLowerCase();
-            const hName = String(h.name || '').trim().toLowerCase();
-            const matchedNis = Object.keys(matrix).find(mNis => {
-              const mStud = matrix[mNis];
-              const mName = String(mStud.name || '').trim().toLowerCase();
-              const mNisStr = String(mNis).trim().toLowerCase();
-              return (mName && hName && mName === hName) || mNisStr === hNis || (mNisStr.length >= 5 && hNis.length >= 5 && (mNisStr.endsWith(hNis) || hNis.endsWith(mNisStr)));
-            });
-            if (matchedNis) {
-              employeeToNisMap[hNis] = matchedNis;
+            if (!hNis) return;
+            if (matrix[hNis]) {
+              employeeToNisMap[hNis] = matrix[hNis].nis;
+            } else if (hNis.length === 8) {
+              const direct8 = Object.keys(matrix).find(mNis => mNis.length === 9 && mNis.slice(1).toLowerCase() === hNis);
+              if (direct8) {
+                employeeToNisMap[hNis] = direct8;
+              }
             }
           });
         } catch (e) {
@@ -2200,20 +2205,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         logsQuery.rows.forEach(log => {
             const rawEmpId = String(log.employee_id || '').trim().toLowerCase();
             let nis = employeeToNisMap[rawEmpId] || log.employee_id;
-            
-            // Dynamic fuzzy matching if exact map fails
-            if (!matrix[nis]) {
-               const fuzzyMatch = Object.keys(matrix).find(mNis => {
-                  const mNisStr = String(mNis).trim().toLowerCase();
-                  return mNisStr === rawEmpId || (mNisStr.length >= 5 && rawEmpId.length >= 5 && (mNisStr.endsWith(rawEmpId) || rawEmpId.endsWith(mNisStr)));
-               });
-               if (fuzzyMatch) {
-                   nis = fuzzyMatch;
-                   employeeToNisMap[rawEmpId] = fuzzyMatch; // Cache for next logs
+            if (!matrix[nis] && rawEmpId.length === 8) {
+               const direct8 = Object.keys(matrix).find(mNis => mNis.length === 9 && mNis.slice(1).toLowerCase() === rawEmpId);
+               if (direct8) {
+                   nis = direct8;
+                   employeeToNisMap[rawEmpId] = direct8;
                }
             }
-
-            // Skip processing for logs that do not belong to the queried group
             if (!matrix[nis]) return;
             
             // Resolve timing config dynamically based on true user type from our masters
@@ -2398,10 +2396,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
-                 const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
-                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL"].includes(status);
-                 const actualIn = prevDayData.in || parsedTime || (isPermit ? status : null);
-                 const actualOut = prevDayData.out || (isPermit ? status : null);
+                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL", "PKL"].includes(status) || String(status || '').startsWith("PKL");
+                 const actualIn = prevDayData.in || parsedTime || (isPermit ? status : (status === "Hadir" ? (prevDayData.in || "07:00") : null));
+                 const actualOut = prevDayData.out || (isPermit ? status : (status === "Hadir" ? (prevDayData.out || "15:30") : null));
 
                  const isOtomatis = rec.approval_status === 'otomatis' || (rec.pelapor_nama && String(rec.pelapor_nama).toLowerCase().includes('mesin'));
                  let finalIsLate = isLate;
@@ -2422,7 +2419,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                    isLate: finalIsLate,
                    isManual: !isOtomatis,
                    status: finalStatus,
-                   note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin:")) ? rec.keterangan : null,
+                   note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin [IP")) ? rec.keterangan : null,
                    gdrive_url: rec.gdrive_url,
                    id: rec.id,
                    approval_status: rec.approval_status
@@ -2449,10 +2446,18 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const eligiblePklClass = String(pklSettings.eligibleClass || "XII").toUpperCase();
 
         const pklPlacedRes = await dbPool.query(`
-          SELECT DISTINCT nis FROM pkl_students 
+          SELECT nis, start_date, end_date, status FROM pkl_students 
           WHERE location_id IS NOT NULL OR teacher_code IS NOT NULL
         `).catch(() => ({ rows: [] }));
-        const pklPlacedSet = new Set(pklPlacedRes.rows.map(r => String(r.nis).trim().toLowerCase()));
+        const pklPlacedMap = new Map();
+        pklPlacedRes.rows.forEach(r => {
+          pklPlacedMap.set(String(r.nis).trim().toLowerCase(), {
+            startDate: r.start_date ? new Date(r.start_date).toISOString().slice(0, 10) : null,
+            endDate: r.end_date ? new Date(r.end_date).toISOString().slice(0, 10) : null,
+            status: r.status
+          });
+        });
+        const pklPlacedSet = new Set(pklPlacedMap.keys());
 
         const pklLogbooksRes = await dbPool.query(`
           SELECT student_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as date_str, status, kegiatan as activity
@@ -2477,9 +2482,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
           const nisKey = String(item.nis || '').trim().toLowerCase();
           const canonKey = String(item.canon_nis || '').trim().toLowerCase();
-          const isPlacedInPkl = pklPlacedSet.has(nisKey) || pklPlacedSet.has(canonKey) || pklLogbookStudentsSet.has(nisKey) || pklLogbookStudentsSet.has(canonKey);
+          const pklInfo = pklPlacedMap.get(nisKey) || pklPlacedMap.get(canonKey);
+          const isPlacedInPkl = Boolean(pklInfo) || pklPlacedSet.has(nisKey) || pklPlacedSet.has(canonKey) || pklLogbookStudentsSet.has(nisKey) || pklLogbookStudentsSet.has(canonKey);
 
           const isPklStudent = isEligibleClass && (pklPlacedSet.size > 0 ? isPlacedInPkl : true);
+
+          // Cari tanggal hari pertama siswa mulai absen tap di sekolah pada bulan ini
+          let firstSchoolTapDay = null;
+          for (let d = 1; d <= daysInMonth; d++) {
+            const dData = item.days[d];
+            if (dData && (Array.isArray(dData.taps) && dData.taps.length > 0)) {
+              firstSchoolTapDay = d;
+              break;
+            }
+          }
 
           for (let day = 1; day <= daysInMonth; day++) {
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -2526,7 +2542,29 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
             // If no fingerprint record exists for this day:
             if (!hasRecord) {
+              // Tentukan apakah hari ini dalam masa PKL:
+              // 1. Jika ada tanggal mulai/selesai terdefinisi (di pkl_students atau pkl_settings)
+              // 2. ATAU jika siswa kembali masuk sekolah di hari berikutnya (firstSchoolTapDay), maka hari-hari aktif sebelumnya diakui sebagai masa PKL
+              // 3. ATAU jika peserta PKL tanpa tanggal akhir
+              let isDayInPkl = false;
               if (isPklStudent) {
+                const sDate = pklInfo?.startDate || pklSettings?.startDate;
+                const eDate = pklInfo?.endDate || pklSettings?.endDate;
+                if (pklSettings?.autoExemptFingerprint === false) {
+                  isDayInPkl = false;
+                } else if (sDate && dateStr < sDate) {
+                  isDayInPkl = false;
+                } else if (eDate && dateStr > eDate) {
+                  isDayInPkl = false;
+                } else if (!eDate && firstSchoolTapDay && day >= firstSchoolTapDay) {
+                  // Setelah siswa kembali ke sekolah dan mulai tap absensi, ketidakhadiran tanpa tap dianggap Alpa
+                  isDayInPkl = false;
+                } else {
+                  isDayInPkl = true;
+                }
+              }
+
+              if (isDayInPkl) {
                 const pklLogStatus = pklLogbookMap[`${item.nis}_${day}`] || pklLogbookMap[`${String(item.nis).trim()}_${day}`];
                 const finalPklStatus = pklLogStatus === 'approved' || pklLogStatus === 'Hadir' ? 'PKL (Hadir)' : (pklLogStatus || 'PKL');
                 item.days[day] = {

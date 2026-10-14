@@ -3,7 +3,7 @@ import useAuthStore from '../../store/monitoring/authStore.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
-import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock } from 'lucide-react';
+import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, AlertCircle } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import HikvisionStudentReport from '../admin/hikvision/HikvisionStudentReport.jsx';
@@ -809,9 +809,11 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status</label>
                   <UISelect value={form.status} onChange={e=>setForm({...form, status: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)]">
+                    <option value="Hadir">Hadir (Tepat Waktu / Hadir di Kelas)</option>
                     <option value="Sakit">Sakit</option>
                     <option value="Izin">Izin</option>
                     <option value="PraPKL">PraPKL</option>
+                    <option value="PKL">PKL</option>
                     <option value="Alpa">Alpa</option>
                   </UISelect>
                 </div>
@@ -840,7 +842,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 )}
              </div>
              
-             {["Sakit","Izin"].includes(form.status) && (
+             {["Sakit","Izin","PraPKL","PKL"].includes(form.status) && (
                <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Surat / Bukti (Gambar)</label>
                  <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">
@@ -872,10 +874,52 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                </div>
              )}
 
-             <div>
-               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Keterangan (Opsional)</label>
-               <textarea rows="2" value={form.keterangan} onChange={e=>setForm({...form, keterangan: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none" placeholder="Lampiran surat, nama wali, dll..."></textarea>
-             </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Catatan Absen</label>
+                  <span className="text-[10px] text-slate-400 font-bold">Pilih Cepat:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Mesin error / tidak terbaca", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
+                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-sky-50 text-sky-800 border border-sky-300 hover:bg-sky-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  >
+                    <Zap size={10} className="text-sky-600" /> Mesin Error
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Lupa absen / lupa tap", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
+                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                  >
+                    <AlertCircle size={10} className="text-amber-600" /> Lupa Absen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Kartu tertinggal / rusak", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
+                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all cursor-pointer shadow-2xs"
+                  >
+                    🪪 Kartu Tertinggal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Dispensasi sekolah / tugas", status: prev.status === "Alpa" ? "Izin" : prev.status }))}
+                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all cursor-pointer shadow-2xs"
+                  >
+                    🏆 Dispensasi
+                  </button>
+                  {form.keterangan && (
+                    <button
+                      type="button"
+                      onClick={() => setForm(prev => ({ ...prev, keterangan: "" }))}
+                      className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                    >
+                      ✕ Kosongkan
+                    </button>
+                  )}
+                </div>
+                <textarea rows="2" value={form.keterangan} onChange={e=>setForm({...form, keterangan: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none" placeholder="Catatan perizinan, mesin error, atau lupa tap..."></textarea>
+              </div>
              <div className="pt-4 flex justify-end gap-3 shrink-0 border-t border-slate-100 mt-2">
                <Button variant="outline" type="button" onClick={() => setShowFormModal(false)}>Batal</Button>
                <Button type="submit">Simpan Data</Button>
@@ -896,14 +940,16 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ubah Status</label>
                  <UISelect value={editForm.status} onChange={e=>setEditForm({...editForm, status: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-semibold focus:outline-none focus:border-[var(--ui-primary)]">
+                    <option value="Hadir">Hadir (Tepat Waktu / Hadir di Kelas)</option>
                    <option value="Sakit">Sakit</option>
                    <option value="Izin">Izin</option>
                    <option value="PraPKL">PraPKL</option>
+                   <option value="PKL">PKL</option>
                    <option value="Alpa">Alpa</option>
                  </UISelect>
                </div>
                
-               {["Sakit","Izin","PraPKL"].includes(editForm.status) && (
+               {["Sakit","Izin","PraPKL","PKL"].includes(editForm.status) && (
                  <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Upload Surat (Otomatis ke GDrive)</label>
                   <label className="flex items-center justify-center w-full px-3 py-4 border-2 border-dashed border-slate-300 rounded-[var(--ui-radius-small)] cursor-pointer hover:border-[var(--ui-primary)] hover:bg-slate-50 transition-all overflow-hidden relative">
@@ -935,10 +981,52 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                  </div>
                )}
 
-               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Keterangan Tambahan</label>
-                <textarea rows="2" value={editForm.keterangan} onChange={e=>setEditForm({...editForm, keterangan: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none" placeholder="Alasan update..."></textarea>
-               </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Catatan Absen</label>
+                    <span className="text-[10px] text-slate-400 font-bold">Pilih Cepat:</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Mesin error / tidak terbaca", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-sky-50 text-sky-800 border border-sky-300 hover:bg-sky-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                    >
+                      <Zap size={10} className="text-sky-600" /> Mesin Error
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Lupa absen / lupa tap", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                    >
+                      <AlertCircle size={10} className="text-amber-600" /> Lupa Absen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Kartu tertinggal / rusak", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all cursor-pointer shadow-2xs"
+                    >
+                      🪪 Kartu Tertinggal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Dispensasi sekolah / tugas", status: prev.status === "Alpa" ? "Izin" : prev.status }))}
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all cursor-pointer shadow-2xs"
+                    >
+                      🏆 Dispensasi
+                    </button>
+                    {editForm.keterangan && (
+                      <button
+                        type="button"
+                        onClick={() => setEditForm(prev => ({ ...prev, keterangan: "" }))}
+                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                      >
+                        ✕ Kosongkan
+                      </button>
+                    )}
+                  </div>
+                  <textarea rows="2" value={editForm.keterangan} onChange={e=>setEditForm({...editForm, keterangan: e.target.value})} className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-sm font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none" placeholder="Catatan perizinan, mesin error, atau lupa tap..."></textarea>
+                </div>
             </div>
             <div className="pt-4 flex justify-end gap-3 shrink-0 border-t border-slate-100 mt-2">
               <Button variant="outline" type="button" onClick={() => setEditForm(null)}>Batal</Button>

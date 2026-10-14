@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   MapPin, Camera, QrCode, PenLine, Save, Settings, 
   ShieldCheck, Info, RotateCcw, Clock, CheckCircle2, AlertCircle, 
-  Check, Sparkles, Navigation
+  Check, Sparkles, Navigation, CalendarRange, Calendar, CheckSquare
 } from 'lucide-react';
 import useAbsensiStore from '../../../store/monitoring/absensiStore';
 import { PageHeader, Toggle } from '../../../components/monitoring/ui/index.js';
@@ -55,6 +55,14 @@ const METODE_CONFIG = [
   },
 ];
 
+const PRESETS_PERIODE = [
+  { label: "3 Bulan (1 Jun - 31 Agu)", start: "2026-06-01", end: "2026-08-31", months: 3 },
+  { label: "3 Bulan (1 Jul - 30 Sep)", start: "2026-07-01", end: "2026-09-30", months: 3 },
+  { label: "4 Bulan (1 Jun - 30 Sep)", start: "2026-06-01", end: "2026-09-30", months: 4 },
+  { label: "Hingga 12 Okt (1 Jun - 12 Okt)", start: "2026-06-01", end: "2026-10-12", months: 4 },
+  { label: "Semester Ganjil (1 Jul - 31 Des)", start: "2026-07-01", end: "2026-12-31", months: 6 },
+];
+
 const AbsensiSettings = ({ readOnly }) => {
   const { metode, gpsConfig, toggleMetode, setGpsRadius, resetMetode } = useAbsensiStore();
   const [loading, setLoading] = useState(false);
@@ -65,12 +73,33 @@ const AbsensiSettings = ({ readOnly }) => {
   const [toleransi, setToleransi] = useState(30);
   const [toast, setToast] = useState(null);
 
+  // Pengaturan Periode PKL & Pembebasan Fingerprint
+  const [startDate, setStartDate] = useState("2026-06-01");
+  const [endDate, setEndDate] = useState("2026-09-30");
+  const [durasiBulan, setDurasiBulan] = useState(3);
+  const [eligibleClass, setEligibleClass] = useState("XII");
+  const [autoExemptFingerprint, setAutoExemptFingerprint] = useState(true);
+  const [syncToStudents, setSyncToStudents] = useState(true);
+
   const showToast = (message, type = "success") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
 
   const activeCount = Object.values(metode).filter(Boolean).length;
+
+  const calculateDays = (start, end) => {
+    if (!start || !end) return 0;
+    const diff = new Date(end) - new Date(start);
+    return Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)) + 1);
+  };
+
+  const applyPreset = (preset) => {
+    setStartDate(preset.start);
+    setEndDate(preset.end);
+    setDurasiBulan(preset.months);
+    showToast(`Preset diterapkan: ${preset.label}`);
+  };
 
   useEffect(() => {
     const token = getToken();
@@ -85,6 +114,13 @@ const AbsensiSettings = ({ readOnly }) => {
           if (data.data.jamMasuk) setJamMasuk(data.data.jamMasuk);
           if (data.data.jamPulang) setJamPulang(data.data.jamPulang);
           if (data.data.toleransi) setToleransi(data.data.toleransi);
+          if (data.data.startDate) setStartDate(data.data.startDate);
+          if (data.data.endDate) setEndDate(data.data.endDate);
+          if (data.data.durasiBulan) setDurasiBulan(data.data.durasiBulan);
+          if (data.data.eligibleClass) setEligibleClass(data.data.eligibleClass);
+          if (typeof data.data.autoExemptFingerprint === 'boolean') {
+            setAutoExemptFingerprint(data.data.autoExemptFingerprint);
+          }
         }
       }).catch(() => {});
   }, []);
@@ -95,7 +131,7 @@ const AbsensiSettings = ({ readOnly }) => {
 
     const token = getToken();
     try {
-      await fetch("/api/settings/pkl", {
+      const res = await fetch("/api/settings/pkl", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
@@ -103,12 +139,26 @@ const AbsensiSettings = ({ readOnly }) => {
           metode,
           jamMasuk,
           jamPulang,
-          toleransi: Number(toleransi)
+          toleransi: Number(toleransi),
+          startDate,
+          endDate,
+          durasiBulan: Number(durasiBulan),
+          eligibleClass,
+          autoExemptFingerprint,
+          syncToStudents
         })
       });
-      setSaveSuccess(true);
-      showToast("Pengaturan absensi PKL berhasil disimpan ke server!");
-      setTimeout(() => setSaveSuccess(false), 3000);
+      const json = await res.json();
+      if (json.ok) {
+        setSaveSuccess(true);
+        const msg = json.syncedCount 
+          ? `Pengaturan absensi & periode PKL disimpan! (${json.syncedCount} siswa disinkronkan)`
+          : "Pengaturan absensi & periode PKL berhasil disimpan ke server!";
+        showToast(msg);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        showToast(json.error || "Gagal menyimpan ke server.", "error");
+      }
     } catch (e) {
       showToast("Gagal menyimpan ke server. Periksa koneksi dan coba lagi.", "error");
     }
@@ -121,6 +171,10 @@ const AbsensiSettings = ({ readOnly }) => {
     setJamMasuk("08:00");
     setJamPulang("17:00");
     setToleransi(30);
+    setStartDate("2026-06-01");
+    setEndDate("2026-09-30");
+    setDurasiBulan(3);
+    setAutoExemptFingerprint(true);
     showToast("Pengaturan dikembalikan ke standar default.");
   };
 
@@ -230,6 +284,175 @@ const AbsensiSettings = ({ readOnly }) => {
             </div>
           );
         })}
+      </div>
+
+      {/* Card Baru: Periode Pelaksanaan PKL & Pembebasan Fingerprint */}
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--ui-border-muted)]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/70 flex items-center justify-center shrink-0">
+              <CalendarRange size={18} strokeWidth={2.2} />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-xs sm:text-sm text-slate-900">Periode Resmi Pelaksanaan PKL & Pengecualian Absen Mesin</h4>
+              <p className="text-[11px] text-slate-400 font-medium">Tentukan rentang tanggal PKL (misal 3 Bulan: 1 Juni s/d 30 September). Siswa otomatis bebas dari Alpa fingerprint sekolah selama rentang ini.</p>
+            </div>
+          </div>
+
+          {/* Status Badge Periode */}
+          {startDate && endDate && (
+            <div className="shrink-0 flex items-center gap-2">
+              {(() => {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const isActive = todayStr >= startDate && todayStr <= endDate;
+                const isPassed = todayStr > endDate;
+                const totalDays = calculateDays(startDate, endDate);
+
+                if (isActive) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      PKL Berjalan ({totalDays} Hari)
+                    </span>
+                  );
+                } else if (isPassed) {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-800 border border-amber-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Selesai per {endDate}
+                    </span>
+                  );
+                } else {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-sky-50 text-sky-700 border border-sky-200">
+                      <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                      Mulai {startDate}
+                    </span>
+                  );
+                }
+              })()}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Presets Buttons */}
+        {!readOnly && (
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Preset Cepat Periode PKL:</span>
+            <div className="flex flex-wrap gap-1.5">
+              {PRESETS_PERIODE.map(p => {
+                const isCurrent = startDate === p.start && endDate === p.end;
+                return (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => applyPreset(p)}
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] border transition-all cursor-pointer ${
+                      isCurrent 
+                        ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs scale-102' 
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Form Inputs Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+              Tanggal Mulai PKL
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              disabled={readOnly}
+              onChange={e => setStartDate(e.target.value)}
+              className="w-full h-9 px-3 font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+              Tanggal Selesai PKL
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              disabled={readOnly}
+              onChange={e => setEndDate(e.target.value)}
+              className="w-full h-9 px-3 font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+              Durasi PKL (Bulan)
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={12}
+              value={durasiBulan}
+              disabled={readOnly}
+              onChange={e => setDurasiBulan(Number(e.target.value))}
+              className="w-full h-9 px-3 font-bold rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]"
+            />
+          </div>
+
+          <div>
+            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
+              Kelas Peserta PKL
+            </label>
+            <input
+              type="text"
+              value={eligibleClass}
+              disabled={readOnly}
+              onChange={e => setEligibleClass(e.target.value.toUpperCase())}
+              placeholder="XII"
+              className="w-full h-9 px-3 font-bold uppercase rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] bg-slate-50 text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]"
+            />
+          </div>
+        </div>
+
+        {/* Feature Switches & Checkboxes */}
+        <div className="pt-2 border-t border-slate-100 space-y-2">
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoExemptFingerprint}
+              disabled={readOnly}
+              onChange={e => setAutoExemptFingerprint(e.target.checked)}
+              className="mt-0.5 rounded text-[var(--ui-primary)] focus:ring-[var(--ui-primary)]"
+            />
+            <div className="text-xs">
+              <span className="font-bold text-slate-800">Otomatis Bebaskan Fingerprint Sekolah Selama Periode PKL (Bebas Alpa)</span>
+              <p className="text-[11px] text-slate-500">
+                Siswa kelas <span className="font-bold text-slate-700">{eligibleClass}</span> yang terdaftar di PKL secara otomatis berstatus <span className="font-bold text-indigo-600">PKL (Hadir)</span> di matriks kehadiran sekolah dan tidak dikenai sanksi Alpa sekolah pada tanggal <span className="font-semibold text-slate-700">{startDate || '-'}</span> s/d <span className="font-semibold text-slate-700">{endDate || '-'}</span>.
+              </p>
+            </div>
+          </label>
+
+          <label className="flex items-start gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={syncToStudents}
+              disabled={readOnly}
+              onChange={e => setSyncToStudents(e.target.checked)}
+              className="mt-0.5 rounded text-[var(--ui-primary)] focus:ring-[var(--ui-primary)]"
+            />
+            <div className="text-xs">
+              <span className="font-bold text-slate-800">Sinkronkan Rentang Tanggal ke Database Penempatan Siswa PKL</span>
+              <p className="text-[11px] text-slate-500">
+                Saat tombol "Simpan Pengaturan" ditekan, tanggal mulai dan selesai ini akan otomatis disimpan ke seluruh 382 data siswa di tabel <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[10px]">pkl_students</code>.
+              </p>
+            </div>
+          </label>
+        </div>
       </div>
 
       {/* Additional Card: Jam Operasional PKL & Toleransi */}

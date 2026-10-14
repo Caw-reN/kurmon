@@ -5,6 +5,7 @@ import { sameText, normalizeText, getLoadKey, parsePositiveInt, serializeCsvList
 function sanitizeExcelString(str) {
   if (typeof str !== 'string') return str;
   // Remove control characters except tab, newline, and carriage return
+  // eslint-disable-next-line no-control-regex
   return str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
 }
 
@@ -570,49 +571,49 @@ export function useAdminImportExport(props) {
     const jurusanData = [["Nama Jurusan (wajib)"], ...majors.map(m => [m])];
     jurusanData.forEach(row => wsJurusan.addRow(row));
     styleHeaderRow(wsJurusan);
-    var cols = [{ wch: 36 }];
+    let cols = [{ wch: 36 }];
     cols.forEach((col, idx) => { if(col.wch) wsJurusan.getColumn(idx + 1).width = col.wch; });
     const wsKelas = wb.addWorksheet("2_Kelas");
     const kelasData = [["Nama Kelas (wajib)","Jurusan (pilih dari Data Jurusan)","Wali Kelas"], ...classes.map(c => [c.name, c.major, c.homeroom ||""])];
     kelasData.forEach(row => wsKelas.addRow(row));
     styleHeaderRow(wsKelas);
-    var cols = [{ wch: 34 }, { wch: 36 }, { wch: 34 }];
+    cols = [{ wch: 34 }, { wch: 36 }, { wch: 34 }];
     cols.forEach((col, idx) => { if(col.wch) wsKelas.getColumn(idx + 1).width = col.wch; });
     const wsGuru = wb.addWorksheet("3_Guru");
     const guruData = [["Kode Guru (wajib)","Nama Guru (wajib)","Password","Kategori (Umum/Jurusan/Campuran)","Prioritas Jurusan","Prioritas Tingkat","Target JP/Minggu"], ...teachers.map(t => [t.code, sanitizeExcelString(t.name),"", t.type, t.preferredMajor, t.preferredGrade, t.targetWeeklyJp ||""])];
     guruData.forEach(row => wsGuru.addRow(row));
     styleHeaderRow(wsGuru);
-    var cols = [{ wch: 20 }, { wch: 40 }, { wch: 14 }, { wch: 28 }, { wch: 22 }, { wch: 20 }, { wch: 18 }];
+    cols = [{ wch: 20 }, { wch: 40 }, { wch: 14 }, { wch: 28 }, { wch: 22 }, { wch: 20 }, { wch: 18 }];
     cols.forEach((col, idx) => { if(col.wch) wsGuru.getColumn(idx + 1).width = col.wch; });
     const wsMapel = wb.addWorksheet("4_Mapel");
     const mapelData = [["Nama Mapel (wajib)","Grade (X/XI/XII/Semua)","Jurusan (Umum/TKR/TKJ/RPL/Akuntansi)","Praktik? (Ya/Tidak)","Ruangan Praktik (ID dipisah koma)","Durasi"], ...subjects.map(s => [sanitizeExcelString(s.name), s.grade, s.major, s.isBlock ?"Ya" :"Tidak", s.practiceRoomIds ||"", s.defaultDuration])];
     mapelData.forEach(row => wsMapel.addRow(row));
     styleHeaderRow(wsMapel);
-    var cols = [{ wch: 36 }, { wch: 26 }, { wch: 44 }, { wch: 20 }, { wch: 40 }, { wch: 10 }];
+    cols = [{ wch: 36 }, { wch: 26 }, { wch: 44 }, { wch: 20 }, { wch: 40 }, { wch: 10 }];
     cols.forEach((col, idx) => { if(col.wch) wsMapel.getColumn(idx + 1).width = col.wch; });
     const wsRuangan = wb.addWorksheet("5_Ruangan");
     const ruanganData = [["ID Ruang (wajib)","Nama Ruangan (wajib)","Tipe (Teori/Praktik)","Jurusan (All/TKR/TKJ/RPL/Akuntansi)","Target Tingkat (Semua/X/XI/XII)","Prioritas (Ya/Tidak)"], ...rooms.map(r => [r.id, sanitizeExcelString(r.name), r.type, r.major, r.targetGrade ||"Semua", r.isPriority ?"Ya" :"Tidak"])];
     ruanganData.forEach(row => wsRuangan.addRow(row));
     styleHeaderRow(wsRuangan);
-    var cols = [{ wch: 20 }, { wch: 34 }, { wch: 22 }, { wch: 40 }, { wch: 28 }, { wch: 20 }];
+    cols = [{ wch: 20 }, { wch: 34 }, { wch: 22 }, { wch: 40 }, { wch: 28 }, { wch: 20 }];
     cols.forEach((col, idx) => { if(col.wch) wsRuangan.getColumn(idx + 1).width = col.wch; });
     const wsBeban = wb.addWorksheet("6_Beban");
     const bebanData = [["Kode Guru","Nama Mapel","Target Grade (All/X/XI/XII atau X,XI)","Target Jurusan (All/TKR/TKJ/RPL/Akuntansi)","Durasi","Maks Kelas (opsional)"], ...teachingLoads.map(b => [b.teacherCode, sanitizeExcelString(b.subject), b.targetGrade, b.targetMajor, b.duration, b.maxClasses ||""])];
     bebanData.forEach(row => wsBeban.addRow(row));
     styleHeaderRow(wsBeban);
-    var cols = [{ wch: 18 }, { wch: 34 }, { wch: 40 }, { wch: 44 }, { wch: 10 }, { wch: 22 }];
+    cols = [{ wch: 18 }, { wch: 34 }, { wch: 40 }, { wch: 44 }, { wch: 10 }, { wch: 22 }];
     cols.forEach((col, idx) => { if(col.wch) wsBeban.getColumn(idx + 1).width = col.wch; });
     const wsSilabus = wb.addWorksheet("7_Modul");
     const silabusData = [["Mata Pelajaran (wajib)","Guru Pengajar (wajib)","Judul Pertemuan / BAB (wajib)","Kelas / Semester","Tujuan Pembelajaran","Materi Pembelajaran (pisah enter)","Catatan (opsional)"], ...syllabuses.map(s => [sanitizeExcelString(s.subjectName), sanitizeExcelString(s.teacherCode), sanitizeExcelString(s.title), s.gradeSemester ||"", sanitizeExcelString(s.objectives ||""), sanitizeExcelString(s.materials ||""), sanitizeExcelString(s.notes ||"")])];
     silabusData.forEach(row => wsSilabus.addRow(row));
     styleHeaderRow(wsSilabus);
-    var cols = [{ wch: 25 }, { wch: 20 }, { wch: 40 }, { wch: 20 }, { wch: 50 }, { wch: 50 }, { wch: 24 }];
+    cols = [{ wch: 25 }, { wch: 20 }, { wch: 40 }, { wch: 20 }, { wch: 50 }, { wch: 50 }, { wch: 24 }];
     cols.forEach((col, idx) => { if(col.wch) wsSilabus.getColumn(idx + 1).width = col.wch; });
     const wsWaktu = wb.addWorksheet("8_Waktu");
     const waktuData = [["Hari","Waktu","Apakah Istirahat?","Nama Kegiatan / Istirahat","Jumlah JP","Menit per JP"], ...Object.entries(timeSlots || {}).flatMap(([dayName, slots]) => (slots || []).map(slot => [dayName, slot.label ||"", slot.isBreak ?"Ya" :"Tidak", slot.isBreak ? slot.labelBreak || slot.label ||"" :"", slot.isBreak ?"" : slot.jpCount || 1, slot.minsPerJp || 45]))];
     waktuData.forEach(row => wsWaktu.addRow(row));
     styleHeaderRow(wsWaktu);
-    var cols = [{ wch: 16 }, { wch: 20 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }];
+    cols = [{ wch: 16 }, { wch: 20 }, { wch: 18 }, { wch: 30 }, { wch: 12 }, { wch: 14 }];
     cols.forEach((col, idx) => { if(col.wch) wsWaktu.getColumn(idx + 1).width = col.wch; });
     const wsKetersediaan = wb.addWorksheet("9_Ketersediaan");
     const ketersediaanData = [["Kode Guru (wajib)","Mapel Kompetensi (pisahkan dengan koma)","Hari Tersedia (pisahkan dengan koma)"], ...teachers.map(t => {
@@ -621,39 +622,39 @@ export function useAdminImportExport(props) {
     })];
     ketersediaanData.forEach(row => wsKetersediaan.addRow(row));
     styleHeaderRow(wsKetersediaan);
-    var cols = [{ wch: 20 }, { wch: 50 }, { wch: 40 }];
+    cols = [{ wch: 20 }, { wch: 50 }, { wch: 40 }];
     cols.forEach((col, idx) => { if(col.wch) wsKetersediaan.getColumn(idx + 1).width = col.wch; });
     const wsAkademik = wb.addWorksheet("10_Kalender_Akademik");
     const calendarCategoryById = new Map((calendarCategories || []).map(cat => [cat.id, cat.name]));
     const akademikData = [["Judul Kegiatan","Mulai","Selesai","Kategori","Keterangan"], ...(academicCalendar || []).map(evt => [sanitizeExcelString(evt.title ||""), normalizeCalendarDateInput(evt.dateStart) ||"", normalizeCalendarDateInput(evt.dateEnd || evt.dateStart) ||"", calendarCategoryById.get(evt.categoryId) || evt.categoryId ||"", sanitizeExcelString(evt.description ||"")])];
     akademikData.forEach(row => wsAkademik.addRow(row));
     styleHeaderRow(wsAkademik);
-    var cols = [{ wch: 34 }, { wch: 16 }, { wch: 16 }, { wch: 24 }, { wch: 48 }];
+    cols = [{ wch: 34 }, { wch: 16 }, { wch: 16 }, { wch: 24 }, { wch: 48 }];
     cols.forEach((col, idx) => { if(col.wch) wsAkademik.getColumn(idx + 1).width = col.wch; });
     const wsKategoriKalender = wb.addWorksheet("11_Kategori_Kalender");
     const kategoriKalenderData = [["Nama Kategori","Warna"], ...(calendarCategories || []).map(cat => [cat.name ||"", cat.color ||"blue"])];
     kategoriKalenderData.forEach(row => wsKategoriKalender.addRow(row));
     styleHeaderRow(wsKategoriKalender);
-    var cols = [{ wch: 30 }, { wch: 16 }];
+    cols = [{ wch: 30 }, { wch: 16 }];
     cols.forEach((col, idx) => { if(col.wch) wsKategoriKalender.getColumn(idx + 1).width = col.wch; });
     const wsKategoriSilabus = wb.addWorksheet("12_Kategori_Modul");
     const kategoriSilabusData = [["Nama Kategori","Warna"], ...(syllabusCategories || []).map(cat => [cat.name ||"", cat.color ||"blue"])];
     kategoriSilabusData.forEach(row => wsKategoriSilabus.addRow(row));
     styleHeaderRow(wsKategoriSilabus);
-    var cols = [{ wch: 30 }, { wch: 16 }];
+    cols = [{ wch: 30 }, { wch: 16 }];
     cols.forEach((col, idx) => { if(col.wch) wsKategoriSilabus.getColumn(idx + 1).width = col.wch; });
     const wsAbsensi = wb.addWorksheet("13_Absensi_Guru");
     const absensiData = [["Tanggal","Waktu","Kode Guru","Nama Guru","Sesi","Status","Mode","Catatan","Lokasi (Lat, Lng)"], ...(attendanceRecords || []).map(record => [record.date ||"", record.time ||"", record.teacherCode ||"", sanitizeExcelString(getTeacherName(record.teacherCode)) ||"", record.sessionName ||"", record.status ||"", record.mode ||"", sanitizeExcelString(record.note) ||"", record.location ? `${record.location.lat}, ${record.location.lng}` :""])];
     absensiData.forEach(row => wsAbsensi.addRow(row));
     styleHeaderRow(wsAbsensi);
-    var cols = [{ wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 30 }, { wch: 24 }];
+    cols = [{ wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 34 }, { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 30 }, { wch: 24 }];
     cols.forEach((col, idx) => { if(col.wch) wsAbsensi.getColumn(idx + 1).width = col.wch; });
 
     const wsKaryawan = wb.addWorksheet("14_Karyawan");
     const karyawanData = [["KODE KARYAWAN (Wajib)","NAMA KARYAWAN (Wajib)","DIVISI / BAGIAN","NO WHATSAPP"], ...(staffs || []).map(k => [k.code ||"", sanitizeExcelString(k.name) ||"", sanitizeExcelString(k.division) ||"", k.phone ? `'${k.phone}` :""])];
     karyawanData.forEach(row => wsKaryawan.addRow(row));
     styleHeaderRow(wsKaryawan);
-    var cols = [{ wch: 25 }, { wch: 40 }, { wch: 25 }, { wch: 25 }];
+    cols = [{ wch: 25 }, { wch: 40 }, { wch: 25 }, { wch: 25 }];
     cols.forEach((col, idx) => { if(col.wch) wsKaryawan.getColumn(idx + 1).width = col.wch; });
 
     const wsSiswa = wb.addWorksheet("15_Siswa");
@@ -663,7 +664,7 @@ export function useAdminImportExport(props) {
     })];
     siswaData.forEach(row => wsSiswa.addRow(row));
     styleHeaderRow(wsSiswa);
-    var cols = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
+    cols = [{ wch: 25 }, { wch: 45 }, { wch: 35 }, { wch: 25 }, { wch: 25 }];
     cols.forEach((col, idx) => { if(col.wch) wsSiswa.getColumn(idx + 1).width = col.wch; });
 
     const wsJadwal = wb.addWorksheet("16_Jadwal");
@@ -675,7 +676,7 @@ export function useAdminImportExport(props) {
     ];
     jadwalData.forEach(row => wsJadwal.addRow(row));
     styleHeaderRow(wsJadwal);
-    var cols = [{ wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 28 }, { wch: 35 }, { wch: 22 }];
+    cols = [{ wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 28 }, { wch: 35 }, { wch: 22 }];
     cols.forEach((col, idx) => { if(col.wch) wsJadwal.getColumn(idx + 1).width = col.wch; });
 
     const buf = await wb.xlsx.writeBuffer();
@@ -703,7 +704,7 @@ export function useAdminImportExport(props) {
     ];
     const wsAbsensi = wb.addWorksheet("Laporan_Absensi_Guru");
     absensiData.forEach(row => wsAbsensi.addRow(row));
-    var cols = [
+    const cols = [
       { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 34 },
       { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 30 }, { wch: 24 }
     ];

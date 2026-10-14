@@ -346,6 +346,7 @@ export const ROLE_KEY_LABELS = {
   bendahara: { label: "Bendahara Sekolah", color: "bg-emerald-100 text-emerald-800", short: "Bendahara" },
   siswa: { label: "Siswa", color: "bg-blue-100 text-blue-800", short: "Siswa" },
   kepsek: { label: "Kepala Sekolah", color: "bg-indigo-100 text-indigo-800", short: "Kepsek" },
+  waka: { label: "Wakil Kepala Sekolah", color: "bg-amber-100 text-amber-800", short: "Waka" },
   waka_kurikulum: { label: "Waka Kurikulum", color: "bg-amber-100 text-amber-800", short: "Waka Kurikulum" },
   waka_kesiswaan: { label: "Waka Kesiswaan", color: "bg-orange-100 text-orange-800", short: "Waka Kesiswaan" },
   waka_sarpras: { label: "Waka Sarpras", color: "bg-purple-100 text-purple-800", short: "Waka Sarpras" },
@@ -368,7 +369,13 @@ export const getSubroleOption = (subrole) => {
 };
 
 export const getRoleKeyLabel = (key) => {
-  return ROLE_KEY_LABELS[key] || { label: key, color: "bg-slate-100 text-slate-700", short: key };
+  if (!key) return { label: "Guru", color: "bg-slate-100 text-slate-700", short: "Guru" };
+  if (ROLE_KEY_LABELS[key]) return ROLE_KEY_LABELS[key];
+  if (typeof key === 'string' && key.startsWith('custom_')) {
+    const formatted = key.replace('custom_', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    return { label: formatted, color: "bg-indigo-50 text-indigo-700 border border-indigo-200", short: formatted };
+  }
+  return { label: key, color: "bg-slate-100 text-slate-700", short: key };
 };
 
 export const normalizeUserRole = (role) => {

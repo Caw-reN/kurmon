@@ -52,6 +52,7 @@ export default defineConfig({
         'icon-maskable-512x512.png'
       ],
       workbox: {
+        importScripts: ['/sw-push.js'],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,

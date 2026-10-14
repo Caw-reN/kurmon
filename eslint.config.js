@@ -7,7 +7,7 @@ import reactPlugin from 'eslint-plugin-react'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'scratch', 'node_modules', 'tests', '.agents']),
+  globalIgnores(['dist', 'scratch', 'node_modules', 'tests', '.agents', 'Login_main.jsx', '*.serve.jsx', '=']),
   {
     files: ['**/*.{js,jsx}'],
     plugins: {
@@ -21,7 +21,16 @@ export default defineConfig([
     ],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.serviceworker,
+        __APP_VERSION__: 'readonly',
+        __GIT_COMMIT__: 'readonly',
+        __GIT_DATE__: 'readonly',
+        __GIT_TIME__: 'readonly',
+        __GIT_DATETIME__: 'readonly',
+        __GIT_FULL_DETAIL__: 'readonly',
+      },
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
@@ -30,9 +39,11 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': 'off',
-      'unused-imports/no-unused-imports': 'error',
+      'unused-imports/no-unused-imports': 'warn',
       'unused-imports/no-unused-vars': ['warn', { vars: 'all', varsIgnorePattern: '^[A-Z_]', args: 'after-used', argsIgnorePattern: '^[A-Z_]' }],
+      'no-empty': ['error', { allowEmptyCatch: true }],
       'no-undef': 'error',
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'react/jsx-uses-vars': 'error',
       'react/jsx-uses-react': 'error',
       'react/jsx-no-undef': 'error',

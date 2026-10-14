@@ -2690,8 +2690,10 @@ export default function App() {
 
     if (id === 'beban') {
       const isKurikulumWaka = activeRole === "waka" && (currentUser?.division || "").toLowerCase() === "kurikulum";
-      const isSuperAdminOrAdmin = activeRole === "superadmin" || activeRole === "admin";
-      if (!isSuperAdminOrAdmin && !isKurikulumWaka) return false;
+      const isLeadership = activeRole === "superadmin" || activeRole === "admin" || activeRole === "kepsek";
+      const hasPerm = rolePermissions?.[activeRole]?.beban || (currentUser?.subrole && rolePermissions?.[currentUser.subrole]?.beban);
+      const isPermitted = hasPerm === "edit" || hasPerm === "view" || hasPerm === "otomatis" || hasPerm === "full";
+      if (!isLeadership && !isKurikulumWaka && !isPermitted) return false;
     }
 
     if (activeRole === "superadmin" || activeRole === "admin") {
@@ -2710,7 +2712,11 @@ export default function App() {
       'sekretaris_sarpras', 'anggota_sarpras',
       'sekretaris_tu', 'bendahara'
     ];
-    if (activeRole === "waka" || activeRole.startsWith("waka_")) {
+    if (activeRole.startsWith("custom_")) {
+      effectiveKey = activeRole;
+    } else if (subrole.startsWith("custom_")) {
+      effectiveKey = subrole;
+    } else if (activeRole === "waka" || activeRole.startsWith("waka_")) {
       const divRaw = (currentUser?.division || activeRole.replace("waka_", "")).toLowerCase().trim();
       const div = (divRaw === "waka" || divRaw === "") ? "kurikulum" : divRaw;
       effectiveKey = `waka_${div}`;
@@ -2779,9 +2785,17 @@ export default function App() {
         sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi"],
         sekretaris_kesiswaan: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","absensi","riwayat_prestasi","siswa","modul_ajar"],
         anggota_kesiswaan: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","riwayat_prestasi","modul_ajar"],
+        sekretaris_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","absensiguru","jurnal_harian","ketersediaan","beban","kelas","pesan"],
+        anggota_kurikulum: ["dashboard","generate","akademik","silabus","jurnal_harian","absensiguru","modul_ajar","pesan"],
+        sekretaris_hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_jurnal","pkl_laporan","pkl_administrasi","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
+        anggota_hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_jurnal","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
+        sekretaris_sarpras: ["dashboard","ruangan","denah","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
+        anggota_sarpras: ["dashboard","ruangan","denah","absensiguru","jurnal_harian","modul_ajar","akademik","pesan"],
         waka_kesiswaan: ["dashboard","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","hikvision_report_siswa","siswa","absensiguru","jurnal_harian","silabusguru","modul_ajar"],
         kepsek: ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","absensiguru","beban","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket","siswa","guru","karyawan","data_pegawai","dataguru","datasiswa","dataperusahaan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","kedisiplinan_absensi","kedisiplinan_bpbk","riwayat_prestasi","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","ruangan","fasilitas","silabus","keamanan","audit_log","activity_logs","pengumuman"],
         tu: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik","guru","karyawan"],
+        sekretaris_tu: ["dashboard","siswa","data_pegawai","guru","karyawan","esurat","kartu_pelajar","laporan_absensi","kedisiplinan_absensi","akademik","absensiguru","pesan"],
+        bendahara: ["dashboard","siswa","guru","karyawan","absensiguru","akademik","pesan"],
         tata_usaha: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","kartu_pelajar","esurat","generate","pesan","akademik","guru","karyawan"],
         karyawan: ["dashboard","absensiguru","akademik","pesan"],
         waka_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","data_pegawai","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi","hikvision_report_guru"],
@@ -2818,7 +2832,7 @@ export default function App() {
     return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
   };
     const hasAnyConfigAccess = () => {
-    const configTabs = ["fitur", "hak_akses", "tampilan", "pengaturanuser", "api_keys", "whatsapp", "gdrive_backup", "audit_log"];
+    const configTabs = ["fitur", "hak_akses", "manajemen_role", "tampilan", "pengaturanuser", "api_keys", "whatsapp", "gdrive_backup", "audit_log"];
     const activeRole = normalizeUserRole(currentUser?.role);
     if (activeRole === "superadmin" || activeRole === "admin") return false;
     const checkAllowed = roleKey => {
@@ -2832,14 +2846,18 @@ export default function App() {
         return level && level !== "none" && level !== "nonaktif";
       });
     };
+    const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+    if (activeRole.startsWith("custom_")) return checkAllowed(activeRole);
+    if (subrole.startsWith("custom_")) return checkAllowed(subrole);
+    if (subrole && checkAllowed(subrole)) return true;
     if (activeRole === "guru") return checkAllowed("guru");
-    if (activeRole === "tu" || activeRole === "tata_usaha") return checkAllowed("tu");
+    if (activeRole === "tu" || activeRole === "tata_usaha") return checkAllowed("tu") || checkAllowed(subrole);
     if (activeRole === "kepsek") return checkAllowed("kepsek");
-    if (activeRole === "waka") {
-      const division = (currentUser?.division || "kurikulum").toLowerCase();
-      return checkAllowed(`waka_${division}`);
+    if (activeRole === "waka" || activeRole.startsWith("waka_")) {
+      const division = (currentUser?.division || activeRole.replace("waka_", "") || "kurikulum").toLowerCase();
+      return checkAllowed(`waka_${division}`) || checkAllowed(activeRole);
     }
-    return false;
+    return checkAllowed(activeRole);
   };
 
 
