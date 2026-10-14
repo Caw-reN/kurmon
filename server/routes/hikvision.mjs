@@ -838,10 +838,22 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         logsRes.rows.forEach(log => {
           const empId = String(log.employee_id || "").trim();
-          const ts = new Date(log.timestamp);
-          // Selalu gunakan Asia/Jakarta agar tanggal & jam tidak berantakan di server UTC
-          const date = ts.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-          const time = ts.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+          let date = "";
+          let time = "";
+          if (log.timestamp instanceof Date) {
+            date = log.timestamp.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+            time = log.timestamp.toLocaleTimeString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false });
+          } else {
+            const tsStr = String(log.timestamp || '');
+            date = tsStr.substring(0, 10);
+            if (tsStr.includes('T')) {
+              time = tsStr.split('T')[1].substring(0, 5);
+            } else if (tsStr.match(/\d{2}:\d{2}/)) {
+              time = tsStr.match(/\d{2}:\d{2}/)[0];
+            } else {
+              time = tsStr.substring(11, 16);
+            }
+          }
           
           let personType = log.person_type || log.device_type || 'siswa';
           const empKey = empId.toLowerCase();

@@ -394,6 +394,14 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             console.warn("Gagal membaca tanggal mulai absensi:", err.message);
           }
 
+          // Fallback dinamis ke awal semester berjalan jika belum diset di school_profile
+          if (!startDate) {
+            const now = new Date();
+            const month = now.getMonth(); // 0-indexed: 6 = Juli, 0 = Januari
+            const year  = now.getFullYear();
+            startDate = month >= 6 ? `${year}-07-01` : `${year}-01-01`;
+          }
+
           let query = `
             SELECT 
               k.id, 
@@ -427,16 +435,8 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             // Filter eksplisit dari frontend
             params.push(`${bulan}%`);
             conditions.push(`TO_CHAR(k.tanggal, 'YYYY-MM-DD') LIKE $${params.length}`);
-          } else if (!startDate) {
-            // Jika tidak ada filter bulan DAN tidak ada startDate, 
-            // default ke bulan berjalan agar data tidak terpotong di production
-            const now = new Date();
-            const defaultBulan = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            params.push(`${defaultBulan}%`);
-            conditions.push(`TO_CHAR(k.tanggal, 'YYYY-MM-DD') LIKE $${params.length}`);
-          }
-          
-          if (startDate && !bulan) {
+          } else if (startDate) {
+            // Mengambil seluruh absensi dari awal semester berjalan hingga kini
             params.push(startDate);
             conditions.push(`k.tanggal >= $${params.length}`);
           }
