@@ -282,13 +282,36 @@ function CatatanModal({ catatan, students = [], classes = [], riwayatPoin = [], 
   );
 }
 
-export default function CatatanWaliKelas({ students = [], classes = [], onBack }) {
-  const user = useAuthStore(state => state.user);
-  const authToken = user?.authToken;
-  const role = user?.role || '';
-  const isWalas = user?.isWalas;
+export default function CatatanWaliKelas({
+  students = [],
+  classes = [],
+  onBack,
+  currentUser,
+  getTabPermissionLevel,
+  isSuperAdminRole
+}) {
+  const storeUser = useAuthStore(state => state.user);
+  const user = currentUser || storeUser || {};
+  const authToken = user?.authToken || storeUser?.authToken;
+  const role = String(user?.role || '').toLowerCase().trim();
+  const subrole = String(user?.subrole || '').toLowerCase().trim();
+  const division = String(user?.division || '').toLowerCase().trim();
+  const isWalas = Boolean(user?.isWalas || user?.walasClass || subrole === 'walikelas');
   const walasClass = user?.walasClass || '';
-  const isKesiswaan = ['admin', 'superadmin'].includes(role) || (role === 'waka' && (user?.division || "").toLowerCase() === 'kesiswaan') || role === 'kepsek';
+
+  const isSuperAdmin = ['admin', 'superadmin', 'kepsek'].includes(role) ||
+    (typeof isSuperAdminRole === 'function' && isSuperAdminRole(role));
+
+  const permLevel = typeof getTabPermissionLevel === 'function' ? getTabPermissionLevel('catatan_walikelas') : null;
+  const hasPermEdit = permLevel === 'edit' || permLevel === 'full' || permLevel === 'otomatis';
+
+  const isKesiswaan = isSuperAdmin ||
+    role === 'waka_kesiswaan' ||
+    role === 'kesiswaan' ||
+    subrole === 'waka_kesiswaan' ||
+    (role === 'waka' && division === 'kesiswaan') ||
+    hasPermEdit;
+
   const canAdd = isWalas || isKesiswaan;
 
   const [catatanList, setCatatanList] = useState([]);

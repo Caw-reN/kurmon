@@ -1576,7 +1576,7 @@ export default function App() {
         if (piketPerm === 'nonaktif' || piketPerm === 'none' || piketPerm === 'off') return false;
 
         const div = (currentUser?.division || "").toLowerCase().trim();
-        const isKesiswaanTeam = (role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan' ||
+        const isKesiswaanTeam = (role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan' || role === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' ||
           ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
           role === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk';
 
@@ -2615,7 +2615,7 @@ export default function App() {
       "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
       "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
     ];
-    if ((role === "waka" && division === "kesiswaan") || role === "kesiswaan") {
+    if ((role === "waka" && division === "kesiswaan") || role === "kesiswaan" || role === "waka_kesiswaan" || subrole === "waka_kesiswaan") {
       if (kesiswaanTabs.includes(tab)) return "edit";
     }
 
@@ -2643,7 +2643,7 @@ export default function App() {
       level = perms.includes(tab) ? (role === "kepsek" ? "view" : "edit") : "none";
     } else {
       level = perms[tab] || "none";
-      if (level === "otomatis") {
+      if (level === "otomatis" || level === "full") {
         level = role === "kepsek" ? "view" : "edit";
       }
     }
@@ -2758,7 +2758,7 @@ export default function App() {
       }
 
       const div = (currentUser?.division || "").toLowerCase().trim();
-      const isKesiswaanTeam = (activeRole === 'waka' && div === 'kesiswaan') || activeRole === 'kesiswaan' ||
+      const isKesiswaanTeam = (activeRole === 'waka' && div === 'kesiswaan') || activeRole === 'kesiswaan' || activeRole === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' ||
         ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
         activeRole === 'bpbk' || div === 'bk' || div === 'bp/bk' || div === 'bpbk';
 
@@ -2825,7 +2825,8 @@ export default function App() {
     featureKey,
     activeIds
   }) => {
-    if (!checkIsAllowed(id, featureKey)) return null;
+    const isPermitted = checkIsAllowed(id, featureKey) || (Array.isArray(activeIds) && activeIds.some(aid => checkIsAllowed(aid, featureKey)));
+    if (!isPermitted) return null;
 
     const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
     const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
@@ -3964,7 +3965,7 @@ export default function App() {
 
     {/* Sidebar */}
 
-    <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} appSettings={appSettings} currentUser={currentUser} uiFontClass={uiFontClass} activeTab={activeTab} setActiveTab={setActiveTab} renderNavItem={renderNavItem} hasAnyConfigAccess={hasAnyConfigAccess} handleLogout={handleLogout} expandedGroups={expandedGroups} toggleGroup={toggleGroup} isSuperAdminRole={isSuperAdminRole} activeUserRole={activeUserRole} handleBackupExport={handleBackupExport} isBackingUp={isBackingUp} sidebarScrollRef={sidebarScrollRef} sidebarScrollPos={sidebarScrollPos} />
+    <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} appSettings={appSettings} currentUser={currentUser} uiFontClass={uiFontClass} activeTab={activeTab} setActiveTab={setActiveTab} renderNavItem={renderNavItem} hasAnyConfigAccess={hasAnyConfigAccess} handleLogout={handleLogout} expandedGroups={expandedGroups} toggleGroup={toggleGroup} isSuperAdminRole={isSuperAdminRole} activeUserRole={activeUserRole} checkIsAllowed={checkIsAllowed} handleBackupExport={handleBackupExport} isBackingUp={isBackingUp} sidebarScrollRef={sidebarScrollRef} sidebarScrollPos={sidebarScrollPos} />
 
 
     {/* Main Layout Area */}

@@ -8,7 +8,11 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { UISelect, Modal } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
-export default function TatibSkorKredit() {
+export default function TatibSkorKredit({
+  currentUser,
+  getTabPermissionLevel,
+  isSuperAdminRole
+} = {}) {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,9 +36,24 @@ export default function TatibSkorKredit() {
     }
   }, []);
 
-  const authToken = authUser?.authToken || sessionUser?.authToken || rawSession?.authToken || '';
-  const userRole = authUser?.role || sessionUser?.role || rawSession?.role || 'guru';
-  const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan'].includes(userRole);
+  const user = currentUser || sessionUser || authUser || rawSession || {};
+  const authToken = user?.authToken || authUser?.authToken || sessionUser?.authToken || rawSession?.authToken || '';
+  const userRole = String(user?.role || authUser?.role || sessionUser?.role || rawSession?.role || 'guru').toLowerCase().trim();
+  const division = String(user?.division || '').toLowerCase().trim();
+  const subrole = String(user?.subrole || '').toLowerCase().trim();
+
+  const isSuperAdmin = ['admin', 'superadmin'].includes(userRole) ||
+    (typeof isSuperAdminRole === 'function' && isSuperAdminRole(userRole));
+
+  const isKesiswaan = userRole === 'waka_kesiswaan' ||
+    userRole === 'kesiswaan' ||
+    subrole === 'waka_kesiswaan' ||
+    (userRole === 'waka' && division === 'kesiswaan');
+
+  const permLevel = typeof getTabPermissionLevel === 'function' ? getTabPermissionLevel('tatib_skor') : null;
+  const hasPermEdit = permLevel === 'edit' || permLevel === 'full' || permLevel === 'otomatis';
+
+  const isAdmin = isSuperAdmin || isKesiswaan || hasPermEdit;
 
   const { kedisiplinanSettings, updateKedisiplinanSettings } = useAppStore();
   const [batasPoin, setBatasPoin] = useState(100);

@@ -1996,7 +1996,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         </div>
 
-        {(routeTab !== "walas_report" || !user?.walasClass) ? (
+        {(routeTab !== "walas_report" || !user?.walasClass || isKesiswaanOrAdmin) ? (
           <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Pilih Kelas</label>
             <CustomSelect 

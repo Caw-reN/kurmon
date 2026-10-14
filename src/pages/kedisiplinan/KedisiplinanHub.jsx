@@ -72,6 +72,7 @@ export default function KedisiplinanHub({
     (typeof isSuperAdminRole === 'function' && isSuperAdminRole(rawRole));
 
   const isKesiswaanTeam = (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' ||
+    rawRole === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' ||
     ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
     rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
 
@@ -92,7 +93,7 @@ export default function KedisiplinanHub({
   // Hak kelola jadwal piket
   const canEditJadwal = useMemo(() => {
     if (isSuperAdmin || isKesiswaanTeam) return true;
-    if (permsPiket === 'edit' || permsPiket === 'otomatis') return true;
+    if (permsPiket === 'edit' || permsPiket === 'full' || permsPiket === 'otomatis') return true;
     return false;
   }, [isSuperAdmin, isKesiswaanTeam, permsPiket]);
 

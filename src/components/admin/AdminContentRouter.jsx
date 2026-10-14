@@ -305,7 +305,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           ];
           if (kurikulumAllowedTabs.includes(activeTab)) return true;
         }
-        const wakaCommonTabs = [...commonRoleTabs, "siswa","guru","fasilitas","ruangan","beban","siswa_keluar","kenaikan_kelas","struktur","riwayat_prestasi","kedisiplinan_bpbk","tatib_skor","laporan_absensi","hikvision_report_siswa"];
+        const wakaCommonTabs = [...commonRoleTabs, "siswa","guru","fasilitas","ruangan","beban","siswa_keluar","kenaikan_kelas","struktur","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","tatib_skor","laporan_absensi","hikvision_report_siswa"];
         if (wakaCommonTabs.includes(activeTab)) return true;
         return checkAllowed(`waka_${division}`);
       }
@@ -641,7 +641,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       case"kedisiplinan_piket":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat modul piket & pelanggaran...</div>}>
           <KedisiplinanHub 
-            initialTab="ringkasan"
+            initialTab="piket"
             teachers={teachers} 
             students={students} 
             classes={classes} 
@@ -655,7 +655,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       case"kedisiplinan_bpbk":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat modul bimbingan konseling...</div>}>
           <KedisiplinanHub 
-            initialTab="ringkasan"
+            initialTab="bk"
             teachers={teachers} 
             students={students} 
             classes={classes} 
@@ -690,7 +690,14 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </Suspense>;
       case"catatan_walikelas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat catatan walas...</div>}>
-          <CatatanWaliKelas students={students} classes={classes} onBack={() => setActiveTab('dashboard')} />
+          <CatatanWaliKelas 
+            students={students} 
+            classes={classes} 
+            onBack={() => setActiveTab('dashboard')} 
+            currentUser={currentUser}
+            getTabPermissionLevel={getTabPermissionLevel}
+            isSuperAdminRole={isSuperAdminRole}
+          />
         </Suspense>;
 
       case"riwayat_prestasi":
@@ -763,7 +770,11 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
           Memuat Tatib Skor Kredit...
         </div>}>
-          <TatibSkorKredit />
+          <TatibSkorKredit 
+            currentUser={currentUser}
+            getTabPermissionLevel={getTabPermissionLevel}
+            isSuperAdminRole={isSuperAdminRole}
+          />
         </Suspense>;
       case"silabus":
       case"silabusguru":

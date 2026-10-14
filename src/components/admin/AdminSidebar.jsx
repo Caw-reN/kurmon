@@ -19,6 +19,7 @@ export default function AdminSidebar({
   toggleGroup,
   isSuperAdminRole,
   activeUserRole,
+  checkIsAllowed,
   handleBackupExport,
   isBackingUp,
   sidebarScrollRef,
@@ -223,12 +224,20 @@ export default function AdminSidebar({
     }
 
     // For non-admin users: group MENU_REGISTRY by section and render dynamically
+    const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass);
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       // Skip admin-only items for non-admins
       if (item.adminOnly) continue;
-      // Skip walas-only items if user is not walas (handled separately below)
-      if (item.specialCondition === 'walas_only') continue;
+      // Handle items with specialCondition === 'walas_only':
+      // If user is walas, skip from regular sections because they're shown in the dedicated Walas section below.
+      // If user is NOT walas, but has explicit permission (e.g. Waka Kesiswaan, BK), let it render in its section!
+      if (item.specialCondition === 'walas_only') {
+        if (isWalasUser) continue;
+        if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
+          continue;
+        }
+      }
 
       const section = item.section || '_root';
       if (!sectionMap[section]) sectionMap[section] = [];
