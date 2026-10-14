@@ -220,8 +220,9 @@ export default function TabSilabusGuru(props) {
                 ))}
               </UISelect>
               {uniqueSubjects.length > 0 && (
-                <p className="text-[10px] text-emerald-700 font-semibold mt-1">
-                  ✓ {uniqueSubjects.length} mata pelajaran sesuai penugasan mengajar Anda.
+                <p className="text-[10px] text-emerald-700 font-semibold mt-1 flex items-center gap-1">
+                  <CheckCircle2 size={11} className="text-emerald-600 shrink-0" />
+                  <span>{uniqueSubjects.length} mata pelajaran sesuai penugasan mengajar Anda.</span>
                 </p>
               )}
             </div>

@@ -216,7 +216,7 @@ const StudentAbsensi = () => {
         status: resData.status,
         method: payload.method,
       });
-      showToast(`✅ Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat pukul ${serverTime} — Status: ${resData.status}`, 'success');
+      showToast(`Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat pukul ${serverTime} — Status: ${resData.status}`, 'success');
       setShowFormModal(false);
       setSelfiePhoto(null);
       // Refresh kalender absensi
@@ -224,7 +224,7 @@ const StudentAbsensi = () => {
     } catch (err) {
       // BUG-05 FIX: Catch block menampilkan error yang sebenarnya, bukan "berhasil"
       const errMsg = err.message || 'Terjadi kesalahan saat melakukan absensi.';
-      showToast(`❌ ${errMsg}`, 'error');
+      showToast(errMsg, 'error');
       console.error('[handleDoAbsen] Error:', err);
     } finally {
       setCheckingIn(false);

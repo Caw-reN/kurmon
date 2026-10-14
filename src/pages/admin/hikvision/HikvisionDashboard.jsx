@@ -1,6 +1,6 @@
 import { Button, TablePagination, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X, Zap } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
@@ -498,13 +498,15 @@ export default function HikvisionDashboard() {
 
               {/* Context Banner Info */}
               {activeCampusTab === 'kampus_a' && activeDayTab === 'jumat' && (
-                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-indigo-50/80 border border-indigo-200 text-indigo-900 text-[11px] font-semibold leading-relaxed">
-                  <span className="font-extrabold text-indigo-700">⚡ Aturan Jumat Kampus A:</span> Jam buka absen pulang disetel pukul <strong>11:50</strong>. Tap siswa mulai 11:50 otomatis tercatat sebagai absen Pulang.
+                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-indigo-50/80 border border-indigo-200 text-indigo-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                  <Zap size={14} className="text-indigo-600 shrink-0" />
+                  <span><strong className="text-indigo-700">Aturan Jumat Kampus A:</strong> Jam buka absen pulang disetel pukul <strong>11:50</strong>. Tap siswa mulai 11:50 otomatis tercatat sebagai absen Pulang.</span>
                 </div>
               )}
               {activeCampusTab === 'kampus_b' && activeDayTab === 'jumat' && (
-                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold leading-relaxed">
-                  <span className="font-extrabold text-amber-700">⚡ Aturan Jumat Kampus B:</span> Jam buka absen pulang disetel pukul <strong>15:30</strong>.
+                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                  <Zap size={14} className="text-amber-600 shrink-0" />
+                  <span><strong className="text-amber-700">Aturan Jumat Kampus B:</strong> Jam buka absen pulang disetel pukul <strong>15:30</strong>.</span>
                 </div>
               )}
               

@@ -1393,8 +1393,15 @@ Kelola dokumen Administrasi guru dan publikasikan materi siswa langsung dalam sa
                                 <span>{textLabel}</span>
                               </span>
                               {isModul && (
-                                <span className={`text-[8.5px] font-black uppercase tracking-wider ${isWajib ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                  {isWajib ? '✓ Wajib' : '• Opsional'}
+                                <span className={`inline-flex items-center gap-0.5 text-[8.5px] font-black uppercase tracking-wider ${isWajib ? 'text-emerald-500' : 'text-amber-500'}`}>
+                                  {isWajib ? (
+                                    <>
+                                      <Check size={9} className="shrink-0" />
+                                      <span>Wajib</span>
+                                    </>
+                                  ) : (
+                                    <span>• Opsional</span>
+                                  )}
                                 </span>
                               )}
                             </div>

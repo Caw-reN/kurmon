@@ -2744,7 +2744,8 @@ function DashboardMessageCarousel({ dashboardMessages }) {
               {selectedMsg.pinned && (
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-100 text-rose-600 border border-rose-200/60 inline-flex items-center gap-1">
-                    📌 PINNED ANNOUNCEMENT
+                    <Pin size={11} className="text-rose-600 shrink-0" />
+                    <span>PINNED ANNOUNCEMENT</span>
                   </span>
                 </div>
               )}

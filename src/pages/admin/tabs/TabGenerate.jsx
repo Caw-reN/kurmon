@@ -406,13 +406,13 @@ export default function TabGenerate(props) {
                     const isBusyInOtherClass = teachingClass && teachingClass !== slotFormData.className;
                     const isBusyInThisClass = teachingClass && teachingClass === slotFormData.className;
                     
-                    let statusText = "✓ Tersedia";
-                    if (isBusyInOtherClass) statusText = `⚠️ Bentrok di ${teachingClass}`;
-                    else if (isBusyInThisClass) statusText = `✓ Mengajar di ${teachingClass}`;
+                    let statusText = "Tersedia";
+                    if (isBusyInOtherClass) statusText = `Bentrok di ${teachingClass}`;
+                    else if (isBusyInThisClass) statusText = `Mengajar di ${teachingClass}`;
 
                     return (
                       <option key={t.code} value={t.code}>
-                        {t.name} ({t.code}) — {statusText}
+                        {t.name} ({t.code}) — [{statusText}]
                       </option>
                     );
                   })}
@@ -428,13 +428,13 @@ export default function TabGenerate(props) {
                     const isBusyInOtherClass = teachingClass && teachingClass !== slotFormData.className;
                     const isBusyInThisClass = teachingClass && teachingClass === slotFormData.className;
                     
-                    let statusText = "✓ Tersedia";
-                    if (isBusyInOtherClass) statusText = `⚠️ Bentrok di ${teachingClass}`;
-                    else if (isBusyInThisClass) statusText = `✓ Mengajar di ${teachingClass}`;
+                    let statusText = "Tersedia";
+                    if (isBusyInOtherClass) statusText = `Bentrok di ${teachingClass}`;
+                    else if (isBusyInThisClass) statusText = `Mengajar di ${teachingClass}`;
 
                     return (
                       <option key={t.code} value={t.code}>
-                        {t.name} ({t.code}) — {statusText}
+                        {t.name} ({t.code}) — [{statusText}]
                       </option>
                     );
                   })}

@@ -485,7 +485,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                             {item.subject}
                           </span>
                           <span className="text-[10px] font-bold text-slate-500 mt-0.5">
-                            Kelas: {item.className} â€¢ Jam Ke-{item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart} - ${item.jamEnd}`}
+                            Kelas: {item.className} • Jam Ke-{item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart} - ${item.jamEnd}`}
                           </span>
                           {item.room && (
                             <span className="text-[9px] font-semibold text-slate-400 mt-0.5">

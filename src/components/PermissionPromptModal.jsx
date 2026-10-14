@@ -6,7 +6,8 @@ import {
   CheckCircle2, 
   AlertTriangle, 
   X, 
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { requestPushPermissionAndSubscribe } from '../utils/pushUtils.js';
 
@@ -362,7 +363,7 @@ export default function PermissionPromptModal() {
               <span>Cara Membuka Izin yang Terblokir:</span>
             </div>
             <ol className="list-decimal list-inside pl-1 text-[11px] text-amber-800 font-medium space-y-1">
-              <li>Klik ikon <strong>🔒 Gembok / Setelan Situs</strong> di sebelah kiri URL browser (atau menu setelan PWA).</li>
+              <li>Klik ikon <strong><Lock size={12} className="inline mr-1 text-amber-700" />Gembok / Setelan Situs</strong> di sebelah kiri URL browser (atau menu setelan PWA).</li>
               <li>Cari opsi <strong>Lokasi</strong> dan <strong>Notifikasi</strong>, lalu ubah statusnya menjadi <strong>Izinkan (Allow)</strong>.</li>
               <li>Tutup dan muat ulang aplikasi untuk menerapkan izin baru.</li>
             </ol>

@@ -4,7 +4,7 @@ import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subs
 import { useDataStore } from './store/useDataStore.js';
 import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import { BarChart2 } from 'lucide-react';
+import { BarChart2, AlertTriangle, Lightbulb } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
@@ -162,13 +162,13 @@ const ProtectedRoute = ({ allowedRoles, isLoginPage = false }) => {
 const DEFAULT_LOADER_TITLE = "Sedang Menyiapkan Ruang Kelas...";
 
 const LOADING_TIPS = [
-  "💡 Guru piket dapat menambahkan pelanggaran siswa secara cepat melalui menu Piket Harian.",
-  "💡 Anda dapat memperbarui profil, mengubah password, atau mengganti username langsung dengan mengklik foto profil Anda.",
-  "💡 Waka Kurikulum dapat mengunggah file CSV guru & siswa untuk memperbarui data massal.",
-  "💡 Pastikan izin akses GPS pada peramban Anda aktif agar absensi guru KBM tervalidasi dengan tepat.",
-  "💡 Susunan letak bangku dan tata ruang kelas dapat diubah secara visual dan interaktif di tab Denah.",
-  "💡 Laporan kehadiran guru dapat diekspor langsung ke berkas Excel yang siap cetak.",
-  "💡 Buku bimbingan konseling membantu mencatat tindak lanjut setiap kejadian siswa secara terpadu."
+  "Guru piket dapat menambahkan pelanggaran siswa secara cepat melalui menu Piket Harian.",
+  "Anda dapat memperbarui profil, mengubah password, atau mengganti username langsung dengan mengklik foto profil Anda.",
+  "Waka Kurikulum dapat mengunggah file CSV guru & siswa untuk memperbarui data massal.",
+  "Pastikan izin akses GPS pada peramban Anda aktif agar absensi guru KBM tervalidasi dengan tepat.",
+  "Susunan letak bangku dan tata ruang kelas dapat diubah secara visual dan interaktif di tab Denah.",
+  "Laporan kehadiran guru dapat diekspor langsung ke berkas Excel yang siap cetak.",
+  "Buku bimbingan konseling membantu mencatat tindak lanjut setiap kejadian siswa secara terpadu."
 ];
 
 const GlobalLoader = ({ title = DEFAULT_LOADER_TITLE, showTip = true, error = null }) => {
@@ -226,7 +226,10 @@ const GlobalLoader = ({ title = DEFAULT_LOADER_TITLE, showTip = true, error = nu
 
           {showTip && tip && (
             <div className="mt-8 pt-4 border-t border-slate-100 text-left max-w-sm mx-auto bg-slate-50/50 p-4 rounded-[var(--ui-radius-card)] border border-slate-100">
-              <span className="text-[9px] font-black tracking-wider text-slate-400 uppercase block mb-1">Tips Hari Ini</span>
+              <span className="text-[9px] font-black tracking-wider text-slate-400 uppercase flex items-center gap-1 mb-1">
+                <Lightbulb size={12} className="text-amber-500" />
+                <span>Tips Hari Ini</span>
+              </span>
               <p className="text-slate-600 text-[11px] leading-relaxed font-semibold">{tip}</p>
             </div>
           )}
@@ -488,7 +491,7 @@ export default function App() {
             fontSize: '14px', fontWeight: '600', maxWidth: '420px', width: 'calc(100vw - 48px)'
           }}
         >
-          <span style={{ fontSize: '20px' }}>⚠️</span>
+          <AlertTriangle size={22} className="text-amber-400 shrink-0" />
           <span style={{ flex: 1 }}>Sesi Anda akan berakhir dalam <strong>5 menit</strong> karena tidak ada aktivitas.</span>
           <button
             onClick={() => { setSessionWarning(false); }}

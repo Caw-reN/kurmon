@@ -1476,8 +1476,8 @@ export default function CatatanWaliKelas({ students = [], classes = [], onBack }
                     <CustomSelect
                       options={[
                         { value: 'all', label: 'Semua Waktu' },
-                        { value: 'this_month', label: '📅 Bulan Ini' },
-                        { value: 'last_7_days', label: '⏱️ 7 Hari Terakhir' },
+                        { value: 'this_month', label: 'Bulan Ini' },
+                        { value: 'last_7_days', label: '7 Hari Terakhir' },
                       ]}
                       value={filterCatatanWaktu}
                       onChange={setFilterCatatanWaktu}

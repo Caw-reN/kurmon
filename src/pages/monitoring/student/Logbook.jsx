@@ -481,10 +481,20 @@ const Logbook = () => {
                       </span>
                     </div>
 
-                    <span className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider ${
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider ${
                       item.validated ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
                     }`}>
-                      {item.validated ? 'Tervalidasi Guru ✅' : 'Menunggu Validasi ⏳'}
+                      {item.validated ? (
+                        <>
+                          <CheckCircle2 size={12} className="text-emerald-600" />
+                          <span>Tervalidasi Guru</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={12} className="text-amber-600" />
+                          <span>Menunggu Validasi</span>
+                        </>
+                      )}
                     </span>
                   </div>
 

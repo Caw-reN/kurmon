@@ -1520,24 +1520,26 @@ export default function KepsekExecutiveDashboard({
                   <button
                     type="button"
                     onClick={() => setScheduleViewMode('teacher')}
-                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       scheduleViewMode === 'teacher'
                         ? 'bg-white text-slate-800 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    👨‍🏫 Rekap Per Guru ({totalGuruMengajarHariIni})
+                    <Users size={13} className="text-slate-600 shrink-0" />
+                    <span>Rekap Per Guru ({totalGuruMengajarHariIni})</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setScheduleViewMode('jam')}
-                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       scheduleViewMode === 'jam'
                         ? 'bg-white text-slate-800 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
-                    ⏰ Timeline Jam 1 - 7
+                    <Clock size={13} className="text-slate-600 shrink-0" />
+                    <span>Timeline Jam 1 - 7</span>
                   </button>
                 </div>
 
@@ -1680,12 +1682,22 @@ export default function KepsekExecutiveDashboard({
                               </span>
                             </td>
                             <td className="p-2.5 text-center">
-                              <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
                                 t.isJurnalFilled 
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                   : 'bg-rose-50 text-rose-700 border-rose-200'
                               }`}>
-                                {t.isJurnalFilled ? '✓ Sudah Terisi' : '✗ Belum Diisi'}
+                                {t.isJurnalFilled ? (
+                                  <>
+                                    <CheckCircle2 size={11} className="text-emerald-600" />
+                                    <span>Sudah Terisi</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle size={11} className="text-rose-600" />
+                                    <span>Belum Diisi</span>
+                                  </>
+                                )}
                               </span>
                             </td>
                           </tr>
@@ -1750,12 +1762,22 @@ export default function KepsekExecutiveDashboard({
                                 {t.room}
                               </td>
                               <td className="p-2.5 text-center">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
                                   t.isJurnalFilled 
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                     : 'bg-rose-50 text-rose-700 border-rose-200'
                                 }`}>
-                                  {t.isJurnalFilled ? '✓ Sudah Terisi' : '✗ Belum Diisi'}
+                                  {t.isJurnalFilled ? (
+                                    <>
+                                      <CheckCircle2 size={11} className="text-emerald-600" />
+                                      <span>Sudah Terisi</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <XCircle size={11} className="text-rose-600" />
+                                      <span>Belum Diisi</span>
+                                    </>
+                                  )}
                                 </span>
                               </td>
                             </tr>

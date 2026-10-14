@@ -1475,7 +1475,7 @@ export default function App() {
   }, [subjects, teachingLoads, schedule, syllabuses]);
   const showNotification = (msg, type = "info") => {
     let finalMsg = msg;
-    if (type === "error") finalMsg = "⚠️ " + msg; else if (type === "success") finalMsg = "[SUCCESS] " + msg;
+    if (type === "error") finalMsg = "[ERROR] " + msg; else if (type === "success") finalMsg = "[SUCCESS] " + msg;
     setNotification(finalMsg);
     setTimeout(() => setNotification(""), 3500);
   };

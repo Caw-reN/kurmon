@@ -1,6 +1,6 @@
 import { Button } from '../../components/ui.jsx';
 import { useState, useEffect } from'react';
-import { Eye, EyeOff, Save, KeyRound, Check, X, Shield, AlertTriangle, MonitorPlay, Clock, Wand2, Lock } from'lucide-react';
+import { Eye, EyeOff, Save, KeyRound, Check, X, Shield, AlertTriangle, MonitorPlay, Clock, Wand2, Lock, Info } from'lucide-react';
 import { Modal } from'../ui.jsx';
 import { verifyPassword } from '../../utils/auth.js';
 
@@ -366,7 +366,12 @@ export default function SystemModals({
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-6 border-t border-slate-100 mt-4">
               <div className="text-rose-500 font-bold text-xs text-left max-w-[280px]">
-                {pwError && `⚠️ ${pwError}`}
+                {pwError && (
+                  <span className="flex items-center gap-1.5">
+                    <AlertTriangle size={13} className="shrink-0" />
+                    <span>{pwError}</span>
+                  </span>
+                )}
               </div>
               <div className="flex gap-3 w-full sm:w-auto justify-end">
                 <Button
@@ -421,7 +426,12 @@ export default function SystemModals({
               </div>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pt-6 mt-4">
                 <div className="text-rose-500 font-bold text-xs text-left max-w-[280px]">
-                  {pwError && `⚠️ ${pwError}`}
+                  {pwError && (
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle size={13} className="shrink-0" />
+                      <span>{pwError}</span>
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto justify-end">
                   <button
@@ -502,8 +512,11 @@ export default function SystemModals({
             )}
           </div>
 
-          <div className="p-3 rounded-[var(--ui-radius-small)] bg-slate-100/70 border border-slate-200 text-[11px] text-slate-600 font-medium leading-normal">
-            💡 <strong>Petunjuk:</strong> Untuk menghapus data ini, Anda harus melepaskan atau menghapus koneksi pada modul terkait di atas terlebih dahulu.
+          <div className="p-3 rounded-[var(--ui-radius-small)] bg-slate-100/70 border border-slate-200 text-[11px] text-slate-600 font-medium leading-normal flex items-start gap-2">
+            <Info size={14} className="text-slate-500 shrink-0 mt-0.5" />
+            <div>
+              <strong>Petunjuk:</strong> Untuk menghapus data ini, Anda harus melepaskan atau menghapus koneksi pada modul terkait di atas terlebih dahulu.
+            </div>
           </div>
 
           <div className="pt-2 flex justify-end">

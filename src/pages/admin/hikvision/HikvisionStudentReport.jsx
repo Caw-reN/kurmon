@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, CreditCard, Award } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -2283,8 +2283,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> Tepat Waktu</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Terlambat</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span> Tdk Absen Pagi</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> ⚡ Mesin Error</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> ⚠️ Lupa Absen</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> <Zap size={10} className="inline shrink-0 text-sky-600" /> Mesin Error</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> <AlertCircle size={10} className="inline shrink-0 text-amber-600" /> Lupa Absen</span>
               <span className="flex items-center gap-1.5 text-indigo-700 font-extrabold"><FileText size={11} className="inline shrink-0" /> Catatan Khusus</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span> Izin</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Sakit</span>
@@ -2423,9 +2423,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                       const isMissingIn = !inTime && Boolean(outTime);
 
                                       const titleSegments = [];
-                                      if (cellColors.isMesinError) titleSegments.push("⚡ Mesin Error / Tidak Terbaca");
-                                      if (cellColors.isLupaAbsen) titleSegments.push("⚠️ Lupa Absen / Lupa Tap");
-                                      if (cellColors.isDispensasi) titleSegments.push("🏆 Dispensasi");
+                                      if (cellColors.isMesinError) titleSegments.push("Mesin Error / Tidak Terbaca");
+                                      if (cellColors.isLupaAbsen) titleSegments.push("Lupa Absen / Lupa Tap");
+                                      if (cellColors.isDispensasi) titleSegments.push("Dispensasi");
                                       if (noteText) titleSegments.push(`Catatan: ${noteText}`);
                                       if (isMissingIn) titleSegments.push(`Tidak Absen Pagi (Hanya Pulang: ${outTime})`);
                                       const titleAttr = titleSegments.length > 0 ? titleSegments.join(" | ") : undefined;
@@ -2713,9 +2713,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                         keterangan: "Kartu tertinggal / rusak", 
                         status: prev.status === "Alpa" || !prev.status ? "Hadir" : prev.status 
                       }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 hover:border-purple-400 transition-all shadow-2xs cursor-pointer"
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 hover:border-purple-400 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
                     >
-                      🪪 Kartu Tertinggal
+                      <CreditCard size={10} className="text-purple-600" /> Kartu Tertinggal
                     </button>
                     <button
                       type="button"
@@ -2724,17 +2724,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                         keterangan: "Dispensasi sekolah / tugas", 
                         status: prev.status === "Alpa" || !prev.status ? "Izin" : prev.status 
                       }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 hover:border-teal-400 transition-all shadow-2xs cursor-pointer"
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 hover:border-teal-400 transition-all flex items-center gap-1 shadow-2xs cursor-pointer"
                     >
-                      🏆 Dispensasi
+                      <Award size={10} className="text-teal-600" /> Dispensasi
                     </button>
                     {permissionForm.keterangan && (
                       <button
                         type="button"
                         onClick={() => setPermissionForm(prev => ({ ...prev, keterangan: "" }))}
-                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all flex items-center gap-1 cursor-pointer"
                       >
-                        ✕ Kosongkan
+                        <X size={10} className="text-rose-500" /> Kosongkan
                       </button>
                     )}
                   </div>

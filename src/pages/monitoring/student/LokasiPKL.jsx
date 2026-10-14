@@ -355,10 +355,18 @@ const LokasiPKL = () => {
                     <span className="text-xs font-black uppercase">Jarak Dari Perusahaan:</span>
                     <span className="font-black text-base">{liveDistanceMeters} Meter</span>
                   </div>
-                  <p className="text-[11px] font-semibold">
-                    {isWithinRadius 
-                      ? '✓ Anda berada dalam radius presensi GPS perusahaan PKL.' 
-                      : '⚠️ Anda berada di luar radius presensi GPS perusahaan tempat PKL.'}
+                  <p className="text-[11px] font-semibold flex items-center gap-1.5">
+                    {isWithinRadius ? (
+                      <>
+                        <CheckCircle2 size={13} className="text-emerald-700 shrink-0" />
+                        <span>Anda berada dalam radius presensi GPS perusahaan PKL.</span>
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle size={13} className="text-amber-700 shrink-0" />
+                        <span>Anda berada di luar radius presensi GPS perusahaan tempat PKL.</span>
+                      </>
+                    )}
                   </p>
                 </div>
               ) : (

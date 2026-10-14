@@ -102,7 +102,7 @@ const StudentDashboard = () => {
         <div className="space-y-1">
           <p className="text-xs font-bold text-slate-500">{dateFormatted}</p>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-            Halo, {firstName}! <span>✌️</span>
+            Halo, {firstName}! <Sparkles size={18} className="text-amber-500 inline" />
           </h1>
         </div>
 

@@ -11,11 +11,11 @@ import { UISelect } from'../../../components/ui.jsx';
 
 
 const TRIGGER_TEMPLATES = [
-  { key:'terlambat', label:'⏰ Notifikasi Keterlambatan', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, kami ingin memberitahukan bahwa putra/putri Anda ({NAMA_SISWA}) hadir terlambat ke sekolah pada {TANGGAL} pukul {WAKTU}. Mohon perhatian dan dukungannya. Terima kasih. - {NAMA_SEKOLAH}' },
-  { key:'pelanggaran', label:'⚠️ Notifikasi Pelanggaran', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, putra/putri Anda ({NAMA_SISWA}) telah mendapatkan {POIN} poin pelanggaran karena {KETERANGAN} pada {TANGGAL}. Total poin saat ini: {TOTAL_POIN}. Mohon dukungan dan bimbingannya. - {NAMA_SEKOLAH}' },
-  { key:'sp1', label:'📋 Surat Panggilan 1 (SP1)', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, dengan ini kami sampaikan bahwa putra/putri Anda ({NAMA_SISWA}) telah mendapatkan peringatan pertama (SP1) dari sekolah karena akumulasi pelanggaran. Kami memohon kehadiran Anda di sekolah pada hari _{HARI}_ untuk melakukan konsultasi. - {NAMA_SEKOLAH}' },
-  { key:'absen', label:'📅 Rekap Absensi', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, rekap kehadiran putra/putri Anda bulan {BULAN}: Hadir {HADIR} hari, Sakit {SAKIT} hari, Izin {IZIN} hari, Alpa {ALPA} hari. - {NAMA_SEKOLAH}' },
-  { key:'pengumuman', label:'📢 Pengumuman Sekolah', template:'Pengumuman dari {NAMA_SEKOLAH}: {ISI_PENGUMUMAN}' },
+  { key:'terlambat', label:'Notifikasi Keterlambatan', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, kami ingin memberitahukan bahwa putra/putri Anda ({NAMA_SISWA}) hadir terlambat ke sekolah pada {TANGGAL} pukul {WAKTU}. Mohon perhatian dan dukungannya. Terima kasih. - {NAMA_SEKOLAH}' },
+  { key:'pelanggaran', label:'Notifikasi Pelanggaran', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, putra/putri Anda ({NAMA_SISWA}) telah mendapatkan {POIN} poin pelanggaran karena {KETERANGAN} pada {TANGGAL}. Total poin saat ini: {TOTAL_POIN}. Mohon dukungan dan bimbingannya. - {NAMA_SEKOLAH}' },
+  { key:'sp1', label:'Surat Panggilan 1 (SP1)', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, dengan ini kami sampaikan bahwa putra/putri Anda ({NAMA_SISWA}) telah mendapatkan peringatan pertama (SP1) dari sekolah karena akumulasi pelanggaran. Kami memohon kehadiran Anda di sekolah pada hari _{HARI}_ untuk melakukan konsultasi. - {NAMA_SEKOLAH}' },
+  { key:'absen', label:'Rekap Absensi', template:'Yth. Orang Tua/Wali {NAMA_SISWA}, rekap kehadiran putra/putri Anda bulan {BULAN}: Hadir {HADIR} hari, Sakit {SAKIT} hari, Izin {IZIN} hari, Alpa {ALPA} hari. - {NAMA_SEKOLAH}' },
+  { key:'pengumuman', label:'Pengumuman Sekolah', template:'Pengumuman dari {NAMA_SEKOLAH}: {ISI_PENGUMUMAN}' },
 ];
 
 export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiveTab: setSystemTab }) {
@@ -469,7 +469,10 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
           <div className="bg-white rounded-[var(--ui-radius-small)] border-none shadow-sm p-6 space-y-4">
             <h2 className="font-bold text-slate-700 flex items-center gap-2"><Users size={16} /> Broadcast ke Banyak Siswa</h2>
             <div className="p-4 bg-amber-50 border border-amber-200 rounded-[var(--ui-radius-small)]">
-              <p className="text-xs font-bold text-amber-700 mb-1">⚠️ Perhatian</p>
+              <p className="text-xs font-bold text-amber-700 mb-1 flex items-center gap-1.5">
+                <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                <span>Perhatian</span>
+              </p>
               <p className="text-xs text-amber-600">Broadcast mengirim pesan ke semua orang tua yang memiliki nomor WA terdaftar di Data Siswa. Pastikan nomor WA sudah diisi di profil siswa.</p>
             </div>
             <div>

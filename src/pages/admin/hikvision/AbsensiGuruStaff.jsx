@@ -1515,8 +1515,9 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                             <p className="text-xs font-black text-slate-800 truncate">
                               {formFileName || 'File Lampiran'}
                             </p>
-                            <p className="text-[10px] text-emerald-600 font-bold">
-                              ✓ Siap diunggah
+                            <p className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                              <Check size={11} className="text-emerald-600 shrink-0" />
+                              <span>Siap diunggah</span>
                             </p>
                           </div>
                         </div>

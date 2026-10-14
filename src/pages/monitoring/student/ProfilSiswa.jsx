@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, GraduationCap, Shield, CheckCircle2, Building, Building2, MapPin, Fingerprint, Phone, BookOpen, Loader2, Lock } from 'lucide-react';
+import { User, GraduationCap, Shield, CheckCircle2, Building, Building2, MapPin, Fingerprint, Phone, BookOpen, Loader2, Lock, X } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAppStore } from '../../../store/useAppStore.js';
 
@@ -245,7 +245,7 @@ const ProfilSiswa = () => {
                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200"><Lock size={16} /></div>
                 <h3 className="font-black text-slate-800 text-base">Ganti Kata Sandi</h3>
               </div>
-              <button type="button" onClick={() => { setShowPasswordModal(false); setPassError(''); }} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer text-xs font-black">✕</button>
+              <button type="button" onClick={() => { setShowPasswordModal(false); setPassError(''); }} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-none cursor-pointer text-xs font-black transition-colors"><X size={14} /></button>
             </div>
             {passError && <div className="p-3 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold">{passError}</div>}
             {passSuccess && <div className="p-3 rounded-[var(--ui-radius-control)] bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">{passSuccess}</div>}

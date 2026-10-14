@@ -3,7 +3,7 @@ import React from'react';
 import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
 import { applyDocumentBranding } from '../../../utils/branding.js';
-import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2, ShieldCheck } from'lucide-react';
+import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2, ShieldCheck, AlertTriangle } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { getMajorAbbreviation } from '../../../utils/constants.js';
 
@@ -1172,7 +1172,7 @@ export default function TabTampilan(props) {
                       <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Kontras</p>
                       <p className="text-xl font-black text-slate-800">{contrastRatio(appSettings.textColor ||"#0f172a", appSettings.bgColor ||"#f8fafc").toFixed(2)} : 1</p>
                       {contrastRatio(appSettings.textColor ||"#0f172a", appSettings.bgColor ||"#f8fafc") < 4.5 ? (
-                        <p className="text-rose-600 text-[10px] font-bold bg-rose-50 p-2 rounded-[var(--ui-radius-small)] border border-rose-100">⚠️ Sulit dibaca.</p>
+                        <p className="text-rose-600 text-[10px] font-bold bg-rose-50 p-2 rounded-[var(--ui-radius-small)] border border-rose-100"><AlertTriangle size={14} className="inline mr-1" /> Sulit dibaca.</p>
                       ) : (
                         <p className="text-emerald-600 text-[10px] font-bold bg-emerald-50 p-2 rounded-[var(--ui-radius-small)] border border-emerald-100"><CheckCircle2 size={14} className="inline mr-1" /> Ideal.</p>
                       )}

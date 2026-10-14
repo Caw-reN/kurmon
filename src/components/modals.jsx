@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../components/ui.jsx';
 import { CheckCircle2, Download, Upload, Search, X } from'lucide-react';
-import { FileSpreadsheet, FileText, CalendarDays, Sparkles, BookOpen, RefreshCw } from'lucide-react';
+import { FileSpreadsheet, FileText, CalendarDays, Sparkles, BookOpen, RefreshCw, Lightbulb } from'lucide-react';
 import { Modal, UISelect } from './ui.jsx';
 ;
 
@@ -664,8 +664,9 @@ export function ImportGuideModal({ isOpen, onClose }) {
         </div>
 
         <div className="bg-amber-50 border border-amber-200 p-5 rounded-[var(--ui-radius-small)]">
-          <h5 className="font-black text-amber-900 text-xs flex items-center gap-2 mb-2">
-            💡 Tips Anti Gagal:
+          <h5 className="font-black text-amber-900 text-xs flex items-center gap-1.5 mb-2">
+            <Lightbulb size={14} className="text-amber-600 shrink-0" />
+            <span>Tips Anti Gagal:</span>
           </h5>
           <ul className="list-disc pl-5 space-y-1.5 text-xs text-amber-800 font-medium">
             <li>Jangan sampai ada kolom yang tertinggal/kosong di bagian tengah.</li>

@@ -3,7 +3,7 @@ import useAuthStore from '../../store/monitoring/authStore.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
-import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, AlertCircle } from 'lucide-react';
+import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, AlertCircle, CreditCard, Award } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import HikvisionStudentReport from '../admin/hikvision/HikvisionStudentReport.jsx';
@@ -897,24 +897,24 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                   <button
                     type="button"
                     onClick={() => setForm(prev => ({ ...prev, keterangan: "Kartu tertinggal / rusak", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all cursor-pointer shadow-2xs"
+                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                   >
-                    🪪 Kartu Tertinggal
+                    <CreditCard size={10} className="text-purple-600" /> Kartu Tertinggal
                   </button>
                   <button
                     type="button"
                     onClick={() => setForm(prev => ({ ...prev, keterangan: "Dispensasi sekolah / tugas", status: prev.status === "Alpa" ? "Izin" : prev.status }))}
-                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all cursor-pointer shadow-2xs"
+                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                   >
-                    🏆 Dispensasi
+                    <Award size={10} className="text-teal-600" /> Dispensasi
                   </button>
                   {form.keterangan && (
                     <button
                       type="button"
                       onClick={() => setForm(prev => ({ ...prev, keterangan: "" }))}
-                      className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                      className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 transition-all flex items-center gap-1 cursor-pointer"
                     >
-                      ✕ Kosongkan
+                      <X size={10} className="text-rose-500" /> Kosongkan
                     </button>
                   )}
                 </div>
@@ -1004,24 +1004,24 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     <button
                       type="button"
                       onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Kartu tertinggal / rusak", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all cursor-pointer shadow-2xs"
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                     >
-                      🪪 Kartu Tertinggal
+                      <CreditCard size={10} className="text-purple-600" /> Kartu Tertinggal
                     </button>
                     <button
                       type="button"
                       onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Dispensasi sekolah / tugas", status: prev.status === "Alpa" ? "Izin" : prev.status }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all cursor-pointer shadow-2xs"
+                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
                     >
-                      🏆 Dispensasi
+                      <Award size={10} className="text-teal-600" /> Dispensasi
                     </button>
                     {editForm.keterangan && (
                       <button
                         type="button"
                         onClick={() => setEditForm(prev => ({ ...prev, keterangan: "" }))}
-                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 transition-all flex items-center gap-1 cursor-pointer"
                       >
-                        ✕ Kosongkan
+                        <X size={10} className="text-rose-500" /> Kosongkan
                       </button>
                     )}
                   </div>

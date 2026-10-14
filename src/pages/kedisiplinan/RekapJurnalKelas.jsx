@@ -869,7 +869,7 @@ export default function RekapJurnalKelas({ classes = [], teachers = [], schedule
             title="Ubah Urutan Tanggal"
           >
             <ArrowUpDown size={13} className="text-[var(--ui-primary)]" />
-            <span>{sortOrder === 'asc' ? 'Awal ➔ Akhir' : 'Terbaru ➔ Awal'}</span>
+            <span>{sortOrder === 'asc' ? 'Awal → Akhir' : 'Terbaru → Awal'}</span>
           </button>
 
           {/* Refresh Realtime */}

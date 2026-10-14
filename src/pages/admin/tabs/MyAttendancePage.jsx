@@ -4,7 +4,7 @@ import { useAppStore } from '../../../store/useAppStore.js';
 import { 
   ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, 
   Download, Send, X, FileText, ArrowLeft, HeartPulse, Building2, 
-  Calendar, Upload, Trash2, CheckCircle2, AlertCircle 
+  Calendar, Upload, Trash2, CheckCircle2, AlertCircle, Info 
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -799,7 +799,10 @@ export default function MyAttendancePage({ setActiveTab }) {
               <span className="text-[10px] font-semibold text-slate-500">{l.label}</span>
             </div>
           ))}
-          <span className="text-[10px] text-slate-400 ml-auto hidden sm:block">💡 Klik tanggal untuk langsung mengajukan surat</span>
+          <span className="text-[10px] text-slate-400 ml-auto hidden sm:flex items-center gap-1">
+            <Info size={11} className="text-slate-400" />
+            <span>Klik tanggal untuk langsung mengajukan surat</span>
+          </span>
         </div>
       </div>
 
@@ -852,7 +855,10 @@ export default function MyAttendancePage({ setActiveTab }) {
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Jam Masuk</p>
                         <p className="font-black text-slate-700 text-2xl">{fmt5(selectedDayData.in)}</p>
                         {selectedDayData.isLate && (
-                          <p className="text-[10px] text-amber-600 font-black mt-0.5">⚠ Terlambat</p>
+                          <p className="text-[10px] text-amber-600 font-black mt-0.5 flex items-center gap-1">
+                            <AlertCircle size={11} className="text-amber-600 shrink-0" />
+                            <span>Terlambat</span>
+                          </p>
                         )}
                       </div>
                     </div>

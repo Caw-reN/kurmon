@@ -1,7 +1,7 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useEffect } from'react';
 import { BookOpen } from'lucide-react';
-import { X, Badge, ChevronUp, ChevronDown, XCircle, Loader2, CheckCircle2 } from'lucide-react';
+import { X, Badge, ChevronUp, ChevronDown, XCircle, Loader2, CheckCircle2, Calendar } from'lucide-react';
 import { Avatar, EmptyState } from'../../../components/monitoring/ui/index.js';
 
 
@@ -147,10 +147,11 @@ const JurnalCard = ({ jurnal, siswa, onApprove, onReject, showToast }) => {
             <Badge variant={localStatus} />
           </div>
           <p className="text-xs text-slate-400">{siswa?.kelas}</p>
-          <p className="text-xs font-semibold text-slate-600 mt-1">
-            📅 {new Date(jurnal.tanggal).toLocaleDateString('id-ID', {
+          <p className="text-xs font-semibold text-slate-600 mt-1 flex items-center gap-1.5">
+            <Calendar size={13} className="text-slate-500 shrink-0" />
+            <span>{new Date(jurnal.tanggal).toLocaleDateString('id-ID', {
               weekday:'long', day:'numeric', month:'long',
-            })}
+            })}</span>
           </p>
           <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 pr-4">
             {jurnal.kegiatan}
@@ -300,7 +301,7 @@ const ValidasiJurnal = () => {
         <p className="text-sm text-slate-400 mt-1">
           {loading ?'Memuat jurnal...' : pendingCount > 0
             ? `${pendingCount} jurnal menunggu validasi Anda`
-            :'Semua jurnal sudah divalidasi 🎉'}
+            :'Semua jurnal sudah divalidasi'}
         </p>
       </div>
 

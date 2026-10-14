@@ -321,10 +321,10 @@ export async function checkAndSendTeacherScheduleReminders(dbPool) {
           if (!sentRemindersCache.has(dedupeKey)) {
             sentRemindersCache.set(dedupeKey, Date.now());
 
-            console.log(`[PUSH] 🔔 Mengirim Notifikasi Mulai KBM: Guru ${sess.teacherCode} di ${sess.className} (${sess.subject}) [${timeLabel}]`);
+            console.log(`[PUSH] Mengirim Notifikasi Mulai KBM: Guru ${sess.teacherCode} di ${sess.className} (${sess.subject}) [${timeLabel}]`);
 
             await sendPushNotification(dbPool, targetUserIds, {
-              title: `⏰ Jam Mengajar Dimulai: ${sess.className}`,
+              title: `Jam Mengajar Dimulai: ${sess.className}`,
               body: `Saatnya mengajar ${sess.subject} di kelas ${sess.className}${roomInfo} (${timeLabel}). Ketuk untuk membuka Jurnal Mengajar.`,
               icon: '/icon-192x192.png',
               badge: '/favicon.svg',
@@ -349,10 +349,10 @@ export async function checkAndSendTeacherScheduleReminders(dbPool) {
           if (!sentRemindersCache.has(dedupeKey5m)) {
             sentRemindersCache.set(dedupeKey5m, Date.now());
 
-            console.log(`[PUSH] ⏳ Mengirim Pengingat 5 Menit KBM: Guru ${sess.teacherCode} di ${sess.className} (${sess.subject})`);
+            console.log(`[PUSH] Mengirim Pengingat 5 Menit KBM: Guru ${sess.teacherCode} di ${sess.className} (${sess.subject})`);
 
             await sendPushNotification(dbPool, targetUserIds, {
-              title: `⏰ 5 Menit Lagi KBM: ${sess.className}`,
+              title: `5 Menit Lagi KBM: ${sess.className}`,
               body: `Bersiap mengajar ${sess.subject} di kelas ${sess.className}${roomInfo} pukul ${sess.startStr} WIB.`,
               icon: '/icon-192x192.png',
               badge: '/favicon.svg',
@@ -492,7 +492,7 @@ export async function handlePushRoutes(req, res, url, ctx) {
       if (session.nip && !targetUserIds.includes(String(session.nip).trim())) targetUserIds.push(String(session.nip).trim());
 
       const result = await sendPushNotification(dbPool, targetUserIds, {
-        title: "🔔 Test Notifikasi Kurmon Berhasil!",
+        title: "Test Notifikasi Kurmon Berhasil!",
         body: `Halo ${session.name || 'Pengguna'}! Perangkat HP Anda berhasil terhubung dan siap menerima pengingat jadwal & informasi sekolah.`,
         icon: "/icon-192x192.png",
         badge: "/favicon.svg",
@@ -545,7 +545,7 @@ export async function handlePushRoutes(req, res, url, ctx) {
       } catch (e) {}
 
       const result = await sendPushNotification(dbPool, targetUserIds, {
-        title: `⏰ [Uji] Jam Mengajar: ${sampleClass}`,
+        title: `[Uji] Jam Mengajar: ${sampleClass}`,
         body: `Saatnya mengajar ${sampleSubject} di kelas ${sampleClass} (Ruang ${sampleRoom}, ${sampleTime}). Ketuk untuk membuka Jurnal Mengajar.`,
         icon: "/icon-192x192.png",
         badge: "/favicon.svg",
