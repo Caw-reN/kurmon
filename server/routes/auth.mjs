@@ -57,7 +57,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/auth/logout") {
-    const token = typeof getBearerToken !== 'undefined' ? getBearerToken(req) : (String(req.headers.authorization || "").startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : "");
+    const token = ctx.getBearerToken ? ctx.getBearerToken(req) : (String(req.headers?.authorization || "").startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : "");
     if (token && ctx.sessions) {
       ctx.sessions.delete(token);
       // BUG-03 FIX: Hapus dari PostgreSQL juga agar session tidak tersisa di DB

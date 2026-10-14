@@ -2396,6 +2396,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
+                 const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
                  const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL", "PKL"].includes(status) || String(status || '').startsWith("PKL");
                  const actualIn = prevDayData.in || parsedTime || (isPermit ? status : (status === "Hadir" ? (prevDayData.in || "07:00") : null));
                  const actualOut = prevDayData.out || (isPermit ? status : (status === "Hadir" ? (prevDayData.out || "15:30") : null));

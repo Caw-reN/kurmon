@@ -57,4 +57,18 @@ export default defineConfig([
       'react-hooks/use-memo': 'off',
     },
   },
+  {
+    files: ['server/**/*.{js,mjs}'],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-unused-vars': 'off',
+    },
+  },
 ])

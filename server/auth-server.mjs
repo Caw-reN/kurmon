@@ -2052,7 +2052,7 @@ const sendDatabaseError = (req, res, err) => {
       sendTelegramAlert('serverError', `Terjadi kegagalan proses pada sisi backend.`, 'warning', {
         method: req.method,
         path: req.url,
-        ip: typeof getClientIP === 'function' ? getClientIP(req) : req.socket?.remoteAddress,
+        ip: req.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown',
         user: req.user ? req.user.username || req.user.role : 'Guest',
         stack: err?.stack || String(err)
       }).catch(() => {});
