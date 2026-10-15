@@ -13,7 +13,7 @@ import { useAppStore } from '../../store/useAppStore.js';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
-import { getJurnalSubmissionStatus } from './JurnalHarianGuru.jsx';
+import { getJurnalSubmissionStatus } from '../../utils/jurnalHelpers.js';
 import { drawKopSurat, getPrimaryColorRgb } from '../../utils/pdfHelpers.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';

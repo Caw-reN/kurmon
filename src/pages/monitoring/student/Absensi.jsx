@@ -164,72 +164,7 @@ const StudentAbsensi = () => {
     }
   };
 
-  // BUG-01 + BUG-05 FIX: handleDoAbsen sekarang menyimpan absensi ke database melalui API.
-  // Catch block tidak lagi menampilkan "berhasil" saat terjadi error.
-  const handleDoAbsen = async (type = 'masuk') => {
-    // Validasi GPS radius jika dikonfigurasi
-    if (metode?.gps && gpsConfig?.restrictRadius && distanceMeters !== null && !withinRadius) {
-      alert(`Posisi Anda (${distanceMeters}m) melebihi batas radius absensi (${allowedRadius}m) dari tempat PKL.`);
-      return;
-    }
 
-    // Validasi selfie jika diperlukan
-    if (metode?.selfie && !selfiePhoto) {
-      alert('Metode Selfie aktif. Silakan upload / ambil foto selfie terlebih dahulu.');
-      return;
-    }
-
-    setCheckingIn(true);
-    try {
-      const token = user?.authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
-
-      const payload = {
-        type,
-        nis: user?.username || user?.nis,
-        lat: userCoords?.lat || null,
-        lng: userCoords?.lng || null,
-        selfiePhoto: metode?.selfie ? selfiePhoto : null,
-        method: metode?.gps ? 'GPS' : (metode?.selfie ? 'Selfie' : 'Manual'),
-      };
-
-      const res = await fetch('/api/monitoring/absensi/checkin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const resData = await res.json();
-
-      if (!resData.ok) {
-        // BUG-05 FIX: Tampilkan pesan error yang akurat dari server
-        throw new Error(resData.error || 'Gagal melakukan absensi. Coba lagi.');
-      }
-
-      // Sukses — perbarui status hari ini dan tampilkan toast sukses
-      const serverTime = resData.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      setTodayStatus({
-        mode: type,
-        time: serverTime,
-        status: resData.status,
-        method: payload.method,
-      });
-      showToast(`Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat pukul ${serverTime} — Status: ${resData.status}`, 'success');
-      setShowFormModal(false);
-      setSelfiePhoto(null);
-      // Refresh kalender absensi
-      fetchAbsensiData();
-    } catch (err) {
-      // BUG-05 FIX: Catch block menampilkan error yang sebenarnya, bukan "berhasil"
-      const errMsg = err.message || 'Terjadi kesalahan saat melakukan absensi.';
-      showToast(errMsg, 'error');
-      console.error('[handleDoAbsen] Error:', err);
-    } finally {
-      setCheckingIn(false);
-    }
-  };
 
 
   const buildDatabaseAttendanceData = useCallback(() => {
@@ -318,6 +253,73 @@ const StudentAbsensi = () => {
       })
       .finally(() => setLoading(false));
   }, [filter, user, buildDatabaseAttendanceData]);
+
+  // BUG-01 + BUG-05 FIX: handleDoAbsen sekarang menyimpan absensi ke database melalui API.
+  // Catch block tidak lagi menampilkan "berhasil" saat terjadi error.
+  const handleDoAbsen = async (type = 'masuk') => {
+    // Validasi GPS radius jika dikonfigurasi
+    if (metode?.gps && gpsConfig?.restrictRadius && distanceMeters !== null && !withinRadius) {
+      alert(`Posisi Anda (${distanceMeters}m) melebihi batas radius absensi (${allowedRadius}m) dari tempat PKL.`);
+      return;
+    }
+
+    // Validasi selfie jika diperlukan
+    if (metode?.selfie && !selfiePhoto) {
+      alert('Metode Selfie aktif. Silakan upload / ambil foto selfie terlebih dahulu.');
+      return;
+    }
+
+    setCheckingIn(true);
+    try {
+      const token = user?.authToken || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+
+      const payload = {
+        type,
+        nis: user?.username || user?.nis,
+        lat: userCoords?.lat || null,
+        lng: userCoords?.lng || null,
+        selfiePhoto: metode?.selfie ? selfiePhoto : null,
+        method: metode?.gps ? 'GPS' : (metode?.selfie ? 'Selfie' : 'Manual'),
+      };
+
+      const res = await fetch('/api/monitoring/absensi/checkin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const resData = await res.json();
+
+      if (!resData.ok) {
+        // BUG-05 FIX: Tampilkan pesan error yang akurat dari server
+        throw new Error(resData.error || 'Gagal melakukan absensi. Coba lagi.');
+      }
+
+      // Sukses — perbarui status hari ini dan tampilkan toast sukses
+      const serverTime = resData.time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      setTodayStatus({
+        mode: type,
+        time: serverTime,
+        status: resData.status,
+        method: payload.method,
+      });
+      showToast(`Absen ${type === 'masuk' ? 'Masuk' : 'Pulang'} berhasil dicatat pukul ${serverTime} — Status: ${resData.status}`, 'success');
+      setShowFormModal(false);
+      setSelfiePhoto(null);
+      // Refresh kalender absensi
+      fetchAbsensiData();
+    } catch (err) {
+      // BUG-05 FIX: Catch block menampilkan error yang sebenarnya, bukan "berhasil"
+      const errMsg = err.message || 'Terjadi kesalahan saat melakukan absensi.';
+      showToast(errMsg, 'error');
+      console.error('[handleDoAbsen] Error:', err);
+    } finally {
+      setCheckingIn(false);
+    }
+  };
 
   useEffect(() => {
     fetchAbsensiData();

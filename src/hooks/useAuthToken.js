@@ -90,11 +90,17 @@ export function useAuthToken() {
       /** true jika admin atau superadmin */
       isAdmin: ADMIN_ROLES.includes(role),
       /** true jika staf sekolah (guru, admin, tu, bk, piket, dll) */
-      isSchoolStaff: STAFF_ROLES.includes(role),
+      isSchoolStaff: STAFF_ROLES.includes(role) || role !== 'siswa',
       /** true jika tim kesiswaan / waka kesiswaan */
-      isKesiswaan: KESISWAAN_ROLES.includes(role),
+      isKesiswaan: KESISWAAN_ROLES.includes(role) || 
+        Boolean(authUser?.isKesiswaan || sessionUser?.isKesiswaan || rawSession?.isKesiswaan) ||
+        String(authUser?.subrole || sessionUser?.subrole || rawSession?.subrole || '').toLowerCase().includes('kesiswaan') ||
+        String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase().includes('kesiswaan'),
       /** true jika guru BK/BPBK */
-      isBK: BK_ROLES.includes(role),
+      isBK: BK_ROLES.includes(role) ||
+        Boolean(authUser?.isBK || authUser?.isBPBK || sessionUser?.isBK || sessionUser?.isBPBK || rawSession?.isBK || rawSession?.isBPBK) ||
+        ['bk', 'bpbk'].includes(String(authUser?.subrole || sessionUser?.subrole || rawSession?.subrole || '').toLowerCase()) ||
+        ['bk', 'bpbk'].includes(String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase()),
       /** true jika role adalah siswa */
       isStudent: role === 'siswa',
       /** true jika role adalah guru */

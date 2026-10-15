@@ -146,14 +146,19 @@ const ProtectedRoute = ({ allowedRoles, isLoginPage = false }) => {
 
   const role = (session.role || '').toLowerCase();
 
+  const isRolePermitted = () => {
+    if (!allowedRoles) return true;
+    if (allowedRoles.includes(role)) return true;
+    // Jika rute mengizinkan staf/guru/admin/karyawan/waka, maka semua subrole, waka_*, custom_*, piket, kesiswaan juga diizinkan
+    const allowsStaff = allowedRoles.some(r => ['admin', 'guru', 'karyawan', 'tu', 'waka'].includes(r));
+    if (allowsStaff && role !== 'siswa') return true;
+    return false;
+  };
+
   // If user IS logged in but role is not permitted for this route:
-  if (allowedRoles && !allowedRoles.includes(role)) {
-    if (role === 'admin' || role === 'superadmin' || role === 'tu' || role === 'waka' || role === 'piket' || role === 'bk' || role === 'kepsek' || role === 'karyawan') {
-      return <Navigate to="/dashboard" replace />;
-    }
-    if (role === 'guru') return <Navigate to="/dashboard" replace />;
+  if (!isRolePermitted()) {
     if (role === 'siswa') return <Navigate to="/student" replace />;
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

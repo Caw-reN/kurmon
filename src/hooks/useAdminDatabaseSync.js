@@ -217,10 +217,14 @@ export function useAdminDatabaseSync({
     // Tanpa filter ini, browser guru akan mencoba auto-save ke /api/data/save, mendapat HTTP 403 Forbidden,
     // lalu salah dideteksi sebagai sesi kedaluwarsa dan di-logout otomatis!
     const roleStr = String(currentUser?.role || '').toLowerCase().trim();
+    const subroleStr = String(currentUser?.subrole || '').toLowerCase().trim();
     const isAllowedToSaveData = [
       'admin', 'superadmin', 'tu', 'tata_usaha',
-      'waka', 'waka_kurikulum', 'kepsek'
-    ].includes(roleStr);
+      'waka', 'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras', 'kepsek'
+    ].includes(roleStr) ||
+      roleStr.startsWith('waka') ||
+      roleStr.startsWith('custom_') ||
+      subroleStr.startsWith('custom_');
 
     const timer = setTimeout(() => {
       try {

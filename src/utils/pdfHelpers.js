@@ -1,6 +1,23 @@
 import { useDataStore } from '../store/useDataStore.js';
 import { useAppStore } from '../store/useAppStore.js';
 
+/** Converts a hex color string (#rrggbb or #rgb) to an [R, G, B] array. */
+export function hexToRgbArray(hex) {
+  const clean = String(hex || '').replace('#', '').trim();
+  if (clean.length === 3) {
+    return [
+      parseInt(clean[0] + clean[0], 16),
+      parseInt(clean[1] + clean[1], 16),
+      parseInt(clean[2] + clean[2], 16),
+    ];
+  }
+  return [
+    parseInt(clean.slice(0, 2) || '0', 16),
+    parseInt(clean.slice(2, 4) || '0', 16),
+    parseInt(clean.slice(4, 6) || '0', 16),
+  ];
+}
+
 /**
  * Reads the active primary color from CSS variables (set by branding.js)
  * or falls back to the appStore themeSettings.primaryColor.
@@ -15,13 +32,13 @@ export const getPrimaryColorRgb = () => {
     if (cssColor) {
       return hexToRgbArray(cssColor);
     }
-  } catch (e) { /* ignore */ }
+  } catch { /* ignore */ }
 
   // Fallback: read from Zustand store
   try {
     const storeColor = useAppStore.getState().themeSettings?.primaryColor;
     if (storeColor) return hexToRgbArray(storeColor);
-  } catch (e) { /* ignore */ }
+  } catch { /* ignore */ }
 
   // Hard fallback: default green
   return [6, 78, 59];
@@ -35,23 +52,6 @@ export const getPrimaryColorLight = () => {
   const [r, g, b] = getPrimaryColorRgb();
   const mix = (c) => Math.min(255, Math.round(c + (255 - c) * 0.65));
   return [mix(r), mix(g), mix(b)];
-};
-
-/** Converts a hex color string (#rrggbb or #rgb) to an [R, G, B] array. */
-const hexToRgbArray = (hex) => {
-  const clean = hex.replace('#', '').trim();
-  if (clean.length === 3) {
-    return [
-      parseInt(clean[0] + clean[0], 16),
-      parseInt(clean[1] + clean[1], 16),
-      parseInt(clean[2] + clean[2], 16),
-    ];
-  }
-  return [
-    parseInt(clean.substring(0, 2), 16),
-    parseInt(clean.substring(2, 4), 16),
-    parseInt(clean.substring(4, 6), 16),
-  ];
 };
 
 export const drawKopSurat = (doc, isLandscape = false) => {

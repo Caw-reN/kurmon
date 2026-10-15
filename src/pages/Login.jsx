@@ -357,7 +357,7 @@ export default function Login({
             <Link to="/" className="block text-slate-500 hover:text-[var(--ui-primary)] transition-colors font-semibold">
               ← Kembali ke Beranda
             </Link>
-            <p>{appSettings.footerText || `© ${new Date().getFullYear()} ${loginBrandTitle}.`}</p>
+            <p>{appSettings?.footerText || `© ${new Date().getFullYear()} ${loginBrandTitle}.`}</p>
           </div>
         </div>
     </div>

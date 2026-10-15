@@ -1809,7 +1809,7 @@ const normalizeServerRole = (role, defaultRole = "guru") => {
     return (normalized === "tata_usaha" ? "tu" : (normalized === "staff" ? "karyawan" : normalized));
   }
   if (normalized.startsWith("custom_")) return normalized;
-  if (normalized === "hubin" || normalized === "sarpras" || normalized === "kurikulum" || normalized === "bk") return normalized;
+  if (normalized === "hubin" || normalized === "sarpras" || normalized === "kurikulum" || normalized === "bk" || normalized === "kesiswaan" || normalized === "piket") return normalized;
   if (normalized.startsWith("waka_")) return "waka";
   if (normalized === "siswa") return "siswa";
   if (normalized === "walas" || normalized === "walikelas") return "walas";
@@ -1850,9 +1850,9 @@ const requireAuthenticated = (req, res) => {
     "bpbk", "pembina_osis", "sekretaris_osis", "sekretaris_kesiswaan", 
     "anggota_kesiswaan", "sekretaris_kurikulum", "anggota_kurikulum", 
     "sekretaris_hubin", "anggota_hubin", "sekretaris_sarpras", 
-    "anggota_sarpras", "sekretaris_tu", "bendahara"
+    "anggota_sarpras", "sekretaris_tu", "bendahara", "kesiswaan", "piket"
   ];
-  if (allowed.includes(role) || (typeof role === "string" && role.startsWith("custom_"))) {
+  if (allowed.includes(role) || (typeof role === "string" && (role.startsWith("custom_") || role.startsWith("waka_")))) {
     return session;
   }
   send(req, res, 403, { ok: false, error: "Sesi login diperlukan." });

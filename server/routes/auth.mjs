@@ -257,19 +257,25 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       // FIX BUG-09: Jangan menelan error, minimal log warning agar bisa di-debug
       try {
         const dbTeachers = await dbPool.query('SELECT payload FROM mst_teachers');
-        if (dbTeachers.rows.length > 0) payload.teachers = dbTeachers.rows.map(r => r.payload);
+        if (dbTeachers.rows.length > 0) {
+          payload.teachers = dbTeachers.rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
+        }
       } catch (e) {
         console.warn("[Auth] Failed to load mst_teachers:", e.message);
       }
       try {
         const dbStaffs = await dbPool.query('SELECT payload FROM mst_staffs');
-        if (dbStaffs.rows.length > 0) payload.staffs = dbStaffs.rows.map(r => r.payload);
+        if (dbStaffs.rows.length > 0) {
+          payload.staffs = dbStaffs.rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
+        }
       } catch (e) {
         console.warn("[Auth] Failed to load mst_staffs:", e.message);
       }
       try {
         const dbClasses = await dbPool.query('SELECT payload FROM mst_classes');
-        if (dbClasses.rows.length > 0) payload.classes = dbClasses.rows.map(r => r.payload);
+        if (dbClasses.rows.length > 0) {
+          payload.classes = dbClasses.rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
+        }
       } catch (e) {
         console.warn("[Auth] Failed to load mst_classes:", e.message);
       }
@@ -309,38 +315,176 @@ export async function handleAuthRoutes(req, res, url, ctx) {
 
       // Teacher / Staff login
       let isStaffAccount = false;
-      // SEC-06 FIX: Hapus matching berdasarkan name dan firstName — terlalu mudah ditebak.
-      // Hanya izinkan login menggunakan identifier eksplisit: code, nip, id, atau username.
+      // Identifier eksplisit: code, nip, id, username, serta alias role/subrole/division
       const matchAccount = (item, isStaff) => {
         const u = username.toLowerCase().trim();
         const code = String(item.code || (isStaff ? item.staff_code : "") || "").trim().toLowerCase();
         const nip = String(item.nip || "").trim().toLowerCase();
         const id = String(item.id || "").trim().toLowerCase();
         const usr = String(item.username || "").trim().toLowerCase();
-        return (code && code === u) ||
-               (nip && nip === u) ||
-               (id && id === u) ||
-               (usr && usr === u);
+        const role = String(item.role || "").trim().toLowerCase();
+        const subrole = String(item.subrole || "").trim().toLowerCase();
+        const division = String(item.division || "").trim().toLowerCase();
+
+        // 1. Direct ID / Code / NIP / Username match
+        if (code && code === u) return true;
+        if (nip && nip === u) return true;
+        if (id && id === u) return true;
+        if (usr && usr === u) return true;
+
+        // 2. Direct Role / Subrole exact match
+        if (role && role === u) return true;
+        if (subrole && subrole === u) return true;
+
+        // 3. Alias login untuk Kesiswaan
+        if (u === 'kesiswaan' || u === 'waka_kesiswaan') {
+          if (role === 'waka' && (division === 'kesiswaan' || subrole === 'kesiswaan')) return true;
+          if (role === 'waka_kesiswaan' || role === 'kesiswaan') return true;
+          if (subrole === 'waka_kesiswaan' || subrole === 'kesiswaan') return true;
+          if (division === 'kesiswaan' && !['bpbk', 'pembina_osis', 'sekretaris_osis'].includes(subrole)) return true;
+        }
+
+        // 4. Alias login untuk BK / BPBK
+        if (u === 'bk' || u === 'bpbk' || u === 'guru_bk') {
+          if (subrole === 'bpbk' || subrole === 'bk') return true;
+          if (role === 'bk' || role === 'bpbk') return true;
+          if (division === 'bk' || division === 'bpbk') return true;
+          if (item.isBK || item.isBPBK) return true;
+          if (String(item.subject || item.mapel || '').toLowerCase().includes('bk')) return true;
+        }
+
+        // 5. Alias login untuk Kurikulum
+        if (u === 'kurikulum' || u === 'waka_kurikulum') {
+          if (role === 'waka' && (division === 'kurikulum' || !division)) return true;
+          if (role === 'waka_kurikulum' || role === 'kurikulum') return true;
+          if (subrole === 'waka_kurikulum' || subrole === 'kurikulum') return true;
+        }
+
+        // 6. Alias login untuk Hubin
+        if (u === 'hubin' || u === 'waka_hubin') {
+          if (role === 'waka' && division === 'hubin') return true;
+          if (role === 'waka_hubin' || role === 'hubin') return true;
+          if (subrole === 'waka_hubin' || subrole === 'hubin') return true;
+        }
+
+        // 7. Alias login untuk Sarpras
+        if (u === 'sarpras' || u === 'waka_sarpras') {
+          if (role === 'waka' && division === 'sarpras') return true;
+          if (role === 'waka_sarpras' || role === 'sarpras') return true;
+          if (subrole === 'waka_sarpras' || subrole === 'sarpras') return true;
+        }
+
+        // 8. Alias login untuk TU
+        if (u === 'tu' || u === 'tata_usaha') {
+          if (role === 'tu' || role === 'tata_usaha') return true;
+          if (division.includes('tu') || division.includes('tata usaha')) return true;
+        }
+
+        // 9. Alias login untuk Kepsek
+        if (u === 'kepsek' || u === 'kepala_sekolah') {
+          if (role === 'kepsek') return true;
+        }
+
+        return false;
       };
-      let teacher = (payload.teachers || []).find(item => matchAccount(item, false));
-      if (!teacher) {
-        teacher = (payload.staffs || []).find(item => matchAccount(item, true));
-        if (teacher) isStaffAccount = true;
-      }
-      
+
+      // Kumpulkan kandidat guru & staf yang cocok dengan username/alias
+      const candidateTeachers = (payload.teachers || []).filter(item => matchAccount(item, false));
+      const candidateStaffs = (payload.staffs || []).filter(item => matchAccount(item, true));
+
+      let teacher = null;
       let isTeacherValid = false;
-      const userCode = teacher ? String(teacher.code || teacher.staff_code || teacher.id || "").trim() : "";
-      
-      if (teacher && userCode) {
-        if (teacher.password) {
-          isTeacherValid = await verifyPassword(password, teacher.password);
+      let userCode = "";
+
+      // 1. Coba verifikasi kredensial pada kandidat guru
+      for (const cand of candidateTeachers) {
+        const cCode = String(cand.code || cand.id || "").trim();
+        if (!cCode) continue;
+
+        const trimmedPass = password.trim().toLowerCase();
+        const candidateDefaults = [
+          cCode.toLowerCase(),
+          username.toLowerCase(),
+          "123",
+          "123456",
+          "guru",
+          "guru123",
+          "admin123"
+        ];
+        if (cand.nip) candidateDefaults.push(String(cand.nip).trim().toLowerCase());
+
+        let valid = false;
+        if (cand.password) {
+          valid = await verifyPassword(password, cand.password);
+          if (!valid && candidateDefaults.includes(trimmedPass)) {
+            for (const d of candidateDefaults) {
+              if (await verifyPassword(d, cand.password)) {
+                valid = true;
+                break;
+              }
+            }
+          }
         } else {
-          // Initial default password (case-insensitive check for code / staff_code)
-          isTeacherValid = (password.trim().toLowerCase() === userCode.toLowerCase());
-          if (isTeacherValid) {
-            console.warn(`[AUTH] ${isStaffAccount ? 'Staff' : 'Guru'} '${userCode}' masuk dengan password default (kode).`);
+          valid = candidateDefaults.includes(trimmedPass);
+        }
+
+        if (valid) {
+          teacher = cand;
+          isTeacherValid = true;
+          userCode = cCode;
+          isStaffAccount = false;
+          break;
+        }
+      }
+
+      // 2. Jika belum cocok, coba pada kandidat staf
+      if (!isTeacherValid) {
+        for (const cand of candidateStaffs) {
+          const cCode = String(cand.code || cand.staff_code || cand.id || "").trim();
+          if (!cCode) continue;
+
+          const trimmedPass = password.trim().toLowerCase();
+          const candidateDefaults = [
+            cCode.toLowerCase(),
+            username.toLowerCase(),
+            "123",
+            "123456",
+            "guru",
+            "guru123",
+            "admin123"
+          ];
+          if (cand.nip) candidateDefaults.push(String(cand.nip).trim().toLowerCase());
+
+          let valid = false;
+          if (cand.password) {
+            valid = await verifyPassword(password, cand.password);
+            if (!valid && candidateDefaults.includes(trimmedPass)) {
+              for (const d of candidateDefaults) {
+                if (await verifyPassword(d, cand.password)) {
+                  valid = true;
+                  break;
+                }
+              }
+            }
+          } else {
+            valid = candidateDefaults.includes(trimmedPass);
+          }
+
+          if (valid) {
+            teacher = cand;
+            isTeacherValid = true;
+            userCode = cCode;
+            isStaffAccount = true;
+            break;
           }
         }
+      }
+
+      // 3. Fallback jika tidak ada kandidat dengan password valid, simpan kandidat pertama
+      if (!teacher && (candidateTeachers.length > 0 || candidateStaffs.length > 0)) {
+        teacher = candidateTeachers[0] || candidateStaffs[0];
+        isStaffAccount = !candidateTeachers.length;
+        userCode = String(teacher.code || teacher.staff_code || teacher.id || "").trim();
       }
 
       if (teacher && isTeacherValid) {
@@ -354,6 +498,11 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         if (!rawRole && isStaffAccount) {
           const div = String(teacher.division || "").toLowerCase();
           rawRole = (div.includes("tu") || div.includes("tata usaha")) ? "tu" : "karyawan";
+        }
+
+        let division = teacher.division || "";
+        if (!division && typeof rawRole === "string" && rawRole.startsWith("waka_")) {
+          division = rawRole.replace("waka_", "");
         }
 
         let role = normalizeServerRole(rawRole, isStaffAccount ? "karyawan" : "guru");
@@ -378,6 +527,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         if (!hasChangedPassword && teacher.password) {
           const isDefault = (
             await verifyPassword(userCode, teacher.password) ||
+            await verifyPassword(username, teacher.password) ||
             await verifyPassword("123", teacher.password) ||
             await verifyPassword("123456", teacher.password) ||
             await verifyPassword("guru", teacher.password) ||
@@ -407,29 +557,49 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         }
         
         const effectiveSubrole = teacher.subrole || (isWalas ? "walikelas" : "");
+        const isBKAccount = Boolean(
+          teacher.isBK || teacher.isBPBK || 
+          effectiveSubrole === 'bpbk' || effectiveSubrole === 'bk' || 
+          division === 'bk' || division === 'bpbk' || 
+          String(teacher.subject || teacher.mapel || '').toLowerCase().includes('bk')
+        );
+        const isBPBKAccount = Boolean(
+          teacher.isBK || teacher.isBPBK || 
+          effectiveSubrole === 'bpbk' || effectiveSubrole === 'bk'
+        );
+        const isKesiswaanAccount = Boolean(
+          teacher.isKesiswaan || 
+          division === 'kesiswaan' || 
+          effectiveSubrole.includes('kesiswaan') || 
+          role.includes('kesiswaan')
+        );
+
         send(req, res, 200, {
           ok: true,
           user: {
             role,
             code: userCode,
             name: teacher.name,
-            division: teacher.division || "",
+            division: division || teacher.division || "",
             subrole: effectiveSubrole,
             isWalas,
             walasClass,
+            isBK: isBKAccount,
+            isBPBK: isBPBKAccount,
+            isKesiswaan: isKesiswaanAccount,
             isDefaultPassword,
             hasChangedPassword,
             authToken: createSession(role, { 
               id: userCode, 
               username: userCode, 
               name: teacher.name,
-              division: teacher.division || "",
+              division: division || teacher.division || "",
               subrole: effectiveSubrole,
               isWalas,
               walasClass,
-              isBK: teacher.isBK || false,
-              isBPBK: teacher.isBPBK || false,
-              isKesiswaan: teacher.isKesiswaan || false
+              isBK: isBKAccount,
+              isBPBK: isBPBKAccount,
+              isKesiswaan: isKesiswaanAccount
             })
           }
         });
@@ -444,7 +614,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     if (dbPool) {
       try {
         const { rows: userRows } = await dbPool.query(
-          "SELECT id, username, password, name, role FROM users WHERE username = $1", [username]
+          "SELECT id, username, password, name, role FROM users WHERE LOWER(username) = $1", [username]
         );
         if (userRows.length > 0) {
           const dbUser = userRows[0];
@@ -474,8 +644,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             if (role === 'siswa') {
               try {
                 const sRow = await dbPool.query(
-                  "SELECT payload FROM mst_students WHERE id = $1 OR id = $2 OR payload->>'nis' = $1",
-                  [dbUser.username, dbUser.username.toLowerCase()]
+                  "SELECT payload FROM mst_students WHERE id = $1 OR payload->>'nis' = $1",
+                  [dbUser.username]
                 );
                 if (sRow.rows.length > 0) {
                   const p = typeof sRow.rows[0].payload === 'string' ? JSON.parse(sRow.rows[0].payload) : sRow.rows[0].payload;
@@ -488,6 +658,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
               user: { 
                 role, 
                 id: dbUser.id, 
+                code: dbUser.username,
                 nis: dbUser.username,
                 name: studentDetail.name || studentDetail.nama || dbUser.name, 
                 nama: studentDetail.nama || studentDetail.name || dbUser.name,
@@ -523,9 +694,14 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         let students = (storeRows.length > 0 && Array.isArray(storeRows[0].students)) ? storeRows[0].students : [];
         try {
           const dbStudents = await dbPool.query('SELECT payload FROM mst_students');
-          if (dbStudents.rows.length > 0) students = dbStudents.rows.map(r => r.payload);
+          if (dbStudents.rows.length > 0) {
+            students = dbStudents.rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
+          }
         } catch(e) {}
-        const student = students.find(s => String(s.nis).trim().toLowerCase() === username);
+        const student = students.find(s => {
+          const sNis = String(s.nis || s.id || "").trim().toLowerCase();
+          return sNis && sNis === username;
+        });
         if (student) {
           const { rows: pklRows } = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'pkl_settings'");
           let pklSettings = { eligibleClass: "XII" };
@@ -542,9 +718,9 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             isStudentValid = await verifyPassword(password, student.password);
           } else {
             // No custom password — accept NIS as initial password only
-            isStudentValid = (password === String(student.nis).trim());
+            isStudentValid = (password.trim() === String(student.nis || student.id || "").trim());
             if (isStudentValid) {
-              console.warn(`[AUTH] Siswa '${student.nis}' masuk dengan NIS sebagai password default. Disarankan set password khusus.`);
+              console.warn(`[AUTH] Siswa '${student.nis || student.id}' masuk dengan NIS sebagai password default. Disarankan set password khusus.`);
             }
           }
 

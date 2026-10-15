@@ -18,6 +18,9 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 const getInitials = (name) => { if (!name) return '?'; const parts = name.trim().split(' '); if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase(); return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase(); };
+const getStudentName = (s) => s?.namaSiswa || s?.name || s?.nama || s?.nama_siswa || s?.nama_lengkap || '-';
+const getStudentNis  = (s) => s?.nis || s?.NIS || s?.code || s?.id || '';
+const getStudentClass = (s) => s?.class_name || s?.kelas || s?.className || '';
 
 export default function DashboardBPBK({ students = [], classes = [], teachers = [], tab = 'ringkasan', onTabChange }) {
   const authToken = useAuthStore(state => state.user?.authToken);
