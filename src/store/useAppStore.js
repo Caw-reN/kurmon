@@ -35,10 +35,10 @@ const DEFAULT_ATTENDANCE_SETTINGS = {
 const BASE_GURU_PERMISSIONS = {
   dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
   akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
-  walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
-  jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
+  walas_report: "nonaktif", kedisiplinan_absensi: "otomatis",
+  jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "nonaktif",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-  kedisiplinan_piket: "edit", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif"
+  kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif"
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -46,10 +46,10 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   guru: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
     akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
-    walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
-    jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
+    walas_report: "nonaktif", kedisiplinan_absensi: "otomatis",
+    jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "nonaktif",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
+    kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     rpp_guru: "otomatis",
   },
   walikelas: { ...BASE_GURU_PERMISSIONS,
@@ -58,7 +58,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
     ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
     beban: "otomatis", pesan: "otomatis", 
-    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
+    kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     hikvision_report_siswa: "otomatis"
   },
 

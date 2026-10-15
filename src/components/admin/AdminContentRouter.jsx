@@ -177,8 +177,9 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       if (activeTab === "kedisiplinan_piket") {
         const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(activeTab) : null;
         if (piketLevel === "nonaktif" || piketLevel === "none" || piketLevel === "off") return false;
-        if (role === "guru" || role === "walikelas" || isWalasUser || hasPiket) return true;
-        return true;
+        if (role === "admin" || role === "superadmin" || role === "kepsek") return true;
+        if (hasPiket) return true;
+        return piketLevel === "edit" || piketLevel === "view" || piketLevel === "otomatis";
       }
       if (activeTab ==="jurnal_harian" && role ==="guru") return true;
 
@@ -223,6 +224,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           return perms.includes(activeTab) || (activeTab ==="modul_ajar" && (perms.includes("silabus") || perms.includes("silabusguru")));
         }
         const level = perms[activeTab];
+        if (level === "nonaktif" || level === "none" || level === "off") return false;
         if (activeTab ==="modul_ajar") {
           const hasSyllabusPerm = perms["silabus"] && perms["silabus"] !=="none" && perms["silabus"] !=="nonaktif";
           const hasSyllabusGuruPerm = perms["silabusguru"] && perms["silabusguru"] !=="none" && perms["silabusguru"] !=="nonaktif";
@@ -233,19 +235,22 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           const bpbkDefaultTabs = [
             "dashboard","generate","akademik","absensi","jurnal_harian",
             "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
-            "kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub",
+            "kedisiplinan_bpbk","kedisiplinan_hub",
             "absensiguru","silabusguru","ketersediaan","beban","pesan",
             "riwayat_prestasi","siswa","hikvision_report_siswa"
           ];
           if (bpbkDefaultTabs.includes(activeTab)) return true;
         }
         if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") {
+          if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
           const guruDefaultTabs = [
-            "dashboard","generate","akademik","absensi","jurnal_harian","rekap_jurnal_kelas",
-            "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
-            "kedisiplinan_piket",
+            "dashboard","generate","akademik","absensi","jurnal_harian",
+            "modul_ajar","kedisiplinan_absensi",
             "absensiguru","silabusguru","ketersediaan","beban","pesan"
           ];
+          if (isWalasUser && ["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(activeTab)) {
+            return true;
+          }
           const guruPermissionedTabs = [
             "silabus","rpp_guru","siswa_keluar","tatib_skor","laporan_rekap_walas",
             "siswa","riwayat_prestasi","hikvision_report_siswa"
