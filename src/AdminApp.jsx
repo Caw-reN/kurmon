@@ -2822,6 +2822,7 @@ export default function App() {
       }
     }
 
+    let isAllowed = false;
     const perms = rolePermissions?.[effectiveKey] || rolePermissions?.[activeRole];
     let level = null;
     if (isWalasUser) {
