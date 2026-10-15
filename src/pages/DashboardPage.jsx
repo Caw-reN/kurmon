@@ -688,7 +688,7 @@ export default function DashboardPage({
     if (!isTeacher) return [];
     const teacherSubrole = (currentUser?.subrole || '').toLowerCase().trim();
     const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || teacherSubrole === 'walikelas');
-    const canPiket = typeof checkIsAllowed === 'function' ? (checkIsAllowed('kedisiplinan_piket', null) || checkIsAllowed('kedisiplinan_bpbk', null)) : true;
+    const canPiket = typeof checkIsAllowed === 'function' ? checkIsAllowed('kedisiplinan_piket', null) : true;
 
     let shortcuts = [];
     if (teacherSubrole === 'bpbk') {

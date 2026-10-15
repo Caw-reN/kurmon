@@ -97,17 +97,51 @@ export default function KedisiplinanHub({
     return false;
   }, [isSuperAdmin, isKesiswaanTeam, permsPiket]);
 
-  // 4 Tab Utama di Header (Rapi, Bersih, Sangat Mudah Dipahami Orang Awam)
-  const tabs = useMemo(() => [
-    { id: 'ringkasan', label: 'Ringkasan & EWS', icon: Activity },
-    { id: 'piket', label: 'Input Pelanggaran (Piket)', icon: ClipboardList },
-    { id: 'bk', label: 'Layanan BK', icon: ShieldHalf },
-    { id: 'rekap', label: 'Rekap & Rapor Siswa', icon: BarChart3 }
-  ], []);
+  // Hak akses Bimbingan Konseling (BK)
+  const permsBK = typeof getTabPermissionLevel === 'function' ? getTabPermissionLevel('kedisiplinan_bpbk') : null;
+  const isExplicitlyDeniedBK = permsBK === 'nonaktif' || permsBK === 'none' || permsBK === 'off';
+
+  const canAccessBK = useMemo(() => {
+    if (isSuperAdmin || isBKRole) return true;
+    if (isExplicitlyDeniedBK) return false;
+    if (rawRole === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' || (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' || subrole === 'sekretaris_kesiswaan') return true;
+    if (rawRole === 'guru' || rawRole === 'walikelas' || isWalas) return false;
+    return permsBK === 'edit' || permsBK === 'full' || permsBK === 'view' || permsBK === 'otomatis';
+  }, [isSuperAdmin, isBKRole, isExplicitlyDeniedBK, rawRole, subrole, division, isWalas, permsBK]);
+
+  const canAccessRingkasan = useMemo(() => {
+    return canAccessBK || isSuperAdmin || isKesiswaanTeam;
+  }, [canAccessBK, isSuperAdmin, isKesiswaanTeam]);
+
+  // 4 Tab Utama di Header (Disaring berdasarkan hak akses pengguna)
+  const tabs = useMemo(() => {
+    const list = [];
+    if (canAccessRingkasan) {
+      list.push({ id: 'ringkasan', label: 'Ringkasan & EWS', icon: Activity });
+    }
+    if (canInputPelanggaran) {
+      list.push({ id: 'piket', label: 'Input Pelanggaran (Piket)', icon: ClipboardList });
+    }
+    if (canAccessBK) {
+      list.push({ id: 'bk', label: 'Layanan BK', icon: ShieldHalf });
+    }
+    list.push({ id: 'rekap', label: 'Rekap & Rapor Siswa', icon: BarChart3 });
+    return list;
+  }, [canAccessRingkasan, canInputPelanggaran, canAccessBK]);
+
+  // Redirect aman jika user membuka tab yang tidak memiliki izin
+  useEffect(() => {
+    if (activeTab === 'bk' && !canAccessBK) {
+      setActiveTab(tabs[0]?.id || 'piket');
+    }
+    if (activeTab === 'ringkasan' && !canAccessRingkasan) {
+      setActiveTab(tabs[0]?.id || 'piket');
+    }
+  }, [activeTab, canAccessBK, canAccessRingkasan, tabs]);
 
   return (
     <div className="flex flex-col gap-4 h-full animate-in fade-in duration-300">
-      {/* Header Utama Bersih dengan 4 Tab Terpadu */}
+      {/* Header Utama Bersih dengan Tab Terpadu Sesuai Izin */}
       <PageHeader
         title="Bimbingan, Piket & Kedisiplinan"
         icon={ShieldCheck}
@@ -121,7 +155,7 @@ export default function KedisiplinanHub({
         {/* ========================================================== */}
         {/* TAB 1: RINGKASAN & EWS (Dashboard Awal Bersih Tanpa Duplikat) */}
         {/* ========================================================== */}
-        {activeTab === 'ringkasan' && (
+        {activeTab === 'ringkasan' && canAccessRingkasan && (
           <div className="flex flex-col gap-4">
             {/* Konten Dashboard BPBK (Statistik & EWS Langsung Tampil Bersih) */}
             <DashboardBPBK 
@@ -200,7 +234,7 @@ export default function KedisiplinanHub({
         {/* ========================================================== */}
         {/* TAB 3: LAYANAN BK (Sesi Konseling + Surat Panggilan + Home Visit) */}
         {/* ========================================================== */}
-        {activeTab === 'bk' && (
+        {activeTab === 'bk' && canAccessBK && (
           <div className="flex flex-col gap-4">
             {/* Sub-Tab Pill Switcher (3 Pilihan Sangat Jelas & User Friendly) */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-1.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs gap-2">

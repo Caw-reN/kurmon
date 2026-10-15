@@ -163,7 +163,18 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || currentUser?.subrole === 'walikelas');
       if (role ==="admin" || role ==="superadmin") return true;
       if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
-      if (activeTab === "kedisiplinan_piket" || activeTab === "kedisiplinan_bpbk" || activeTab === "kedisiplinan_hub") {
+      if (activeTab === "kedisiplinan_bpbk" || activeTab === "kedisiplinan_hub") {
+        const bpbkLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(activeTab) : null;
+        if (bpbkLevel === "nonaktif" || bpbkLevel === "none" || bpbkLevel === "off") return false;
+        const div = (currentUser?.division || "").toLowerCase().trim();
+        const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+        const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+          div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
+        const isKesiswaan = (role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan' || role === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' || subrole === 'sekretaris_kesiswaan';
+        if (isBK || isKesiswaan || role === "admin" || role === "superadmin" || role === "kepsek") return true;
+        return false;
+      }
+      if (activeTab === "kedisiplinan_piket") {
         const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(activeTab) : null;
         if (piketLevel === "nonaktif" || piketLevel === "none" || piketLevel === "off") return false;
         if (role === "guru" || role === "walikelas" || isWalasUser || hasPiket) return true;
@@ -218,11 +229,21 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           const hasModulAjarPerm = perms["modul_ajar"] && perms["modul_ajar"] !=="none" && perms["modul_ajar"] !=="nonaktif";
           return hasSyllabusPerm || hasSyllabusGuruPerm || hasModulAjarPerm;
         }
-        if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas" || roleKey === "bpbk") {
+        if (roleKey === "bpbk") {
+          const bpbkDefaultTabs = [
+            "dashboard","generate","akademik","absensi","jurnal_harian",
+            "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
+            "kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub",
+            "absensiguru","silabusguru","ketersediaan","beban","pesan",
+            "riwayat_prestasi","siswa","hikvision_report_siswa"
+          ];
+          if (bpbkDefaultTabs.includes(activeTab)) return true;
+        }
+        if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") {
           const guruDefaultTabs = [
             "dashboard","generate","akademik","absensi","jurnal_harian","rekap_jurnal_kelas",
             "catatan_walikelas","modul_ajar","walas_report","kedisiplinan_absensi",
-            "kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub",
+            "kedisiplinan_piket",
             "absensiguru","silabusguru","ketersediaan","beban","pesan"
           ];
           const guruPermissionedTabs = [
@@ -305,7 +326,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           ];
           if (kurikulumAllowedTabs.includes(activeTab)) return true;
         }
-        const wakaCommonTabs = [...commonRoleTabs, "siswa","guru","fasilitas","ruangan","beban","siswa_keluar","kenaikan_kelas","struktur","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","tatib_skor","laporan_absensi","hikvision_report_siswa"];
+        const wakaCommonTabs = [...commonRoleTabs, "siswa","guru","fasilitas","ruangan","beban","siswa_keluar","kenaikan_kelas","struktur","riwayat_prestasi","kedisiplinan_piket","tatib_skor","laporan_absensi","hikvision_report_siswa"];
         if (wakaCommonTabs.includes(activeTab)) return true;
         return checkAllowed(`waka_${division}`);
       }

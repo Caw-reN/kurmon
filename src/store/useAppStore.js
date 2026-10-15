@@ -38,7 +38,7 @@ const BASE_GURU_PERMISSIONS = {
   walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
   jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-  kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit"
+  kedisiplinan_piket: "edit", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif"
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -49,7 +49,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     walas_report: "otomatis", kedisiplinan_absensi: "otomatis",
     jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "otomatis",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
-    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit",
+    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     rpp_guru: "otomatis",
   },
   walikelas: { ...BASE_GURU_PERMISSIONS,
@@ -58,7 +58,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
     ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
     beban: "otomatis", pesan: "otomatis", 
-    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "edit", kedisiplinan_hub: "edit",
+    kedisiplinan_piket: "edit", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     hikvision_report_siswa: "otomatis"
   },
 
@@ -634,6 +634,26 @@ const syncPersistedSlicesFromDatabase = () => {
       if (sanitized.walikelas && sanitized.walikelas.absensi === "otomatis") {
         sanitized.walikelas = { ...sanitized.walikelas, absensi: "nonaktif" };
       }
+
+      // Pastikan role umum (guru, walas, dan non-kesiswaan) tidak bocor izin bimbingan konseling
+      const nonBkRoles = [
+        "guru", "walikelas", "karyawan", "tu", "sekretaris_tu", "bendahara",
+        "waka_kurikulum", "waka_sarpras", "waka_hubin",
+        "pembina_osis", "sekretaris_osis",
+        "sekretaris_kurikulum", "anggota_kurikulum",
+        "sekretaris_hubin", "anggota_hubin",
+        "sekretaris_sarpras", "anggota_sarpras",
+        "tata_usaha", "kurikulum", "sarpras", "hubin"
+      ];
+      for (const rk of nonBkRoles) {
+        if (sanitized[rk] && typeof sanitized[rk] === "object") {
+          // Hanya jika tidak secara sadar disetel custom selain "edit"/"otomatis" lama
+          if (sanitized[rk].kedisiplinan_bpbk === "edit" || sanitized[rk].kedisiplinan_bpbk === "otomatis") {
+            sanitized[rk] = { ...sanitized[rk], kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif" };
+          }
+        }
+      }
+
       nextState.rolePermissions = {
         ...DEFAULT_ROLE_PERMISSIONS,
         ...sanitized,

@@ -89,9 +89,26 @@ export function useAdminDatabaseSync({
     if (Array.isArray(payload.academicCalendar))     nextStoreState.academicCalendar = payload.academicCalendar;
     if (Array.isArray(payload.calendarCategories))   nextStoreState.calendarCategories = payload.calendarCategories;
     if (payload.rolePermissions && typeof payload.rolePermissions === 'object') {
+      const sanitized = { ...payload.rolePermissions };
+      const nonBkRoles = [
+        "guru", "walikelas", "karyawan", "tu", "sekretaris_tu", "bendahara",
+        "waka_kurikulum", "waka_sarpras", "waka_hubin",
+        "pembina_osis", "sekretaris_osis",
+        "sekretaris_kurikulum", "anggota_kurikulum",
+        "sekretaris_hubin", "anggota_hubin",
+        "sekretaris_sarpras", "anggota_sarpras",
+        "tata_usaha", "kurikulum", "sarpras", "hubin"
+      ];
+      for (const rk of nonBkRoles) {
+        if (sanitized[rk] && typeof sanitized[rk] === "object") {
+          if (sanitized[rk].kedisiplinan_bpbk === "edit" || sanitized[rk].kedisiplinan_bpbk === "otomatis") {
+            sanitized[rk] = { ...sanitized[rk], kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif" };
+          }
+        }
+      }
       nextStoreState.rolePermissions = {
         ...DEFAULT_ROLE_PERMISSIONS,
-        ...payload.rolePermissions
+        ...sanitized
       };
     }
     if (payload.kedisiplinanSettings && typeof payload.kedisiplinanSettings === 'object') {
