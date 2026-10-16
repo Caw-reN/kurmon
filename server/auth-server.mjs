@@ -2361,8 +2361,16 @@ const server = createServer(async (req, res) => {
         // Ambil data hadir dari hikvision_logs (siswa tap mesin)
         const { rows: hikRows } = await dbPool.query(
           `SELECT TO_CHAR(timestamp, 'YYYY-MM-DD') as tanggal,
-                  TO_CHAR(MIN(timestamp), 'HH24:MI') as time_in,
-                  TO_CHAR(MAX(timestamp), 'HH24:MI') as time_out
+                  TO_CHAR(MIN(CASE 
+                    WHEN EXTRACT(DOW FROM timestamp) = 5 AND TO_CHAR(timestamp, 'HH24:MI:SS') < '11:20:00' THEN timestamp
+                    WHEN EXTRACT(DOW FROM timestamp) != 5 AND TO_CHAR(timestamp, 'HH24:MI:SS') < '12:00:00' THEN timestamp
+                    ELSE NULL
+                  END), 'HH24:MI') as time_in,
+                  TO_CHAR(MAX(CASE 
+                    WHEN EXTRACT(DOW FROM timestamp) = 5 AND TO_CHAR(timestamp, 'HH24:MI:SS') >= '11:20:00' THEN timestamp
+                    WHEN EXTRACT(DOW FROM timestamp) != 5 AND TO_CHAR(timestamp, 'HH24:MI:SS') >= '12:00:00' THEN timestamp
+                    ELSE NULL
+                  END), 'HH24:MI') as time_out
            FROM hikvision_logs hl
            JOIN hikvision_devices hd ON hl.device_id = hd.id
            WHERE hl.employee_id = $1
@@ -2427,10 +2435,10 @@ const server = createServer(async (req, res) => {
             const timeIn = hik.time_in || '';
             const isLate = timeIn > masukLate;
             if (isLate) {
-              records[dateStr] = { status: 'Terlambat', isLate: true, timeIn, timeOut: hik.time_out };
+              records[dateStr] = { status: 'Terlambat', isLate: true, timeIn, timeOut: hik.time_out || null };
               terlambat++;
             } else {
-              records[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn, timeOut: hik.time_out };
+              records[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn, timeOut: hik.time_out || null };
               hadir++;
             }
           } else if (logbook) {

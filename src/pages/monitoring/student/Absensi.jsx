@@ -204,7 +204,7 @@ const StudentAbsensi = () => {
         if (found) {
           const st = String(found.status || 'HADIR').toUpperCase();
           if (st.includes('TERLAMBAT') || st.includes('LATE')) {
-            logsMap[dateStr] = { status: 'Terlambat', isLate: true, timeIn: found.timeIn || '07:15', timeOut: found.timeOut || '16:00' };
+            logsMap[dateStr] = { status: 'Terlambat', isLate: true, timeIn: found.timeIn || '07:15', timeOut: found.timeOut || null };
             lateCount++;
           } else if (st.includes('IZIN') || st.includes('SAKIT')) {
             logsMap[dateStr] = { status: 'Izin', isIzin: true, timeIn: found.timeIn || '08:00' };
@@ -213,7 +213,7 @@ const StudentAbsensi = () => {
             logsMap[dateStr] = { status: 'Alpa', isAlpa: true };
             alpaCount++;
           } else {
-            logsMap[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: found.timeIn || '06:45', timeOut: found.timeOut || '16:00' };
+            logsMap[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: found.timeIn || '06:45', timeOut: found.timeOut || null };
             hadirCount++;
           }
         }

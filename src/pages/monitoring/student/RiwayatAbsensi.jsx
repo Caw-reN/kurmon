@@ -251,7 +251,7 @@ const RiwayatAbsensi = () => {
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{dateDisplay}</p>
                       <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                        {item.jam_masuk || item.timeIn ? `Masuk: ${item.jam_masuk || item.timeIn} • Pulang: ${item.jam_keluar || item.timeOut || '16:00'}` : 'Waktu Presensi Digital'}
+                        {item.jam_masuk || item.timeIn ? `Masuk: ${item.jam_masuk || item.timeIn} • Pulang: ${item.jam_keluar || item.timeOut || '-'}` : 'Waktu Presensi Digital'}
                       </p>
                     </div>
                   </div>

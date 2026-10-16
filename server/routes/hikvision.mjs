@@ -2410,8 +2410,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
                  const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
                  const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL", "PKL"].includes(status) || String(status || '').startsWith("PKL");
-                 const actualIn = prevDayData.in || parsedTime || (isPermit ? status : (status === "Hadir" ? (prevDayData.in || "07:00") : null));
-                 const actualOut = prevDayData.out || (isPermit ? status : (status === "Hadir" ? (prevDayData.out || "15:30") : null));
+                 const actualIn = prevDayData.in || (parsedTime && parsedTime < "12:00" ? parsedTime : null) || (isPermit ? status : (status === "Hadir" && !prevDayData.out ? "07:00" : null));
+                 const dayOfWeek = rec.tanggal_str ? new Date(rec.tanggal_str + 'T00:00:00').getDay() : 0;
+                 const cutoffTime = dayOfWeek === 5 ? "11:20" : "12:00";
+                 const isAfternoonTime = parsedTime && parsedTime >= cutoffTime;
+                 const actualOut = prevDayData.out || (isAfternoonTime ? parsedTime : null) || (isPermit ? status : null);
 
                  const isOtomatis = rec.approval_status === 'otomatis' || (rec.pelapor_nama && String(rec.pelapor_nama).toLowerCase().includes('mesin'));
                  let finalIsLate = isLate;
