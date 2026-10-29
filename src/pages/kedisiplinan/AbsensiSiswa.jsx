@@ -108,113 +108,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const [deleteStep, setDeleteStep] = useState(1);
   const [confirmDeleteText, setConfirmDeleteText] = useState("");
 
-  const handleToggleSelect = (id) => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const isAllCurrentPageSelected = paginatedSuratItems?.length > 0 && paginatedSuratItems.every(i => selectedIds.has(i.id));
-
-  const handleToggleSelectAllPage = () => {
-    setSelectedIds(prev => {
-      const next = new Set(prev);
-      if (isAllCurrentPageSelected) {
-        paginatedSuratItems.forEach(i => next.delete(i.id));
-      } else {
-        paginatedSuratItems.forEach(i => next.add(i.id));
-      }
-      return next;
-    });
-  };
-
-  const handleClearSelection = () => {
-    setSelectedIds(new Set());
-  };
-
-  const openBulkDeleteTwoStep = () => {
-    if (selectedIds.size === 0) return;
-    setDeleteStep(1);
-    setConfirmDeleteText("");
-    setIsTwoStepDeleteOpen(true);
-  };
-
-  const handleExecuteBulkDelete = async () => {
-    if (confirmDeleteText !== "HAPUS") return;
-    setIsBulkLoading(true);
-    try {
-      const res = await fetch("/api/kedisiplinan/absensi", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: 'bulk_delete',
-          ids: Array.from(selectedIds)
-        })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        showToast(data.message || `${selectedIds.size} data absensi berhasil dihapus.`);
-        setSelectedIds(new Set());
-        setIsTwoStepDeleteOpen(false);
-        fetchData();
-      } else {
-        showToast(data.error || "Gagal menghapus data massal.", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("Terjadi kesalahan jaringan saat menghapus massal.", "error");
-    } finally {
-      setIsBulkLoading(false);
-    }
-  };
-
-  const openBulkEdit = () => {
-    if (selectedIds.size === 0) return;
-    setBulkEditStatus("KEEP");
-    setBulkEditKeterangan("");
-    setBulkEditApproval("KEEP");
-    setIsBulkEditOpen(true);
-  };
-
-  const handleExecuteBulkEdit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    if (bulkEditStatus === "KEEP" && !bulkEditKeterangan.trim() && bulkEditApproval === "KEEP") {
-      showToast("Pilih setidaknya satu perubahan untuk diterapkan.", "error");
-      return;
-    }
-    setIsBulkLoading(true);
-    try {
-      const res = await fetch("/api/kedisiplinan/absensi", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: 'bulk_update',
-          ids: Array.from(selectedIds),
-          status: bulkEditStatus !== "KEEP" ? bulkEditStatus : undefined,
-          keterangan: bulkEditKeterangan.trim() ? bulkEditKeterangan.trim() : undefined,
-          approval_status: bulkEditApproval !== "KEEP" ? bulkEditApproval : undefined
-        })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        showToast(data.message || `${selectedIds.size} data absensi berhasil diperbarui.`);
-        setSelectedIds(new Set());
-        setIsBulkEditOpen(false);
-        fetchData();
-      } else {
-        showToast(data.error || "Gagal memperbarui data massal.", "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showToast("Terjadi kesalahan jaringan saat memperbarui massal.", "error");
-    } finally {
-      setIsBulkLoading(false);
-    }
-  };
-  
   const handleApproveReject = async (id, action) => {
     try {
       const res = await fetch("/api/kedisiplinan/absensi", {
@@ -380,6 +273,115 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   }, [filteredItems, currentPageSurat, itemsPerPageSurat]);
 
   const totalPagesSurat = Math.ceil(filteredItems.length / itemsPerPageSurat);
+
+  const isAllCurrentPageSelected = useMemo(() => {
+    return (paginatedSuratItems?.length || 0) > 0 && paginatedSuratItems.every(i => selectedIds.has(i.id));
+  }, [paginatedSuratItems, selectedIds]);
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleSelectAllPage = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (isAllCurrentPageSelected) {
+        paginatedSuratItems.forEach(i => next.delete(i.id));
+      } else {
+        paginatedSuratItems.forEach(i => next.add(i.id));
+      }
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const openBulkDeleteTwoStep = () => {
+    if (selectedIds.size === 0) return;
+    setDeleteStep(1);
+    setConfirmDeleteText("");
+    setIsTwoStepDeleteOpen(true);
+  };
+
+  const handleExecuteBulkDelete = async () => {
+    if (confirmDeleteText !== "HAPUS") return;
+    setIsBulkLoading(true);
+    try {
+      const res = await fetch("/api/kedisiplinan/absensi", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: 'bulk_delete',
+          ids: Array.from(selectedIds)
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(data.message || `${selectedIds.size} data absensi berhasil dihapus.`);
+        setSelectedIds(new Set());
+        setIsTwoStepDeleteOpen(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menghapus data massal.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan saat menghapus massal.", "error");
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
+
+  const openBulkEdit = () => {
+    if (selectedIds.size === 0) return;
+    setBulkEditStatus("KEEP");
+    setBulkEditKeterangan("");
+    setBulkEditApproval("KEEP");
+    setIsBulkEditOpen(true);
+  };
+
+  const handleExecuteBulkEdit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (bulkEditStatus === "KEEP" && !bulkEditKeterangan.trim() && bulkEditApproval === "KEEP") {
+      showToast("Pilih setidaknya satu perubahan untuk diterapkan.", "error");
+      return;
+    }
+    setIsBulkLoading(true);
+    try {
+      const res = await fetch("/api/kedisiplinan/absensi", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: 'bulk_update',
+          ids: Array.from(selectedIds),
+          status: bulkEditStatus !== "KEEP" ? bulkEditStatus : undefined,
+          keterangan: bulkEditKeterangan.trim() ? bulkEditKeterangan.trim() : undefined,
+          approval_status: bulkEditApproval !== "KEEP" ? bulkEditApproval : undefined
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(data.message || `${selectedIds.size} data absensi berhasil diperbarui.`);
+        setSelectedIds(new Set());
+        setIsBulkEditOpen(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal memperbarui data massal.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan saat memperbarui massal.", "error");
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
 
   const [currentPageMatrix, setCurrentPageMatrix] = useState(1);
   const [itemsPerPageMatrix, setItemsPerPageMatrix] = useState(20);
