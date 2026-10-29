@@ -675,6 +675,24 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           </div>
 
           <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+            {selectedIds.size > 0 && (
+              <div className="flex items-center gap-1.5 mr-1">
+                <button 
+                  type="button"
+                  onClick={openBulkEdit} 
+                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                >
+                  <Edit2 size={13} /> <span>Edit Massal ({selectedIds.size})</span>
+                </button>
+                <button 
+                  type="button"
+                  onClick={openBulkDeleteTwoStep} 
+                  className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                >
+                  <Trash2 size={13} /> <span>Hapus ({selectedIds.size})</span>
+                </button>
+              </div>
+            )}
             <button 
               type="button"
               onClick={exportExcel} 
@@ -691,6 +709,46 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             </button>
           </div>
         </div>
+
+        {/* Banner Aksi Massal Aktif */}
+        {selectedIds.size > 0 && (
+          <div className="mx-3.5 sm:mx-4 mb-3 p-3 bg-slate-900 text-white rounded-[var(--ui-radius-card)] shadow-md border border-slate-800 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
+            <div className="flex items-center gap-2.5">
+              <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center">
+                {selectedIds.size}
+              </span>
+              <span className="text-xs font-bold text-slate-200">
+                <strong className="text-white">{selectedIds.size} data absensi</strong> siswa dipilih
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={openBulkEdit}
+                className="px-3 py-1.5 rounded-[var(--ui-radius-small)] bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <Edit2 size={13} />
+                <span>Edit Massal</span>
+              </button>
+              <button
+                type="button"
+                onClick={openBulkDeleteTwoStep}
+                className="px-3 py-1.5 rounded-[var(--ui-radius-small)] bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+              >
+                <Trash2 size={13} />
+                <span>Hapus Massal</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleClearSelection}
+                className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-xs flex items-center gap-1 transition-all cursor-pointer"
+              >
+                <X size={13} />
+                <span>Batal</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Desktop Table View (Integrated with Container) */}
@@ -1315,8 +1373,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       )}
 
       {/* Floating Action Toolbar untuk Bulk Edit & Bulk Delete */}
-      {selectedIds.size > 0 && activeTab === 'surat' && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-700 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
           <div className="flex items-center gap-2 pr-2 border-r border-slate-700">
             <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center">
               {selectedIds.size}
