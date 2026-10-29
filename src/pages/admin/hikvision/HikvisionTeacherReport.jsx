@@ -1338,10 +1338,17 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
     const effectiveData = dayData || { isHoliday: true, status: "Libur", note: holidayInfo?.reason || "Libur Kalender Akademik" };
     const status = effectiveData.status || (effectiveData.isLate ? "Terlambat" : (effectiveData.in || effectiveData.out ? "Hadir" : ""));
+    const inTime = formatAttendanceTime(effectiveData.in);
+    const outTime = formatAttendanceTime(effectiveData.out);
+    const hasRealTaps = Boolean(inTime && inTime !== "Libur") || Boolean(outTime && outTime !== "Libur");
 
-    if (effectiveData.isHoliday || status === "Libur" || effectiveData.in === "Libur" || effectiveData.out === "Libur" || Boolean(holidayInfo)) {
+    const isExplicitHoliday = effectiveData.isHoliday || status === "Libur" || effectiveData.in === "Libur" || effectiveData.out === "Libur";
+    const isScheduledHoliday = Boolean(holidayInfo) && !hasRealTaps;
+
+    if (isExplicitHoliday || isScheduledHoliday) {
       const rawNote = effectiveData.note || '';
-      const cleanNote = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin") && rawNote !== "-") ? rawNote : '';
+      const isInternal = rawNote.startsWith("Dari mesin") || rawNote.startsWith("Mesin") || rawNote.startsWith("Alpa Otomatis");
+      const cleanNote = (!isInternal && rawNote !== "-" && !rawNote.toLowerCase().startsWith("hadir")) ? rawNote : '';
       const noteText = cleanNote || holidayInfo?.reason || "Libur Kalender Akademik";
       return (
         <div 
@@ -1465,8 +1472,6 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         </div>
       );
     }
-    const inTime = formatAttendanceTime(dayData.in);
-    const outTime = formatAttendanceTime(dayData.out);
     const isMissingIn = !inTime && Boolean(outTime);
 
     if (isMissingIn) {

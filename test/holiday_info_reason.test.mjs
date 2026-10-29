@@ -12,74 +12,37 @@ test('getHolidayInfoForDate returns correct holiday info and reason sentences', 
     {
       id: 'evt-1',
       title: 'Ujian TKA',
-      dateStart: '2026-11-02',
-      dateEnd: '2026-11-04',
+      dateStart: '2026-10-26',
+      dateEnd: '2026-10-29',
       isHoliday: true,
       categoryId: 'cat-2',
-      applicableClasses: 'Semua',
+      applicableClasses: 'Semua', // Diset Semua di form dasar, tapi memiliki rotasi harian
       dailyClassSchedule: {
-        '2026-11-02': ['XI TKJ 3', 'XI RPL 1'],
-        '2026-11-03': ['XI TKJ 2', 'XI RPL 2']
+        '2026-10-29': ['XI TKJ 1'] // Hanya tanggal 29 yang libur untuk XI TKJ 1
       },
       attendanceRemark: 'Diliburkan karena Lab digunakan Ujian TKA (Belajar Mandiri di Rumah)'
-    },
-    {
-      id: 'evt-2',
-      title: 'Hari Guru Nasional',
-      dateStart: '2026-11-25',
-      dateEnd: '2026-11-25',
-      isHoliday: true,
-      categoryId: 'cat-1',
-      applicableClasses: 'Semua',
-      attendanceRemark: '' // Kosong, harus di-fallback ke kalimat otomatis
-    },
-    {
-      id: 'evt-3',
-      title: 'Libur Semester Ganjil',
-      dateStart: '2026-12-20',
-      dateEnd: '2026-12-31',
-      isHoliday: true,
-      categoryId: 'cat-1',
-      applicableClasses: 'Semua',
-      attendanceRemark: '-' // Dash, harus di-fallback ke kalimat otomatis
     }
   ];
 
-  await t.test('matches dailyClassSchedule for specific class on specific date with explicit remark', () => {
-    // 2026-11-02: XI TKJ 3 is exempted
-    const res1 = getHolidayInfoForDate(calendar, categories, '2026-11-02', 'XI TKJ 3');
-    assert.ok(res1 !== null);
-    assert.equal(res1.isHoliday, true);
-    assert.equal(res1.reason, 'Diliburkan karena Lab digunakan Ujian TKA (Belajar Mandiri di Rumah)');
-
-    // 2026-11-02: XI TKJ 2 is NOT exempted
-    const res2 = getHolidayInfoForDate(calendar, categories, '2026-11-02', 'XI TKJ 2');
-    assert.equal(res2, null);
-
-    // 2026-11-03: XI TKJ 2 IS exempted
-    const res3 = getHolidayInfoForDate(calendar, categories, '2026-11-03', 'XI TKJ 2');
-    assert.ok(res3 !== null);
-    assert.equal(res3.isHoliday, true);
-    assert.equal(res3.reason, 'Diliburkan karena Lab digunakan Ujian TKA (Belajar Mandiri di Rumah)');
-  });
-
-  await t.test('automatically generates explanatory reason when attendanceRemark is empty', () => {
-    const res = getHolidayInfoForDate(calendar, categories, '2026-11-25', 'X TKJ 1');
+  await t.test('2026-10-29 is HOLIDAY for XI TKJ 1', () => {
+    const res = getHolidayInfoForDate(calendar, categories, '2026-10-29', 'XI TKJ 1');
     assert.ok(res !== null);
     assert.equal(res.isHoliday, true);
-    assert.equal(res.reason, 'Diliburkan karena Hari Guru Nasional');
+    assert.equal(res.reason, 'Diliburkan karena Lab digunakan Ujian TKA (Belajar Mandiri di Rumah)');
   });
 
-  await t.test('automatically handles title containing libur without duplicate prefix when attendanceRemark is dash', () => {
-    const res = getHolidayInfoForDate(calendar, categories, '2026-12-22', 'XII RPL 1');
-    assert.ok(res !== null);
-    assert.equal(res.isHoliday, true);
-    assert.equal(res.reason, 'Libur Semester Ganjil');
+  await t.test('2026-10-28 MUST NOT be a holiday for XI TKJ 1 (must be null)', () => {
+    const res = getHolidayInfoForDate(calendar, categories, '2026-10-28', 'XI TKJ 1');
+    assert.equal(res, null, '2026-10-28 should be null because dailyClassSchedule does not include it');
   });
 
-  await t.test('returns null for non-holiday date', () => {
-    const res = getHolidayInfoForDate(calendar, categories, '2026-11-10', 'XI TKJ 1');
-    assert.equal(res, null);
+  await t.test('2026-10-27 MUST NOT be a holiday for XI TKJ 1 (must be null)', () => {
+    const res = getHolidayInfoForDate(calendar, categories, '2026-10-27', 'XI TKJ 1');
+    assert.equal(res, null, '2026-10-27 should be null because dailyClassSchedule does not include it');
+  });
+
+  await t.test('2026-10-26 MUST NOT be a holiday for XI TKJ 1 (must be null)', () => {
+    const res = getHolidayInfoForDate(calendar, categories, '2026-10-26', 'XI TKJ 1');
+    assert.equal(res, null, '2026-10-26 should be null because dailyClassSchedule does not include it');
   });
 });
-

@@ -378,7 +378,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const getCellStyle = (dayData, studentClass = "", dateStr = "") => {
     const rawNote = String(dayData.note || dayData.keterangan || '').trim();
-    const isInternalNote = rawNote.startsWith("Dari mesin") || rawNote.startsWith("Mesin [IP") || rawNote.startsWith("Alpa Otomatis");
+    const isInternalNote = rawNote.startsWith("Dari mesin") || rawNote.startsWith("Mesin [IP") || rawNote.startsWith("Mesin:") || rawNote.startsWith("Mesin :") || rawNote.startsWith("Alpa Otomatis");
     const cleanNote = (!isInternalNote && rawNote !== "-") ? rawNote : '';
     const noteLower = cleanNote.toLowerCase();
 
@@ -403,10 +403,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       noteLower.includes('lomba');
 
     const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+    const inTime = formatAttendanceTime(dayData.in);
+    const outTime = formatAttendanceTime(dayData.out);
+    const hasRealTaps = Boolean(inTime && inTime !== "Libur") || Boolean(outTime && outTime !== "Libur");
     
     // Status Libur / Bebas Absensi (Kalender Akademik / Rotasi)
-    if (status === "Libur" || dayData.isHoliday || dayData.in === "Libur" || Boolean(holidayInfo) || noteLower.includes('libur') || noteLower.includes('tka') || noteLower.includes('belajar mandiri') || noteLower.includes('classmeeting')) {
-      const explicitReason = cleanNote || holidayInfo?.reason || (dayData.title ? `Diliburkan karena ${dayData.title}` : "Libur Kalender Akademik");
+    // HANYA jika statusnya Libur ATAU (ada jadwal holidayInfo untuk kelas ini DAN siswa tidak memiliki tap scan masuk/pulang)
+    const isExplicitHoliday = status === "Libur" || dayData.isHoliday || dayData.in === "Libur";
+    const isScheduledHoliday = Boolean(holidayInfo) && !hasRealTaps;
+
+    if (isExplicitHoliday || isScheduledHoliday) {
+      const explicitReason = (cleanNote && !cleanNote.toLowerCase().startsWith("hadir") && !cleanNote.toLowerCase().startsWith("mesin")) ? cleanNote : (holidayInfo?.reason || (dayData.title ? `Diliburkan karena ${dayData.title}` : "Libur Kalender Akademik"));
       return {
         className: "bg-amber-50/95 text-amber-950 font-black border-2 border-amber-400 shadow-2xs ring-1 ring-amber-200",
         style: { color: "#78350f" },
@@ -502,8 +509,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         noteText: cleanNote
       };
     }
-    const inTime = formatAttendanceTime(dayData.in);
-    const outTime = formatAttendanceTime(dayData.out);
     if (!inTime && Boolean(outTime)) {
       return {
         className: "bg-amber-50/90 text-amber-950 font-bold border border-amber-300 shadow-2xs",

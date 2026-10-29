@@ -2154,10 +2154,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
               
               if (isEventHoliday) {
-                // Mendukung rotasi libur harian (dailyClassSchedule per tanggal)
+                const hasDaily = evt.dailyClassSchedule && typeof evt.dailyClassSchedule === 'object' && Object.keys(evt.dailyClassSchedule).length > 0;
                 let targetClasses = "";
-                if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+                if (hasDaily) {
                   const dayTarget = evt.dailyClassSchedule[dateStr];
+                  if (!dayTarget) return false; // Tanggal ini tidak diliburkan pada jadwal rotasi
                   targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
                 } else {
                   targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
@@ -2165,11 +2166,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
                 if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
                 if (personGrade && targetClasses.split(',').map(g=>g.trim()).includes(personGrade)) return true;
-                // Pengecekan spesifik kelas (misal "XI TKJ 3" cocok dengan targetClasses "XI TKJ 3")
                 if (personClassClean) {
                   const targetList = targetClasses.split(',').map(c => c.trim());
                   if (targetList.includes(personClassClean)) return true;
                 }
+                return false;
               }
               
               // Fallback to legacy check if isHoliday is not set
@@ -2619,9 +2620,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   if (dateStr >= start && dateStr <= end) {
                     const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
                     if (isEventHoliday) {
+                      const hasDaily = evt.dailyClassSchedule && typeof evt.dailyClassSchedule === 'object' && Object.keys(evt.dailyClassSchedule).length > 0;
                       let targetClasses = "";
-                      if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+                      if (hasDaily) {
                         const dayTarget = evt.dailyClassSchedule[dateStr];
+                        if (!dayTarget) return false;
                         targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
                       } else {
                         targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
@@ -2630,11 +2633,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                       if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
                       if (pGrade && targetClasses.split(',').map(g=>g.trim()).includes(pGrade)) return true;
                       if (cClean && targetClasses.split(',').map(c => c.trim()).includes(cClean)) return true;
+                      return false;
                     }
-                    const cat = calendarCategories.find(c => c.id === evt.categoryId);
-                    const catName = cat ? String(cat.name).toLowerCase() : "";
-                    const title = String(evt.title || "").toLowerCase();
-                    if (catName.includes("libur") || title.includes("libur")) return true;
+                    if (evt.isHoliday === undefined) {
+                      const cat = calendarCategories.find(c => c.id === evt.categoryId);
+                      const catName = cat ? String(cat.name).toLowerCase() : "";
+                      const title = String(evt.title || "").toLowerCase();
+                      if (catName.includes("libur") || title.includes("libur")) return true;
+                    }
                   }
                   return false;
                 });

@@ -1250,8 +1250,6 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         </div>
       );
     }
-    const inTime = formatAttendanceTime(dayData.in);
-    const outTime = formatAttendanceTime(dayData.out);
     const isMissingIn = !inTime && Boolean(outTime);
 
     if (isMissingIn) {

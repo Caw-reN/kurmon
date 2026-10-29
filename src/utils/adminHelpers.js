@@ -67,19 +67,31 @@ export const getHolidayInfoForDate = (academicCalendar = [], calendarCategories 
 
       if (!isHoliday) return false;
 
-      // Cek target kelas / role
+      // Cek apakah kegiatan menggunakan rotasi harian (dailyClassSchedule)
+      const hasDailySchedule = evt.dailyClassSchedule && typeof evt.dailyClassSchedule === 'object' && Object.keys(evt.dailyClassSchedule).length > 0;
+
       let targetClasses = "";
-      if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+      if (hasDailySchedule) {
+        // HANYA tanggal yang eksplisit dicantumkan di dailyClassSchedule yang aktif
         const dayTarget = evt.dailyClassSchedule[dateStr];
+        if (!dayTarget) {
+          // Tanggal ini TIDAK diliburkan untuk siapapun dalam kegiatan rotasi ini!
+          return false;
+        }
         targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
       } else {
         targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
       }
 
-      if (targetClasses === "SEMUA" || targetClasses === "ALL" || !targetClean || targetClean === "ALL") return true;
-      if (targetGrade && targetClasses.split(',').map(g => g.trim()).includes(targetGrade)) return true;
-      if (targetClasses.split(',').map(c => c.trim()).includes(targetClean)) return true;
-      if ((targetClean === "GURU" || targetClean === "KARYAWAN" || targetClean === "STAFF") && (targetClasses.includes(targetClean) || targetClasses === "SEMUA")) return true;
+      if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
+
+      // Jika targetClasses spesifik kelas tertentu, tapi targetClean kosong, jangan cocokkan!
+      if (!targetClean || targetClean === "ALL") return false;
+
+      const targetList = targetClasses.split(',').map(c => c.trim());
+      if (targetGrade && targetList.includes(targetGrade)) return true;
+      if (targetList.includes(targetClean)) return true;
+      if ((targetClean === "GURU" || targetClean === "KARYAWAN" || targetClean === "STAFF") && targetList.includes(targetClean)) return true;
     }
     return false;
   });
