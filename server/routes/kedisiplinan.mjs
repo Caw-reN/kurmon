@@ -519,20 +519,20 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
              const params = [ids];
              let pIdx = 2;
              if (body.status && body.status !== "KEEP") {
-               updates.push(`status = ${pIdx++}`);
+               updates.push(`status = $${pIdx++}`);
                params.push(body.status);
              }
              if (typeof body.keterangan === 'string' && body.keterangan.trim()) {
-               updates.push(`keterangan = ${pIdx++}`);
+               updates.push(`keterangan = $${pIdx++}`);
                params.push(body.keterangan.trim());
              }
              if (body.approval_status && body.approval_status !== "KEEP") {
-               updates.push(`approval_status = ${pIdx++}`);
+               updates.push(`approval_status = $${pIdx++}`);
                params.push(body.approval_status);
                if (body.approval_status === 'approved' || body.approval_status === 'rejected') {
-                 updates.push(`approved_by_id = ${pIdx++}`);
+                 updates.push(`approved_by_id = $${pIdx++}`);
                  params.push(session?.id || 'admin');
-                 updates.push(`approved_by_name = ${pIdx++}`);
+                 updates.push(`approved_by_name = $${pIdx++}`);
                  params.push(session?.name || 'BP/BK');
                }
              }

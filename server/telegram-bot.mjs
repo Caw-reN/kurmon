@@ -1257,32 +1257,75 @@ ${deviceReports.join('\n\n')}
 /**
  * Memeriksa apakah suatu tanggal merupakan hari libur atau akhir pekan (Sabtu/Minggu)
  * @param {string} dateStr - Format YYYY-MM-DD
- * @returns {Promise<boolean>}
+ * @param {string} targetClassOrRole - Nama kelas siswa atau 'GURU'/'STAFF'/'Semua'
+ * @returns {Promise<{ isHoliday: boolean, reason: string }>}
  */
-async function _isHolidayOrWeekend(dateStr) {
+async function _isHolidayOrWeekend(dateStr, targetClassOrRole = "Semua") {
   try {
     const d = new Date(dateStr + 'T12:00:00+07:00');
     const day = d.getDay();
-    if (day === 0 || day === 6) return true;
+    if (day === 0 || day === 6) {
+      return { 
+        isHoliday: true, 
+        reason: day === 0 ? "Hari Minggu (Akhir Pekan)" : "Hari Sabtu (Akhir Pekan)" 
+      };
+    }
 
     if (_dbPool) {
       const mainRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
       if (mainRes.rows.length > 0 && mainRes.rows[0].data) {
         const parsed = typeof mainRes.rows[0].data === 'string' ? JSON.parse(mainRes.rows[0].data) : mainRes.rows[0].data;
         const cal = parsed?.academicCalendar || parsed?.academic_calendar || [];
-        const isEventHoliday = cal.some(evt => {
+        const cats = parsed?.calendarCategories || parsed?.calendar_categories || [];
+
+        const targetClean = String(targetClassOrRole || "").trim().toUpperCase();
+        let targetGrade = "";
+        if (targetClean.startsWith("X ") || targetClean.startsWith("10 ")) targetGrade = "X";
+        else if (targetClean.startsWith("XI ") || targetClean.startsWith("11 ")) targetGrade = "XI";
+        else if (targetClean.startsWith("XII ") || targetClean.startsWith("12 ")) targetGrade = "XII";
+
+        for (const evt of cal) {
           const s = evt.dateStart || evt.date;
           const e = evt.dateEnd || evt.dateStart || evt.date;
           if (dateStr >= s && dateStr <= e) {
-            return evt.isHoliday === true || evt.isHoliday === 'true' || String(evt.title || '').toLowerCase().includes('libur');
+            const isEventHoliday = evt.isHoliday === true || evt.isHoliday === 'true';
+            const cat = cats.find(c => c.id === evt.categoryId);
+            const catName = cat ? String(cat.name).toLowerCase() : "";
+            const titleLower = String(evt.title || '').toLowerCase();
+            const isHoliday = isEventHoliday || catName.includes("libur") || titleLower.includes("libur");
+            if (!isHoliday) continue;
+
+            const hasDailySchedule = evt.dailyClassSchedule && typeof evt.dailyClassSchedule === 'object' && Object.keys(evt.dailyClassSchedule).length > 0;
+            let targetClasses = "";
+            if (hasDailySchedule) {
+              const dayTarget = evt.dailyClassSchedule[dateStr];
+              if (!dayTarget) continue; // Tanggal ini tidak diliburkan pada jadwal rotasi
+              targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
+            } else {
+              targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+            }
+
+            const isAllSchool = targetClasses === "SEMUA" || targetClasses === "ALL";
+            if (!isAllSchool) {
+              // Jika ini bukan libur seluruh sekolah:
+              // Bila pengecekan adalah level sekolah ('Semua'), jangan anggap seluruh sekolah libur!
+              if (targetClean === "SEMUA" || targetClean === "ALL" || !targetClean) continue;
+
+              const targetList = targetClasses.split(',').map(c => c.trim());
+              const matchGrade = targetGrade && targetList.includes(targetGrade);
+              const matchClass = targetList.includes(targetClean);
+              const matchRole = (targetClean === "GURU" || targetClean === "KARYAWAN" || targetClean === "STAFF") && targetList.includes(targetClean);
+              if (!matchGrade && !matchClass && !matchRole) continue;
+            }
+
+            const reason = evt.holidayReason || (evt.title ? `Libur: ${evt.title}` : "Libur Kalender Akademik");
+            return { isHoliday: true, reason };
           }
-          return false;
-        });
-        if (isEventHoliday) return true;
+        }
       }
     }
   } catch (e) {}
-  return false;
+  return { isHoliday: false, reason: "" };
 }
 
 /**
@@ -1326,10 +1369,10 @@ async function _cmdTerlambat(chatId, dateInfo = null, filterType = 'all') {
     ).catch(() => ({ rows: [{ total_scan: 0 }] }));
     const totalScansOnDate = parseInt(scanCountRows[0]?.total_scan || 0, 10);
 
-    const isWeekendHoliday = await _isHolidayOrWeekend(targetDate);
-    if (isWeekendHoliday) {
+    const holidayCheck = await _isHolidayOrWeekend(targetDate, filterType === 'guru' ? 'GURU' : 'Semua');
+    if (holidayCheck.isHoliday) {
       let msg = `⏰ <b>REKAP KETERLAMBATAN</b>\n📅 <i>${targetFormatted}</i>\n\n`;
-      msg += `🏖️ <b>Status Kalender:</b> Hari Libur / Akhir Pekan\n`;
+      msg += `🏖️ <b>Status Kalender:</b> ${escapeHtml(holidayCheck.reason || 'Hari Libur / Akhir Pekan')}\n`;
       msg += `Tidak diberlakukan jam batas keterlambatan sekolah.\n\n`;
       if (totalScansOnDate > 0) {
         msg += `✨ Terdata <b>${totalScansOnDate} kali scan</b> presensi untuk kegiatan ekstrakurikuler / kegiatan sekolah hari ini. Seluruhnya dicatat hadir tanpa status terlambat.`;
@@ -2805,7 +2848,8 @@ async function _cmdAbsenPerKelas(chatId, classQuery, dateInfo = null) {
   const belumList = [];
 
   const sortedStudents = Array.from(studentMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'id'));
-  const isWeekendHoliday = await _isHolidayOrWeekend(today);
+  const holidayCheck = await _isHolidayOrWeekend(today, className);
+  const isWeekendHoliday = holidayCheck.isHoliday;
 
   for (const s of sortedStudents) {
     const timeIn = tapMap.get(s.nis);
@@ -2832,7 +2876,7 @@ async function _cmdAbsenPerKelas(chatId, classQuery, dateInfo = null) {
   msg += `👨‍🏫 <b>Wali Kelas:</b> ${escapeHtml(walasName)}\n\n`;
 
   if (isWeekendHoliday) {
-    msg += `🏖️ <b>Status Kalender:</b> Hari Libur / Akhir Pekan\n\n`;
+    msg += `🏖️ <b>Status Kalender:</b> ${escapeHtml(holidayCheck.reason || 'Hari Libur / Akhir Pekan')}\n\n`;
     msg += `👥 <b>Total Siswa:</b> ${totalStudents} orang\n`;
     msg += `✨ <b>Hadir di Sekolah (Kegiatan / Ekskul):</b> <b>${totalHadir}</b> siswa\n\n`;
     if (totalHadir > 0) {
@@ -3142,12 +3186,13 @@ async function _cmdAbsenGuru(chatId, dateInfo = null) {
   const totalHadir = tepatList.length + telatList.length;
   const pct = Math.round((totalHadir / teachers.length) * 100);
 
-  const isWeekendHoliday = await _isHolidayOrWeekend(today);
+  const holidayCheck = await _isHolidayOrWeekend(today, 'GURU');
+  const isWeekendHoliday = holidayCheck.isHoliday;
   if (isWeekendHoliday) {
     let msg = isHistorical
       ? `👨‍🏫 <b>PRESENSI GURU & KARYAWAN</b>\n📅 <i>${todayFormatted}</i>\n`
       : `👨‍🏫 <b>PRESENSI GURU HARI INI</b>\n📅 <i>${todayFormatted} (${nowTime} WIB)</i>\n`;
-    msg += `🏖️ <b>Status Kalender:</b> Hari Libur / Akhir Pekan\n\n`;
+    msg += `🏖️ <b>Status Kalender:</b> ${escapeHtml(holidayCheck.reason || 'Hari Libur / Akhir Pekan')}\n\n`;
     msg += `• Total Guru Terdaftar: <b>${teachers.length}</b> orang\n`;
     msg += `• Guru Hadir di Sekolah (Ekskul / Kegiatan): <b>${totalHadir}</b> orang\n\n`;
     if (totalHadir > 0) {
@@ -3376,7 +3421,8 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null, date
       }
     });
 
-    const isWeekendHoliday = await _isHolidayOrWeekend(today);
+    const holidayCheck = await _isHolidayOrWeekend(today, 'Semua');
+    const isWeekendHoliday = holidayCheck.isHoliday;
     if (isWeekendHoliday) {
       const reportTitle = isHistorical ? 'REKAP LAPORAN PRESENSI' : 'LAPORAN KEHADIRAN (HARI LIBUR / AKHIR PEKAN)';
       const reportTime = isHistorical ? '' : ` (Pukul ${nowTime} WIB)`;
@@ -3384,7 +3430,7 @@ export async function sendDailyMorningAttendanceReport(targetChatId = null, date
 `📋 <b>${reportTitle}</b>
 📅 <i>${todayFormatted}${reportTime}</i>
 
-🏖️ <b>Status Kalender:</b> Hari Libur / Akhir Pekan
+🏖️ <b>Status Kalender:</b> ${escapeHtml(holidayCheck.reason || 'Hari Libur / Akhir Pekan')}
 
 👨‍🏫 <b>GURU & KARYAWAN HADIR:</b> <b>${teacherTaps.size + staffTaps.size}</b> orang
 🎓 <b>SISWA HADIR DI SEKOLAH:</b> <b>${studentTaps.size}</b> siswa (Ekskul / Pembinaan)
