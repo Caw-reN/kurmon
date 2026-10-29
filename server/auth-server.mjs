@@ -2342,8 +2342,9 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const sRole = normalizeServerRole(session.role);
-      if (!['admin', 'superadmin', 'walas', 'waka', 'guru', 'tu'].includes(sRole) && !sRole.startsWith('waka') && !sRole.startsWith('custom_')) {
-        return send(req, res, 403, { ok: false, error: 'Hanya admin/waka/guru/TU yang dapat membuat keterangan massal.' });
+      const canCreateRemark = ['admin', 'superadmin', 'kepsek', 'walas', 'waka', 'guru', 'tu', 'kesiswaan', 'kurikulum', 'bpbk', 'bk'].includes(sRole) || sRole.startsWith('waka') || sRole.startsWith('custom_');
+      if (!canCreateRemark) {
+        return send(req, res, 403, { ok: false, error: 'Hanya staf sekolah yang dapat membuat keterangan massal.' });
       }
       try {
         const body = await readJsonBody(req);
@@ -2419,8 +2420,8 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const sRole = normalizeServerRole(session.role);
-      if (!['admin', 'superadmin'].includes(sRole)) {
-        return send(req, res, 403, { ok: false, error: 'Hanya admin yang dapat menghapus keterangan massal.' });
+      if (!['admin', 'superadmin', 'kepsek'].includes(sRole)) {
+        return send(req, res, 403, { ok: false, error: 'Hanya admin / kepala sekolah yang dapat menghapus keterangan massal.' });
       }
       try {
         const remarkId = url.pathname.split('/').pop();
@@ -2613,7 +2614,7 @@ const server = createServer(async (req, res) => {
                 });
               }
               if (title.includes('xii') || desc.includes('xii') || title.includes('tka') || desc.includes('tka')) {
-                const sCls = studentClass.toLowerCase();
+                const sCls = String(studentClass || '').toLowerCase();
                 if (sCls.includes('xii') || sCls.includes('12') || !sCls) return true;
                 return false;
               }

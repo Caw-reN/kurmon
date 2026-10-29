@@ -435,12 +435,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     return [{ value: 'all', label: 'Semua Kelas' }, ...classOptions];
   }, [isFullAccess, isWalas, walasClass, classOptions]);
 
-  // Jika dipanggil sebagai halaman utama (bukan nested), alihkan seluruh UI ke HikvisionStudentReport 
-  // yang sudah memiliki tab matriks dan surat yang lebih bagus.
-  if (!hideTabs) {
-    return <HikvisionStudentReport classes={classes} students={students} isNested={false} />;
-  }
-
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
       
