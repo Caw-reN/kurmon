@@ -402,35 +402,11 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             startDate = month >= 6 ? `${year}-07-01` : `${year}-01-01`;
           }
 
-          let query = `
-            WITH students_flat AS (
-              SELECT 
-                COALESCE(payload->>'nis', payload->>'code', id) as nis,
-                COALESCE(payload->>'name', payload->>'nama') as student_name,
-                COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel') as class_name
-              FROM mst_students
-            )
-            SELECT 
-              k.id, 
-              k.siswa_nis, 
-              s.student_name,
-              s.class_name,
-              TO_CHAR(k.tanggal, 'YYYY-MM-DD') as tanggal, 
-              k.status, 
-              k.keterangan, 
-              k.pelapor_id, 
-              k.pelapor_nama, 
-              k.approval_status, 
-              k.approved_by_id, 
-              k.approved_by_name, 
-              k.gdrive_url, 
-              k.created_at 
-            FROM kedisiplinan_absensi k
-            LEFT JOIN students_flat s ON s.nis = k.siswa_nis
-          `;
           let conditions = [];
           const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
-          if (queryParams.get("includeHikvision") === "false") {
+          if (queryParams.get("onlySurat") === "true") {
+            conditions.push("(k.status IN ('Sakit', 'Izin', 'Alpa', 'Dispensasi') OR (k.keterangan IS NOT NULL AND k.keterangan != '' AND k.keterangan NOT LIKE 'Mesin:%' AND k.keterangan NOT LIKE 'Mesin [IP%'))");
+          } else if (queryParams.get("includeHikvision") === "false") {
             conditions.push("(k.pelapor_nama IS NULL OR k.pelapor_nama != 'Mesin Hikvision')");
           }
           let params = [];
@@ -453,19 +429,55 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             params.push(startDate);
             conditions.push(`k.tanggal >= $${params.length}`);
           }
-          if (conditions.length > 0) {
-            query += " WHERE " + conditions.join(" AND ");
-          }
-          query += " ORDER BY k.tanggal DESC, k.id DESC";
-          
+
           // B3-SEC-A FIX: Cap limit dari 99999 ke 5000 untuk mencegah DoS via query param
-          // Sebelumnya limit=99999 bisa menyebabkan server mengambil puluhan ribu rows sekaligus
           const rawLimit  = parseInt(queryParams.get('limit')  || '5000', 10);
           const rawOffset = parseInt(queryParams.get('offset') || '0',    10);
           const limit  = Math.min(isNaN(rawLimit)  || rawLimit  < 1 ? 5000 : rawLimit,  5000);
           const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
-          query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
+          const whereClause = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
           params.push(limit, offset);
+
+          const query = `
+            WITH filtered_absensi AS (
+              SELECT 
+                k.id, 
+                k.siswa_nis, 
+                k.tanggal, 
+                k.status, 
+                k.keterangan, 
+                k.pelapor_id, 
+                k.pelapor_nama, 
+                k.approval_status, 
+                k.approved_by_id, 
+                k.approved_by_name, 
+                k.gdrive_url, 
+                k.created_at 
+              FROM kedisiplinan_absensi k
+              ${whereClause}
+              ORDER BY k.tanggal DESC, k.id DESC
+              LIMIT $${params.length - 1} OFFSET $${params.length}
+            )
+            SELECT 
+              k.id, 
+              k.siswa_nis, 
+              COALESCE(ms.payload->>'name', ms.payload->>'nama') as student_name,
+              COALESCE(ms.payload->>'class_name', ms.payload->>'kelas', ms.payload->>'rombel') as class_name,
+              TO_CHAR(k.tanggal, 'YYYY-MM-DD') as tanggal, 
+              k.status, 
+              k.keterangan, 
+              k.pelapor_id, 
+              k.pelapor_nama, 
+              k.approval_status, 
+              k.approved_by_id, 
+              k.approved_by_name, 
+              k.gdrive_url, 
+              k.created_at 
+            FROM filtered_absensi k
+            LEFT JOIN mst_students ms ON (ms.payload->>'nis' = k.siswa_nis OR ms.payload->>'code' = k.siswa_nis OR ms.id = k.siswa_nis)
+            ORDER BY k.tanggal DESC, k.id DESC
+          `;
 
           const { rows } = await dbPool.query(query, params);
           send(req, res, 200, { ok: true, data: rows });
