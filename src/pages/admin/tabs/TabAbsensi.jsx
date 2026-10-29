@@ -9,6 +9,7 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
 
 const HikvisionTeacherReport = React.lazy(() => import('../../../pages/admin/hikvision/HikvisionTeacherReport.jsx'));
+const KeteranganMasalAbsensi = React.lazy(() => import('../../KeteranganMasalAbsensi.jsx'));
 
 export default function TabAbsensi(props) {
   const { 
@@ -85,6 +86,12 @@ export default function TabAbsensi(props) {
       icon: FileText,
     });
   }
+
+  headerTabs.push({
+    id: "bulk_remark",
+    label: "Keterangan Massal",
+    icon: ClipboardList,
+  });
 
   return (
     <div className="flex flex-col gap-6 h-full  w-full animate-in fade-in duration-300 relative z-10">
@@ -757,6 +764,14 @@ export default function TabAbsensi(props) {
               )}
             </section>
           )}
+        </div>
+      )}
+
+      {attendanceSubTab === "bulk_remark" && (
+        <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
+          <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
+            <KeteranganMasalAbsensi authToken={currentUser?.authToken} />
+          </Suspense>
         </div>
       )}
     </div>

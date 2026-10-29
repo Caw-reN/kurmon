@@ -14,11 +14,12 @@ import { compareTableValues, formatAttendanceTime } from '../../../utils/adminHe
 import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
 import { logWalasAttendanceCheck } from '../../../utils/auditLogger.js';
 
+const KeteranganMasalAbsensi = React.lazy(() => import('../../KeteranganMasalAbsensi.jsx'));
 
 export default function HikvisionStudentReport({ classes = [], students = [], isNested = false, activeTab: routeTab = "" }) {
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
-  const [activeTab, setActiveTab] = useState("matriks"); //"matriks" |"surat"
+  const [activeTab, setActiveTab] = useState(() => routeTab === "keterangan_massal" ? "keterangan" : "matriks"); // "matriks" | "surat" | "keterangan"
   const [exportMode, setExportMode] = useState("summary");
 
   
@@ -1545,10 +1546,29 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           >
             MANAJEMEN SURAT
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('keterangan')}
+            className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+              activeTab === 'keterangan'
+                ? 'bg-slate-100 shadow-xs'
+                : 'text-slate-400 hover:text-slate-600 bg-transparent'
+            }`}
+            style={activeTab === 'keterangan' ? {
+              background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
+              color: "var(--ui-primary)"
+            } : {}}
+          >
+            KETERANGAN MASSAL
+          </button>
         </div>
       </div>
 
-      {activeTab ==='surat' ? (
+      {activeTab === 'keterangan' ? (
+        <React.Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
+          <KeteranganMasalAbsensi authToken={authToken} />
+        </React.Suspense>
+      ) : activeTab ==='surat' ? (
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />
       ) : (
         <>

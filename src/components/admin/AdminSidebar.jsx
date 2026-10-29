@@ -318,12 +318,13 @@ export default function AdminSidebar({
     }
 
     // Ordered groups for admin sidebar
-    const groupOrder = ['dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem'];
+    const groupOrder = ['dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem'];
     const sectionLabels = {
       dataMaster: 'DATA UTAMA',
       tataUsaha: 'MANAJEMEN SEKOLAH',
       kurikulum: null,
       kesiswaan: null,
+      kehadiran: null,
       hubin: null,
       sarpras: null,
       absensi: 'PENGATURAN',
@@ -356,6 +357,26 @@ export default function AdminSidebar({
         lastSection = sectionLabel;
       }
 
+      renderedGroups.push(
+        <SidebarGroup key={groupKey} label={group.label} icon={group.icon} groupKey={groupKey}>
+          {renderedItems}
+        </SidebarGroup>
+      );
+    }
+
+    // Render any remaining custom/extra groups not in groupOrder so nothing is ever dropped
+    for (const [groupKey, group] of Object.entries(groupMap)) {
+      if (groupOrder.includes(groupKey)) continue;
+      const renderedItems = group.items.map(item =>
+        renderNavItem({
+          id: item.id,
+          icon: item.icon,
+          label: item.label,
+          featureKey: item.featureKey,
+          activeIds: item.activeIds,
+        })
+      ).filter(Boolean);
+      if (renderedItems.length === 0) continue;
       renderedGroups.push(
         <SidebarGroup key={groupKey} label={group.label} icon={group.icon} groupKey={groupKey}>
           {renderedItems}

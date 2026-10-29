@@ -223,6 +223,14 @@ export default function App() {
     history.replaceState(null, '', '#' + tab);
     logTabAccess(tab);
   }, []);
+
+  useEffect(() => {
+    window.__setActiveTab = setActiveTab;
+    return () => {
+      delete window.__setActiveTab;
+    };
+  }, [setActiveTab]);
+
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "");

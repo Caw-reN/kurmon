@@ -5,8 +5,19 @@ const getSession = () => {
   try {
     const raw = sessionStorage.getItem('school_schedule_session_v1');
     const s = raw ? JSON.parse(raw) : null;
-    return s?.authToken && s?.role ? s : null;
-  } catch { return null; }
+    if (s?.authToken) return s;
+  } catch {}
+  try {
+    const raw = localStorage.getItem('school_schedule_session_v1');
+    const s = raw ? JSON.parse(raw) : null;
+    if (s?.authToken) return s;
+  } catch {}
+  try {
+    const raw = localStorage.getItem('auth_store');
+    const s = raw ? JSON.parse(raw) : null;
+    if (s?.state?.user?.authToken) return s.state.user;
+  } catch {}
+  return null;
 };
 
 const formatDateRange = (date, dateEnd) => {
@@ -25,10 +36,10 @@ const EMPTY_FORM = {
   targetClasses: '',
 };
 
-export default function KeteranganMasalAbsensi() {
+export default function KeteranganMasalAbsensi({ authToken: propToken, username: propUsername }) {
   const session = getSession();
-  const token = session?.authToken;
-  const username = session?.username || session?.name || 'Admin';
+  const token = propToken || session?.authToken;
+  const username = propUsername || session?.username || session?.name || 'Admin';
 
   const [remarks, setRemarks] = useState([]);
   const [loading, setLoading] = useState(true);

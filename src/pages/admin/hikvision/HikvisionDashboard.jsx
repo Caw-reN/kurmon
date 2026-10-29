@@ -1,8 +1,43 @@
 import { Button, TablePagination, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X, Zap } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X, Zap, ClipboardList } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
+
+function formatDowntime(offlineSince) {
+  if (!offlineSince) return null;
+  const start = new Date(offlineSince);
+  if (isNaN(start.getTime())) return null;
+
+  const now = new Date();
+  const diffMs = Math.max(0, now.getTime() - start.getTime());
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHours = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  let durationText = '';
+  if (diffDays > 0) {
+    const remHours = diffHours % 24;
+    durationText = remHours > 0 ? `${diffDays} hari ${remHours} jam` : `${diffDays} hari`;
+  } else if (diffHours > 0) {
+    const remMin = diffMin % 60;
+    durationText = remMin > 0 ? `${diffHours} jam ${remMin} mnt` : `${diffHours} jam`;
+  } else if (diffMin > 0) {
+    durationText = `${diffMin} menit`;
+  } else {
+    durationText = 'Baru saja (< 1 mnt)';
+  }
+
+  const startTimeStr = start.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' WIB';
+  const isToday = start.toDateString() === now.toDateString();
+  const dateStr = isToday ? '' : start.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) + ' ';
+
+  return {
+    durationText,
+    startTimeFormatted: `${dateStr}${startTimeStr}`.trim()
+  };
+}
 
 
 const authHeaders = (token) => ({"Authorization": `Bearer ${token}` });
@@ -272,10 +307,24 @@ export default function HikvisionDashboard() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 justify-start md:justify-end w-full md:w-auto">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex items-center gap-2 border-amber-300 text-amber-750 hover:bg-amber-50 font-bold"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.__setActiveTab) {
+                window.__setActiveTab('keterangan_massal');
+              } else {
+                window.location.hash = '#keterangan_massal';
+              }
+            }}
+          >
+            <ClipboardList size={16} className="text-amber-600" />
+            Keterangan Massal Absensi
+          </Button>
           <Button variant="outline" size="sm" className="flex items-center gap-2" 
             onClick={handleSyncAll} 
             disabled={syncing} 
-            
           >
             <RefreshCw size={16} className={syncing ?"animate-spin" :""} /> 
             {syncing ?'Menarik & Memproses...' :'Tarik Data & Proses Absensi Semua'}
@@ -352,7 +401,14 @@ export default function HikvisionDashboard() {
             <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
               <Server size={18} className="text-[var(--ui-primary)]" />
               <h3 className="font-bold text-slate-800 text-sm">Daftar Perangkat</h3>
-              <span className="ml-auto text-xs font-black text-slate-400">{devices.length} mesin</span>
+              <div className="ml-auto flex items-center gap-1.5">
+                {devices.some(d => d.is_online === false) && (
+                  <span className="text-[10px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] font-black uppercase tracking-wider shadow-2xs">
+                    {devices.filter(d => d.is_online === false).length} Offline
+                  </span>
+                )}
+                <span className="text-xs font-black text-slate-400">{devices.length} mesin</span>
+              </div>
             </div>
             <div className="p-0">
               {loading ? (
@@ -385,13 +441,32 @@ export default function HikvisionDashboard() {
                                 );
                               }
 
+                              const downtime = formatDowntime(device.offline_since || device.last_seen || (isSyncFailed ? new Date().toISOString() : null));
+
                               return (
-                                <div className="flex items-center gap-1 text-slate-400">
-                                  <MonitorSmartphone size={12} className="text-rose-500 shrink-0" />
-                                  <span className="line-through decoration-rose-400 text-slate-400">{device.ip_address}</span>
-                                  <span className="text-[9px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5 shadow-2xs">
-                                    {isSyncFailed ? "Gagal Terhubung" : "Offline"}
-                                  </span>
+                                <div className="flex flex-col gap-1.5 mt-0.5">
+                                  <div className="flex items-center gap-1.5 text-slate-400 flex-wrap">
+                                    <MonitorSmartphone size={12} className="text-rose-500 shrink-0" />
+                                    <span className="line-through decoration-rose-400 text-slate-400">{device.ip_address}</span>
+                                    <span className="text-[9px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5 shadow-2xs">
+                                      {isSyncFailed ? "Gagal Terhubung" : "Offline"}
+                                    </span>
+                                  </div>
+                                  {downtime ? (
+                                    <div className="flex flex-col gap-0.5 text-[10.5px] text-rose-700 bg-rose-50/80 border border-rose-200/70 rounded-[var(--ui-radius-small)] p-1.5 shadow-2xs mt-1">
+                                      <div className="flex items-center gap-1 font-semibold">
+                                        <Clock size={11} className="text-rose-500 shrink-0" />
+                                        <span>Mulai mati: <strong className="font-bold text-rose-900">{downtime.startTimeFormatted}</strong></span>
+                                      </div>
+                                      <div className="flex items-center gap-1 font-semibold pl-3.5">
+                                        <span>Lama mati: <strong className="font-black text-rose-800">{downtime.durationText}</strong></span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-[10px] text-rose-500/80 italic pl-4">
+                                      Tidak ada sinyal respon dari mesin
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })()}

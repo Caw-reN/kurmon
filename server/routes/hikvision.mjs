@@ -285,7 +285,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
         // Run devices query + attendance config + all log queries IN PARALLEL
-        const [devicesResult, hConfig, recentLogsRes, staffLogsRes, teacherLogsRes] = await Promise.all([
+        const [devicesResult, hConfig, recentLogsRes, staffLogsRes, teacherLogsRes, lastSeenRes] = await Promise.all([
           dbPool.query(`SELECT d.* FROM hikvision_devices d ORDER BY d.device_type, d.location`),
           getHikvisionConfig(),
           // Siswa logs: use precomputed first-scan via subquery in SQL (avoid full table scan in JS)
@@ -357,10 +357,26 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               AND NOT EXISTS (SELECT 1 FROM hikvision_students h_chk WHERE h_chk.nis = l.employee_id AND (h_chk.name ILIKE '%admin%' OR h_chk.name = 'NGADMIN'))
             WHERE CAST(l.timestamp AS DATE) = $1 AND mst.id IS NOT NULL
             ORDER BY l.employee_id, l.timestamp ASC
-          `, [todayJkt])
+          `, [todayJkt]),
+          // Last seen per device from logs
+          dbPool.query(`
+            SELECT device_id, MAX(timestamp) as last_seen
+            FROM hikvision_logs
+            GROUP BY device_id
+          `).catch(() => ({ rows: [] }))
         ]);
 
         const devicesRows = devicesResult.rows;
+
+        const lastSeenMap = {};
+        for (const r of (lastSeenRes?.rows || [])) {
+          if (r.device_id && r.last_seen) {
+            lastSeenMap[String(r.device_id)] = r.last_seen;
+          }
+        }
+
+        global._deviceOnlineStatus = global._deviceOnlineStatus || {};
+        global._deviceOfflineSince = global._deviceOfflineSince || {};
 
         // Check device online status IN PARALLEL with reasonable timeout
         await Promise.all(devicesRows.map(async (dev) => {
@@ -377,6 +393,19 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           }
           global._deviceOnlineStatus = global._deviceOnlineStatus || {};
           global._deviceOnlineStatus[dev.ip_address] = Boolean(dev.is_online);
+
+          const devLastSeen = lastSeenMap[String(dev.id)] || null;
+          dev.last_seen = devLastSeen;
+
+          if (dev.is_online) {
+            delete global._deviceOfflineSince[dev.ip_address];
+            dev.offline_since = null;
+          } else {
+            if (!global._deviceOfflineSince[dev.ip_address]) {
+              global._deviceOfflineSince[dev.ip_address] = devLastSeen ? new Date(devLastSeen).toISOString() : new Date().toISOString();
+            }
+            dev.offline_since = global._deviceOfflineSince[dev.ip_address];
+          }
         }));
 
         const siswaMasukLate = (hConfig?.siswa?.masuk_late || "07:15") + ":00";
@@ -454,6 +483,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       if (!requireAuthenticated(req, res)) return;
       try {
         const { rows } = await dbPool.query("SELECT * FROM hikvision_devices ORDER BY device_type, location, id");
+        global._deviceOnlineStatus = global._deviceOnlineStatus || {};
+        global._deviceOfflineSince = global._deviceOfflineSince || {};
+        for (const dev of rows) {
+          dev.is_online = global._deviceOnlineStatus[dev.ip_address] || false;
+          dev.offline_since = global._deviceOfflineSince[dev.ip_address] || null;
+        }
         send(req, res, 200, { ok: true, data: rows, devices: rows });
       } catch (err) {
         sendDatabaseError(req, res, err);
@@ -768,11 +803,26 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 logsSynced++;
               }
             }
-            syncResults.push({ ip: device.ip_address, type: dtype, status: `Sukses (${users?.length || 0} pengguna, ${logs?.length || 0} log ditarik)` });
+            global._deviceOnlineStatus = global._deviceOnlineStatus || {};
+            global._deviceOnlineStatus[device.ip_address] = true;
+            if (global._deviceOfflineSince) delete global._deviceOfflineSince[device.ip_address];
+            syncResults.push({ ip: device.ip_address, type: dtype, status: `Sukses (${users?.length || 0} pengguna, ${logs?.length || 0} log ditarik)`, is_online: true });
           } catch (deviceError) {
             allDevicesSuccessful = false;
             console.error(`Gagal sinkronisasi ${device.ip_address}:`, deviceError.message);
-            syncResults.push({ ip: device.ip_address, type: dtype, status: `Error: ${deviceError.message}` });
+            global._deviceOnlineStatus = global._deviceOnlineStatus || {};
+            global._deviceOnlineStatus[device.ip_address] = false;
+            global._deviceOfflineSince = global._deviceOfflineSince || {};
+            if (!global._deviceOfflineSince[device.ip_address]) {
+              global._deviceOfflineSince[device.ip_address] = new Date().toISOString();
+            }
+            syncResults.push({
+              ip: device.ip_address,
+              type: dtype,
+              status: `Error: ${deviceError.message}`,
+              is_online: false,
+              offline_since: global._deviceOfflineSince[device.ip_address]
+            });
           }
         }
 

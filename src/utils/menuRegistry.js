@@ -167,9 +167,10 @@ export const MENU_REGISTRY = [
     icon: ClipboardList,
     label: 'Keterangan Massal Absensi',
     section: 'Kehadiran',
-    adminGroup: 'Kehadiran & Absensi',
-    adminGroupIcon: CheckCircle2,
-    adminGroupKey: 'kehadiran',
+    adminGroup: 'Kesiswaan',
+    adminGroupIcon: Users,
+    adminGroupKey: 'kesiswaan',
+    featureKey: 'attendance',
   },
   {
     id: 'hikvision_report_guru',
