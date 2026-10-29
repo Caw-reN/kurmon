@@ -482,7 +482,52 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             ['admin', 'superadmin'].includes(roleStr) ||
             Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan);
 
-          if (body.action === 'delete') {
+          if (body.action === 'bulk_delete') {
+             if (!hasApprovalPermission && !isAdminStaff) {
+               return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Bagian Kesiswaan/BK/Admin yang dapat menghapus data absensi." });
+             }
+             const rawIds = Array.isArray(body.ids) ? body.ids : (body.id ? [body.id] : []);
+             const ids = rawIds.map(x => parseInt(x, 10)).filter(n => !isNaN(n));
+             if (ids.length === 0) {
+               return send(req, res, 400, { ok: false, error: "Tidak ada data absensi valid yang dipilih untuk dihapus." });
+             }
+             await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = ANY($1::int[])", [ids]);
+             return send(req, res, 200, { ok: true, deletedCount: ids.length, message: `${ids.length} data surat absensi berhasil dihapus.` });
+          } else if (body.action === 'bulk_update') {
+             if (!hasApprovalPermission && !isAdminStaff) {
+               return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Bagian Kesiswaan/BK/Admin yang dapat mengubah data perizinan absensi." });
+             }
+             const rawIds = Array.isArray(body.ids) ? body.ids : (body.id ? [body.id] : []);
+             const ids = rawIds.map(x => parseInt(x, 10)).filter(n => !isNaN(n));
+             if (ids.length === 0) {
+               return send(req, res, 400, { ok: false, error: "Tidak ada data absensi valid yang dipilih untuk diubah." });
+             }
+             const updates = [];
+             const params = [ids];
+             let pIdx = 2;
+             if (body.status && body.status !== "KEEP") {
+               updates.push(`status = ${pIdx++}`);
+               params.push(body.status);
+             }
+             if (typeof body.keterangan === 'string' && body.keterangan.trim()) {
+               updates.push(`keterangan = ${pIdx++}`);
+               params.push(body.keterangan.trim());
+             }
+             if (body.approval_status && body.approval_status !== "KEEP") {
+               updates.push(`approval_status = ${pIdx++}`);
+               params.push(body.approval_status);
+               if (body.approval_status === 'approved' || body.approval_status === 'rejected') {
+                 updates.push(`approved_by_id = ${pIdx++}`);
+                 params.push(session?.id || 'admin');
+                 updates.push(`approved_by_name = ${pIdx++}`);
+                 params.push(session?.name || 'BP/BK');
+               }
+             }
+             if (updates.length > 0) {
+               await dbPool.query(`UPDATE kedisiplinan_absensi SET ${updates.join(', ')} WHERE id = ANY($1::int[])`, params);
+             }
+             return send(req, res, 200, { ok: true, updatedCount: ids.length, message: `${ids.length} data perizinan absensi berhasil diperbarui.` });
+          } else if (body.action === 'delete') {
              if (!hasApprovalPermission && !isAdminStaff) {
                return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Bagian Kesiswaan/BK/Admin yang dapat menghapus data absensi." });
              }

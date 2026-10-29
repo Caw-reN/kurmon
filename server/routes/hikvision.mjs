@@ -1486,6 +1486,57 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           return;
         }
 
+        if (body.action === 'bulk_delete') {
+          const rawIds = Array.isArray(body.recordIds) ? body.recordIds : (Array.isArray(body.ids) ? body.ids : (body.recordId ? [body.recordId] : []));
+          const ids = rawIds.filter(Boolean);
+          if (ids.length === 0) {
+            return send(req, res, 400, { ok: false, error: "Tidak ada data yang dipilih." });
+          }
+          if (!canApproveGuru && !canApproveKaryawan && !isSuperAdmin) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak untuk menghapus data izin/sakit." });
+          }
+          await dbPool.query("DELETE FROM guru_attendance_records WHERE record_id = ANY($1::text[])", [ids]);
+          send(req, res, 200, { ok: true, deletedCount: ids.length, message: `${ids.length} data izin/sakit berhasil dihapus.` });
+          return;
+        }
+
+        if (body.action === 'bulk_update') {
+          const rawIds = Array.isArray(body.recordIds) ? body.recordIds : (Array.isArray(body.ids) ? body.ids : (body.recordId ? [body.recordId] : []));
+          const ids = rawIds.filter(Boolean);
+          if (ids.length === 0) {
+            return send(req, res, 400, { ok: false, error: "Tidak ada data yang dipilih." });
+          }
+          if (!canApproveGuru && !canApproveKaryawan && !isSuperAdmin) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak untuk mengubah data izin/sakit." });
+          }
+          const updates = [];
+          const params = [ids];
+          let pIdx = 2;
+          if (body.status && body.status !== "KEEP") {
+            updates.push(`status = ${pIdx++}`);
+            params.push(body.status);
+          }
+          if (typeof body.note === 'string' && body.note.trim()) {
+            updates.push(`note = ${pIdx++}`);
+            params.push(body.note.trim());
+          }
+          if (body.approval_status && body.approval_status !== "KEEP") {
+            updates.push(`approval_status = ${pIdx++}`);
+            params.push(body.approval_status);
+            if (body.approval_status === 'approved' || body.approval_status === 'rejected') {
+              updates.push(`approved_by_id = ${pIdx++}`);
+              params.push(session.id || 'admin');
+              updates.push(`approved_by_name = ${pIdx++}`);
+              params.push(session.name || 'Petugas');
+            }
+          }
+          if (updates.length > 0) {
+            await dbPool.query(`UPDATE guru_attendance_records SET ${updates.join(', ')} WHERE record_id = ANY($1::text[])`, params);
+          }
+          send(req, res, 200, { ok: true, updatedCount: ids.length, message: `${ids.length} data izin/sakit berhasil diperbarui.` });
+          return;
+        }
+
         if (body.action === 'delete') {
           const recRes = await dbPool.query("SELECT * FROM guru_attendance_records WHERE record_id = $1", [body.recordId || body.id]);
           if (recRes.rows.length > 0) {

@@ -3,7 +3,7 @@ import useAuthStore from '../../store/monitoring/authStore.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
-import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, Award, Settings2 } from 'lucide-react';
+import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, Award, Settings2, AlertTriangle, ShieldAlert, ArrowRight } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { compressImageFromFile } from '../../utils/imageUtils.js';
@@ -95,6 +95,125 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
 
   const [isLoading, setIsLoading] = useState(false);
   const [previewItem, setPreviewItem] = useState(null);
+
+  // ─── Bulk Selection & 2-Step Verification States ───
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [bulkEditStatus, setBulkEditStatus] = useState("KEEP");
+  const [bulkEditKeterangan, setBulkEditKeterangan] = useState("");
+  const [bulkEditApproval, setBulkEditApproval] = useState("KEEP");
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+
+  const [isTwoStepDeleteOpen, setIsTwoStepDeleteOpen] = useState(false);
+  const [deleteStep, setDeleteStep] = useState(1);
+  const [confirmDeleteText, setConfirmDeleteText] = useState("");
+
+  const handleToggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const isAllCurrentPageSelected = paginatedSuratItems?.length > 0 && paginatedSuratItems.every(i => selectedIds.has(i.id));
+
+  const handleToggleSelectAllPage = () => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (isAllCurrentPageSelected) {
+        paginatedSuratItems.forEach(i => next.delete(i.id));
+      } else {
+        paginatedSuratItems.forEach(i => next.add(i.id));
+      }
+      return next;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedIds(new Set());
+  };
+
+  const openBulkDeleteTwoStep = () => {
+    if (selectedIds.size === 0) return;
+    setDeleteStep(1);
+    setConfirmDeleteText("");
+    setIsTwoStepDeleteOpen(true);
+  };
+
+  const handleExecuteBulkDelete = async () => {
+    if (confirmDeleteText !== "HAPUS") return;
+    setIsBulkLoading(true);
+    try {
+      const res = await fetch("/api/kedisiplinan/absensi", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: 'bulk_delete',
+          ids: Array.from(selectedIds)
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(data.message || `${selectedIds.size} data absensi berhasil dihapus.`);
+        setSelectedIds(new Set());
+        setIsTwoStepDeleteOpen(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal menghapus data massal.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan saat menghapus massal.", "error");
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
+
+  const openBulkEdit = () => {
+    if (selectedIds.size === 0) return;
+    setBulkEditStatus("KEEP");
+    setBulkEditKeterangan("");
+    setBulkEditApproval("KEEP");
+    setIsBulkEditOpen(true);
+  };
+
+  const handleExecuteBulkEdit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (bulkEditStatus === "KEEP" && !bulkEditKeterangan.trim() && bulkEditApproval === "KEEP") {
+      showToast("Pilih setidaknya satu perubahan untuk diterapkan.", "error");
+      return;
+    }
+    setIsBulkLoading(true);
+    try {
+      const res = await fetch("/api/kedisiplinan/absensi", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: 'bulk_update',
+          ids: Array.from(selectedIds),
+          status: bulkEditStatus !== "KEEP" ? bulkEditStatus : undefined,
+          keterangan: bulkEditKeterangan.trim() ? bulkEditKeterangan.trim() : undefined,
+          approval_status: bulkEditApproval !== "KEEP" ? bulkEditApproval : undefined
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        showToast(data.message || `${selectedIds.size} data absensi berhasil diperbarui.`);
+        setSelectedIds(new Set());
+        setIsBulkEditOpen(false);
+        fetchData();
+      } else {
+        showToast(data.error || "Gagal memperbarui data massal.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Terjadi kesalahan jaringan saat memperbarui massal.", "error");
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
   
   const handleApproveReject = async (id, action) => {
     try {
@@ -577,7 +696,16 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/90 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
-              <th className="px-4 py-3.5 text-center w-12">No</th>
+              <th className="px-3.5 py-3.5 text-center w-10">
+                <input
+                  type="checkbox"
+                  checked={Boolean(isAllCurrentPageSelected)}
+                  onChange={handleToggleSelectAllPage}
+                  className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  title="Pilih semua di halaman ini"
+                />
+              </th>
+              <th className="px-3 py-3.5 text-center w-10">No</th>
               <th className="px-4 py-3.5">Tanggal</th>
               <th className="px-5 py-3.5">Siswa &amp; Kelas</th>
               <th className="px-4 py-3.5 text-center">Status</th>
@@ -590,7 +718,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           <tbody className="text-xs font-medium text-slate-700 divide-y divide-slate-100">
             {isLoading ? (
               <tr>
-                <td colSpan="8" className="px-6 py-12 text-center text-slate-400 font-bold">
+                <td colSpan="9" className="px-6 py-12 text-center text-slate-400 font-bold">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
                     <span>Memuat data absensi...</span>
@@ -599,7 +727,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               </tr>
             ) : paginatedSuratItems.length === 0 ? (
               <tr>
-                <td colSpan="8" className="px-6 py-14 text-center text-slate-400 font-medium">
+                <td colSpan="9" className="px-6 py-14 text-center text-slate-400 font-medium">
                   <div className="flex flex-col items-center justify-center gap-2.5 max-w-sm mx-auto">
                     <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-xs">
                       <CheckCircle2 size={24} strokeWidth={2.2} />
@@ -613,9 +741,18 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               paginatedSuratItems.map((item, idx) => {
                 const student = students.find(s => String(s.nis) === String(item.siswa_nis));
                 const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
+                const isSelected = selectedIds.has(item.id);
                 return (
-                <tr key={item.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="px-4 py-3.5 font-bold text-slate-400 text-center">
+                <tr key={item.id} className={`transition-colors group ${isSelected ? 'bg-emerald-50/60' : 'hover:bg-slate-50/80'}`}>
+                  <td className="px-3.5 py-3.5 text-center">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleSelect(item.id)}
+                      className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                    />
+                  </td>
+                  <td className="px-3 py-3.5 font-bold text-slate-400 text-center">
                     {(currentPageSurat - 1) * itemsPerPageSurat + idx + 1}
                   </td>
                   <td className="px-4 py-3.5 font-extrabold text-slate-800 whitespace-nowrap">
@@ -738,12 +875,21 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           paginatedSuratItems.map(item => {
             const student = students.find(s => String(s.nis) === String(item.siswa_nis));
             const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
+            const isSelected = selectedIds.has(item.id);
             return (
-              <div key={item.id} className="p-3.5 bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs flex flex-col gap-2.5">
+              <div key={item.id} className={`p-3.5 bg-white border rounded-[var(--ui-radius-card)] shadow-xs flex flex-col gap-2.5 transition-all ${isSelected ? 'border-emerald-400 bg-emerald-50/30 ring-2 ring-emerald-500/20' : 'border-slate-200/80'}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-slate-800">
-                    {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleSelect(item.id)}
+                      className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-black text-slate-800">
+                      {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
                   <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-extrabold uppercase border ${getAttendanceStatusTone(item.status)}`}>
                     {item.status}
                   </span>
