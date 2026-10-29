@@ -749,7 +749,7 @@ export default function TabAkademik(props) {
                             {/* Badge Libur / Sasaran Kelas */}
                             {(evt.isHoliday === true || evt.isHoliday === "true") && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-200/90 shrink-0 shadow-2xs">
-                                Libur: {evt.applicableClasses || "Semua Kelas"}
+                                Libur: {evt.applicableClasses === "daily_rotation" ? `Rotasi Harian (${Object.keys(evt.dailyClassSchedule || {}).length} Hari)` : (evt.applicableClasses || "Semua Kelas")}
                               </span>
                             )}
                           </div>
@@ -757,6 +757,19 @@ export default function TabAkademik(props) {
                             <p className={`text-[11px] font-medium line-clamp-1 leading-relaxed ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
                               {evt.description}
                             </p>
+                          )}
+                          {evt.dailyClassSchedule && Object.keys(evt.dailyClassSchedule).length > 0 && (
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {Object.entries(evt.dailyClassSchedule).map(([dStr, clsVal]) => {
+                                const clsList = Array.isArray(clsVal) ? clsVal : String(clsVal).split(',').map(s=>s.trim()).filter(Boolean);
+                                if (clsList.length === 0) return null;
+                                return (
+                                  <span key={dStr} className="text-[9px] font-bold bg-amber-50 text-amber-900 border border-amber-200/70 px-1.5 py-0.5 rounded-[var(--ui-radius-small)]">
+                                    {dStr.slice(5)}: {clsList.join(', ')}
+                                  </span>
+                                );
+                              })}
+                            </div>
                           )}
                           {evt.attendanceRemark && (
                             <div className="mt-1 text-[10px] font-bold text-amber-800 bg-amber-50/90 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200/70 inline-flex items-center gap-1.5">

@@ -1,6 +1,6 @@
 import { Button } from '../../components/ui.jsx';
 import { normalizeUserRole, ROLE_OPTIONS, WAKA_DIVISION_OPTIONS, SUBROLE_OPTIONS_BY_DIVISION } from '../../utils/constants.js';
-import { CheckCircle2, Sparkles, Users, Check } from 'lucide-react';
+import { CheckCircle2, Sparkles, Users, Check, CalendarDays } from 'lucide-react';
 import { Modal, UISelect } from'../ui.jsx';
 ;
 
@@ -660,7 +660,8 @@ export default function CrudModals({
             const isHolidayVal = formData.isHoliday === true || formData.isHoliday === "true";
             const standardLevels = ["Semua", "X", "XI", "XII", "X,XI", "XI,XII"];
             const currentApplicable = formData.applicableClasses || "Semua";
-            const isSpecificMode = !standardLevels.includes(currentApplicable);
+            const isDailyRotationMode = currentApplicable === "daily_rotation";
+            const isSpecificMode = !standardLevels.includes(currentApplicable) && !isDailyRotationMode;
             const selectedSpecificClasses = isSpecificMode 
               ? currentApplicable.split(',').map(s => s.trim()).filter(Boolean)
               : [];
@@ -674,6 +675,86 @@ export default function CrudModals({
               }
               const newVal = updated.length > 0 ? updated.join(', ') : 'Semua';
               setFormData({ ...formData, applicableClasses: newVal });
+            };
+
+            const getDatesInRange = (start, end) => {
+              if (!start) return [];
+              const s = String(start).slice(0, 10);
+              const e = (!end || end < start) ? s : String(end).slice(0, 10);
+              const list = [];
+              let curr = new Date(s + 'T00:00:00');
+              const last = new Date(e + 'T00:00:00');
+              let count = 0;
+              while (curr <= last && count < 60) {
+                const y = curr.getFullYear();
+                const m = String(curr.getMonth() + 1).padStart(2, '0');
+                const d = String(curr.getDate()).padStart(2, '0');
+                list.push(`${y}-${m}-${d}`);
+                curr.setDate(curr.getDate() + 1);
+                count++;
+              }
+              return list;
+            };
+
+            const formatIndoDate = (dateStr) => {
+              try {
+                const d = new Date(dateStr + 'T00:00:00');
+                const daysName = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const monthsName = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                return `${daysName[d.getDay()]}, ${d.getDate()} ${monthsName[d.getMonth()]} ${d.getFullYear()}`;
+              } catch {
+                return dateStr;
+              }
+            };
+
+            const datesInRange = getDatesInRange(formData.dateStart, formData.dateEnd);
+            const dailyMap = formData.dailyClassSchedule || {};
+
+            const getClassesForDate = (dateStr) => {
+              const val = dailyMap[dateStr];
+              if (!val) return [];
+              if (Array.isArray(val)) return val;
+              return String(val).split(',').map(s => s.trim()).filter(Boolean);
+            };
+
+            const toggleDailyClass = (dateStr, className) => {
+              const currentMap = { ...(formData.dailyClassSchedule || {}) };
+              const currentClasses = getClassesForDate(dateStr);
+              let updated;
+              if (currentClasses.includes(className)) {
+                updated = currentClasses.filter(c => c !== className);
+              } else {
+                updated = [...currentClasses, className];
+              }
+              currentMap[dateStr] = updated;
+              setFormData({
+                ...formData,
+                applicableClasses: "daily_rotation",
+                dailyClassSchedule: currentMap
+              });
+            };
+
+            const setDailyClassQuick = (dateStr, type) => {
+              const currentMap = { ...(formData.dailyClassSchedule || {}) };
+              if (type === "clear") {
+                delete currentMap[dateStr];
+              } else if (type === "all") {
+                currentMap[dateStr] = classes ? classes.map(c => c.name || c.kelas || c.id) : [];
+              } else if (["X", "XI", "XII"].includes(type)) {
+                currentMap[dateStr] = classes 
+                  ? classes
+                      .map(c => c.name || c.kelas || c.id)
+                      .filter(name => {
+                        const clean = String(name).toUpperCase();
+                        return clean.startsWith(`${type} `) || clean.startsWith(type === "X" ? "10 " : type === "XI" ? "11 " : "12 ");
+                      })
+                  : [];
+              }
+              setFormData({
+                ...formData,
+                applicableClasses: "daily_rotation",
+                dailyClassSchedule: currentMap
+              });
             };
 
             return (
@@ -716,14 +797,16 @@ export default function CrudModals({
                   <div className="flex-1">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Target / Sasaran Kelas</label>
                     <UISelect 
-                      value={isSpecificMode ? "specific" : currentApplicable} 
+                      value={isDailyRotationMode ? "daily_rotation" : isSpecificMode ? "specific" : currentApplicable} 
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === "specific") {
+                        if (val === "daily_rotation") {
+                          setFormData({ ...formData, applicableClasses: "daily_rotation" });
+                        } else if (val === "specific") {
                           const firstCls = (classes && classes[0]?.name) || "X TKJ 1";
                           setFormData({ ...formData, applicableClasses: firstCls });
                         } else {
-                          setFormData({ ...formData, applicableClasses: val });
+                          setFormData({ ...formData, applicableClasses: val, dailyClassSchedule: null });
                         }
                       }} 
                       required 
@@ -735,12 +818,100 @@ export default function CrudModals({
                       <option value="XII">Seluruh Tingkat XII</option>
                       <option value="X,XI">Tingkat X &amp; XI</option>
                       <option value="XI,XII">Tingkat XI &amp; XII</option>
-                      <option value="specific">Pilih Kelas Tertentu / Spesifik...</option>
+                      <option value="specific">Pilih Kelas Tertentu (Sama Tiap Hari)...</option>
+                      <option value="daily_rotation">Jadwal Kelas Berbeda Tiap Hari (Rotasi / Shift)...</option>
                     </UISelect>
                   </div>
                 </div>
 
-                {/* Sub-Panel: Pemilih Kelas Spesifik */}
+                {/* Sub-Panel: Jadwal Rotasi Kelas Berbeda Tiap Hari */}
+                {isDailyRotationMode && (
+                  <div className="bg-slate-50/90 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-3 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <CalendarDays size={13} className="text-[var(--ui-primary)]" />
+                        Jadwal Kelas Libur Berbeda Tiap Hari ({datesInRange.length} Hari):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, applicableClasses: "Semua", dailyClassSchedule: null })}
+                        className="text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Reset (Semua Kelas)
+                      </button>
+                    </div>
+
+                    <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                      {datesInRange.map((dStr) => {
+                        const daySelected = getClassesForDate(dStr);
+                        return (
+                          <div key={dStr} className="p-2.5 bg-white border border-slate-200/90 rounded-[var(--ui-radius-card)] shadow-2xs space-y-2">
+                            <div className="flex items-center justify-between flex-wrap gap-1.5">
+                              <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                                {formatIndoDate(dStr)}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                {["X", "XI", "XII"].map(lvl => (
+                                  <button
+                                    key={lvl}
+                                    type="button"
+                                    onClick={() => setDailyClassQuick(dStr, lvl)}
+                                    className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+                                  >
+                                    + Tingkat {lvl}
+                                  </button>
+                                ))}
+                                {daySelected.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setDailyClassQuick(dStr, "clear")}
+                                    className="px-1.5 py-0.5 text-[9px] font-bold rounded bg-rose-50 hover:bg-rose-100 text-rose-700 cursor-pointer"
+                                  >
+                                    Reset
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Class chips */}
+                            <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-slate-50/70 border border-slate-100 rounded-[var(--ui-radius-small)]">
+                              {classes && classes.map((c) => {
+                                const cName = c.name || c.kelas || c.id;
+                                const isSel = daySelected.includes(cName);
+                                return (
+                                  <button
+                                    key={cName}
+                                    type="button"
+                                    onClick={() => toggleDailyClass(dStr, cName)}
+                                    className={`px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all border cursor-pointer ${
+                                      isSel
+                                        ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
+                                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-100"
+                                    }`}
+                                  >
+                                    {isSel && <Check size={9} className="inline mr-1 stroke-[3]" />}
+                                    {cName}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            <div className="text-[9.5px] text-slate-500 font-medium">
+                              {daySelected.length > 0 ? (
+                                <span>Libur ({daySelected.length} kelas): <b className="text-amber-800">{daySelected.join(', ')}</b></span>
+                              ) : (
+                                <span className="text-slate-400 italic">Tidak ada kelas yang diliburkan di hari ini (KBM Normal)</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-Panel: Pemilih Kelas Spesifik (Sama Tiap Hari) */}
                 {isSpecificMode && (
                   <div className="bg-slate-50/90 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-3 space-y-2">
                     <div className="flex items-center justify-between">

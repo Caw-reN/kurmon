@@ -141,7 +141,9 @@ export const MENU_REGISTRY = [
     icon: CheckCircle2,
     label: 'Absen Mandiri Guru',
     section: 'Kehadiran',
-    adminGroup: null,
+    adminGroup: 'Kurikulum',
+    adminGroupIcon: BookOpen,
+    adminGroupKey: 'kurikulum',
     featureKey: 'attendance',
   },
   {
@@ -149,7 +151,9 @@ export const MENU_REGISTRY = [
     icon: UserCheck,
     label: 'Jadwal & Sesi Absensi',
     section: 'Kehadiran',
-    adminGroup: null,
+    adminGroup: 'Mesin Absensi',
+    adminGroupIcon: HardDrive,
+    adminGroupKey: 'absensi',
     featureKey: 'attendance',
   },
   {

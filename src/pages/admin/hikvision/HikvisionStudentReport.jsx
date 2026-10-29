@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2 } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles } from 'lucide-react';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
@@ -114,6 +114,22 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       setFilter(f => ({ ...f, class_name: user?.walasClass || "all" }));
     }
   }, [routeTab, user?.walasClass, filter.class_name]);
+
+  // Sinkronisasi tab saat navigasi menu sidebar dipanggil
+  React.useEffect(() => {
+    if (routeTab === "keterangan_massal") {
+      setActiveTab("keterangan");
+    } else if (routeTab === "hikvision_report_siswa" || routeTab === "walas_report" || routeTab === "laporan_rekap_walas") {
+      setActiveTab("matriks");
+    }
+  }, [routeTab]);
+
+  // Fallback pengamanan hak akses tab keterangan massal
+  React.useEffect(() => {
+    if (activeTab === "keterangan" && !canManageBulkRemarks) {
+      setActiveTab("matriks");
+    }
+  }, [activeTab, canManageBulkRemarks]);
 
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
@@ -1458,7 +1474,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         const isLegacyHoliday = catName.includes("libur") || title.includes("libur");
 
         if (isEventHoliday || isLegacyHoliday) {
-          const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+          let targetClasses = "";
+          if (evt.dailyClassSchedule && evt.dailyClassSchedule[todayStr]) {
+            const dayTarget = evt.dailyClassSchedule[todayStr];
+            targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
+          } else {
+            targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+          }
           if (targetClasses === "SEMUA" || targetClasses === "ALL" || selectedClass === "ALL") return true;
           
           let pGrade = "";
@@ -1542,14 +1564,31 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       {!isNested && (
         <div className="hidden sm:block">
           <PageHeader 
-            title={activeTab ==='matriks' ?"Laporan Kehadiran Siswa" :"Manajemen Surat Izin/Sakit"}
-            icon={activeTab ==='matriks' ? FileText : UserX}
-            description={activeTab ==='matriks' 
-              ?"Rekap kehadiran siswa per bulan dalam bentuk matriks." 
-              :"Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."}
+            title={
+              activeTab === 'matriks' 
+                ? "Laporan Kehadiran Siswa" 
+                : activeTab === 'keterangan'
+                  ? "Keterangan Massal Absensi"
+                  : "Manajemen Surat Izin/Sakit"
+            }
+            icon={
+              activeTab === 'matriks' 
+                ? FileText 
+                : activeTab === 'keterangan'
+                  ? Sparkles
+                  : UserX
+            }
+            description={
+              activeTab === 'matriks' 
+                ? "Rekap kehadiran siswa per bulan dalam bentuk matriks." 
+                : activeTab === 'keterangan'
+                  ? "Kelola penandaan keterangan massal presensi siswa per kelas dan rentang tanggal kegiatan."
+                  : "Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."
+            }
             tabs={[
               { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
-              { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }
+              { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
+              ...(canManageBulkRemarks ? [{ id: 'keterangan', label: 'Keterangan Massal', icon: Sparkles }] : [])
             ]}
             activeTab={activeTab}
             onTabChange={setActiveTab}

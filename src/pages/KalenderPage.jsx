@@ -137,6 +137,7 @@ export default function KalenderPage() {
         type: 'akademik',
         isHoliday: event.isHoliday === true || event.isHoliday === 'true',
         applicableClasses: event.applicableClasses || 'Semua',
+        dailyClassSchedule: event.dailyClassSchedule || null,
         attendanceRemark: event.attendanceRemark || ''
       };
     }).filter(Boolean);
@@ -610,7 +611,7 @@ export default function KalenderPage() {
                           <div className="flex items-center gap-1.5">
                             {event.isHoliday && (
                               <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
-                                Libur: {event.applicableClasses || 'Semua Kelas'}
+                                Libur: {event.applicableClasses === "daily_rotation" ? `Rotasi Harian (${Object.keys(event.dailyClassSchedule || {}).length} Hari)` : (event.applicableClasses || 'Semua Kelas')}
                               </span>
                             )}
                             <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${status.class}`}>
@@ -634,6 +635,19 @@ export default function KalenderPage() {
                               <span className="text-[9px] uppercase tracking-wider text-amber-700 block font-black">Keterangan Absensi:</span>
                               <span>{event.attendanceRemark}</span>
                             </div>
+                          </div>
+                        )}
+                        {event.dailyClassSchedule && Object.keys(event.dailyClassSchedule).length > 0 && (
+                          <div className="mb-3 flex flex-wrap gap-1">
+                            {Object.entries(event.dailyClassSchedule).map(([dStr, clsVal]) => {
+                              const clsList = Array.isArray(clsVal) ? clsVal : String(clsVal).split(',').map(s=>s.trim()).filter(Boolean);
+                              if (clsList.length === 0) return null;
+                              return (
+                                <span key={dStr} className="text-[9.5px] font-bold bg-amber-50 text-amber-900 border border-amber-200/70 px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+                                  {dStr.slice(5)}: {clsList.join(', ')}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
                       </div>

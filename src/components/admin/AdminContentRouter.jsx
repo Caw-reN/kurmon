@@ -246,7 +246,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
           const guruDefaultTabs = [
             "dashboard","generate","akademik","absensi","jurnal_harian",
-            "modul_ajar","kedisiplinan_absensi",
+            "modul_ajar","kedisiplinan_absensi","hikvision_report_siswa",
             "absensiguru","silabusguru","ketersediaan","beban","pesan"
           ];
           if (isWalasUser && ["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(activeTab)) {

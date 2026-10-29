@@ -2152,12 +2152,20 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const end = evt.dateEnd || evt.dateStart;
             if (dateStr >= start && dateStr <= end) {
               const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
-              const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
               
               if (isEventHoliday) {
+                // Mendukung rotasi libur harian (dailyClassSchedule per tanggal)
+                let targetClasses = "";
+                if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+                  const dayTarget = evt.dailyClassSchedule[dateStr];
+                  targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
+                } else {
+                  targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+                }
+
                 if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
                 if (personGrade && targetClasses.split(',').map(g=>g.trim()).includes(personGrade)) return true;
-                // Pengecekan spesifik kelas (misal "X TKJ 3" cocok dengan targetClasses "X TKJ 3")
+                // Pengecekan spesifik kelas (misal "XI TKJ 3" cocok dengan targetClasses "XI TKJ 3")
                 if (personClassClean) {
                   const targetList = targetClasses.split(',').map(c => c.trim());
                   if (targetList.includes(personClassClean)) return true;
@@ -2605,7 +2613,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   const start = evt.dateStart;
                   const end = evt.dateEnd || evt.dateStart;
                   if (dateStr >= start && dateStr <= end && (evt.isHoliday === true || evt.isHoliday === "true")) {
-                    const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+                    let targetClasses = "";
+                    if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+                      const dayTarget = evt.dailyClassSchedule[dateStr];
+                      targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
+                    } else {
+                      targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+                    }
+
                     if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
                     if (pGrade && targetClasses.split(',').map(g=>g.trim()).includes(pGrade)) return true;
                     if (cClean && targetClasses.split(',').map(c => c.trim()).includes(cClean)) return true;
