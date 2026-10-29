@@ -785,9 +785,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     }
   };
 
-  const printRaporGuruPDF = (teacher, size = 'A4', action = 'download') => {
+  const printRaporGuruPDF = async (teacher, size = 'A4', action = 'download') => {
     if (!teacher) return;
     try {
+      const jsPDF = (await import('jspdf')).default;
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',

@@ -1133,6 +1133,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     if (!dayData) return <span className="text-[10px] text-slate-300 font-bold">-</span>;
     
     const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+    const inTime = formatAttendanceTime(dayData.in);
+    const outTime = formatAttendanceTime(dayData.out);
     
     if (dayData.isHoliday || status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
       const rawNote = dayData.note || '';
