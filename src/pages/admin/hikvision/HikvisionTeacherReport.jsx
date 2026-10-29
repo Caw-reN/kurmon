@@ -491,8 +491,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             const isMissingIn = !dayData.in && Boolean(dayData.out);
             
             if (isHolidayCell) {
-              fgColor = "FFFEF3C7"; // amber-100
-              fontColor = "FF78350F"; // amber-900
+              fgColor = "FFFFE4E6"; // rose-100
+              fontColor = "FF9F1239"; // rose-800
             } else if (isMissingIn) {
               fgColor = "FFFEF3C7"; // amber-100
               fontColor = "FFB45309"; // amber-800
@@ -509,8 +509,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               fgColor = "FFDBEAFE"; // blue-100
               fontColor = "FF1E3A8A"; // blue-800
             } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
-              fgColor = "FF0F172A"; // slate-900
-              fontColor = "FFFFFFFF"; // white
+              fgColor = "FF4C0519"; // dark-red / maroon
+              fontColor = "FFFFE4E6"; // rose-100
             }
 
             cell.value = content;
@@ -631,8 +631,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             let textColor = [51, 65, 85];
             
             if (isHolidayCell) {
-              fillColor = [254, 243, 199];
-              textColor = [120, 53, 15];
+              fillColor = [255, 228, 230];
+              textColor = [159, 18, 57];
             } else if (isMissingIn) {
               fillColor = [254, 243, 199]; 
               textColor = [180, 83, 9];
@@ -649,8 +649,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               fillColor = [219, 234, 254]; 
               textColor = [30, 58, 138];
             } else if (statusForColor === 'Alpa' || statusForColor === 'Alpa (Tanpa Keterangan)') {
-              fillColor = [15, 23, 42]; 
-              textColor = [255, 255, 255];
+              fillColor = [76, 5, 25]; 
+              textColor = [255, 228, 230];
             }
 
             if (content.includes(':')) {
@@ -1185,7 +1185,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                       const dayData = (s.days || {})[d];
                       if (!dayData) return `<td>-</td>`;
                       if (dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
-                        return `<td class="bg-sakit" style="background-color: #fef3c7; color: #78350f; font-weight: bold;">L</td>`;
+                        return `<td class="bg-sakit" style="background-color: #ffe4e6; color: #9f1239; font-weight: bold;">L</td>`;
                       }
                       const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
                       if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
@@ -1259,7 +1259,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             .bg-terlambat { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: bold; }
             .bg-izin { background-color: #dbeafe !important; color: #1e3a8a !important; font-weight: bold; }
             .bg-sakit { background-color: #fef3c7 !important; color: #92400e !important; font-weight: bold; }
-            .bg-alpa { background-color: #0f172a !important; color: #ffffff !important; font-weight: bold; }
+            .bg-alpa { background-color: #4c0519 !important; color: #ffe4e6 !important; font-weight: bold; }
             .row-warn-1 td { background-color: #fef3c7 !important; color: #92400e !important; }
             .row-warn-2 td { background-color: #ffedd5 !important; color: #c2410c !important; }
             .row-warn-3 td { background-color: #fee2e2 !important; color: #991b1b !important; }
@@ -1352,14 +1352,14 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       const noteText = cleanNote || holidayInfo?.reason || "Libur Kalender Akademik";
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/95 text-amber-950 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs"
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 border border-rose-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs"
+          style={{ color: "#9f1239" }}
           title={`Libur: ${noteText}`}
         >
-          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7.5px] font-black uppercase tracking-tight">
-            <Calendar size={8} className="text-amber-800 shrink-0" />
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-200 text-rose-800 text-[7.5px] font-black uppercase tracking-tight">
             <span>LIBUR</span>
           </span>
-          <span className="text-[7.5px] font-extrabold text-amber-950 block leading-tight text-center line-clamp-2 max-w-[62px] break-words" title={noteText}>
+          <span className="text-[7.5px] font-extrabold text-rose-800 block leading-tight text-center line-clamp-2 max-w-[62px] break-words" title={noteText}>
             {noteText}
           </span>
         </div>
@@ -1369,8 +1369,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") {
       return (
         <span 
-          className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-slate-950 text-white border border-slate-900 block truncate text-center" 
-          title={dayData.note || 'Alpa'}
+          className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-rose-950 text-rose-100 border border-rose-900 block truncate text-center shadow-2xs" 
+          style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}
+          title={dayData?.note || 'Alpa'}
         >
           ALPA
         </span>
@@ -1380,7 +1381,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       return (
         <span 
           className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-yellow-50 text-amber-700 border border-yellow-200 block truncate text-center" 
-          title={dayData.note || 'Sakit'}
+          title={dayData?.note || 'Sakit'}
         >
           SAKIT
         </span>
@@ -1390,7 +1391,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       return (
         <span 
           className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-200 block truncate text-center" 
-          title={dayData.note || 'Izin'}
+          title={dayData?.note || 'Izin'}
         >
           IZIN
         </span>
@@ -1400,7 +1401,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       return (
         <span 
           className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-indigo-50 text-indigo-700 border border-indigo-200 block truncate text-center" 
-          title={dayData.note || 'Dinas Luar'}
+          title={dayData?.note || 'Dinas Luar'}
         >
           DINAS
         </span>
@@ -1420,8 +1421,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       if (!inTime && !outTime && noteText) {
         return (
           <div title={titleAttr} className="py-0.5 px-0.5 flex flex-col items-center justify-center min-h-[34px] w-full gap-0.5">
-            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-900 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs">
-              <Sparkles size={7} className="text-indigo-600 shrink-0" />
+            <span className="inline-flex items-center px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-900 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs">
               <span>KET</span>
             </span>
             <span className="text-[7.5px] font-extrabold text-indigo-950 text-center leading-tight line-clamp-2 max-w-[62px] break-words">
@@ -1444,14 +1444,12 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       return (
         <div className="flex flex-col items-center gap-0.5" title={titleAttr}>
           {Boolean(noteText) && (
-            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-950 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs max-w-full" title={`Keterangan: ${noteText}`}>
-              <Sparkles size={7} className="shrink-0 text-indigo-600" />
+            <div className="mb-0.5 inline-flex items-center justify-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-950 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs max-w-full" title={`Keterangan: ${noteText}`}>
               <span className="truncate max-w-[42px]">{noteText}</span>
             </div>
           )}
           {isMissingIn ? (
-            <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
+            <div className="text-rose-600 font-extrabold flex items-center justify-center text-[7.5px] leading-tight py-0.5">
               <span className="tracking-tight">Tdk Absen</span>
             </div>
           ) : (
@@ -1920,7 +1918,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                                    {dayData?.pending_permission && (
                                      <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
                                    )}
-                                   {getDayBadge(dayData)}
+                                   {getDayBadge(dayData, d.role || "guru", `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`)}
                                 </td>
                              );
                           })}
@@ -2061,8 +2059,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200">
                 <Sparkles size={10} className="text-indigo-600" /> Hadir + Tanda Keterangan
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-950 font-black text-[10px] border-2 border-amber-400 shadow-2xs">
-                <Calendar size={10} className="text-amber-800" /> Libur / Bebas Absen
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
+                Libur Kalender Akademik
               </span>
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
@@ -2073,8 +2071,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-900 text-white font-black text-[10px] shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[10px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
               </span>
             </div>
           </div>

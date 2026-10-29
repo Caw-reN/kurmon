@@ -419,8 +419,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     if (isExplicitHoliday || isScheduledHoliday) {
       const explicitReason = (cleanNote && !cleanNote.toLowerCase().startsWith("hadir") && !cleanNote.toLowerCase().startsWith("mesin")) ? cleanNote : (holidayInfo?.reason || (dayData.title ? `Diliburkan karena ${dayData.title}` : "Libur Kalender Akademik"));
       return {
-        className: "bg-amber-50/95 text-amber-950 font-black border border-amber-300 shadow-2xs",
-        style: { color: "#78350f" },
+        className: "bg-rose-100 text-rose-800 font-bold border border-rose-300 shadow-2xs",
+        style: { color: "#9f1239" },
         isHoliday: true,
         hasCustomNote: Boolean(cleanNote || holidayInfo),
         noteText: explicitReason
@@ -483,8 +483,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
     if (status ==="Alpa") {
       return {
-        className:"bg-slate-950 text-white font-bold",
-        style: { color:"#ffffff" },
+        className:"bg-rose-950 text-rose-100 font-bold border border-rose-900 shadow-2xs",
+        style: { color:"#ffe4e6", backgroundColor: "#4c0519" },
         hasCustomNote: Boolean(cleanNote),
         noteText: cleanNote
       };
@@ -746,10 +746,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             if (status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) {
               const note = effectiveDayData.note || holidayInfo?.reason || 'Libur Kalender Akademik';
               content = isDetailed ? `LIBUR\n(${note})` : `LIBUR (${note})`;
-              fgColor = "FFFEF3C7"; fontColor = "FF92400E";
+              fgColor = "FFFFE4E6"; fontColor = "FF9F1239";
             } else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || effectiveDayData.in === "Alpa") {
               content = "A";
-              fgColor = "FF0F172A"; fontColor = "FFFFFFFF";
+              fgColor = "FF4C0519"; fontColor = "FFFFE4E6";
             } else if (status === "Sakit") {
               content = "S";
               fgColor = "FFFEF3C7"; fontColor = "FF92400E";
@@ -889,10 +889,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             if (status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) {
               const note = effectiveDayData.note || holidayInfo?.reason || 'Libur';
               content = isDetailed ? `LIBUR\n${note}` : "L";
-              fillColor = [254, 243, 199]; textColor = [146, 64, 14];
+              fillColor = [255, 228, 230]; textColor = [159, 18, 57];
             } else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || effectiveDayData.in === "Alpa") {
               content = "A";
-              fillColor = [15, 23, 42]; textColor = [255, 255, 255];
+              fillColor = [76, 5, 25]; textColor = [255, 228, 230];
             } else if (status === "Sakit") {
               content = "S";
               fillColor = [254, 243, 199]; textColor = [146, 64, 14];
@@ -1347,7 +1347,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       if (status === "Izin") return `<td class="bg-izin">I</td>`;
                       if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") return `<td class="bg-alpa">A</td>`;
                       if (status === "PKL" || String(status || '').startsWith("PKL")) return `<td style="background:#e0e7ff; color:#3730a3; font-weight:bold;">PKL</td>`;
-                      if (status === "Libur" || dayData.isHoliday) return `<td style="background:#fef3c7; color:#92400e; font-weight:bold;" title="${dayData.note || 'Libur'}">L</td>`;
+                      if (status === "Libur" || dayData.isHoliday) return `<td style="background:#ffe4e6; color:#9f1239; font-weight:bold;" title="${dayData.note || 'Libur'}">L</td>`;
                       if (dayData.isLate || status === "Terlambat") return `<td class="bg-terlambat">T</td>`;
                       if (dayData.in || dayData.out || status === "Hadir") return `<td class="bg-hadir">H</td>`;
                       return `<td>-</td>`;
@@ -1381,7 +1381,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <td>-</td>
                 ${printDays.map(d => `<td>${dailyTotals.sakit[d] || 0}</td>`).join('')}
               </tr>
-              <tr class="bg-alpa" style="background-color: #0f172a; color: white;">
+              <tr class="bg-alpa" style="background-color: #4c0519; color: #ffe4e6;">
                 <td colspan="2" style="text-align: right; font-weight: bold; color: white;">TOTAL ALPA (ALP):</td>
                 <td style="color:white;">-</td><td style="color:white;">-</td><td style="color:white;">-</td><td style="color:white;">-</td>
                 <td style="color: #ef4444; font-weight: bold;">${filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
@@ -1416,7 +1416,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             .bg-terlambat { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: bold; }
             .bg-izin { background-color: #dbeafe !important; color: #1e3a8a !important; font-weight: bold; }
             .bg-sakit { background-color: #fef3c7 !important; color: #92400e !important; font-weight: bold; }
-            .bg-alpa { background-color: #0f172a !important; color: #ffffff !important; font-weight: bold; }
+            .bg-alpa { background-color: #4c0519 !important; color: #ffe4e6 !important; font-weight: bold; }
             .row-warn-1 td { background-color: #fef3c7 !important; color: #92400e !important; }
             .row-warn-2 td { background-color: #ffedd5 !important; color: #c2410c !important; }
             .row-warn-3 td { background-color: #fee2e2 !important; color: #991b1b !important; }
@@ -2545,7 +2545,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                              <div>{d.total_alpa || 0}</div>
                          </td>
                       {daysToRender.map((dayNum) => {
-                         const dayData = d.days[dayNum];
+                         const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                         const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, d.class_name);
+                         const dayData = d.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
                          if (!dayData) {
                             return (
                                <td 
@@ -2557,7 +2559,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                </td>
                             );
                          }
-                         const cellColors = getCellStyle(dayData);
+                         const cellColors = getCellStyle(dayData, d.class_name, dateStr);
                          return (
                             <td 
                               key={dayNum} 
@@ -2570,12 +2572,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                 <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] relative ${cellColors.className}`} style={cellColors.style}>
                                    {cellColors.isHoliday || dayData.status === "Libur" || dayData.isHoliday ? (
                                      <div className="py-1 flex flex-col items-center justify-center min-h-[34px] gap-0.5" title={`Libur: ${cellColors.noteText || "Bebas Absensi / Kalender Akademik"}`}>
-                                       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight shadow-2xs border border-amber-300">
-                                         <Calendar size={8} className="text-amber-800 shrink-0" />
+                                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-200/90 text-rose-900 text-[7px] font-black uppercase tracking-tight shadow-2xs border border-rose-300">
                                          <span>LIBUR</span>
                                        </span>
                                        {Boolean(cellColors.noteText) && (
-                                         <span className="text-[7px] font-extrabold text-amber-950 block truncate max-w-[50px] leading-tight text-center" title={cellColors.noteText}>
+                                         <span className="text-[7px] font-extrabold text-rose-900 block truncate max-w-[50px] leading-tight text-center" title={cellColors.noteText}>
                                            {cellColors.noteText}
                                          </span>
                                        )}
@@ -2583,18 +2584,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                    ) : ["Sakit","Izin","Alpa","Mutasi","PraPKL"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
                                      <div className="py-1 flex flex-col items-center justify-center min-h-[34px] gap-0.5">
                                        {cellColors.isMesinError && (
-                                         <span className="mb-0.5 inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight">
-                                           <Zap size={7} className="text-sky-700" /> Mesin
+                                         <span className="mb-0.5 inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight">
+                                           Mesin
                                          </span>
                                        )}
                                        {cellColors.isLupaAbsen && (
-                                         <span className="mb-0.5 inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight">
-                                           <AlertCircle size={7} className="text-amber-800" /> Lupa
+                                         <span className="mb-0.5 inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight">
+                                           Lupa
                                          </span>
                                        )}
                                        <span className="font-extrabold">{dayData.status === "Mutasi" ? "MUTASI" : dayData.status === "PraPKL" ? "PraPKL" : dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
                                        {Boolean(cellColors.noteText) && !cellColors.isMesinError && !cellColors.isLupaAbsen && (
-                                         <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-white/90 border border-slate-300/80 text-[6.5px] font-black text-slate-800 max-w-[50px] truncate shadow-2xs" title={`Keterangan: ${cellColors.noteText}`}>
+                                         <span className="inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-white/90 border border-slate-300/80 text-[6.5px] font-black text-slate-800 max-w-[50px] truncate shadow-2xs" title={`Keterangan: ${cellColors.noteText}`}>
                                            <span className="truncate">{cellColors.noteText}</span>
                                          </span>
                                        )}
@@ -2616,8 +2617,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                       if (!inTime && !outTime && noteText) {
                                         return (
                                           <div title={titleAttr} className="py-0.5 px-0.5 flex flex-col items-center justify-center min-h-[34px] w-full gap-0.5">
-                                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-900 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs">
-                                              <Sparkles size={7} className="text-indigo-600 shrink-0" />
+                                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-900 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs">
                                               <span>KET</span>
                                             </span>
                                             <span className="text-[7.5px] font-extrabold text-indigo-950 text-center leading-tight line-clamp-2 max-w-[62px] break-words">
@@ -2640,31 +2640,27 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                       return (
                                         <div title={titleAttr} className="flex flex-col items-center">
                                           {cellColors.isMesinError && (
-                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
-                                              <Zap size={7} className="shrink-0 text-sky-700" />
+                                            <div className="mb-0.5 inline-flex items-center justify-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
                                               <span>Mesin Err</span>
                                             </div>
                                           )}
                                           {cellColors.isLupaAbsen && (
-                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
-                                              <AlertCircle size={7} className="shrink-0 text-amber-800" />
+                                            <div className="mb-0.5 inline-flex items-center justify-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
                                               <span>Lupa Tap</span>
                                             </div>
                                           )}
                                           {cellColors.isDispensasi && (
-                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-teal-200/90 text-teal-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
+                                            <div className="mb-0.5 inline-flex items-center justify-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-teal-200/90 text-teal-950 text-[7px] font-black uppercase tracking-tight shadow-2xs">
                                               <span>Dispen</span>
                                             </div>
                                           )}
                                           {Boolean(noteText) && !cellColors.isMesinError && !cellColors.isLupaAbsen && !cellColors.isDispensasi && (
-                                            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-950 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs max-w-full" title={`Keterangan: ${noteText}`}>
-                                              <Sparkles size={7} className="shrink-0 text-indigo-600" />
+                                            <div className="mb-0.5 inline-flex items-center justify-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-950 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs max-w-full" title={`Keterangan: ${noteText}`}>
                                               <span className="truncate max-w-[42px]">{noteText}</span>
                                             </div>
                                           )}
                                           {isMissingIn ? (
-                                            <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
-                                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
+                                            <div className="text-rose-600 font-extrabold flex items-center justify-center text-[7.5px] leading-tight py-0.5">
                                               <span className="tracking-tight">Tdk Absen</span>
                                             </div>
                                           ) : (
@@ -2816,8 +2812,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200">
               <Sparkles size={10} className="text-indigo-600" /> Hadir + Tanda Keterangan
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-950 font-black text-[10px] border-2 border-amber-400 shadow-2xs">
-              <Calendar size={10} className="text-amber-800" /> Libur / Bebas Absen
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
+              Libur Kalender Akademik
             </span>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
@@ -2828,8 +2824,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-900 text-white font-black text-[10px] shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[10px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
             </span>
           </div>
         </div>
