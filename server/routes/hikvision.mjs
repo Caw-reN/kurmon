@@ -2600,6 +2600,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               if (currentTime <= limit) continue; // Still within check-in window
             }
 
+            const dayData = item.days[day];
+            const hasRecord = dayData && (dayData.in || dayData.out || dayData.status || (Array.isArray(dayData.taps) && dayData.taps.length > 0));
+
             // Skip weekends & academic calendar holidays (auto remark if class is exempted / holiday)
             if (isHolidayOrWeekend(dateStr, item)) {
               if (!hasRecord) {
@@ -2641,9 +2644,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               }
               continue;
             }
-
-            const dayData = item.days[day];
-            const hasRecord = dayData && (dayData.in || dayData.out || dayData.status || (Array.isArray(dayData.taps) && dayData.taps.length > 0));
 
             // CRITICAL CHECK: If student has mutated out on or before this date, do NOT mark Alpa!
             if (item.is_mutasi && item.tanggal_keluar && dateStr >= item.tanggal_keluar) {
