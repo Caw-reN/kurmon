@@ -3,10 +3,13 @@ import useAuthStore from '../../store/monitoring/authStore.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
-import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, AlertCircle, CreditCard, Award } from 'lucide-react';
+import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, Award, Settings2 } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { compressImageFromFile } from '../../utils/imageUtils.js';
+import { isSuperAdminRole } from '../../utils/constants.js';
+import { fetchAttendancePresets, DEFAULT_STUDENT_ATTENDANCE_NOTES } from '../../utils/attendancePresets.js';
+import ManageAttendanceNotesModal from '../../components/admin/attendance/ManageAttendanceNotesModal.jsx';
 
 
 export default function AbsensiSiswa({ classes = [], students = [], hideTabs = false, externalSearch = undefined, onExternalSearchChange = null }) {
@@ -34,6 +37,43 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const subroleStr = String(user?.subrole || '').toLowerCase();
   const divisionStr = String(user?.division || '').toLowerCase();
   const jabatanStr = String(user?.jabatan || '').toLowerCase();
+
+  const isSuperAdmin = useMemo(() => {
+    return isSuperAdminRole(roleStr) || isSuperAdminRole(subroleStr) || ['admin', 'superadmin', 'super_admin'].includes(roleStr);
+  }, [roleStr, subroleStr]);
+
+  const [studentNotes, setStudentNotes] = useState(DEFAULT_STUDENT_ATTENDANCE_NOTES);
+  const [isManageNotesOpen, setIsManageNotesOpen] = useState(false);
+
+  useEffect(() => {
+    fetchAttendancePresets(authToken).then(({ studentAttendanceNotes }) => {
+      if (Array.isArray(studentAttendanceNotes) && studentAttendanceNotes.length > 0) {
+        setStudentNotes(studentAttendanceNotes);
+      }
+    }).catch(() => {});
+  }, [authToken]);
+
+  const getNoteChipClass = (color) => {
+    switch (color) {
+      case 'amber':
+        return 'bg-amber-50 text-amber-900 border-amber-300 hover:bg-amber-100 hover:border-amber-400';
+      case 'purple':
+        return 'bg-purple-50 text-purple-800 border-purple-300 hover:bg-purple-100 hover:border-purple-400';
+      case 'teal':
+        return 'bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100 hover:border-teal-400';
+      case 'indigo':
+        return 'bg-indigo-50 text-indigo-800 border-indigo-300 hover:bg-indigo-100 hover:border-indigo-400';
+      case 'rose':
+        return 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100 hover:border-rose-400';
+      case 'emerald':
+        return 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 hover:border-emerald-400';
+      case 'slate':
+        return 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200 hover:border-slate-400';
+      case 'sky':
+      default:
+        return 'bg-sky-50 text-sky-800 border-sky-300 hover:bg-sky-100 hover:border-sky-400';
+    }
+  };
 
   const isKesiswaanOrBK = 
     roleStr.includes('kesiswaan') || 
@@ -870,37 +910,40 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Catatan Absen</label>
-                  <span className="text-[10px] text-slate-400 font-bold">Pilih Cepat:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 font-bold">Pilih Cepat:</span>
+                    {isSuperAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => setIsManageNotesOpen(true)}
+                        className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200 cursor-pointer shadow-2xs"
+                        title="Kelola Pilihan Catatan & Kegiatan (Super Admin)"
+                      >
+                        <Settings2 size={10} />
+                        <span>Kelola Pilihan</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Mesin error / tidak terbaca", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-sky-50 text-sky-800 border border-sky-300 hover:bg-sky-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <Zap size={10} className="text-sky-600" /> Mesin Error
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Lupa absen / lupa tap", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <AlertCircle size={10} className="text-amber-600" /> Lupa Absen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Kartu tertinggal / rusak", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <CreditCard size={10} className="text-purple-600" /> Kartu Tertinggal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm(prev => ({ ...prev, keterangan: "Dispensasi sekolah / tugas", status: prev.status === "Alpa" ? "Izin" : prev.status }))}
-                    className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                  >
-                    <Award size={10} className="text-teal-600" /> Dispensasi
-                  </button>
+                  {studentNotes.map((note) => {
+                    const toneClass = getNoteChipClass(note.color);
+                    return (
+                      <button
+                        key={note.id || note.label}
+                        type="button"
+                        onClick={() => setForm(prev => ({ 
+                          ...prev, 
+                          keterangan: note.keterangan || note.label, 
+                          status: note.status && prev.status === 'Alpa' ? note.status : prev.status 
+                        }))}
+                        className={`px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] border transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${toneClass}`}
+                      >
+                        {note.category === 'kegiatan' ? <Award size={10} className="shrink-0" /> : <Zap size={10} className="shrink-0" />}
+                        <span>{note.label}</span>
+                      </button>
+                    );
+                  })}
                   {form.keterangan && (
                     <button
                       type="button"
@@ -975,40 +1018,43 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                )}
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Catatan Absen</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Keterangan / Catatan Absen</label>
+                  <div className="flex items-center gap-2">
                     <span className="text-[10px] text-slate-400 font-bold">Pilih Cepat:</span>
+                    {isSuperAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => setIsManageNotesOpen(true)}
+                        className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200 cursor-pointer shadow-2xs"
+                        title="Kelola Pilihan Catatan & Kegiatan (Super Admin)"
+                      >
+                        <Settings2 size={10} />
+                        <span>Kelola Pilihan</span>
+                      </button>
+                    )}
                   </div>
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Mesin error / tidak terbaca", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-sky-50 text-sky-800 border border-sky-300 hover:bg-sky-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                    >
-                      <Zap size={10} className="text-sky-600" /> Mesin Error
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Lupa absen / lupa tap", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                    >
-                      <AlertCircle size={10} className="text-amber-600" /> Lupa Absen
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Kartu tertinggal / rusak", status: prev.status === "Alpa" ? "Hadir" : prev.status }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-purple-50 text-purple-800 border border-purple-300 hover:bg-purple-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                    >
-                      <CreditCard size={10} className="text-purple-600" /> Kartu Tertinggal
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditForm(prev => ({ ...prev, keterangan: "Dispensasi sekolah / tugas", status: prev.status === "Alpa" ? "Izin" : prev.status }))}
-                      className="px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-800 border border-teal-300 hover:bg-teal-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
-                    >
-                      <Award size={10} className="text-teal-600" /> Dispensasi
-                    </button>
-                    {editForm.keterangan && (
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {studentNotes.map((note) => {
+                    const toneClass = getNoteChipClass(note.color);
+                    return (
+                      <button
+                        key={note.id || note.label}
+                        type="button"
+                        onClick={() => setEditForm(prev => ({ 
+                          ...prev, 
+                          keterangan: note.keterangan || note.label, 
+                          status: note.status && prev.status === 'Alpa' ? note.status : prev.status 
+                        }))}
+                        className={`px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] border transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${toneClass}`}
+                      >
+                        {note.category === 'kegiatan' ? <Award size={10} className="shrink-0" /> : <Zap size={10} className="shrink-0" />}
+                        <span>{note.label}</span>
+                      </button>
+                    );
+                  })}
+                  {editForm.keterangan && (
                       <button
                         type="button"
                         onClick={() => setEditForm(prev => ({ ...prev, keterangan: "" }))}
@@ -1126,6 +1172,18 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         }`}>
            <CheckCircle2 size={18} /> {toast.message}
         </div>
+      )}
+      {isSuperAdmin && (
+        <ManageAttendanceNotesModal
+          isOpen={isManageNotesOpen}
+          onClose={() => setIsManageNotesOpen(false)}
+          token={authToken}
+          notes={studentNotes}
+          onNotesChange={setStudentNotes}
+          showToast={(msg, type) => {
+            showToast(msg, type);
+          }}
+        />
       )}
     </div>
     </div>

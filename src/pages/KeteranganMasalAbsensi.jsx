@@ -12,10 +12,13 @@ import {
   Search, 
   Sparkles, 
   Filter, 
-  Clock, 
-  Check 
+  Clock,  Check,
+  Settings2
 } from 'lucide-react';
 import { Modal, Button } from '../components/ui.jsx';
+import { isSuperAdminRole } from '../utils/constants.js';
+import { fetchAttendancePresets, DEFAULT_BULK_REMARK_PRESETS } from '../utils/attendancePresets.js';
+import ManageBulkRemarkPresetsModal from '../components/admin/attendance/ManageBulkRemarkPresetsModal.jsx';
 
 const getSession = () => {
   try {
@@ -92,10 +95,20 @@ const PRESETS = [
   }
 ];
 
-export default function KeteranganMasalAbsensi({ authToken: propToken, username: propUsername, classes = [] }) {
+export default function KeteranganMasalAbsensi({ authToken: propToken, username: propUsername, classes = [], user: propUser }) {
   const session = getSession();
+  const currentUser = propUser || session;
   const token = propToken || session?.authToken;
   const username = propUsername || session?.username || session?.name || 'Admin';
+
+  const isSuperAdmin = useMemo(() => {
+    const role = String(currentUser?.role || '').toLowerCase();
+    const subrole = String(currentUser?.subrole || '').toLowerCase();
+    return isSuperAdminRole(role) || isSuperAdminRole(subrole) || ['admin', 'superadmin', 'super_admin'].includes(role);
+  }, [currentUser]);
+
+  const [presets, setPresets] = useState(DEFAULT_BULK_REMARK_PRESETS);
+  const [isManagePresetsOpen, setIsManagePresetsOpen] = useState(false);
 
   const [remarks, setRemarks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,6 +166,14 @@ export default function KeteranganMasalAbsensi({ authToken: propToken, username:
   useEffect(() => {
     fetchRemarks();
   }, [fetchRemarks]);
+
+  useEffect(() => {
+    fetchAttendancePresets(token).then(({ bulkRemarkPresets }) => {
+      if (Array.isArray(bulkRemarkPresets) && bulkRemarkPresets.length > 0) {
+        setPresets(bulkRemarkPresets);
+      }
+    }).catch(() => {});
+  }, [token]);
 
   const handleApplyPreset = (preset) => {
     let target = [];
@@ -336,6 +357,17 @@ export default function KeteranganMasalAbsensi({ authToken: propToken, username:
           >
             <RefreshCw size={15} className={loading ? "animate-spin text-amber-500" : ""} />
           </button>
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => setIsManagePresetsOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-[var(--ui-radius-small)] border border-amber-300 bg-amber-50 hover:bg-amber-100/80 text-amber-900 transition-colors shadow-2xs cursor-pointer font-bold text-xs"
+              title="Kelola Pilihan Template Keterangan Massal (Khusus Super Admin)"
+            >
+              <Settings2 size={15} className="text-amber-600" />
+              <span>Kelola Template</span>
+            </button>
+          )}
           <Button
             type="button"
             onClick={() => {
@@ -790,6 +822,16 @@ export default function KeteranganMasalAbsensi({ authToken: propToken, username:
         </form>
       </Modal>
 
+      {isSuperAdmin && (
+        <ManageBulkRemarkPresetsModal
+          isOpen={isManagePresetsOpen}
+          onClose={() => setIsManagePresetsOpen(false)}
+          token={token}
+          presets={presets}
+          onPresetsChange={setPresets}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }

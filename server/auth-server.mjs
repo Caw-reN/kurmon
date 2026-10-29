@@ -2443,6 +2443,81 @@ const server = createServer(async (req, res) => {
       }
     }
 
+    // GET /api/attendance/presets - Ambil pilihan preset keterangan massal & catatan/kegiatan presensi
+    if (req.method === "GET" && url.pathname === "/api/attendance/presets") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      try {
+        const presetsRes = await dbPool.query(
+          "SELECT data FROM app_data WHERE store_key = 'attendance_custom_presets' LIMIT 1"
+        ).catch(() => ({ rows: [] }));
+
+        let presetsData = {};
+        if (presetsRes.rows.length > 0 && presetsRes.rows[0].data) {
+          presetsData = typeof presetsRes.rows[0].data === 'string'
+            ? JSON.parse(presetsRes.rows[0].data)
+            : presetsRes.rows[0].data;
+        }
+
+        return send(req, res, 200, {
+          ok: true,
+          bulkRemarkPresets: presetsData.bulkRemarkPresets || null,
+          studentAttendanceNotes: presetsData.studentAttendanceNotes || null
+        });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
+    // POST /api/attendance/presets - Simpan pilihan preset (HANYA SUPER ADMIN)
+    if (req.method === "POST" && url.pathname === "/api/attendance/presets") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      const sRole = normalizeServerRole(session.role);
+      const isSuper = isAdminRole(session.role) || sRole === 'admin' || sRole === 'superadmin';
+      if (!isSuper) {
+        return send(req, res, 403, { ok: false, error: 'Hanya Super Admin yang dapat mengubah template pilihan dan catatan presensi.' });
+      }
+      try {
+        const body = await readJsonBody(req);
+        const { bulkRemarkPresets, studentAttendanceNotes } = body;
+
+        const presetsRes = await dbPool.query(
+          "SELECT data FROM app_data WHERE store_key = 'attendance_custom_presets' LIMIT 1"
+        ).catch(() => ({ rows: [] }));
+
+        let existing = {};
+        if (presetsRes.rows.length > 0 && presetsRes.rows[0].data) {
+          existing = typeof presetsRes.rows[0].data === 'string'
+            ? JSON.parse(presetsRes.rows[0].data)
+            : presetsRes.rows[0].data;
+        }
+
+        const updated = {
+          ...existing,
+          ...(bulkRemarkPresets !== undefined ? { bulkRemarkPresets } : {}),
+          ...(studentAttendanceNotes !== undefined ? { studentAttendanceNotes } : {}),
+          updatedAt: new Date().toISOString(),
+          updatedBy: session.username || 'Super Admin'
+        };
+
+        await dbPool.query(
+          "INSERT INTO app_data (store_key, data) VALUES ('attendance_custom_presets', $1) ON CONFLICT (store_key) DO UPDATE SET data = $1",
+          [JSON.stringify(updated)]
+        );
+
+        await logAudit(dbPool, session, req, 'UPDATE_ATTENDANCE_PRESETS', 'attendance', 'Super Admin memperbarui pilihan preset dan catatan absensi');
+
+        return send(req, res, 200, {
+          ok: true,
+          message: 'Pilihan preset dan catatan absensi berhasil diperbarui oleh Super Admin.',
+          data: updated
+        });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
     if (req.method === "GET" && url.pathname === "/api/monitoring/absensi/siswa") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
