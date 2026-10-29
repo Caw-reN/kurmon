@@ -1314,6 +1314,212 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         </Modal>
       )}
 
+      {/* Floating Action Toolbar untuk Bulk Edit & Bulk Delete */}
+      {selectedIds.size > 0 && activeTab === 'surat' && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-2 pr-2 border-r border-slate-700">
+            <span className="w-6 h-6 rounded-full bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center">
+              {selectedIds.size}
+            </span>
+            <span className="text-xs font-bold whitespace-nowrap hidden sm:inline">Data Terpilih</span>
+          </div>
+          <button
+            type="button"
+            onClick={openBulkEdit}
+            className="px-3.5 py-1.5 rounded-[var(--ui-radius-small)] bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+          >
+            <Edit2 size={13} />
+            <span>Edit Massal</span>
+          </button>
+          <button
+            type="button"
+            onClick={openBulkDeleteTwoStep}
+            className="px-3.5 py-1.5 rounded-[var(--ui-radius-small)] bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+          >
+            <Trash2 size={13} />
+            <span>Hapus Massal</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleClearSelection}
+            className="p-1.5 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 transition-colors cursor-pointer"
+            title="Batalkan Seleksi"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* Modal Bulk Edit */}
+      {isBulkEditOpen && (
+        <Modal 
+          isOpen={isBulkEditOpen} 
+          onClose={() => !isBulkLoading && setIsBulkEditOpen(false)} 
+          title={`Edit Massal (${selectedIds.size} Data Terpilih)`} 
+          maxWidth="max-w-md"
+        >
+          <form onSubmit={handleExecuteBulkEdit} className="space-y-4 p-1">
+            <div className="p-3 bg-indigo-50/80 border border-indigo-100 rounded-[var(--ui-radius-small)] text-xs text-indigo-900 leading-relaxed">
+              Ubah status, persetujuan, atau keterangan serentak untuk <strong>{selectedIds.size}</strong> data absensi yang dicentang. Opsi yang dibiarkan "Tidak Diubah" akan mempertahankan nilai aslinya.
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Ubah Status Kehadiran</label>
+              <UISelect 
+                value={bulkEditStatus} 
+                onChange={(e) => setBulkEditStatus(e.target.value)}
+                className="w-full bg-slate-50 font-semibold text-xs"
+              >
+                <option value="KEEP">-- Biarkan Sama / Tidak Diubah --</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+                <option value="Alpa">Alpa</option>
+                <option value="Dispensasi">Dispensasi</option>
+                <option value="Hadir">Hadir</option>
+              </UISelect>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Status Persetujuan (Approval)</label>
+              <UISelect 
+                value={bulkEditApproval} 
+                onChange={(e) => setBulkEditApproval(e.target.value)}
+                className="w-full bg-slate-50 font-semibold text-xs"
+              >
+                <option value="KEEP">-- Biarkan Sama / Tidak Diubah --</option>
+                <option value="approved">Setujui Massal (Disetujui)</option>
+                <option value="rejected">Tolak Massal (Ditolak)</option>
+                <option value="pending">Kembalikan ke Menunggu Persetujuan</option>
+              </UISelect>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">Keterangan / Catatan Baru (Opsional)</label>
+              <textarea 
+                rows="2" 
+                value={bulkEditKeterangan} 
+                onChange={(e) => setBulkEditKeterangan(e.target.value)}
+                placeholder="Kosongkan jika tidak ingin mengubah keterangan asli..." 
+                className="w-full px-3 py-2 bg-slate-50 border-none rounded-[var(--ui-radius-small)] text-xs font-medium focus:outline-none focus:border-[var(--ui-primary)] resize-none"
+              />
+            </div>
+
+            <div className="pt-3 flex justify-end gap-2 border-t border-slate-100">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsBulkEditOpen(false)} 
+                disabled={isBulkLoading}
+              >
+                Batal
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isBulkLoading || (bulkEditStatus === "KEEP" && !bulkEditKeterangan.trim() && bulkEditApproval === "KEEP")}
+              >
+                {isBulkLoading ? 'Menyimpan...' : `Terapkan ke ${selectedIds.size} Data`}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Modal Verifikasi 2 Langkah Hapus Massal */}
+      {isTwoStepDeleteOpen && (
+        <Modal 
+          isOpen={isTwoStepDeleteOpen} 
+          onClose={() => !isBulkLoading && setIsTwoStepDeleteOpen(false)} 
+          title={deleteStep === 1 ? "Verifikasi Langkah 1: Konfirmasi Hapus" : "Verifikasi Langkah 2: Ketik HAPUS"} 
+          maxWidth="max-w-md"
+        >
+          <div className="p-1 space-y-4">
+            {deleteStep === 1 ? (
+              <>
+                <div className="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-card)] text-rose-900">
+                  <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="font-extrabold text-sm text-rose-900">Perhatian! Hapus Massal Absensi</div>
+                    <p className="leading-relaxed">
+                      Anda akan menghapus secara permanen <strong className="text-rose-950 font-black">{selectedIds.size} data absensi</strong> yang sedang dipilih.
+                    </p>
+                    <p className="text-[11px] text-rose-700 mt-1">
+                      Data presensi dan berkas lampiran yang dihapus tidak dapat dipulihkan kembali.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2 border-t border-slate-100">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsTwoStepDeleteOpen(false)}
+                  >
+                    Batalkan
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={() => setDeleteStep(2)}
+                    className="bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5"
+                  >
+                    <span>Lanjut ke Konfirmasi</span>
+                    <ArrowRight size={14} />
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-start gap-3 p-3.5 bg-slate-900 text-white border border-slate-800 rounded-[var(--ui-radius-card)]">
+                  <div className="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div className="space-y-1 text-xs">
+                    <div className="font-extrabold text-sm text-rose-400">Verifikasi Terakhir</div>
+                    <p className="text-slate-300 leading-relaxed">
+                      Untuk mencegah ketidaksengajaan, ketik kata <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white font-mono font-black text-xs">HAPUS</span> pada kolom di bawah ini:
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                    Ketik "HAPUS" untuk konfirmasi
+                  </label>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={confirmDeleteText}
+                    onChange={(e) => setConfirmDeleteText(e.target.value)}
+                    placeholder="Ketik HAPUS"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-sm font-bold text-slate-900 focus:outline-none focus:border-rose-500 font-mono uppercase"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-between items-center border-t border-slate-100">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setDeleteStep(1)} 
+                    disabled={isBulkLoading}
+                  >
+                    Kembali
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={handleExecuteBulkDelete}
+                    disabled={confirmDeleteText.trim().toUpperCase() !== "HAPUS" || isBulkLoading}
+                    className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
+                  >
+                    {isBulkLoading ? 'Menghapus...' : `Hapus Permanen ${selectedIds.size} Data`}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </Modal>
+      )}
+
       {toast && (
         <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
