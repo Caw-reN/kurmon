@@ -1,7 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
 import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, Award, Settings2, AlertTriangle, ShieldAlert, ArrowRight } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
@@ -559,7 +557,9 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     setForm({...form, siswa_nis: form.siswa_nis.filter(id => id !== nis)});
   };
   
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const ExcelJS = (await import('exceljs')).default;
+    const { saveAs } = await import('file-saver');
     const data = filteredItems.map(item => {
       const student = students.find(s => String(s.nis) === String(item.siswa_nis));
       return {

@@ -1,10 +1,6 @@
 import { Button, TablePagination, UISelect, Modal } from '../../../components/ui.jsx';
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2, RefreshCw, Sparkles, Info } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
@@ -316,6 +312,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     try {
       if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
 
+      const ExcelJS = (await import('exceljs')).default;
+      const { saveAs } = await import('file-saver');
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Laporan Absensi Karyawan');
 
@@ -480,7 +478,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (isExportingRef.current) return;
     isExportingRef.current = true;
     setIsExporting(true);
@@ -488,6 +486,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     try {
       if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
       
+      const jsPDF = (await import('jspdf')).default;
+      const autoTable = (await import('jspdf-autotable')).default;
       const doc = new jsPDF({
         orientation: 'landscape',
         unit: 'mm',

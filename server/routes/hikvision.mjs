@@ -2331,16 +2331,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
 
         const conf = await getHikvisionConfig();
         
+        // Pre-compute 8-digit suffix mapping sekali saja untuk pencocokan O(1) cepat
+        const nis8ToMatrixKey = new Map();
+        Object.keys(matrix).forEach(mNis => {
+          if (mNis.length === 9) {
+            nis8ToMatrixKey.set(mNis.slice(1).toLowerCase(), mNis);
+          }
+        });
+
         logsQuery.rows.forEach(log => {
             const rawEmpId = String(log.employee_id || '').trim().toLowerCase();
-            let nis = employeeToNisMap[rawEmpId] || log.employee_id;
-            if (!matrix[nis] && rawEmpId.length === 8) {
-               const direct8 = Object.keys(matrix).find(mNis => mNis.length === 9 && mNis.slice(1).toLowerCase() === rawEmpId);
-               if (direct8) {
-                   nis = direct8;
-                   employeeToNisMap[rawEmpId] = direct8;
-               }
-            }
+            let nis = employeeToNisMap[rawEmpId] || (rawEmpId.length === 8 ? nis8ToMatrixKey.get(rawEmpId) : null) || log.employee_id;
             if (!matrix[nis]) return;
             
             // Resolve timing config dynamically based on true user type from our masters
@@ -2488,6 +2489,21 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         });
 
         if (reportType === 'siswa') {
+          // Pre-compute O(1) lookup map untuk mencocokkan siswa_nis ke matrix key secara instan
+          const nisToMatrixKey = new Map();
+          Object.keys(matrix).forEach(k => {
+            const kStr = String(k || '').trim().toLowerCase();
+            const canonNis = String(matrix[k]?.nis || '').trim().toLowerCase();
+            if (kStr) {
+              nisToMatrixKey.set(kStr, k);
+              if (kStr.length >= 5) nisToMatrixKey.set(kStr.slice(-5), k);
+            }
+            if (canonNis) {
+              nisToMatrixKey.set(canonNis, k);
+              if (canonNis.length >= 5) nisToMatrixKey.set(canonNis.slice(-5), k);
+            }
+          });
+
           const sAbsRes = await dbPool.query(`
             SELECT id, siswa_nis, TO_CHAR(tanggal, 'YYYY-MM-DD') as tanggal_str, status, keterangan, gdrive_url, approval_status, pelapor_nama
             FROM kedisiplinan_absensi 
@@ -2496,15 +2512,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           `, [rangeStart, rangeEnd]);
 
           sAbsRes.rows.forEach(rec => {
-            const recNis = String(rec.siswa_nis || '').trim();
-            const targetKey = Object.keys(matrix).find(k => {
-              const kStr = String(k || '').trim();
-              const canonNis = String(matrix[k]?.nis || '').trim();
-              const rNis = recNis.toLowerCase();
-              const kLower = kStr.toLowerCase();
-              const cLower = canonNis.toLowerCase();
-              return kLower === rNis || cLower === rNis || (rNis.length >= 5 && kLower.length >= 5 && (kLower.endsWith(rNis) || rNis.endsWith(kLower))) || (rNis.length >= 5 && cLower.length >= 5 && (cLower.endsWith(rNis) || rNis.endsWith(cLower)));
-            });
+            const recNis = String(rec.siswa_nis || '').trim().toLowerCase();
+            let targetKey = nisToMatrixKey.get(recNis);
+            if (!targetKey && recNis.length >= 5) {
+              targetKey = nisToMatrixKey.get(recNis.slice(-5));
+            }
             if (targetKey && matrix[targetKey]) {
               const day = rec.tanggal_str ? parseInt(rec.tanggal_str.substring(8, 10), 10) : new Date(rec.tanggal).getDate();
               const status = rec.status;

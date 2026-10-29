@@ -1536,6 +1536,8 @@ const initDb = async () => {
 
     try {
       await dbPool.query(`
+        CREATE INDEX IF NOT EXISTS idx_hikvision_logs_timestamp ON hikvision_logs (timestamp ASC);
+        CREATE INDEX IF NOT EXISTS idx_hikvision_logs_emp_id ON hikvision_logs (employee_id);
         CREATE INDEX IF NOT EXISTS idx_hikvision_logs_emp_time ON hikvision_logs (employee_id, timestamp);
         CREATE INDEX IF NOT EXISTS idx_hikvision_logs_device_time ON hikvision_logs (device_id, timestamp DESC);
         CREATE INDEX IF NOT EXISTS idx_kedisiplinan_absensi_tanggal ON kedisiplinan_absensi (tanggal);

@@ -403,11 +403,18 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           }
 
           let query = `
+            WITH students_flat AS (
+              SELECT 
+                COALESCE(payload->>'nis', payload->>'code', id) as nis,
+                COALESCE(payload->>'name', payload->>'nama') as student_name,
+                COALESCE(payload->>'class_name', payload->>'kelas', payload->>'rombel') as class_name
+              FROM mst_students
+            )
             SELECT 
               k.id, 
               k.siswa_nis, 
-              s.payload->>'name' as student_name,
-              COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'rombel') as class_name,
+              s.student_name,
+              s.class_name,
               TO_CHAR(k.tanggal, 'YYYY-MM-DD') as tanggal, 
               k.status, 
               k.keterangan, 
@@ -419,9 +426,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
               k.gdrive_url, 
               k.created_at 
             FROM kedisiplinan_absensi k
-            LEFT JOIN mst_students s ON 
-              s.payload->>'nis' = k.siswa_nis OR 
-              s.payload->>'code' = k.siswa_nis
+            LEFT JOIN students_flat s ON s.nis = k.siswa_nis
           `;
           let conditions = [];
           const queryParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
@@ -431,8 +436,16 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           let params = [];
           
           const bulan = queryParams.get("bulan");
-          if (bulan) {
-            // Filter eksplisit dari frontend
+          if (bulan && /^\d{4}-\d{2}$/.test(bulan)) {
+            // Optimasi: Range scan index tanggal (jauh lebih cepat daripada TO_CHAR() LIKE)
+            const [bYear, bMonth] = bulan.split('-').map(Number);
+            const bStart = `${bulan}-01`;
+            const bEnd = bMonth === 12 ? `${bYear + 1}-01-01` : `${bYear}-${String(bMonth + 1).padStart(2, '0')}-01`;
+            params.push(bStart);
+            conditions.push(`k.tanggal >= $${params.length}`);
+            params.push(bEnd);
+            conditions.push(`k.tanggal < $${params.length}`);
+          } else if (bulan) {
             params.push(`${bulan}%`);
             conditions.push(`TO_CHAR(k.tanggal, 'YYYY-MM-DD') LIKE $${params.length}`);
           } else if (startDate) {

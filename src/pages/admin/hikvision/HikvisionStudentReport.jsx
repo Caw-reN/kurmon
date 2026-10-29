@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info } from 'lucide-react';
-import ExcelJS from 'exceljs';
-import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useAppStore } from'../../../store/useAppStore';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
@@ -654,6 +650,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     try {
       if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor","warning");
       
+      const ExcelJS = (await import('exceljs')).default;
+      const { saveAs } = await import('file-saver');
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Laporan Absensi Siswa');
 
@@ -823,7 +821,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
   };
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     if (isExportingRef.current) return;
     isExportingRef.current = true;
     setIsExporting(true);
@@ -831,6 +829,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     try {
       if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
       
+      const jsPDF = (await import('jspdf')).default;
+      const autoTable = (await import('jspdf-autotable')).default;
       const isDetailed = exportMode === "detailed";
       const doc = new jsPDF({
         orientation: 'landscape',
