@@ -46,6 +46,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') ||
     Boolean(user?.isBK || user?.isBPBK || user?.isKesiswaan);
 
+  const canManageBulkRemarks = 
+    isKesiswaanOrAdmin ||
+    ['walas', 'walikelas'].includes(roleStr) || 
+    Boolean(user?.isWalas || user?.walasClass);
+
   const defaultClassName = 
     (routeTab === "walas_report" && user?.walasClass) 
       ? user.walasClass 
@@ -1546,27 +1551,29 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           >
             MANAJEMEN SURAT
           </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('keterangan')}
-            className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-              activeTab === 'keterangan'
-                ? 'bg-slate-100 shadow-xs'
-                : 'text-slate-400 hover:text-slate-600 bg-transparent'
-            }`}
-            style={activeTab === 'keterangan' ? {
-              background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
-              color: "var(--ui-primary)"
-            } : {}}
-          >
-            KETERANGAN MASSAL
-          </button>
+          {canManageBulkRemarks && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('keterangan')}
+              className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+                activeTab === 'keterangan'
+                  ? 'bg-slate-100 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-600 bg-transparent'
+              }`}
+              style={activeTab === 'keterangan' ? {
+                background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
+                color: "var(--ui-primary)"
+              } : {}}
+            >
+              KETERANGAN MASSAL
+            </button>
+          )}
         </div>
       </div>
 
-      {activeTab === 'keterangan' ? (
+      {activeTab === 'keterangan' && canManageBulkRemarks ? (
         <React.Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
-          <KeteranganMasalAbsensi authToken={authToken} />
+          <KeteranganMasalAbsensi authToken={authToken} classes={classes} />
         </React.Suspense>
       ) : activeTab ==='surat' ? (
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />

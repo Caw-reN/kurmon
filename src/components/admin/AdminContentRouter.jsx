@@ -648,18 +648,15 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           <HikvisionStaffReport classes={classes} />
         </Suspense>;
       case "keterangan_massal":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
-          <KeteranganMasalAbsensi />
-        </Suspense>;
-      case "kedisiplinan_absensi":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat data izin & sakit siswa...</div>}>
-          <AbsensiSiswa classes={classes} students={students} />
-        </Suspense>;
       case "hikvision_report_siswa":
       case "walas_report":
       case "laporan_rekap_walas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan kelas...</div>}>
           <HikvisionStudentReport classes={classes} students={students} activeTab={activeTab} />
+        </Suspense>;
+      case "kedisiplinan_absensi":
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat data izin & sakit siswa...</div>}>
+          <AbsensiSiswa classes={classes} students={students} />
         </Suspense>;
       case"hikvision_students":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">

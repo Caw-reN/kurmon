@@ -163,16 +163,6 @@ export const MENU_REGISTRY = [
     activeIds: ['laporan_absensi', 'hikvision_report_guru', 'hikvision_report_karyawan'],
   },
   {
-    id: 'keterangan_massal',
-    icon: ClipboardList,
-    label: 'Keterangan Massal Absensi',
-    section: 'Kehadiran',
-    adminGroup: 'Kesiswaan',
-    adminGroupIcon: Users,
-    adminGroupKey: 'kesiswaan',
-    featureKey: 'attendance',
-  },
-  {
     id: 'hikvision_report_guru',
     icon: FileText,
     label: 'Kehadiran Guru',

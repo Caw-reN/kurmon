@@ -313,9 +313,9 @@ export default function HikvisionDashboard() {
             className="flex items-center gap-2 border-amber-300 text-amber-750 hover:bg-amber-50 font-bold"
             onClick={() => {
               if (typeof window !== 'undefined' && window.__setActiveTab) {
-                window.__setActiveTab('keterangan_massal');
+                window.__setActiveTab('hikvision_report_siswa');
               } else {
-                window.location.hash = '#keterangan_massal';
+                window.location.hash = '#hikvision_report_siswa';
               }
             }}
           >
