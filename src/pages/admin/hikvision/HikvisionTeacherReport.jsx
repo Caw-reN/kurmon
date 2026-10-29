@@ -13,13 +13,15 @@ import { UISelect } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { useDataStore } from '../../../store/useDataStore.js';
-import { compareTableValues, formatAttendanceTime } from '../../../utils/adminHelpers.js';
+import { compareTableValues, formatAttendanceTime, getHolidayInfoForDate } from '../../../utils/adminHelpers.js';
 import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
 import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
 import { Shield } from 'lucide-react';
 
 
 export default function HikvisionTeacherReport({ isNested = false }) {
+  const academicCalendar = useAppStore(state => state.academicCalendar) || [];
+  const calendarCategories = useAppStore(state => state.calendarCategories) || [];
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   
@@ -1330,28 +1332,29 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const currentYear = new Date().getFullYear();
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1];
 
-  const getDayBadge = (dayData) => {
-    if (!dayData) return <span className="text-[10px] text-slate-300 font-bold">-</span>;
-    
-    const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+  const getDayBadge = (dayData, personRole = "guru", dateStr = "") => {
+    const holidayInfo = dateStr ? getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, personRole) : null;
+    if (!dayData && !holidayInfo) return <span className="text-[10px] text-slate-300 font-bold">-</span>;
 
-    if (dayData.isHoliday || status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
-      const rawNote = dayData.note || '';
-      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+    const effectiveData = dayData || { isHoliday: true, status: "Libur", note: holidayInfo?.reason || "Libur Kalender Akademik" };
+    const status = effectiveData.status || (effectiveData.isLate ? "Terlambat" : (effectiveData.in || effectiveData.out ? "Hadir" : ""));
+
+    if (effectiveData.isHoliday || status === "Libur" || effectiveData.in === "Libur" || effectiveData.out === "Libur" || Boolean(holidayInfo)) {
+      const rawNote = effectiveData.note || '';
+      const cleanNote = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin") && rawNote !== "-") ? rawNote : '';
+      const noteText = cleanNote || holidayInfo?.reason || "Libur Kalender Akademik";
       return (
         <div 
           className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/95 text-amber-950 border-2 border-amber-400 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs ring-1 ring-amber-200"
-          title={noteText ? `Libur / Bebas Absen: ${noteText}` : "Libur / Bebas Absen"}
+          title={`Libur: ${noteText}`}
         >
           <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7.5px] font-black uppercase tracking-tight">
             <Calendar size={8} className="text-amber-800 shrink-0" />
             <span>LIBUR</span>
           </span>
-          {Boolean(noteText) && (
-            <span className="text-[7px] font-extrabold text-amber-950 block truncate max-w-[50px] leading-tight text-center" title={noteText}>
-              {noteText}
-            </span>
-          )}
+          <span className="text-[7.5px] font-extrabold text-amber-950 block leading-tight text-center line-clamp-2 max-w-[62px] break-words" title={noteText}>
+            {noteText}
+          </span>
         </div>
       );
     }

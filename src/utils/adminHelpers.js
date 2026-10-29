@@ -41,6 +41,70 @@ export const formatAttendanceTime = (val) => {
   const s = String(val).trim();
   return /^\d{1,2}:\d{2}/.test(s) ? s.substring(0, 5) : null;
 };
+
+/**
+ * Helper terpusat untuk mendeteksi apakah suatu tanggal merupakan libur/bebas absensi di Kalender Akademik,
+ * sekaligus mengembalikan kalimat penjelasan alasan libur secara informatif dan lengkap.
+ */
+export const getHolidayInfoForDate = (academicCalendar = [], calendarCategories = [], dateStr = "", targetClassOrRole = "") => {
+  if (!Array.isArray(academicCalendar) || !dateStr) return null;
+
+  const targetClean = String(targetClassOrRole || "").trim().toUpperCase();
+  let targetGrade = "";
+  if (targetClean.startsWith("X ") || targetClean.startsWith("10 ")) targetGrade = "X";
+  else if (targetClean.startsWith("XI ") || targetClean.startsWith("11 ")) targetGrade = "XI";
+  else if (targetClean.startsWith("XII ") || targetClean.startsWith("12 ")) targetGrade = "XII";
+
+  const matchedEvt = academicCalendar.find(evt => {
+    const start = evt.dateStart;
+    const end = evt.dateEnd || evt.dateStart;
+    if (dateStr >= start && dateStr <= end) {
+      const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
+      const cat = calendarCategories.find(c => c.id === evt.categoryId);
+      const catName = cat ? String(cat.name).toLowerCase() : "";
+      const titleLower = String(evt.title || "").toLowerCase();
+      const isHoliday = isEventHoliday || catName.includes("libur") || titleLower.includes("libur");
+
+      if (!isHoliday) return false;
+
+      // Cek target kelas / role
+      let targetClasses = "";
+      if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+        const dayTarget = evt.dailyClassSchedule[dateStr];
+        targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
+      } else {
+        targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+      }
+
+      if (targetClasses === "SEMUA" || targetClasses === "ALL" || !targetClean || targetClean === "ALL") return true;
+      if (targetGrade && targetClasses.split(',').map(g => g.trim()).includes(targetGrade)) return true;
+      if (targetClasses.split(',').map(c => c.trim()).includes(targetClean)) return true;
+      if ((targetClean === "GURU" || targetClean === "KARYAWAN" || targetClean === "STAFF") && (targetClasses.includes(targetClean) || targetClasses === "SEMUA")) return true;
+    }
+    return false;
+  });
+
+  if (!matchedEvt) return null;
+
+  let reason = "";
+  if (matchedEvt.attendanceRemark && matchedEvt.attendanceRemark.trim() && matchedEvt.attendanceRemark.trim() !== "-") {
+    reason = matchedEvt.attendanceRemark.trim();
+  } else if (matchedEvt.title && matchedEvt.title.trim() && matchedEvt.title.trim() !== "-") {
+    const t = matchedEvt.title.trim();
+    reason = t.toLowerCase().includes("libur") ? t : `Diliburkan karena ${t}`;
+  } else if (matchedEvt.description && matchedEvt.description.trim()) {
+    reason = `Diliburkan karena ${matchedEvt.description.trim()}`;
+  } else {
+    reason = "Libur Kalender Akademik";
+  }
+
+  return {
+    isHoliday: true,
+    reason,
+    title: matchedEvt.title || "Libur",
+    event: matchedEvt
+  };
+};
 export const getAttendanceSessions = attendanceSettings => Array.isArray(attendanceSettings?.sessions) && attendanceSettings.sessions.length > 0 ? attendanceSettings.sessions : [];
 export const getActiveAttendanceSession = (attendanceSettings, now = new Date(), role = null, academicCalendar = [], calendarCategories = []) => {
   const parts = getJakartaDateParts(now);

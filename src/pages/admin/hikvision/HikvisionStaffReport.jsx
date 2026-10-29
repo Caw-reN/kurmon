@@ -10,10 +10,12 @@ import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
-import { compareTableValues, formatAttendanceTime } from '../../../utils/adminHelpers.js';
+import { compareTableValues, formatAttendanceTime, getHolidayInfoForDate } from '../../../utils/adminHelpers.js';
 import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
 
 export default function HikvisionStaffReport({ classes = [], isNested = false }) {
+  const academicCalendar = useAppStore(state => state.academicCalendar) || [];
+  const calendarCategories = useAppStore(state => state.calendarCategories) || [];
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   

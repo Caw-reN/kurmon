@@ -10,7 +10,7 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
 import { UISelect, Button, TablePagination, Modal } from'../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
-import { compareTableValues, formatAttendanceTime } from '../../../utils/adminHelpers.js';
+import { compareTableValues, formatAttendanceTime, getHolidayInfoForDate } from '../../../utils/adminHelpers.js';
 import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
 import { isSuperAdminRole } from '../../../utils/constants.js';
 import { fetchAttendancePresets, DEFAULT_STUDENT_ATTENDANCE_NOTES } from '../../../utils/attendancePresets.js';
@@ -376,11 +376,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     setIsSubmittingCell(false);
   };
 
-  const getCellStyle = (dayData) => {
+  const getCellStyle = (dayData, studentClass = "", dateStr = "") => {
     const rawNote = String(dayData.note || dayData.keterangan || '').trim();
     const isInternalNote = rawNote.startsWith("Dari mesin") || rawNote.startsWith("Mesin [IP") || rawNote.startsWith("Alpa Otomatis");
-    const cleanNote = !isInternalNote ? rawNote : '';
+    const cleanNote = (!isInternalNote && rawNote !== "-") ? rawNote : '';
     const noteLower = cleanNote.toLowerCase();
+
+    const holidayInfo = dateStr ? getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, studentClass) : null;
 
     const isMesinError = noteLower.includes('mesin error') || 
       noteLower.includes('tidak terbaca') || 
@@ -403,13 +405,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
     
     // Status Libur / Bebas Absensi (Kalender Akademik / Rotasi)
-    if (status === "Libur" || dayData.isHoliday || dayData.in === "Libur" || noteLower.includes('libur') || noteLower.includes('tka') || noteLower.includes('belajar mandiri') || noteLower.includes('classmeeting')) {
+    if (status === "Libur" || dayData.isHoliday || dayData.in === "Libur" || Boolean(holidayInfo) || noteLower.includes('libur') || noteLower.includes('tka') || noteLower.includes('belajar mandiri') || noteLower.includes('classmeeting')) {
+      const explicitReason = cleanNote || holidayInfo?.reason || (dayData.title ? `Diliburkan karena ${dayData.title}` : "Libur Kalender Akademik");
       return {
         className: "bg-amber-50/95 text-amber-950 font-black border-2 border-amber-400 shadow-2xs ring-1 ring-amber-200",
         style: { color: "#78350f" },
         isHoliday: true,
-        hasCustomNote: Boolean(cleanNote),
-        noteText: cleanNote || "Libur Kalender"
+        hasCustomNote: Boolean(cleanNote || holidayInfo),
+        noteText: explicitReason
       };
     }
 
@@ -721,13 +724,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
           };
 
-          if (dayData) {
-            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+          const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+          const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, item.class_name);
+          const effectiveDayData = dayData || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
+
+          if (effectiveDayData) {
+            const status = effectiveDayData.status || (effectiveDayData.isLate ? "Terlambat" : (effectiveDayData.in || effectiveDayData.out ? "Hadir" : (holidayInfo ? "Libur" : "Alpa")));
             let content = "-";
             let fgColor = "FFFFFFFF";
             let fontColor = "FF334155";
             
-            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
+            if (status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) {
+              const note = effectiveDayData.note || holidayInfo?.reason || 'Libur Kalender Akademik';
+              content = isDetailed ? `LIBUR\n(${note})` : `LIBUR (${note})`;
+              fgColor = "FFFEF3C7"; fontColor = "FF92400E";
+            } else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || effectiveDayData.in === "Alpa") {
               content = "A";
               fgColor = "FF0F172A"; fontColor = "FFFFFFFF";
             } else if (status === "Sakit") {
@@ -739,10 +750,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             } else if (status === "PraPKL" || status === "Pra-PKL") {
               content = "PRA";
               fgColor = "FFCCFBF1"; fontColor = "FF115E59";
-            } else if (status === "Libur" || dayData.isHoliday) {
-              const note = dayData.note || 'Libur';
-              content = isDetailed ? `LIBUR\n${note}` : "LIBUR";
-              fgColor = "FFFEF3C7"; fontColor = "FF92400E";
             } else if (status === "Terlambat" || dayData.isLate) {
               if (isDetailed && (dayData.in || dayData.out)) {
                 const tIn = formatAttendanceTime(dayData.in) || '--:--';
@@ -857,16 +864,24 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         ];
         
         exportDays.forEach(i => {
+          const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+          const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, item.class_name);
           const dayData = (item.days || {})[i];
-          if (!dayData) {
+          const effectiveDayData = dayData || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
+
+          if (!effectiveDayData) {
             row.push("-");
           } else {
-            const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
+            const status = effectiveDayData.status || (effectiveDayData.isLate ? "Terlambat" : (effectiveDayData.in || effectiveDayData.out ? "Hadir" : (holidayInfo ? "Libur" : "Alpa")));
             let content = "-";
             let fillColor = [255, 255, 255];
             let textColor = [51, 65, 85];
             
-            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa") {
+            if (status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) {
+              const note = effectiveDayData.note || holidayInfo?.reason || 'Libur';
+              content = isDetailed ? `LIBUR\n${note}` : "L";
+              fillColor = [254, 243, 199]; textColor = [146, 64, 14];
+            } else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || effectiveDayData.in === "Alpa") {
               content = "A";
               fillColor = [15, 23, 42]; textColor = [255, 255, 255];
             } else if (status === "Sakit") {

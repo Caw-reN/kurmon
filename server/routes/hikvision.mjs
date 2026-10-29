@@ -2616,30 +2616,49 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 const holidayEvt = academicCalendar.find(evt => {
                   const start = evt.dateStart;
                   const end = evt.dateEnd || evt.dateStart;
-                  if (dateStr >= start && dateStr <= end && (evt.isHoliday === true || evt.isHoliday === "true")) {
-                    let targetClasses = "";
-                    if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
-                      const dayTarget = evt.dailyClassSchedule[dateStr];
-                      targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
-                    } else {
-                      targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
-                    }
+                  if (dateStr >= start && dateStr <= end) {
+                    const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
+                    if (isEventHoliday) {
+                      let targetClasses = "";
+                      if (evt.dailyClassSchedule && evt.dailyClassSchedule[dateStr]) {
+                        const dayTarget = evt.dailyClassSchedule[dateStr];
+                        targetClasses = (Array.isArray(dayTarget) ? dayTarget.join(',') : String(dayTarget)).toUpperCase();
+                      } else {
+                        targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+                      }
 
-                    if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
-                    if (pGrade && targetClasses.split(',').map(g=>g.trim()).includes(pGrade)) return true;
-                    if (cClean && targetClasses.split(',').map(c => c.trim()).includes(cClean)) return true;
+                      if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
+                      if (pGrade && targetClasses.split(',').map(g=>g.trim()).includes(pGrade)) return true;
+                      if (cClean && targetClasses.split(',').map(c => c.trim()).includes(cClean)) return true;
+                    }
+                    const cat = calendarCategories.find(c => c.id === evt.categoryId);
+                    const catName = cat ? String(cat.name).toLowerCase() : "";
+                    const title = String(evt.title || "").toLowerCase();
+                    if (catName.includes("libur") || title.includes("libur")) return true;
                   }
                   return false;
                 });
 
                 if (holidayEvt) {
+                  let reasonText = "";
+                  if (holidayEvt.attendanceRemark && holidayEvt.attendanceRemark.trim() && holidayEvt.attendanceRemark.trim() !== "-") {
+                    reasonText = holidayEvt.attendanceRemark.trim();
+                  } else if (holidayEvt.title && holidayEvt.title.trim() && holidayEvt.title.trim() !== "-") {
+                    const t = holidayEvt.title.trim();
+                    reasonText = t.toLowerCase().includes("libur") ? t : `Diliburkan karena ${t}`;
+                  } else if (holidayEvt.description && holidayEvt.description.trim()) {
+                    reasonText = `Diliburkan karena ${holidayEvt.description.trim()}`;
+                  } else {
+                    reasonText = "Libur Kalender Akademik";
+                  }
+
                   item.days[day] = {
                     in: "Libur",
                     out: "Libur",
                     isLate: false,
                     isHoliday: true,
                     status: "Libur",
-                    note: holidayEvt.attendanceRemark || holidayEvt.title || "Libur Kalender Akademik"
+                    note: reasonText
                   };
                 }
               }

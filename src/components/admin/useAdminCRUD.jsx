@@ -1014,9 +1014,16 @@ export function useAdminCRUD(props) {
           showNotification("Tanggal selesai tidak boleh lebih awal dari tanggal mulai.","warning");
           return;
         }
+        const isHoliday = formData.isHoliday === true || formData.isHoliday === "true";
+        let attendanceRemark = String(formData.attendanceRemark || "").trim();
+        if (isHoliday && (!attendanceRemark || attendanceRemark === "-")) {
+          attendanceRemark = title.toLowerCase().includes("libur") ? title : `Diliburkan karena ${title}`;
+        }
         const nextEvent = {
           ...formData,
           title,
+          isHoliday,
+          attendanceRemark: isHoliday ? attendanceRemark : (formData.attendanceRemark || ""),
           dateStart,
           dateEnd: dateEnd || dateStart
         };

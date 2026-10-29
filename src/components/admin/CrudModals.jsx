@@ -761,7 +761,23 @@ export default function CrudModals({
               <>
                 <div>
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Kegiatan</label>
-                  <input type="text" required value={formData.title || ""} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" placeholder="Contoh: Ujian TKA / Asesmen Akhir Semester" />
+                  <input 
+                    type="text" 
+                    required 
+                    value={formData.title || ""} 
+                    onChange={(e) => {
+                      const newTitle = e.target.value;
+                      const isHolidayMode = formData.isHoliday === true || formData.isHoliday === "true";
+                      const prevRemark = formData.attendanceRemark || "";
+                      let newRemark = prevRemark;
+                      if (isHolidayMode && (!prevRemark || prevRemark.startsWith("Diliburkan karena"))) {
+                        newRemark = newTitle ? (newTitle.toLowerCase().includes("libur") ? newTitle : `Diliburkan karena ${newTitle}`) : "";
+                      }
+                      setFormData({ ...formData, title: newTitle, attendanceRemark: newRemark });
+                    }} 
+                    className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" 
+                    placeholder="Contoh: Ujian TKA / Asesmen Akhir Semester" 
+                  />
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
@@ -786,7 +802,14 @@ export default function CrudModals({
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Status KBM &amp; Absensi</label>
                     <UISelect 
                       value={isHolidayVal ? "true" : "false"} 
-                      onChange={(e) => setFormData({ ...formData, isHoliday: e.target.value === "true" })} 
+                      onChange={(e) => {
+                        const val = e.target.value === "true";
+                        let remark = formData.attendanceRemark || "";
+                        if (val && (!remark || remark === "-")) {
+                          remark = formData.title ? (formData.title.toLowerCase().includes("libur") ? formData.title : `Diliburkan karena ${formData.title}`) : "";
+                        }
+                        setFormData({ ...formData, isHoliday: val, attendanceRemark: remark });
+                      }} 
                       required 
                       className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
                     >
@@ -971,10 +994,11 @@ export default function CrudModals({
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
                       <span className="text-[9.5px] font-bold text-amber-800/80 self-center">Template Cepat:</span>
                       {[
-                        'Lab Digunakan Ujian TKA (Belajar Mandiri di Rumah)',
-                        'Ujian TKA (Bebas Absensi / Otomatis Hadir)',
-                        'Dispensasi Kegiatan / Perlombaan Sekolah',
-                        'Kegiatan Jeda Semester / Classmeeting'
+                        'Diliburkan karena Lab digunakan Ujian TKA (Belajar Mandiri di Rumah)',
+                        'Diliburkan karena Pelaksanaan Ujian TKA',
+                        'Diliburkan karena Kegiatan Jeda Semester / Classmeeting',
+                        'Diliburkan karena Peringatan Hari Besar / Libur Nasional',
+                        'Dispensasi karena Mengikuti Kegiatan Sekolah'
                       ].map((tpl, idx) => (
                         <button
                           key={idx}
