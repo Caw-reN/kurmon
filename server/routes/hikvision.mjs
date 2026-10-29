@@ -2502,7 +2502,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                    isManual: !isOtomatis,
                    status: finalStatus,
                    isHoliday: finalStatus === "Libur" || prevDayData.isHoliday,
-                   note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin [IP")) ? rec.keterangan : (finalStatus === "Libur" ? (prevDayData.note || "Libur") : null),
+                   note: (rec.keterangan && !rec.keterangan.toLowerCase().includes("mesin") && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Alpa Otomatis")) ? rec.keterangan : (finalStatus === "Libur" ? (prevDayData.note || "Libur") : null),
                    gdrive_url: rec.gdrive_url,
                    id: rec.id,
                    approval_status: rec.approval_status

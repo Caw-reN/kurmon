@@ -1128,7 +1128,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/95 text-amber-950 border-2 border-amber-400 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs ring-1 ring-amber-200"
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/95 text-amber-950 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs"
           title={noteText ? `Libur / Bebas Absen: ${noteText}` : "Libur / Bebas Absen"}
         >
           <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7.5px] font-black uppercase tracking-tight">
@@ -1264,10 +1264,10 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
     const rawNote = dayData.note || '';
     const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
-    if (noteText) {
+    if (noteText && !noteText.toLowerCase().includes("mesin")) {
       return (
         <div 
-          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-emerald-50/95 text-emerald-950 border-2 border-indigo-500 shadow-xs ring-1.5 ring-indigo-300/80 text-center flex flex-col items-center justify-center min-h-[36px]" 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-900 border border-emerald-300 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
           {renderTaps(dayData)}
         </div>

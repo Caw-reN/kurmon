@@ -378,8 +378,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const getCellStyle = (dayData, studentClass = "", dateStr = "") => {
     const rawNote = String(dayData.note || dayData.keterangan || '').trim();
-    const isInternalNote = rawNote.startsWith("Dari mesin") || rawNote.startsWith("Mesin [IP") || rawNote.startsWith("Mesin:") || rawNote.startsWith("Mesin :") || rawNote.startsWith("Alpa Otomatis");
-    const cleanNote = (!isInternalNote && rawNote !== "-") ? rawNote : '';
+    const isInternalNote = rawNote.toLowerCase().includes("mesin") || 
+      rawNote.startsWith("Dari mesin") || 
+      rawNote.startsWith("Alpa Otomatis") || 
+      rawNote.startsWith("Hadir (Hari Libur") ||
+      rawNote === "-";
+    const cleanNote = !isInternalNote ? rawNote : '';
     const noteLower = cleanNote.toLowerCase();
 
     const holidayInfo = dateStr ? getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, studentClass) : null;
@@ -415,7 +419,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     if (isExplicitHoliday || isScheduledHoliday) {
       const explicitReason = (cleanNote && !cleanNote.toLowerCase().startsWith("hadir") && !cleanNote.toLowerCase().startsWith("mesin")) ? cleanNote : (holidayInfo?.reason || (dayData.title ? `Diliburkan karena ${dayData.title}` : "Libur Kalender Akademik"));
       return {
-        className: "bg-amber-50/95 text-amber-950 font-black border-2 border-amber-400 shadow-2xs ring-1 ring-amber-200",
+        className: "bg-amber-50/95 text-amber-950 font-black border border-amber-300 shadow-2xs",
         style: { color: "#78350f" },
         isHoliday: true,
         hasCustomNote: Boolean(cleanNote || holidayInfo),
@@ -519,8 +523,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
     if (cleanNote) {
       return {
-        className: "bg-emerald-50/95 text-emerald-950 font-black border-2 border-indigo-500 shadow-xs ring-1.5 ring-indigo-300/80",
-        style: { color: "#065f46" },
+        className: "bg-emerald-100 text-emerald-800 font-bold border border-emerald-200",
+        style: { color: "#166534" },
         hasCustomNote: true,
         noteText: cleanNote
       };
@@ -2809,7 +2813,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-950 font-black text-[10px] border-2 border-indigo-400 ring-1 ring-indigo-200 shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200">
               <Sparkles size={10} className="text-indigo-600" /> Hadir + Tanda Keterangan
             </span>
             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-950 font-black text-[10px] border-2 border-amber-400 shadow-2xs">
