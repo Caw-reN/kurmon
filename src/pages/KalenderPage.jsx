@@ -39,7 +39,19 @@ export default function KalenderPage() {
         const res = await fetch(`https://libur.deno.dev/api`);
         if (res.ok) {
           const data = await res.json();
-          setNationalHolidays(data || []);
+          // [AUDIT-FIX OKTOBER 2026]: Filter hanya hari libur resmi dan tahun berjalan.
+          // Cegah hari internasional/peringatan non-libur (misal Hari PBB, Hari Guru Sedunia)
+          // merusak atau mengubah hari aktif belajar sekolah di bulan Oktober 2026.
+          const validHolidays = (data || []).filter(item => {
+            if (!item.date) return false;
+            const y = parseInt(item.date.slice(0, 4), 10);
+            if (y && y !== currentYearData) return false;
+            const nameLower = (item.name || '').toLowerCase();
+            const isNonHolidayIntl = nameLower.includes('internasional') || nameLower.includes('sedunia') || nameLower.includes('pbb') || nameLower.includes('united nations');
+            if (isNonHolidayIntl && !item.is_national_holiday) return false;
+            return true;
+          });
+          setNationalHolidays(validHolidays);
         }
       } catch (err) {
         console.error("Gagal mengambil data libur nasional:", err);

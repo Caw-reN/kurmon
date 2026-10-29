@@ -69,6 +69,7 @@ const MyAttendancePage = lazy(() => import("../../pages/admin/tabs/MyAttendanceP
 const TabSilabusGuru = lazy(() => import("../../pages/admin/tabs/TabSilabusGuru.jsx"));
 const TabKeamanan = lazy(() => import('../../pages/admin/tabs/TabKeamanan.jsx'));
 const ManajemenRole = lazy(() => import('../../pages/admin/tabs/ManajemenRole.jsx'));
+const KeteranganMasalAbsensi = lazy(() => import('../../pages/KeteranganMasalAbsensi.jsx'));
 
 export default function AdminContentRouter({ context, checkIsAllowed: checkIsAllowedProp }) {
   const tabProps = context;
@@ -142,7 +143,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       }
 
       const kesiswaanTabs = [
-        "siswa", "kedisiplinan_absensi", "catatan_walikelas", "walas_report",
+        "siswa", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report",
         "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
         "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
       ];
@@ -200,7 +201,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
             "dashboard","siswa","data_pegawai","karyawan","guru","kelas","jurusan",
             "absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi",
             "hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa",
-            "kedisiplinan_absensi","kartu_pelajar","esurat","generate"
+            "kedisiplinan_absensi","keterangan_massal","kartu_pelajar","esurat","generate"
           ];
           if (tuAlwaysAllowed.includes(activeTab)) return true;
         }
@@ -210,7 +211,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           if (roleKey.startsWith("waka_")) {
             const wakaTabsByDivision = {
               kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","hikvision_report_guru"],
-              kesiswaan: ["dashboard","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","hikvision_report_siswa","siswa"],
+              kesiswaan: ["dashboard","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","keterangan_massal","kedisiplinan_absensi","hikvision_report_siswa","siswa"],
               sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan"],
               humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas"],
               hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas"]
@@ -314,7 +315,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           "laporan_absensi", "absensi", "absensiguru",
           "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
           "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan",
-          "kedisiplinan_absensi", "kedisiplinan_bpbk", "kedisiplinan_piket", "buku_konseling",
+          "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_bpbk", "kedisiplinan_piket", "buku_konseling",
           "jurnal_harian", "ruangan", "fasilitas", "silabus", "modul_ajar", "beban", "jadwal", "generate",
           "keamanan", "audit_log", "activity_logs", "riwayat_prestasi", "pengumuman", "kalender", "kalender_akademik", "pesan"
         ];
@@ -645,6 +646,10 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       case"hikvision_report_karyawan":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi karyawan...</div>}>
           <HikvisionStaffReport classes={classes} />
+        </Suspense>;
+      case "keterangan_massal":
+        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
+          <KeteranganMasalAbsensi />
         </Suspense>;
       case "kedisiplinan_absensi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat data izin & sakit siswa...</div>}>

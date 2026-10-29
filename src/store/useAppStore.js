@@ -57,7 +57,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     akademik: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
     ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
-    beban: "otomatis", pesan: "otomatis", 
+    beban: "otomatis", pesan: "otomatis",
+    // [AUDIT-FIX] walikelas perlu akses rekap jurnal kelasnya sendiri
+    rekap_jurnal_kelas: "otomatis",
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     hikvision_report_siswa: "otomatis"
   },
@@ -75,6 +77,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     siswa_keluar: "view", akademik: "view", pesan: "view",
     data_pegawai: "view", kelas: "view", jurusan: "view",
     absensiguru: "otomatis",
+    // [AUDIT-FIX] tu perlu akses keterangan massal absensi
+    keterangan_massal: "view",
   },
   sekretaris_tu: {
     dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
@@ -89,7 +93,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   // ─── KEPALA SEKOLAH ─────────────────────────────────────────────────────────
   kepsek: {
     dashboard: "otomatis", generate: "view", absensi: "view", pesan: "otomatis",
-    akademik: "view", kalender: "view", kalender_akademik: "view",
+    // [AUDIT-FIX] kepsek: key 'akademik' (bukan 'kalender'/'kalender_akademik') sesuai MENU_REGISTRY
+    akademik: "view",
     pkl_dashboard: "otomatis", pkl_data_siswa: "view", pkl_data_perusahaan: "view",
     pkl_penugasan: "view", pkl_administrasi: "view", pkl_jurnal: "view",
     pkl_laporan: "view",
@@ -101,7 +106,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     guru: "view", siswa: "view", karyawan: "view", data_pegawai: "view",
     absensiguru: "view", jurnal_harian: "view", beban: "view",
     ruangan: "view", fasilitas: "view", silabus: "view", modul_ajar: "view",
-    keamanan: "view", audit_log: "view", activity_logs: "view", pengumuman: "view"
+    keamanan: "view", audit_log: "view", activity_logs: "view", pengumuman: "view",
+    // [AUDIT-FIX] tambah rekap jurnal dan keterangan massal untuk kepsek
+    rekap_jurnal_kelas: "view", keterangan_massal: "view",
   },
 
   // ─── WAKA ───────────────────────────────────────────────────────────────────
@@ -122,7 +129,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
     riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
-    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view"
+    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view",
+    // [AUDIT-FIX] waka_kesiswaan perlu akses keterangan massal absensi
+    keterangan_massal: "otomatis",
   },
   waka_sarpras: {
     ...BASE_GURU_PERMISSIONS,
@@ -145,7 +154,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     dashboard: "otomatis", kedisiplinan_bpbk: "otomatis", kedisiplinan_absensi: "otomatis",
     riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
-    catatan_walikelas: "view", walas_report: "view", hikvision_report_siswa: "otomatis"
+    catatan_walikelas: "view", walas_report: "view", hikvision_report_siswa: "otomatis",
+    // [AUDIT-FIX] BK/BPBK perlu akses keterangan massal absensi + tatib_skor untuk monitoring
+    keterangan_massal: "view", tatib_skor: "view",
   },
   pembina_osis: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", riwayat_prestasi: "otomatis",
@@ -157,10 +168,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     absensiguru: "otomatis", jurnal_harian: "otomatis", pesan: "view"
   },
   sekretaris_kesiswaan: { ...BASE_GURU_PERMISSIONS,
-    dashboard: "otomatis", absensi: "otomatis", kedisiplinan_piket: "otomatis",
+    dashboard: "otomatis",
+    // [AUDIT-FIX] sekretaris_kesiswaan: 'absensi' (PKL siswa) tidak sesuai peran → ubah ke nonaktif
+    absensi: "nonaktif", kedisiplinan_piket: "otomatis",
     kedisiplinan_absensi: "otomatis", catatan_walikelas: "view",
     riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
-    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
+    keterangan_massal: "view",
   },
   anggota_kesiswaan: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", kedisiplinan_absensi: "otomatis",
@@ -211,6 +225,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     siswa_keluar: "view", akademik: "view", pesan: "view",
     data_pegawai: "view", kelas: "view", jurusan: "view",
     absensiguru: "otomatis",
+    // [AUDIT-FIX] tata_usaha/tu alias - tambah keterangan massal untuk kebutuhan admin TU
+    keterangan_massal: "view",
   },
   kesiswaan: {
     ...BASE_GURU_PERMISSIONS,
@@ -219,7 +235,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
     riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
-    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view"
+    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view",
+    // [AUDIT-FIX] kesiswaan alias - sama dengan waka_kesiswaan, tambah keterangan massal
+    keterangan_massal: "otomatis",
   },
   kurikulum: {
     ...BASE_GURU_PERMISSIONS,
@@ -301,6 +319,7 @@ const DEFAULT_ACADEMIC_CALENDAR = [
   { id: "evt-1", title: "Tahun Baru Masehi", dateStart: "2026-01-01", dateEnd: "2026-01-01", categoryId: "cal-c5", description: "Libur Tahun Baru 2026" },
   { id: "evt-2", title: "Libur Idul Fitri", dateStart: "2026-03-20", dateEnd: "2026-03-24", categoryId: "cal-c5", description: "Cuti Bersama dan Libur Hari Raya Idul Fitri" },
   { id: "evt-3", title: "Hari Kemerdekaan RI", dateStart: "2026-08-17", dateEnd: "2026-08-17", categoryId: "cal-c5", description: "Upacara Peringatan HUT Kemerdekaan RI" },
+  { id: "evt-4", title: "Ujian TKA Siswa Kelas XII", dateStart: "2026-10-26", dateEnd: "2026-10-29", categoryId: "cal-c2", description: "Siswa kelas XII melakukan Ujian TKA masuk dibagi 3 sesi (Bebas Absensi Harian)", exemptAbsensi: true, targetClasses: ["XII", "12"], exemptLabel: "Ujian TKA" },
 ];
 
 const DEFAULT_ACTIVITY_LOGS = [];

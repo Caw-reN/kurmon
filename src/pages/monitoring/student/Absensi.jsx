@@ -188,6 +188,10 @@ const StudentAbsensi = () => {
     let izinCount = 0;
     let alpaCount = 0;
 
+    const academicCalendar = useAppStore.getState().academicCalendar || [];
+    const calendarCategories = useAppStore.getState().calendarCategories || [];
+    const studentClass = (user?.class_name || user?.kelas || '').toLowerCase();
+
     for (let day = 1; day <= totalDays; day++) {
       const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       const d = new Date(filter.year, filter.month - 1, day);
@@ -195,27 +199,71 @@ const StudentAbsensi = () => {
 
       if (dayOfWeek === 0 || dayOfWeek === 6) {
         logsMap[dateStr] = { status: 'Libur Akhir Pekan', isLibur: true };
-      } else {
-        const found = filteredRecords.find(r => {
-          const rDateStr = new Date(r.date || r.timestamp || r.created_at).toISOString().slice(0, 10);
-          return rDateStr === dateStr;
-        });
+        continue;
+      }
 
-        if (found) {
-          const st = String(found.status || 'HADIR').toUpperCase();
-          if (st.includes('TERLAMBAT') || st.includes('LATE')) {
-            logsMap[dateStr] = { status: 'Terlambat', isLate: true, timeIn: found.timeIn || '07:15', timeOut: found.timeOut || null };
-            lateCount++;
-          } else if (st.includes('IZIN') || st.includes('SAKIT')) {
-            logsMap[dateStr] = { status: 'Izin', isIzin: true, timeIn: found.timeIn || '08:00' };
-            izinCount++;
-          } else if (st.includes('ALPA')) {
-            logsMap[dateStr] = { status: 'Alpa', isAlpa: true };
-            alpaCount++;
-          } else {
-            logsMap[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: found.timeIn || '06:45', timeOut: found.timeOut || null };
-            hadirCount++;
+      // Cek Kalender Akademik (misal Ujian TKA kelas XII atau libur nasional)
+      const matchedCal = academicCalendar.find(evt => {
+        const start = evt.dateStart;
+        const end = evt.dateEnd || evt.dateStart;
+        if (dateStr < start || dateStr > end) return false;
+
+        const cat = calendarCategories.find(c => c.id === evt.categoryId);
+        const catName = (cat?.name || '').toLowerCase();
+        const title = (evt.title || '').toLowerCase();
+        const desc = (evt.description || '').toLowerCase();
+        const isLiburCat = catName.includes('libur') || title.includes('libur') || evt.isHoliday;
+
+        if (isLiburCat) return true;
+
+        const isUjianOrExempt = evt.exemptAbsensi || title.includes('tka') || desc.includes('tka');
+        if (isUjianOrExempt) {
+          if (evt.targetClasses && Array.isArray(evt.targetClasses) && evt.targetClasses.length > 0) {
+            return evt.targetClasses.some(tc => {
+              const tcClean = String(tc).trim().toLowerCase();
+              if (tcClean === 'semua' || tcClean === 'all' || !studentClass) return true;
+              return studentClass.split(/\s+/).includes(tcClean);
+            });
           }
+          if (title.includes('xii') || desc.includes('xii') || title.includes('tka') || desc.includes('tka')) {
+            if (studentClass.includes('xii') || studentClass.includes('12') || !studentClass) return true;
+            return false;
+          }
+          return true;
+        }
+        return false;
+      });
+
+      if (matchedCal) {
+        const isExempt = matchedCal.exemptAbsensi || String(matchedCal.title).toLowerCase().includes('tka') || String(matchedCal.description).toLowerCase().includes('tka');
+        logsMap[dateStr] = {
+          status: matchedCal.exemptLabel || matchedCal.title || 'Kegiatan Akademik',
+          isLibur: true,
+          isExempt: Boolean(isExempt),
+          keterangan: matchedCal.description || matchedCal.title
+        };
+        continue;
+      }
+
+      const found = filteredRecords.find(r => {
+        const rDateStr = new Date(r.date || r.timestamp || r.created_at).toISOString().slice(0, 10);
+        return rDateStr === dateStr;
+      });
+
+      if (found) {
+        const st = String(found.status || 'HADIR').toUpperCase();
+        if (st.includes('TERLAMBAT') || st.includes('LATE')) {
+          logsMap[dateStr] = { status: 'Terlambat', isLate: true, timeIn: found.timeIn || '07:15', timeOut: found.timeOut || null };
+          lateCount++;
+        } else if (st.includes('IZIN') || st.includes('SAKIT')) {
+          logsMap[dateStr] = { status: 'Izin', isIzin: true, timeIn: found.timeIn || '08:00' };
+          izinCount++;
+        } else if (st.includes('ALPA')) {
+          logsMap[dateStr] = { status: 'Alpa', isAlpa: true };
+          alpaCount++;
+        } else {
+          logsMap[dateStr] = { status: 'Tepat Waktu', isHadir: true, timeIn: found.timeIn || '06:45', timeOut: found.timeOut || null };
+          hadirCount++;
         }
       }
     }
@@ -540,6 +588,9 @@ const StudentAbsensi = () => {
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-700 border border-rose-100">
             <span className="w-2 h-2 rounded-full bg-rose-500" /> Alpa
           </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 border border-indigo-100">
+            <span className="w-2 h-2 rounded-full bg-indigo-500" /> Ujian / Khusus
+          </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 border border-slate-100">
             <span className="w-2 h-2 rounded-full bg-slate-300" /> Libur
           </span>
@@ -587,6 +638,8 @@ const StudentAbsensi = () => {
               tileStyle = "bg-sky-50/60 border-sky-200/80";
             } else if (record?.isAlpa) {
               tileStyle = "bg-rose-50/60 border-rose-200/80";
+            } else if (record?.isExempt) {
+              tileStyle = "bg-indigo-50/70 border-indigo-200/90 shadow-2xs";
             } else if (record?.isLibur) {
               tileStyle = "bg-slate-50/80 border-slate-100 opacity-60";
             }
@@ -630,9 +683,14 @@ const StudentAbsensi = () => {
                       Alpa
                     </span>
                   )}
-                  {record?.isLibur && (
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight block truncate">
-                      Libur
+                  {record?.isExempt && (
+                    <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-indigo-700 bg-indigo-100/90 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-indigo-200/80 truncate max-w-full" title={record.keterangan || record.status}>
+                      {record.status || 'Khusus'}
+                    </span>
+                  )}
+                  {record?.isLibur && !record?.isExempt && (
+                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-tight block truncate" title={record.keterangan || record.status}>
+                      {record.status || 'Libur'}
                     </span>
                   )}
                   {!record && !isToday && (

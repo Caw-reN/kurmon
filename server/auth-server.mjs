@@ -2336,6 +2336,112 @@ const server = createServer(async (req, res) => {
     }
 
     // ── BUG-01 FIX: GET Absensi Kalender Siswa ─────────────────────
+    // ── BULK ATTENDANCE REMARKS ROUTES ───────────────────────────────────────────────
+    // POST /api/monitoring/absensi/bulk-remark - Admin membuat keterangan absensi massal
+    if (req.method === "POST" && url.pathname === "/api/monitoring/absensi/bulk-remark") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      const sRole = normalizeServerRole(session.role);
+      if (!['admin', 'superadmin', 'walas', 'waka', 'guru', 'tu'].includes(sRole) && !sRole.startsWith('waka') && !sRole.startsWith('custom_')) {
+        return send(req, res, 403, { ok: false, error: 'Hanya admin/waka/guru/TU yang dapat membuat keterangan massal.' });
+      }
+      try {
+        const body = await readJsonBody(req);
+        const { date, dateEnd, keterangan, targetClasses, label, createdBy } = body;
+
+        if (!date || !keterangan) {
+          return send(req, res, 400, { ok: false, error: 'Parameter date dan keterangan wajib diisi.' });
+        }
+
+        const remarksRes = await dbPool.query(
+          "SELECT data FROM app_data WHERE store_key = 'bulk_attendance_remarks'"
+        ).catch(() => ({ rows: [] }));
+
+        let remarks = [];
+        if (remarksRes.rows.length > 0 && remarksRes.rows[0].data) {
+          remarks = typeof remarksRes.rows[0].data === 'string' ? JSON.parse(remarksRes.rows[0].data) : (remarksRes.rows[0].data || []);
+        }
+
+        const newRemark = {
+          id: 'br-' + Date.now(),
+          date,
+          dateEnd: dateEnd || date,
+          keterangan: String(keterangan).trim(),
+          label: String(label || keterangan).trim(),
+          targetClasses: Array.isArray(targetClasses) ? targetClasses : (targetClasses ? [targetClasses] : []),
+          createdBy: createdBy || session.username,
+          createdAt: new Date().toISOString(),
+        };
+        remarks = [newRemark, ...remarks.filter(r => r.id !== newRemark.id)].slice(0, 500);
+
+        await dbPool.query(
+          "INSERT INTO app_data (store_key, data) VALUES ('bulk_attendance_remarks', $1) ON CONFLICT (store_key) DO UPDATE SET data = $1",
+          [JSON.stringify(remarks)]
+        );
+
+        await logAudit(dbPool, session, req, 'BULK_ATTENDANCE_REMARK', 'attendance',
+          'Keterangan massal: ' + keterangan + ' untuk ' + (Array.isArray(targetClasses) ? targetClasses.join(', ') : 'semua') + ' pada ' + date);
+
+        return send(req, res, 200, { ok: true, data: newRemark, message: 'Keterangan massal berhasil disimpan.' });
+      } catch (err) {
+        console.error('[bulk-remark POST]', err);
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
+    // GET /api/monitoring/absensi/bulk-remark - Ambil semua keterangan massal
+    if (req.method === "GET" && url.pathname === "/api/monitoring/absensi/bulk-remark") {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      try {
+        const remarksRes = await dbPool.query(
+          "SELECT data FROM app_data WHERE store_key = 'bulk_attendance_remarks'"
+        ).catch(() => ({ rows: [] }));
+
+        let remarks = [];
+        if (remarksRes.rows.length > 0 && remarksRes.rows[0].data) {
+          remarks = typeof remarksRes.rows[0].data === 'string' ? JSON.parse(remarksRes.rows[0].data) : (remarksRes.rows[0].data || []);
+        }
+
+        const fromDate = url.searchParams.get('from');
+        const toDate = url.searchParams.get('to');
+        if (fromDate) remarks = remarks.filter(r => r.date >= fromDate);
+        if (toDate) remarks = remarks.filter(r => (r.dateEnd || r.date) <= toDate);
+
+        return send(req, res, 200, { ok: true, data: remarks });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
+    // DELETE /api/monitoring/absensi/bulk-remark/:id - Hapus keterangan massal
+    if (req.method === "DELETE" && url.pathname.startsWith("/api/monitoring/absensi/bulk-remark/")) {
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      const sRole = normalizeServerRole(session.role);
+      if (!['admin', 'superadmin'].includes(sRole)) {
+        return send(req, res, 403, { ok: false, error: 'Hanya admin yang dapat menghapus keterangan massal.' });
+      }
+      try {
+        const remarkId = url.pathname.split('/').pop();
+        const remarksRes = await dbPool.query(
+          "SELECT data FROM app_data WHERE store_key = 'bulk_attendance_remarks'"
+        ).catch(() => ({ rows: [] }));
+        let remarks = [];
+        if (remarksRes.rows.length > 0 && remarksRes.rows[0].data) {
+          remarks = typeof remarksRes.rows[0].data === 'string' ? JSON.parse(remarksRes.rows[0].data) : (remarksRes.rows[0].data || []);
+        }
+        remarks = remarks.filter(r => r.id !== remarkId);
+        await dbPool.query(
+          "INSERT INTO app_data (store_key, data) VALUES ('bulk_attendance_remarks', $1) ON CONFLICT (store_key) DO UPDATE SET data = $1",
+          [JSON.stringify(remarks)]
+        );
+        return send(req, res, 200, { ok: true, message: 'Keterangan massal dihapus.' });
+      } catch (err) {
+        return sendDatabaseError(req, res, err);
+      }
+    }
+
     if (req.method === "GET" && url.pathname === "/api/monitoring/absensi/siswa") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
@@ -2399,6 +2505,38 @@ const server = createServer(async (req, res) => {
           }
         } catch (e) {}
 
+        // Ambil data siswa untuk mengetahui kelas (misal: XII TKJ 1, X TKJ 3)
+        let studentClass = '';
+        try {
+          const sRes = await dbPool.query(
+            "SELECT payload FROM mst_students WHERE id = $1 OR id = $2 OR payload->>'nis' = $1 LIMIT 1",
+            [String(nis), String(nis).toLowerCase()]
+          );
+          if (sRes.rowCount > 0) {
+            const p = typeof sRes.rows[0].payload === 'string' ? JSON.parse(sRes.rows[0].payload) : sRes.rows[0].payload;
+            studentClass = p.class_name || p.kelas || '';
+          }
+        } catch {}
+
+        // Ambil keterangan massal & kalender akademik dari app_data
+        let bulkRemarks = [];
+        let academicCalendar = [];
+        let calendarCategories = [];
+        try {
+          const [bRes, mRes] = await Promise.all([
+            dbPool.query("SELECT data FROM app_data WHERE store_key = 'bulk_attendance_remarks' LIMIT 1").catch(() => ({ rows: [] })),
+            dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1").catch(() => ({ rows: [] }))
+          ]);
+          if (bRes.rows?.[0]?.data) {
+            bulkRemarks = typeof bRes.rows[0].data === 'string' ? JSON.parse(bRes.rows[0].data) : (bRes.rows[0].data || []);
+          }
+          if (mRes.rows?.[0]?.data) {
+            const mData = typeof mRes.rows[0].data === 'string' ? JSON.parse(mRes.rows[0].data) : (mRes.rows[0].data || {});
+            academicCalendar = mData.academicCalendar || [];
+            calendarCategories = mData.calendarCategories || [];
+          }
+        } catch {}
+
         const manualMap = {};
         for (const r of manualRows) manualMap[r.tanggal] = r;
         const hikMap = {};
@@ -2415,6 +2553,83 @@ const server = createServer(async (req, res) => {
 
           if (dow === 0 || dow === 6) {
             records[dateStr] = { status: 'Libur Akhir Pekan', isLibur: true };
+            continue;
+          }
+
+          // Cek Keterangan Massal Absensi (misal: Hari Kamis X TKJ 3 libur karena Lab digunakan ujian TKA)
+          const matchedBulkRemark = bulkRemarks.find(br => {
+            const rStart = br.date;
+            const rEnd = br.dateEnd || br.date;
+            if (dateStr < rStart || dateStr > rEnd) return false;
+            if (!br.targetClasses || br.targetClasses.length === 0) return true;
+            return br.targetClasses.some(tc => {
+              const tcClean = String(tc).trim().toLowerCase();
+              const scClean = String(studentClass || '').trim().toLowerCase();
+              if (!tcClean || tcClean === 'semua' || tcClean === 'all' || !scClean) return true;
+              if (scClean === tcClean) return true;
+              if (tcClean === 'xii' || tcClean === '12') return scClean.startsWith('xii ') || scClean.startsWith('12 ') || scClean === 'xii' || scClean === '12';
+              if (tcClean === 'xi' || tcClean === '11') return scClean.startsWith('xi ') || scClean.startsWith('11 ') || scClean === 'xi' || scClean === '11';
+              if (tcClean === 'x' || tcClean === '10') return scClean.startsWith('x ') || scClean.startsWith('10 ') || scClean === 'x' || scClean === '10';
+              return scClean.split(/\s+/).includes(tcClean);
+            });
+          });
+
+          if (matchedBulkRemark) {
+            records[dateStr] = {
+              status: matchedBulkRemark.label || 'Libur Khusus',
+              isLibur: true,
+              isExempt: true,
+              keterangan: matchedBulkRemark.keterangan || 'Keterangan Khusus Sekolah'
+            };
+            continue;
+          }
+
+          // Cek Kalender Akademik (misal: 26-29 Okt Ujian TKA kelas XII masuk dibagi 3 sesi)
+          const matchedCal = academicCalendar.find(evt => {
+            const start = evt.dateStart;
+            const end = evt.dateEnd || evt.dateStart;
+            if (dateStr < start || dateStr > end) return false;
+
+            const cat = calendarCategories.find(c => c.id === evt.categoryId);
+            const catName = (cat?.name || '').toLowerCase();
+            const title = (evt.title || '').toLowerCase();
+            const desc = (evt.description || '').toLowerCase();
+            const isLiburCat = catName.includes('libur') || title.includes('libur') || evt.isHoliday;
+
+            if (isLiburCat) return true;
+
+            const isUjianOrExempt = evt.exemptAbsensi || title.includes('ujian tka') || title.includes('tka') || desc.includes('ujian tka') || desc.includes('tka');
+            if (isUjianOrExempt) {
+              if (evt.targetClasses && Array.isArray(evt.targetClasses) && evt.targetClasses.length > 0) {
+                return evt.targetClasses.some(tc => {
+                  const tcClean = String(tc).trim().toLowerCase();
+                  const scClean = String(studentClass || '').trim().toLowerCase();
+                  if (!tcClean || tcClean === 'semua' || tcClean === 'all' || !scClean) return true;
+                  if (scClean === tcClean) return true;
+                  if (tcClean === 'xii' || tcClean === '12') return scClean.startsWith('xii ') || scClean.startsWith('12 ') || scClean === 'xii' || scClean === '12';
+                  if (tcClean === 'xi' || tcClean === '11') return scClean.startsWith('xi ') || scClean.startsWith('11 ') || scClean === 'xi' || scClean === '11';
+                  if (tcClean === 'x' || tcClean === '10') return scClean.startsWith('x ') || scClean.startsWith('10 ') || scClean === 'x' || scClean === '10';
+                  return scClean.split(/\s+/).includes(tcClean);
+                });
+              }
+              if (title.includes('xii') || desc.includes('xii') || title.includes('tka') || desc.includes('tka')) {
+                const sCls = studentClass.toLowerCase();
+                if (sCls.includes('xii') || sCls.includes('12') || !sCls) return true;
+                return false;
+              }
+              return true;
+            }
+            return false;
+          });
+
+          if (matchedCal) {
+            const isExempt = matchedCal.exemptAbsensi || String(matchedCal.title).toLowerCase().includes('tka') || String(matchedCal.description).toLowerCase().includes('tka');
+            records[dateStr] = {
+              status: matchedCal.exemptLabel || matchedCal.title || 'Kegiatan Akademik',
+              isLibur: true,
+              isExempt: Boolean(isExempt),
+              keterangan: matchedCal.description || matchedCal.title
+            };
             continue;
           }
 

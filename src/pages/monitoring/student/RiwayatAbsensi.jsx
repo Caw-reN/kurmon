@@ -16,6 +16,7 @@ const STATUS_CONFIG = {
   terlambat: { label: 'Terlambat',   icon: Clock,        color: 'text-amber-700',   bg: 'bg-amber-50/80 border-amber-200/80', badge: 'bg-amber-100 text-amber-800 border-amber-300' },
   izin:      { label: 'Izin / Sakit', icon: Calendar,     color: 'text-sky-700',     bg: 'bg-sky-50/80 border-sky-200/80', badge: 'bg-sky-100 text-sky-800 border-sky-300' },
   absen:     { label: 'Alpa / Absen', icon: XCircle,      color: 'text-rose-700',    bg: 'bg-rose-50/80 border-rose-200/80', badge: 'bg-rose-100 text-rose-800 border-rose-300' },
+  khusus:    { label: 'Kegiatan / Ujian', icon: Sparkles,  color: 'text-indigo-700',  bg: 'bg-indigo-50 border-indigo-200/80', badge: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
 };
 
 const RiwayatAbsensi = () => {
@@ -233,6 +234,7 @@ const RiwayatAbsensi = () => {
               if (rawStatus.includes('terlambat') || rawStatus.includes('late')) cfgKey = 'terlambat';
               else if (rawStatus.includes('izin') || rawStatus.includes('sakit')) cfgKey = 'izin';
               else if (rawStatus.includes('alpa') || rawStatus.includes('absen')) cfgKey = 'absen';
+              else if (rawStatus.includes('tka') || rawStatus.includes('ujian') || rawStatus.includes('khusus') || rawStatus.includes('kegiatan') || item.isExempt) cfgKey = 'khusus';
 
               const cfg = STATUS_CONFIG[cfgKey];
               const IconComp = cfg.icon;
@@ -251,7 +253,7 @@ const RiwayatAbsensi = () => {
                     <div className="min-w-0">
                       <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">{dateDisplay}</p>
                       <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                        {item.jam_masuk || item.timeIn ? `Masuk: ${item.jam_masuk || item.timeIn} • Pulang: ${item.jam_keluar || item.timeOut || '-'}` : 'Waktu Presensi Digital'}
+                        {item.keterangan ? item.keterangan : (item.jam_masuk || item.timeIn ? `Masuk: ${item.jam_masuk || item.timeIn} • Pulang: ${item.jam_keluar || item.timeOut || '-'}` : 'Waktu Presensi Digital')}
                       </p>
                     </div>
                   </div>
