@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2, RefreshCw, Sparkles, Info } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
@@ -1121,6 +1121,27 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     
     const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
     
+    if (dayData.isHoliday || status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
+      const rawNote = dayData.note || '';
+      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+      return (
+        <div 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/95 text-amber-950 border-2 border-amber-400 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs ring-1 ring-amber-200"
+          title={noteText ? `Libur / Bebas Absen: ${noteText}` : "Libur / Bebas Absen"}
+        >
+          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7.5px] font-black uppercase tracking-tight">
+            <Calendar size={8} className="text-amber-800 shrink-0" />
+            <span>LIBUR</span>
+          </span>
+          {Boolean(noteText) && (
+            <span className="text-[7px] font-extrabold text-amber-950 block truncate max-w-[50px] leading-tight text-center" title={noteText}>
+              {noteText}
+            </span>
+          )}
+        </div>
+      );
+    }
+    
     if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") {
       return (
         <span 
@@ -1172,8 +1193,38 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         ? (noteText ? `Catatan: ${noteText} (Tidak Absen Pagi - Hanya Pulang: ${outTime})` : `Tidak Absen Pagi (Hanya Tap Pulang: ${outTime})`)
         : (noteText ? `Catatan: ${noteText}` : undefined);
 
+      if (!inTime && !outTime && noteText) {
+        return (
+          <div title={titleAttr} className="py-0.5 px-0.5 flex flex-col items-center justify-center min-h-[34px] w-full gap-0.5">
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-900 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs">
+              <Sparkles size={7} className="text-indigo-600 shrink-0" />
+              <span>KET</span>
+            </span>
+            <span className="text-[7.5px] font-extrabold text-indigo-950 text-center leading-tight line-clamp-2 max-w-[62px] break-words">
+              {noteText}
+            </span>
+          </div>
+        );
+      }
+
+      if (!inTime && !outTime) {
+        return (
+          <div title={titleAttr} className="flex flex-col items-center py-1">
+            <div className="text-slate-400 font-semibold text-[8px]">--:--</div>
+            <div className="border-t border-black/10 my-0.5 w-full"></div>
+            <div className="text-slate-400 font-semibold text-[8px]">--:--</div>
+          </div>
+        );
+      }
+
       return (
-        <div className="flex flex-col gap-0.5" title={titleAttr}>
+        <div className="flex flex-col items-center gap-0.5" title={titleAttr}>
+          {Boolean(noteText) && (
+            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-950 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs max-w-full" title={`Keterangan: ${noteText}`}>
+              <Sparkles size={7} className="shrink-0 text-indigo-600" />
+              <span className="truncate max-w-[42px]">{noteText}</span>
+            </div>
+          )}
           {isMissingIn ? (
             <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
@@ -1205,6 +1256,18 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       return (
         <div 
           className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/90 text-amber-950 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs" 
+        >
+          {renderTaps(dayData)}
+        </div>
+      );
+    }
+
+    const rawNote = dayData.note || '';
+    const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+    if (noteText) {
+      return (
+        <div 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-emerald-50/95 text-emerald-950 border-2 border-indigo-500 shadow-xs ring-1.5 ring-indigo-300/80 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
           {renderTaps(dayData)}
         </div>

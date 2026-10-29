@@ -2589,6 +2589,30 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                       if (isMissingIn) titleSegments.push(`Tidak Absen Pagi (Hanya Pulang: ${outTime})`);
                                       const titleAttr = titleSegments.length > 0 ? titleSegments.join(" | ") : undefined;
 
+                                      if (!inTime && !outTime && noteText) {
+                                        return (
+                                          <div title={titleAttr} className="py-0.5 px-0.5 flex flex-col items-center justify-center min-h-[34px] w-full gap-0.5">
+                                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-900 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs">
+                                              <Sparkles size={7} className="text-indigo-600 shrink-0" />
+                                              <span>KET</span>
+                                            </span>
+                                            <span className="text-[7.5px] font-extrabold text-indigo-950 text-center leading-tight line-clamp-2 max-w-[62px] break-words">
+                                              {noteText}
+                                            </span>
+                                          </div>
+                                        );
+                                      }
+
+                                      if (!inTime && !outTime) {
+                                        return (
+                                          <div title={titleAttr} className="flex flex-col items-center py-1">
+                                            <div className="text-slate-400 font-semibold text-[8px]">--:--</div>
+                                            <div className="border-t border-black/10 my-0.5 w-full"></div>
+                                            <div className="text-slate-400 font-semibold text-[8px]">--:--</div>
+                                          </div>
+                                        );
+                                      }
+
                                       return (
                                         <div title={titleAttr} className="flex flex-col items-center">
                                           {cellColors.isMesinError && (
@@ -2620,10 +2644,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                               <span className="tracking-tight">Tdk Absen</span>
                                             </div>
                                           ) : (
-                                            <div>{inTime || (noteText ? 'Tugas' : '--:--')}</div>
+                                            <div>{inTime || '--:--'}</div>
                                           )}
                                           <div className="border-t border-black/10 my-0.5 w-full"></div>
-                                          <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || (noteText ? 'Tugas' : '--:--')}</div>
+                                          <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
                                         </div>
                                       );
                                     })()}

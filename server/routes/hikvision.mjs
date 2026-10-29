@@ -2474,7 +2474,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
                  const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
-                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL", "PKL"].includes(status) || String(status || '').startsWith("PKL");
+                 const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL", "PKL", "Libur", "Dispensasi"].includes(status) || String(status || '').startsWith("PKL");
                  const actualIn = prevDayData.in || (parsedTime && parsedTime < "12:00" ? parsedTime : null) || (isPermit ? status : (status === "Hadir" && !prevDayData.out ? "07:00" : null));
                  const dayOfWeek = rec.tanggal_str ? new Date(rec.tanggal_str + 'T00:00:00').getDay() : 0;
                  const cutoffTime = dayOfWeek === 5 ? "11:20" : "12:00";
@@ -2500,7 +2500,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                    isLate: finalIsLate,
                    isManual: !isOtomatis,
                    status: finalStatus,
-                   note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin [IP")) ? rec.keterangan : null,
+                   isHoliday: finalStatus === "Libur" || prevDayData.isHoliday,
+                   note: (rec.keterangan && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Mesin [IP")) ? rec.keterangan : (finalStatus === "Libur" ? (prevDayData.note || "Libur") : null),
                    gdrive_url: rec.gdrive_url,
                    id: rec.id,
                    approval_status: rec.approval_status
