@@ -188,6 +188,16 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
     ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(roleStr) ||
     roleStr.startsWith('waka');
 
+  const studentsToSelect = useMemo(() => {
+    if (!isFullAccess) {
+      if (isWalas && walasClass) {
+        return students.filter(s => (s.class_name || s.kelas) === walasClass);
+      }
+      return [];
+    }
+    return students;
+  }, [students, isFullAccess, isWalas, walasClass]);
+
   const baseSuratItems = useMemo(() => {
     return items.filter(item => {
       const ket = String(item.keterangan || '').trim();
@@ -253,10 +263,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       Terlambat: baseSuratItems.filter(i => i.status === "Terlambat" || i.status === "Dispensasi").length,
     };
   }, [baseSuratItems]);
-
-
-  const [activeTab, setActiveTab] = useState('surat_izin');
-
 
   const [currentPageSurat, setCurrentPageSurat] = useState(1);
   const [itemsPerPageSurat, setItemsPerPageSurat] = useState(20);
@@ -380,70 +386,6 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       setIsBulkLoading(false);
     }
   };
-
-  const [currentPageMatrix, setCurrentPageMatrix] = useState(1);
-  const [itemsPerPageMatrix, setItemsPerPageMatrix] = useState(20);
-
-  useEffect(() => {
-    setCurrentPageMatrix(1);
-  }, [matrixMonth, filterKelas]);
-
-  const studentsToSelect = useMemo(() => {
-    if (!isFullAccess) {
-      if (isWalas && walasClass) {
-        return students.filter(s => (s.class_name || s.kelas) === walasClass);
-      }
-      return [];
-    }
-    return students;
-  }, [students, isFullAccess, isWalas, walasClass]);
-
-  const daysInMonth = useMemo(() => {
-    if (!matrixMonth) return 31;
-    const [year, month] = matrixMonth.split('-');
-    return new Date(year, month, 0).getDate();
-  }, [matrixMonth]);
-
-  const matrixData = useMemo(() => {
-    const data = {};
-    studentsToSelect.forEach(s => {
-      data[s.nis] = {
-        name: s.namaSiswa || s.name,
-        nis: s.nis,
-        kelas: s.class_name || s.kelas,
-        attendance: {},
-        totals: { S: 0, I: 0, A: 0 }
-      };
-    });
-    items.forEach(item => {
-      // Only approved attendance for matrix
-      if (item.approval_status === "approved" || item.approval_status === "otomatis") {
-        if (item.tanggal.startsWith(matrixMonth)) {
-          const itemNis = String(item.siswa_nis || '').trim();
-          const targetKey = Object.keys(data).find(k => {
-            const keyStr = String(k || '').trim();
-            return keyStr === itemNis || (keyStr.length >= 5 && itemNis.length >= 5 && (keyStr.endsWith(itemNis) || itemNis.endsWith(keyStr)));
-          });
-          if (targetKey && data[targetKey]) {
-            const day = parseInt(item.tanggal.split('-')[2], 10);
-            const initial = item.status.charAt(0).toUpperCase();
-            data[targetKey].attendance[day] = initial;
-            if (data[targetKey].totals[initial] !== undefined) {
-               data[targetKey].totals[initial]++;
-            }
-          }
-        }
-      }
-    });
-    return Object.values(data).filter(d => filterKelas ==="all" || d.kelas === filterKelas).sort((a,b) => a.name.localeCompare(b.name));
-  }, [studentsToSelect, items, matrixMonth, filterKelas]);
-
-  const paginatedMatrixData = useMemo(() => {
-    const startIndex = (currentPageMatrix - 1) * itemsPerPageMatrix;
-    return matrixData.slice(startIndex, startIndex + itemsPerPageMatrix);
-  }, [matrixData, currentPageMatrix, itemsPerPageMatrix]);
-
-  const totalPagesMatrix = Math.ceil(matrixData.length / itemsPerPageMatrix);
 
   const handleSave = async (e) => {
     e.preventDefault();
