@@ -478,7 +478,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
       
-      {/* 🚀 Unified Header Toolbar (Pills + Controls in 1 Card) */}
+      {/* Unified Header Toolbar (Pills + Controls in 1 Card) */}
       <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
         {/* Quick Filter Status Pills Row */}
         <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
@@ -572,7 +572,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         </div>
       </div>
 
-      {/* 💻 Desktop Table View (Integrated with Container) */}
+      {/* Desktop Table View (Integrated with Container) */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -722,7 +722,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         </table>
       </div>
 
-      {/* 📱 Mobile Card View (Shown on Mobile Screens) */}
+      {/* Mobile Card View (Shown on Mobile Screens) */}
       <div className="md:hidden p-3.5 space-y-3">
         {isLoading ? (
           <div className="py-10 text-center text-slate-400 font-bold flex flex-col items-center gap-2">
@@ -792,7 +792,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         )}
       </div>
 
-      {/* 🚀 Seamless Integrated Footer Pagination */}
+      {/* Seamless Integrated Footer Pagination */}
       <div className="flex flex-col sm:flex-row justify-between items-center p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80 gap-3">
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 font-bold text-center">
           <span>Tampilkan</span>

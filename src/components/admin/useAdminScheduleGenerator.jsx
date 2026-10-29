@@ -1012,7 +1012,7 @@ export function useAdminScheduleGenerator(props) {
         </div>
       </div>
       <span className="mt-2 text-xs font-bold text-rose-800 bg-rose-100/50 px-3 py-2.5 rounded-[var(--ui-radius-small)] border border-rose-200 block">
-        💡 SOLUSI: Coba edit Beban Mengajar (tambah Target JP / Maks Kelas),
+        SOLUSI: Coba edit Beban Mengajar (tambah Target JP / Maks Kelas),
         tambah Hari Hadir guru, atau tambah Ruang Lab. Anda juga bisa
         menarik manual sisa jadwal yang tidak terpasang ini di menu Jadwal.
       </span>

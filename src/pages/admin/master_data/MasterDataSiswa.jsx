@@ -113,13 +113,13 @@ const MasterDataSiswa = memo(function MasterDataSiswa({
         const totalPushedToDevice = deviceResults.reduce((s, r) => s + (r.pushed || 0), 0);
         let successMsg = `Berhasil menyinkronkan ${matchedCount} data siswa ke database.`;
         if (hasDevices) {
-          successMsg += `\n✅ ${totalPushedToDevice} data berhasil dikirim ke ${deviceResults.length} mesin absensi.`;
+          successMsg += `\n${totalPushedToDevice} data berhasil dikirim ke ${deviceResults.length} mesin absensi.`;
           const failedDevices = deviceResults.filter(r => r.error);
           if (failedDevices.length > 0) {
-            successMsg += `\n⚠️ ${failedDevices.length} mesin tidak dapat dihubungi.`;
+            successMsg += `\n${failedDevices.length} mesin tidak dapat dihubungi.`;
           }
         } else {
-          successMsg +='\nℹ️ Tidak ada mesin absensi siswa yang terdaftar untuk push otomatis.';
+          successMsg +='\nTidak ada mesin absensi siswa yang terdaftar untuk push otomatis.';
         }
         showFeedback("Sinkronisasi Berhasil", successMsg,"success");
         await fetchHikStudents();

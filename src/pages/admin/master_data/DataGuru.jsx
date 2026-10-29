@@ -173,12 +173,12 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
         throw new Error(resData.error || 'Server menolak penyimpanan data.');
       }
 
-      const successMsg = `✅ Berhasil import ${importedCount} guru dan tersimpan ke database.${invalidRows.length > 0 ? ` (${invalidRows.length} baris dilewati)` : ''}`;
+      const successMsg = `Berhasil import ${importedCount} guru dan tersimpan ke database.${invalidRows.length > 0 ? ` (${invalidRows.length} baris dilewati)` : ''}`;
       showToast(successMsg, 'success');
 
     } catch (err) {
       console.error('[DataGuru Import] Gagal menyimpan ke database:', err);
-      showToast(`⚠️ Data diimport ke halaman ini, tapi gagal tersimpan ke database: ${err.message}. Data mungkin hilang saat refresh.`, 'warning');
+      showToast(`Data diimport ke halaman ini, tapi gagal tersimpan ke database: ${err.message}. Data mungkin hilang saat refresh.`, 'warning');
     }
   };
 

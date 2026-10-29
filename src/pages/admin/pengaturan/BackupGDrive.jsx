@@ -121,7 +121,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
           created_at: new Date().toISOString() 
         };
         setBackupLogs(prev => [newLog, ...prev]);
-        showToast(`Pencadangan database ke ${label} berhasil diselesaikan! 🎉`);
+        showToast(`Pencadangan database ke ${label} berhasil diselesaikan!`);
         if (type === 'local') loadData(); // refresh file list
       } else {
         showToast(data.error || 'Terjadi kesalahan saat memproses backup.', 'error');

@@ -252,7 +252,7 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
       const res = await fetch('/api/whatsapp/send', {
         method: 'POST', 
         headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: '628123456789', message: '✅ Tes koneksi WhatsApp dari Sistem Sekolah berhasil!', trigger_type: 'test' }),
+        body: JSON.stringify({ phone: '628123456789', message: 'Tes koneksi WhatsApp dari Sistem Sekolah berhasil!', trigger_type: 'test' }),
       });
       const data = await res.json();
       if (data.ok) showToast('Pesan uji coba WA terkirim! Periksa perangkat WhatsApp tujuan.');

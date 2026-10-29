@@ -394,7 +394,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       };
     }
 
-    // ⚡ Catatan Khusus: Mesin Error / Tidak Terbaca (Warna Biru Langit / Sky Modern)
+    // Catatan Khusus: Mesin Error / Tidak Terbaca (Warna Biru Langit / Sky Modern)
     if (isMesinError) {
       return {
         className: "bg-sky-50 text-sky-950 font-black border-2 border-sky-400 shadow-xs",
@@ -404,7 +404,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       };
     }
 
-    // ⚠️ Catatan Khusus: Lupa Absen / Lupa Tap (Warna Amber / Oranye Modern)
+    // Catatan Khusus: Lupa Absen / Lupa Tap (Warna Amber / Oranye Modern)
     if (isLupaAbsen) {
       return {
         className: "bg-amber-100/90 text-amber-950 font-black border-2 border-amber-400 shadow-xs",
@@ -414,7 +414,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       };
     }
 
-    // 🏆 Catatan Khusus: Dispensasi (Warna Teal Modern)
+    // Catatan Khusus: Dispensasi (Warna Teal Modern)
     if (isDispensasi) {
       return {
         className: "bg-teal-50 text-teal-950 font-black border-2 border-teal-400 shadow-xs",

@@ -154,7 +154,7 @@ export function useAdminDatabaseSync({
   /** Guard: pastikan database siap sebelum aksi tulis. */
   const ensureDatabaseReadyForWrite = useCallback((actionLabel = 'mengubah data') => {
     if (currentUser?.authToken && (!databaseHydrated || databaseHydrationFailedRef.current)) {
-      setNotification(`⚠️ Tunggu database selesai sinkron sebelum ${actionLabel}. Ini mencegah data tertimpa/reset.`);
+      setNotification(`Tunggu database selesai sinkron sebelum ${actionLabel}. Ini mencegah data tertimpa/reset.`);
       setTimeout(() => setNotification(''), 3500);
       return false;
     }
