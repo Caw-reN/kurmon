@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown, AlertTriangle, UserX, UserCheck, Clock, Edit2, Eye, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Users, Filter, Search, Printer, FileText, X, Calendar, Award, Plus, Download, FileSpreadsheet, Share2, ArrowUpDown, AlertTriangle, UserX, UserCheck, Clock, Edit2, Eye, CheckCircle2, RefreshCw, Sparkles, Info } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Modal } from'../../../components/ui.jsx';
@@ -458,7 +458,12 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             let fgColor = "FFFFFFFF"; // white
             let fontColor = "FF334155"; // slate-700
 
-            if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+            const isHolidayCell = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur";
+            if (isHolidayCell) {
+              const rawNote = dayData.note || '';
+              const cleanNote = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+              content = cleanNote ? `LIBUR\n(${cleanNote})` : "LIBUR";
+            } else if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
               const t0 = formatAttendanceTime(dayData.taps[0]);
               const tLast = formatAttendanceTime(dayData.taps[dayData.taps.length - 1]);
               content = dayData.taps.length === 1 
@@ -468,7 +473,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
               if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
               else if (status === "Sakit") content = "S";
-              else if (status === "Izin") content = "I";
+              else if (status === "Izin" || status === "Dinas Luar") content = "I";
               else if (status === "Terlambat" || status === "Hadir") {
                 if (dayData.in || dayData.out) {
                   const tIn = formatAttendanceTime(dayData.in) || '--:--';
@@ -483,7 +488,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : "Alpa"));
             const isMissingIn = !dayData.in && Boolean(dayData.out);
             
-            if (isMissingIn) {
+            if (isHolidayCell) {
+              fgColor = "FFFEF3C7"; // amber-100
+              fontColor = "FF78350F"; // amber-900
+            } else if (isMissingIn) {
               fgColor = "FFFEF3C7"; // amber-100
               fontColor = "FFB45309"; // amber-800
             } else if (status === 'Hadir') {
@@ -495,7 +503,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             } else if (status === 'Sakit') {
               fgColor = "FFFEF3C7"; // amber-100
               fontColor = "FF92400E"; // amber-800
-            } else if (status === 'Izin') {
+            } else if (status === 'Izin' || status === 'Dinas Luar') {
               fgColor = "FFDBEAFE"; // blue-100
               fontColor = "FF1E3A8A"; // blue-800
             } else if (status === 'Alpa' || status === 'Alpa (Tanpa Keterangan)') {
@@ -590,7 +598,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             row.push("-");
           } else {
             let content = "-";
-            if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
+            const isHolidayCell = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur";
+            if (isHolidayCell) {
+              content = "LIBUR";
+            } else if (dayData.taps && dayData.taps.length > 0 && !dayData.isManual) {
               const t0 = formatAttendanceTime(dayData.taps[0]);
               const tLast = formatAttendanceTime(dayData.taps[dayData.taps.length - 1]);
               content = dayData.taps.length === 1 
@@ -600,7 +611,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
               if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") content = "A";
               else if (status === "Sakit") content = "S";
-              else if (status === "Izin") content = "I";
+              else if (status === "Izin" || status === "Dinas Luar") content = "I";
               else if (status === "Terlambat" || status === "Hadir") {
                 if (dayData.in || dayData.out) {
                   const tIn = formatAttendanceTime(dayData.in) || '--:--';
@@ -617,7 +628,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             let fillColor = [255, 255, 255];
             let textColor = [51, 65, 85];
             
-            if (isMissingIn) {
+            if (isHolidayCell) {
+              fillColor = [254, 243, 199];
+              textColor = [120, 53, 15];
+            } else if (isMissingIn) {
               fillColor = [254, 243, 199]; 
               textColor = [180, 83, 9];
             } else if (statusForColor === 'Hadir') {
@@ -629,7 +643,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             } else if (statusForColor === 'Sakit') {
               fillColor = [254, 243, 199]; 
               textColor = [146, 64, 14];
-            } else if (statusForColor === 'Izin') {
+            } else if (statusForColor === 'Izin' || statusForColor === 'Dinas Luar') {
               fillColor = [219, 234, 254]; 
               textColor = [30, 58, 138];
             } else if (statusForColor === 'Alpa' || statusForColor === 'Alpa (Tanpa Keterangan)') {
@@ -1168,6 +1182,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                     ${printDays.map(d => {
                       const dayData = (s.days || {})[d];
                       if (!dayData) return `<td>-</td>`;
+                      if (dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
+                        return `<td class="bg-sakit" style="background-color: #fef3c7; color: #78350f; font-weight: bold;">L</td>`;
+                      }
                       const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
                       if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
                       if (status === "Izin" || status === "Dinas Luar") return `<td class="bg-izin">I</td>`;
@@ -1317,6 +1334,27 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     if (!dayData) return <span className="text-[10px] text-slate-300 font-bold">-</span>;
     
     const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
+
+    if (dayData.isHoliday || status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
+      const rawNote = dayData.note || '';
+      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+      return (
+        <div 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/95 text-amber-950 border-2 border-amber-400 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs ring-1 ring-amber-200"
+          title={noteText ? `Libur / Bebas Absen: ${noteText}` : "Libur / Bebas Absen"}
+        >
+          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7.5px] font-black uppercase tracking-tight">
+            <Calendar size={8} className="text-amber-800 shrink-0" />
+            <span>LIBUR</span>
+          </span>
+          {Boolean(noteText) && (
+            <span className="text-[7px] font-extrabold text-amber-950 block truncate max-w-[50px] leading-tight text-center" title={noteText}>
+              {noteText}
+            </span>
+          )}
+        </div>
+      );
+    }
     
     if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") {
       return (
@@ -1370,17 +1408,23 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         : (noteText ? `Catatan: ${noteText}` : undefined);
 
       return (
-        <div className="flex flex-col gap-0.5" title={titleAttr}>
+        <div className="flex flex-col items-center gap-0.5" title={titleAttr}>
+          {Boolean(noteText) && (
+            <div className="mb-0.5 inline-flex items-center justify-center gap-0.5 px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-indigo-100 text-indigo-950 border border-indigo-300 text-[7px] font-black uppercase tracking-tight shadow-2xs max-w-full" title={`Keterangan: ${noteText}`}>
+              <Sparkles size={7} className="shrink-0 text-indigo-600" />
+              <span className="truncate max-w-[42px]">{noteText}</span>
+            </div>
+          )}
           {isMissingIn ? (
             <div className="text-rose-600 font-extrabold flex items-center justify-center gap-1 text-[7.5px] leading-tight py-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
               <span className="tracking-tight">Tdk Absen</span>
             </div>
           ) : (
-            <div>{inTime || '--:--'}</div>
+            <div>{inTime || (noteText ? 'Tugas' : '--:--')}</div>
           )}
           <div className="border-t border-black/10 w-full my-0.5"></div>
-          <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || '--:--'}</div>
+          <div className={isMissingIn ? "font-extrabold text-slate-800 text-[9px]" : ""}>{outTime || (noteText ? 'Tugas' : '--:--')}</div>
         </div>
       );
     };
@@ -1402,6 +1446,18 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       return (
         <div 
           className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-amber-50/90 text-amber-950 border border-amber-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs" 
+        >
+          {renderTaps(dayData)}
+        </div>
+      );
+    }
+
+    const rawNote = dayData.note || '';
+    const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+    if (noteText) {
+      return (
+        <div 
+          className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-emerald-50/95 text-emerald-950 border-2 border-indigo-500 shadow-xs ring-1.5 ring-indigo-300/80 text-center flex flex-col items-center justify-center min-h-[36px]" 
         >
           {renderTaps(dayData)}
         </div>
@@ -1959,6 +2015,37 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             onPageChange={setCurrentPage}
             onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
           />
+
+          {/* Legenda Indikator Matriks Kehadiran Guru */}
+          <div className="mt-3.5 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
+            <div className="flex items-center gap-1.5 font-black uppercase text-slate-500 text-[10px] tracking-wider shrink-0">
+              <Info size={13} className="text-slate-400" />
+              <span>Keterangan Tanda &amp; Warna Sel:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-950 font-black text-[10px] border-2 border-indigo-400 ring-1 ring-indigo-200 shadow-2xs">
+                <Sparkles size={10} className="text-indigo-600" /> Hadir + Tanda Keterangan
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-950 font-black text-[10px] border-2 border-amber-400 shadow-2xs">
+                <Calendar size={10} className="text-amber-800" /> Libur / Bebas Absen
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[10px] border border-indigo-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin / Dinas Luar
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-900 text-white font-black text-[10px] shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
+              </span>
+            </div>
+          </div>
         </div>
         </>
       )}
