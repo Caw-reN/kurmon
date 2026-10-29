@@ -1,6 +1,6 @@
 import { Button } from '../../components/ui.jsx';
 import { normalizeUserRole, ROLE_OPTIONS, WAKA_DIVISION_OPTIONS, SUBROLE_OPTIONS_BY_DIVISION } from '../../utils/constants.js';
-import { CheckCircle2 } from'lucide-react';
+import { CheckCircle2, Sparkles, Users, Check } from 'lucide-react';
 import { Modal, UISelect } from'../ui.jsx';
 ;
 
@@ -656,56 +656,175 @@ export default function CrudModals({
               </div>
             </>
           )}
-          {modalConfig.type ==="event_kalender" && (
-            <>
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Kegiatan</label>
-                <input type="text" required value={formData.title ||""} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" placeholder="Contoh: Ujian Tengah Semester" />
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Mulai</label>
-                  <input type="date" required value={formData.dateStart ||""} onChange={(e) => setFormData({ ...formData, dateStart: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+          {modalConfig.type === "event_kalender" && (() => {
+            const isHolidayVal = formData.isHoliday === true || formData.isHoliday === "true";
+            const standardLevels = ["Semua", "X", "XI", "XII", "X,XI", "XI,XII"];
+            const currentApplicable = formData.applicableClasses || "Semua";
+            const isSpecificMode = !standardLevels.includes(currentApplicable);
+            const selectedSpecificClasses = isSpecificMode 
+              ? currentApplicable.split(',').map(s => s.trim()).filter(Boolean)
+              : [];
+
+            const toggleSpecificClass = (className) => {
+              let updated;
+              if (selectedSpecificClasses.includes(className)) {
+                updated = selectedSpecificClasses.filter(c => c !== className);
+              } else {
+                updated = [...selectedSpecificClasses, className];
+              }
+              const newVal = updated.length > 0 ? updated.join(', ') : 'Semua';
+              setFormData({ ...formData, applicableClasses: newVal });
+            };
+
+            return (
+              <>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Kegiatan</label>
+                  <input type="text" required value={formData.title || ""} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" placeholder="Contoh: Ujian TKA / Asesmen Akhir Semester" />
                 </div>
-                <div className="flex-1">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Selesai</label>
-                  <input type="date" required value={formData.dateEnd ||""} onChange={(e) => setFormData({ ...formData, dateEnd: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Tanggal Mulai</label>
+                    <input type="date" required value={formData.dateStart || ""} onChange={(e) => setFormData({ ...formData, dateStart: e.target.value, dateEnd: (!formData.dateEnd || formData.dateEnd < e.target.value) ? e.target.value : formData.dateEnd })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Tanggal Selesai</label>
+                    <input type="date" required value={formData.dateEnd || ""} onChange={(e) => setFormData({ ...formData, dateEnd: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]" />
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Kategori</label>
-                <UISelect value={formData.categoryId ||""} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} required className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]">
-                  {calendarCategories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </UISelect>
-              </div>
-              <div className="flex gap-4 mt-1">
-                <div className="flex-1">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Status Kegiatan</label>
-                  <UISelect value={formData.isHoliday !== undefined ? String(formData.isHoliday) : "false"} onChange={(e) => setFormData({ ...formData, isHoliday: e.target.value === "true" })} required className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]">
-                    <option value="false">Masuk (Ada KBM/Absen)</option>
-                    <option value="true">Libur (Tidak ada KBM/Absen)</option>
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Kategori Kegiatan</label>
+                  <UISelect value={formData.categoryId || ""} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} required className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]">
+                    {calendarCategories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
                   </UISelect>
                 </div>
-                <div className="flex-1">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Sasaran Kelas</label>
-                  <UISelect value={formData.applicableClasses || "Semua"} onChange={(e) => setFormData({ ...formData, applicableClasses: e.target.value })} required className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]">
-                    <option value="Semua">Semua Kelas</option>
-                    <option value="X">Hanya Kelas X</option>
-                    <option value="XI">Hanya Kelas XI</option>
-                    <option value="XII">Hanya Kelas XII</option>
-                    <option value="X,XI">Kelas X & XI</option>
-                    <option value="XI,XII">Kelas XI & XII</option>
-                  </UISelect>
+                <div className="flex flex-col sm:flex-row gap-4 mt-1">
+                  <div className="flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Status KBM &amp; Absensi</label>
+                    <UISelect 
+                      value={isHolidayVal ? "true" : "false"} 
+                      onChange={(e) => setFormData({ ...formData, isHoliday: e.target.value === "true" })} 
+                      required 
+                      className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
+                    >
+                      <option value="false">Masuk Normal (Ada KBM &amp; Wajib Absen)</option>
+                      <option value="true">Diliburkan / Bebas Absensi (Tidak Dihitung Alpa)</option>
+                    </UISelect>
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Target / Sasaran Kelas</label>
+                    <UISelect 
+                      value={isSpecificMode ? "specific" : currentApplicable} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "specific") {
+                          const firstCls = (classes && classes[0]?.name) || "X TKJ 1";
+                          setFormData({ ...formData, applicableClasses: firstCls });
+                        } else {
+                          setFormData({ ...formData, applicableClasses: val });
+                        }
+                      }} 
+                      required 
+                      className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
+                    >
+                      <option value="Semua">Semua Kelas (Seluruh Siswa)</option>
+                      <option value="X">Seluruh Tingkat X</option>
+                      <option value="XI">Seluruh Tingkat XI</option>
+                      <option value="XII">Seluruh Tingkat XII</option>
+                      <option value="X,XI">Tingkat X &amp; XI</option>
+                      <option value="XI,XII">Tingkat XI &amp; XII</option>
+                      <option value="specific">Pilih Kelas Tertentu / Spesifik...</option>
+                    </UISelect>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Deskripsi / Keterangan Tambahan</label>
-                <textarea value={formData.description ||""} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] min-h-[80px]" placeholder="Penjelasan tambahan terkait acara..." />
-              </div>
-            </>
-          )}
+
+                {/* Sub-Panel: Pemilih Kelas Spesifik */}
+                {isSpecificMode && (
+                  <div className="bg-slate-50/90 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+                        <Users size={12} className="text-[var(--ui-primary)]" />
+                        Pilih Kelas Terdampak ({selectedSpecificClasses.length} Dipilih):
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, applicableClasses: "Semua" })}
+                        className="text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                      >
+                        Batal (Semua Kelas)
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1 bg-white border border-slate-200/70 rounded-[var(--ui-radius-small)]">
+                      {classes && classes.map((c) => {
+                        const cName = c.name || c.kelas || c.id;
+                        const isSelected = selectedSpecificClasses.includes(cName);
+                        return (
+                          <button
+                            key={cName}
+                            type="button"
+                            onClick={() => toggleSpecificClass(cName)}
+                            className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all border cursor-pointer ${
+                              isSelected
+                                ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {isSelected && <Check size={10} className="inline mr-1 stroke-[3]" />}
+                            {cName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[9.5px] text-slate-500 font-medium">
+                      Kelas terpilih: <span className="font-bold text-slate-700">{selectedSpecificClasses.join(', ') || 'Belum ada kelas dipilih'}</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Sub-Panel: Keterangan Absensi jika Kegiatan Diliburkan */}
+                {isHolidayVal && (
+                  <div className="bg-amber-50/70 border border-amber-200/90 rounded-[var(--ui-radius-card)] p-3 space-y-2">
+                    <div className="flex items-center gap-1.5 text-[10.5px] font-black text-amber-900 uppercase tracking-wider">
+                      <Sparkles size={13} className="text-amber-600" />
+                      Keterangan Khusus Absensi (Otomatis Masuk Laporan Kehadiran):
+                    </div>
+                    <input
+                      type="text"
+                      value={formData.attendanceRemark || ""}
+                      onChange={(e) => setFormData({ ...formData, attendanceRemark: e.target.value })}
+                      placeholder="Contoh: Siswa diliburkan / Belajar di rumah karena Lab digunakan Ujian TKA"
+                      className="w-full bg-white border border-amber-300 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-[var(--ui-primary)]"
+                    />
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      <span className="text-[9.5px] font-bold text-amber-800/80 self-center">Template Cepat:</span>
+                      {[
+                        'Lab Digunakan Ujian TKA (Belajar Mandiri di Rumah)',
+                        'Ujian TKA (Bebas Absensi / Otomatis Hadir)',
+                        'Dispensasi Kegiatan / Perlombaan Sekolah',
+                        'Kegiatan Jeda Semester / Classmeeting'
+                      ].map((tpl, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, attendanceRemark: tpl })}
+                          className="px-2 py-0.5 text-[9.5px] font-bold rounded-[var(--ui-radius-pill)] bg-white hover:bg-amber-100 text-amber-950 border border-amber-200/90 cursor-pointer shadow-2xs transition-colors"
+                        >
+                          {tpl.split('(')[0].trim()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Deskripsi / Penjelasan Acara</label>
+                  <textarea value={formData.description || ""} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)] min-h-[70px] resize-none" placeholder="Penjelasan tambahan terkait acara..." />
+                </div>
+              </>
+            );
+          })()}
           {modalConfig.type ==="kategori_silabus" && (
             <>
               <div>

@@ -1445,19 +1445,34 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const mm = String(today.getMonth() + 1).padStart(2,"0");
     const dd = String(today.getDate()).padStart(2,"0");
     const todayStr = `${yyyy}-${mm}-${dd}`;
+    const selectedClass = String(filter.class_name || "all").trim().toUpperCase();
     
     return academicCalendar.some(evt => {
       const start = evt.dateStart;
       const end = evt.dateEnd || evt.dateStart;
       if (todayStr >= start && todayStr <= end) {
+        const isEventHoliday = evt.isHoliday === true || evt.isHoliday === "true";
         const cat = calendarCategories.find(c => c.id === evt.categoryId);
-        const catName = cat ? String(cat.name).toLowerCase() :"";
+        const catName = cat ? String(cat.name).toLowerCase() : "";
         const title = String(evt.title).toLowerCase();
-        return catName.includes("libur") || title.includes("libur");
+        const isLegacyHoliday = catName.includes("libur") || title.includes("libur");
+
+        if (isEventHoliday || isLegacyHoliday) {
+          const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+          if (targetClasses === "SEMUA" || targetClasses === "ALL" || selectedClass === "ALL") return true;
+          
+          let pGrade = "";
+          if (selectedClass.startsWith("X ") || selectedClass.startsWith("10 ")) pGrade = "X";
+          else if (selectedClass.startsWith("XI ") || selectedClass.startsWith("11 ")) pGrade = "XI";
+          else if (selectedClass.startsWith("XII ") || selectedClass.startsWith("12 ")) pGrade = "XII";
+
+          if (pGrade && targetClasses.split(',').map(g => g.trim()).includes(pGrade)) return true;
+          if (targetClasses.split(',').map(c => c.trim()).includes(selectedClass)) return true;
+        }
       }
       return false;
     });
-  }, [academicCalendar, calendarCategories, today]);
+  }, [academicCalendar, calendarCategories, today, filter.class_name]);
 
   const isHolidayOrWeekendToday = isWeekendToday || isHolidayToday;
 

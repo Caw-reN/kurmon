@@ -2125,7 +2125,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const academicCalendar = mainData.academicCalendar || [];
         const calendarCategories = mainData.calendarCategories || [];
 
-        // Function to check if YYYY-MM-DD is holiday or weekend
+        // Function to check if YYYY-MM-DD is holiday or weekend (supports specific classes & academic remarks)
         const isHolidayOrWeekend = (dateStr, personItem) => {
           const d = new Date(dateStr);
           const day = d.getDay();
@@ -2133,15 +2133,17 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           
           let personGrade = "";
           let personRole = "siswa";
+          let personClassClean = "";
           
           if (personItem) {
-            const cn = String(personItem.class_name || "").toUpperCase();
+            const cn = String(personItem.class_name || "").toUpperCase().trim();
+            personClassClean = cn;
             if (cn === "GURU") { personRole = "guru"; }
             else if (cn === "KARYAWAN" || cn === "STAFF") { personRole = "karyawan"; }
             else {
-              if (cn.startsWith("X ")) personGrade = "X";
-              else if (cn.startsWith("XI ")) personGrade = "XI";
-              else if (cn.startsWith("XII ")) personGrade = "XII";
+              if (cn.startsWith("X ") || cn.startsWith("10 ")) personGrade = "X";
+              else if (cn.startsWith("XI ") || cn.startsWith("11 ")) personGrade = "XI";
+              else if (cn.startsWith("XII ") || cn.startsWith("12 ")) personGrade = "XII";
             }
           }
           
@@ -2155,6 +2157,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               if (isEventHoliday) {
                 if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
                 if (personGrade && targetClasses.split(',').map(g=>g.trim()).includes(personGrade)) return true;
+                // Pengecekan spesifik kelas (misal "X TKJ 3" cocok dengan targetClasses "X TKJ 3")
+                if (personClassClean) {
+                  const targetList = targetClasses.split(',').map(c => c.trim());
+                  if (targetList.includes(personClassClean)) return true;
+                }
               }
               
               // Fallback to legacy check if isHoliday is not set
@@ -2585,8 +2592,40 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               if (currentTime <= limit) continue; // Still within check-in window
             }
 
-            // Skip weekends & academic calendar holidays
-            if (isHolidayOrWeekend(dateStr, item)) continue;
+            // Skip weekends & academic calendar holidays (auto remark if class is exempted / holiday)
+            if (isHolidayOrWeekend(dateStr, item)) {
+              if (!hasRecord) {
+                let pGrade = "";
+                const cClean = String(item.class_name || "").trim().toUpperCase();
+                if (cClean.startsWith("X ") || cClean.startsWith("10 ")) pGrade = "X";
+                else if (cClean.startsWith("XI ") || cClean.startsWith("11 ")) pGrade = "XI";
+                else if (cClean.startsWith("XII ") || cClean.startsWith("12 ")) pGrade = "XII";
+
+                const holidayEvt = academicCalendar.find(evt => {
+                  const start = evt.dateStart;
+                  const end = evt.dateEnd || evt.dateStart;
+                  if (dateStr >= start && dateStr <= end && (evt.isHoliday === true || evt.isHoliday === "true")) {
+                    const targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
+                    if (targetClasses === "SEMUA" || targetClasses === "ALL") return true;
+                    if (pGrade && targetClasses.split(',').map(g=>g.trim()).includes(pGrade)) return true;
+                    if (cClean && targetClasses.split(',').map(c => c.trim()).includes(cClean)) return true;
+                  }
+                  return false;
+                });
+
+                if (holidayEvt) {
+                  item.days[day] = {
+                    in: "Libur",
+                    out: "Libur",
+                    isLate: false,
+                    isHoliday: true,
+                    status: "Libur",
+                    note: holidayEvt.attendanceRemark || holidayEvt.title || "Libur Kalender Akademik"
+                  };
+                }
+              }
+              continue;
+            }
 
             const dayData = item.days[day];
             const hasRecord = dayData && (dayData.in || dayData.out || dayData.status || (Array.isArray(dayData.taps) && dayData.taps.length > 0));

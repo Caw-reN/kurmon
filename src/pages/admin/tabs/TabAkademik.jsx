@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   CalendarDays, Search, BookOpen, FileDown, Upload, List, Plus, Calendar, 
   Edit2, Trash2, ChevronLeft, ChevronRight, X, 
-  Tag, RotateCcw, CalendarCheck, Check, Clock
+  Tag, RotateCcw, CalendarCheck, Check, Clock, Sparkles
 } from 'lucide-react';
 import { UISelect, Button } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -745,11 +745,24 @@ export default function TabAkademik(props) {
                               <Calendar size={10} className="text-slate-400 shrink-0" />
                               <span className="truncate">{formatDateRangeText(evt.dateStart, evt.dateEnd)}</span>
                             </div>
+
+                            {/* Badge Libur / Sasaran Kelas */}
+                            {(evt.isHoliday === true || evt.isHoliday === "true") && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-200/90 shrink-0 shadow-2xs">
+                                Libur: {evt.applicableClasses || "Semua Kelas"}
+                              </span>
+                            )}
                           </div>
                           {evt.description && (
                             <p className={`text-[11px] font-medium line-clamp-1 leading-relaxed ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
                               {evt.description}
                             </p>
+                          )}
+                          {evt.attendanceRemark && (
+                            <div className="mt-1 text-[10px] font-bold text-amber-800 bg-amber-50/90 px-2 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200/70 inline-flex items-center gap-1.5">
+                              <Sparkles size={10} className="text-amber-600 shrink-0" />
+                              <span>Absensi: {evt.attendanceRemark}</span>
+                            </div>
                           )}
                         </div>
                       </div>

@@ -134,7 +134,10 @@ export default function KalenderPage() {
         categoryId: event.categoryId,
         categoryName: cat ? cat.name : 'Sekolah',
         color: cat ? cat.color : 'amber', 
-        type: 'akademik'
+        type: 'akademik',
+        isHoliday: event.isHoliday === true || event.isHoliday === 'true',
+        applicableClasses: event.applicableClasses || 'Semua',
+        attendanceRemark: event.attendanceRemark || ''
       };
     }).filter(Boolean);
 
@@ -598,15 +601,22 @@ export default function KalenderPage() {
                     >
                       <div>
                         {/* Category & Status Badges */}
-                        <div className="flex items-center justify-between gap-2 mb-3">
+                        <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 ${tone.bg} ${tone.border} border`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${tone.dot}`} />
                             <span className={tone.text}>{event.categoryName}</span>
                           </span>
 
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${status.class}`}>
-                            {status.label}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {event.isHoliday && (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200 shadow-2xs">
+                                Libur: {event.applicableClasses || 'Semua Kelas'}
+                              </span>
+                            )}
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${status.class}`}>
+                              {status.label}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Title & Description */}
@@ -614,9 +624,18 @@ export default function KalenderPage() {
                           {event.title}
                         </h3>
                         
-                        <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed mb-4">
+                        <p className="text-xs text-slate-500 font-medium line-clamp-2 leading-relaxed mb-2">
                           {event.description}
                         </p>
+                        {event.attendanceRemark && (
+                          <div className="mb-3 p-2 rounded-[var(--ui-radius-small)] bg-amber-50/90 border border-amber-200/80 text-[10.5px] font-bold text-amber-900 flex items-start gap-1.5">
+                            <Sparkles size={12} className="text-amber-600 shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-[9px] uppercase tracking-wider text-amber-700 block font-black">Keterangan Absensi:</span>
+                              <span>{event.attendanceRemark}</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Date range footer */}
