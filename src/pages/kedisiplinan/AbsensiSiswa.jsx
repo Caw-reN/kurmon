@@ -167,15 +167,16 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   const getItemDateStr = useCallback((dateVal) => {
     if (!dateVal) return "";
     const str = String(dateVal).trim();
-    if (str.length >= 10 && str.includes('-')) {
-      const part = str.slice(0, 10);
-      if (/^\d{4}-\d{2}-\d{2}$/.test(part)) return part;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      return str;
     }
     try {
-      return new Date(dateVal).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-    } catch {
-      return str.slice(0, 10);
-    }
+      const d = new Date(dateVal);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      }
+    } catch {}
+    return str.slice(0, 10);
   }, []);
 
   const [filterStatus, setFilterStatus] = useState("all");

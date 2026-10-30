@@ -361,7 +361,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         showToast("Pengajuan ketidakhadiran berhasil disimpan.");
         setSelectedCell(null);
         setPermissionForm({ status:"Sakit", keterangan:"", fileData: null, fileName: null, fileSizeKB: null });
-        fetchData();
+        fetchData(true);
       } else {
         showToast(json.error ||"Gagal menyimpan pengajuan.","error");
       }
@@ -589,7 +589,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       if (data.ok) {
         showToast(`Siswa "${targetDeleteStudent.name}" berhasil dihapus dari laporan dan mesin absensi.`);
         setTargetDeleteStudent(null);
-        fetchData();
+        fetchData(true);
       } else {
         showToast(data.error || 'Gagal menghapus siswa', 'error');
       }
@@ -740,8 +740,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             let content = "-";
             let fgColor = "FFFFFFFF";
             let fontColor = "FF334155";
+            const hasRealTaps = Boolean(
+              (dayData?.in && !["Libur", "Alpa", "Izin", "Sakit", "Mutasi"].includes(dayData.in)) ||
+              (dayData?.out && !["Libur", "Alpa", "Izin", "Sakit", "Mutasi"].includes(dayData.out)) ||
+              (Array.isArray(dayData?.taps) && dayData.taps.length > 0)
+            );
             
-            if (status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) {
+            if ((status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) && !hasRealTaps) {
               const note = effectiveDayData.note || holidayInfo?.reason || 'Libur Kalender Akademik';
               content = isDetailed ? `LIBUR\n(${note})` : `LIBUR (${note})`;
               fgColor = "FFFFE4E6"; fontColor = "FF9F1239";
@@ -754,6 +759,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             } else if (status === "Izin") {
               content = "I";
               fgColor = "FFDBEAFE"; fontColor = "FF1E3A8A";
+            } else if (status === "PKL" || String(status || '').startsWith("PKL") || effectiveDayData.isPkl) {
+              content = "PKL";
+              fgColor = "FFE0F2FE"; fontColor = "FF0369A1";
             } else if (status === "PraPKL" || status === "Pra-PKL") {
               content = "PRA";
               fgColor = "FFCCFBF1"; fontColor = "FF115E59";
@@ -885,8 +893,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             let content = "-";
             let fillColor = [255, 255, 255];
             let textColor = [51, 65, 85];
+            const hasRealTaps = Boolean(
+              (dayData?.in && !["Libur", "Alpa", "Izin", "Sakit", "Mutasi"].includes(dayData.in)) ||
+              (dayData?.out && !["Libur", "Alpa", "Izin", "Sakit", "Mutasi"].includes(dayData.out)) ||
+              (Array.isArray(dayData?.taps) && dayData.taps.length > 0)
+            );
             
-            if (status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) {
+            if ((status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) && !hasRealTaps) {
               const note = effectiveDayData.note || holidayInfo?.reason || 'Libur';
               content = isDetailed ? `LIBUR\n${note}` : "L";
               fillColor = [255, 228, 230]; textColor = [159, 18, 57];
@@ -899,6 +912,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             } else if (status === "Izin") {
               content = "I";
               fillColor = [219, 234, 254]; textColor = [30, 58, 138];
+            } else if (status === "PKL" || String(status || '').startsWith("PKL") || effectiveDayData.isPkl) {
+              content = "PKL";
+              fillColor = [224, 242, 254]; textColor = [3, 105, 161];
             } else if (status === "PraPKL" || status === "Pra-PKL") {
               content = "PRA";
               fillColor = [204, 251, 241]; textColor = [17, 94, 89];
@@ -1109,6 +1125,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           if (status === "Sakit") totals.sakit[dayNum]++;
           else if (status === "Izin") totals.izin[dayNum]++;
           else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") totals.alpa[dayNum]++;
+          else if (status === "PKL" || String(status || '').startsWith("PKL") || dayData.isPkl) {
+            totals.pkl[dayNum]++;
+            totals.hadir[dayNum]++;
+          }
           else if (dayData.isLate || status === "Terlambat") {
             totals.terlambat[dayNum]++;
             totals.hadir[dayNum]++;
@@ -1147,7 +1167,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           maxConsecutiveLate = currConsecutiveLate;
         }
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
-        currConsecutiveLate = 0;
+        const isLibur = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur";
+        if (!isLibur) {
+          currConsecutiveLate = 0;
+        }
       }
 
       if (dayData && (dayData.status === "Alpa" || dayData.status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa")) {
@@ -1156,7 +1179,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           maxConsecutiveAlpa = currConsecutiveAlpa;
         }
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
-        currConsecutiveAlpa = 0;
+        const isLibur = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur";
+        if (!isLibur) {
+          currConsecutiveAlpa = 0;
+        }
       }
     });
 

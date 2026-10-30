@@ -234,7 +234,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         showToast(`Berhasil menyimpan perizinan ${permissionForm.status} untuk ${selectedCell.name}.`);
         setSelectedCell(null);
         setPermissionForm({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null, gdriveUrl: null, replaceImage: true });
-        fetchData();
+        fetchData(true);
       } else {
         showToast(json.error || "Gagal menyimpan pengajuan.", "error");
       }
@@ -964,7 +964,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           maxConsecutiveLate = currConsecutiveLate;
         }
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
-        currConsecutiveLate = 0;
+        const isLibur = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur";
+        if (!isLibur) {
+          currConsecutiveLate = 0;
+        }
       }
 
       if (dayData && (dayData.status === "Alpa" || dayData.status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa")) {
@@ -973,7 +976,10 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           maxConsecutiveAlpa = currConsecutiveAlpa;
         }
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
-        currConsecutiveAlpa = 0;
+        const isLibur = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur";
+        if (!isLibur) {
+          currConsecutiveAlpa = 0;
+        }
       }
     });
 
@@ -1043,9 +1049,12 @@ export default function HikvisionTeacherReport({ isNested = false }) {
         if (dayData) {
           const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
           if (status === "Sakit") totals.sakit[dayNum]++;
-          else if (status === "Izin" || status === "Dinas Luar") totals.izin[dayNum]++;
+          else if (status === "Izin" || status === "Dinas Luar" || status === "Cuti") totals.izin[dayNum]++;
           else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") totals.alpa[dayNum]++;
-          else if (dayData.isLate || status === "Terlambat") totals.terlambat[dayNum]++;
+          else if (dayData.isLate || status === "Terlambat") {
+            totals.terlambat[dayNum]++;
+            totals.hadir[dayNum]++;
+          }
           else if (dayData.in || dayData.out || status === "Hadir") totals.hadir[dayNum]++;
         }
       });
@@ -2435,7 +2444,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
           onClose={() => setIsSuperAdminModalOpen(false)}
           onSuccess={(msg) => {
             showToast(msg || "Koreksi jam berhasil disimpan!");
-            fetchData();
+            fetchData(true);
           }}
           currentUser={user}
         />

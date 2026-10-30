@@ -430,10 +430,11 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             conditions.push(`k.tanggal >= $${params.length}`);
           }
 
-          // B3-SEC-A FIX: Cap limit dari 99999 ke 5000 untuk mencegah DoS via query param
+          // B3-SEC-A: Cap limit hingga 50.000 jika diminta untuk rekapitulasi massal (default 5000)
           const rawLimit  = parseInt(queryParams.get('limit')  || '5000', 10);
           const rawOffset = parseInt(queryParams.get('offset') || '0',    10);
-          const limit  = Math.min(isNaN(rawLimit)  || rawLimit  < 1 ? 5000 : rawLimit,  5000);
+          const maxAllowedLimit = (rawLimit > 5000) ? 50000 : 5000;
+          const limit  = Math.min(isNaN(rawLimit)  || rawLimit  < 1 ? 5000 : rawLimit, maxAllowedLimit);
           const offset = isNaN(rawOffset) || rawOffset < 0 ? 0 : rawOffset;
 
           const whereClause = conditions.length > 0 ? " WHERE " + conditions.join(" AND ") : "";
@@ -517,6 +518,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                return send(req, res, 400, { ok: false, error: "Tidak ada data absensi valid yang dipilih untuk dihapus." });
              }
              await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = ANY($1::int[])", [ids]);
+             if (global._matrixCache) global._matrixCache = {};
              return send(req, res, 200, { ok: true, deletedCount: ids.length, message: `${ids.length} data surat absensi berhasil dihapus.` });
           } else if (body.action === 'bulk_update') {
              if (!hasApprovalPermission && !isAdminStaff) {
@@ -551,12 +553,14 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
              if (updates.length > 0) {
                await dbPool.query(`UPDATE kedisiplinan_absensi SET ${updates.join(', ')} WHERE id = ANY($1::int[])`, params);
              }
+             if (global._matrixCache) global._matrixCache = {};
              return send(req, res, 200, { ok: true, updatedCount: ids.length, message: `${ids.length} data perizinan absensi berhasil diperbarui.` });
           } else if (body.action === 'delete') {
              if (!hasApprovalPermission && !isAdminStaff) {
                return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Bagian Kesiswaan/BK/Admin yang dapat menghapus data absensi." });
              }
              await dbPool.query("DELETE FROM kedisiplinan_absensi WHERE id = $1", [body.id]);
+             if (global._matrixCache) global._matrixCache = {};
           } else if (body.action === 'approve') {
              if (!hasApprovalPermission) {
                return send(req, res, 403, { ok: false, error: "Hanya Bagian Kesiswaan atau Guru BP/BK yang berwenang menyetujui perizinan siswa." });
@@ -566,6 +570,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                SET approval_status = 'approved', approved_by_id = $1, approved_by_name = $2 
                WHERE id = $3
              `, [session?.id, session?.name || 'BP/BK', body.id]);
+             if (global._matrixCache) global._matrixCache = {};
           } else if (body.action === 'reject') {
              if (!hasApprovalPermission) {
                return send(req, res, 403, { ok: false, error: "Hanya Bagian Kesiswaan atau Guru BP/BK yang berwenang menolak perizinan siswa." });
@@ -575,6 +580,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                SET approval_status = 'rejected', approved_by_id = $1, approved_by_name = $2 
                WHERE id = $3
              `, [session?.id, session?.name || 'BP/BK', body.id]);
+             if (global._matrixCache) global._matrixCache = {};
           } else {
              // Handle insert & update with potential Google Drive file uploads
              if (roleStr === 'siswa') {
@@ -597,6 +603,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                   return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Staf/Admin yang dapat mengubah data perizinan absensi." });
                 }
                 await dbPool.query("UPDATE kedisiplinan_absensi SET status = $1, keterangan = $2, gdrive_url = COALESCE($3, gdrive_url) WHERE id = $4", [body.status, body.keterangan, gdriveUrl, body.id]);
+                if (global._matrixCache) global._matrixCache = {};
              } else {
                 const isDirectApproved = hasApprovalPermission;
                 const approvalStatus = isDirectApproved ? 'approved' : 'pending';
@@ -631,6 +638,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
                   gdriveUrl
                 ]);
                 finalId = insertRes.rows[0].id;
+                if (global._matrixCache) global._matrixCache = {};
              }
 
               if (body.siswa_nis) {
@@ -824,14 +832,16 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       ? `${currentYear}/${currentYear + 1}`
       : `${currentYear - 1}/${currentYear}`;
     const semesterStr = currentMonth >= 6 ? 'Ganjil' : 'Genap';
+    const taStartDate = currentMonth >= 6 ? `${currentYear}-07-01` : `${currentYear - 1}-07-01`;
 
     // Count total Alpa untuk siswa ini (dari awal tahun ajaran aktif)
     const countRes = await dbPool.query(`
       SELECT COUNT(*) as total_alpa 
       FROM kedisiplinan_absensi 
       WHERE siswa_nis = $1 
+        AND tanggal >= $2
         AND (LOWER(status) = 'alpa' OR LOWER(status) = 'belum scan')
-    `, [cleanNis]);
+    `, [cleanNis, taStartDate]);
     
     const alpaCount = parseInt(countRes.rows[0]?.total_alpa || 0, 10);
 
@@ -914,13 +924,14 @@ export async function checkAndApplyAutoSpAndPoints(dbPool, siswaNis) {
       }
     }
 
-    // Count total Terlambat untuk siswa ini
+    // Count total Terlambat untuk siswa ini (dari awal tahun ajaran aktif)
     const tltRes = await dbPool.query(`
       SELECT COUNT(*) as total_terlambat 
       FROM kedisiplinan_absensi 
       WHERE siswa_nis = $1 
+        AND tanggal >= $2
         AND LOWER(status) = 'terlambat'
-    `, [cleanNis]);
+    `, [cleanNis, taStartDate]);
     
     const terlambatCount = parseInt(tltRes.rows[0]?.total_terlambat || 0, 10);
 

@@ -459,8 +459,8 @@ async function autoSyncGuruAttendanceToAppData() {
              TO_CHAR(l.timestamp, 'YYYY-MM-DD HH24:MI:SS') as time_str,
              l.event_type, d.ip_address, d.location, d.device_type, l.person_type
       FROM hikvision_logs l
-      JOIN hikvision_devices d ON l.device_id = d.id
-      WHERE (l.person_type IN ('guru', 'karyawan') OR d.device_type IN ('guru', 'karyawan'))
+      LEFT JOIN hikvision_devices d ON l.device_id = d.id
+      WHERE (l.person_type IN ('guru', 'karyawan', 'unknown') OR d.device_type IN ('guru', 'karyawan') OR l.person_type IS NULL)
         AND l.timestamp >= NOW() - INTERVAL '3 days'
       ORDER BY l.timestamp ASC
     `);
@@ -575,7 +575,7 @@ async function autoSyncStudentAttendanceToAppData() {
              d.location, d.ip_address, l.person_type
       FROM hikvision_logs l
       LEFT JOIN hikvision_devices d ON l.device_id = d.id
-      WHERE (l.person_type = 'siswa' OR l.person_type IS NULL)
+      WHERE (l.person_type IN ('siswa', 'unknown') OR l.person_type IS NULL)
         AND l.employee_id !~* '^[a-z]'
         AND l.timestamp >= NOW() - INTERVAL '3 days'
       ORDER BY l.timestamp ASC
@@ -2382,6 +2382,7 @@ const server = createServer(async (req, res) => {
           [JSON.stringify(remarks)]
         );
 
+        if (global._matrixCache) global._matrixCache = {};
         await logAudit(dbPool, session, req, 'BULK_ATTENDANCE_REMARK', 'attendance',
           'Keterangan massal: ' + keterangan + ' untuk ' + (Array.isArray(targetClasses) ? targetClasses.join(', ') : 'semua') + ' pada ' + date);
 
@@ -2439,6 +2440,7 @@ const server = createServer(async (req, res) => {
           "INSERT INTO app_data (store_key, data) VALUES ('bulk_attendance_remarks', $1) ON CONFLICT (store_key) DO UPDATE SET data = $1",
           [JSON.stringify(remarks)]
         );
+        if (global._matrixCache) global._matrixCache = {};
         return send(req, res, 200, { ok: true, message: 'Keterangan massal dihapus.' });
       } catch (err) {
         return sendDatabaseError(req, res, err);

@@ -2166,15 +2166,23 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         `;
 
         // Parallelkan query agar tidak sequential
-        const [studentsQuery, logsQuery, msR] = await Promise.all([
+        const [studentsQuery, logsQuery, msR, brR] = await Promise.all([
           dbPool.query(studentsQueryStr, (reportType === 'siswa' && targetClassName !== 'all') ? [targetClassName] : []),
           dbPool.query(logsQueryStr, [rangeStart, rangeEnd]),
-          dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'").catch(() => ({ rows: [] }))
+          dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store'").catch(() => ({ rows: [] })),
+          dbPool.query("SELECT data FROM app_data WHERE store_key = 'bulk_attendance_remarks'").catch(() => ({ rows: [] }))
         ]);
 
         const mainData = msR.rows.length > 0 ? JSON.parse(msR.rows[0].data || '{}') : {};
         const academicCalendar = mainData.academicCalendar || [];
         const calendarCategories = mainData.calendarCategories || [];
+
+        let bulkRemarks = [];
+        if (brR.rows?.length > 0 && brR.rows[0].data) {
+          try {
+            bulkRemarks = typeof brR.rows[0].data === 'string' ? JSON.parse(brR.rows[0].data) : (brR.rows[0].data || []);
+          } catch {}
+        }
 
         // Function to check if YYYY-MM-DD is holiday or weekend (supports specific classes & academic remarks)
         const isHolidayOrWeekend = (dateStr, personItem) => {
@@ -2196,6 +2204,24 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               else if (cn.startsWith("XI ") || cn.startsWith("11 ")) personGrade = "XI";
               else if (cn.startsWith("XII ") || cn.startsWith("12 ")) personGrade = "XII";
             }
+          }
+          
+          // Check bulk attendance remarks (e.g. from KeteranganMasalAbsensi)
+          if (Array.isArray(bulkRemarks) && bulkRemarks.length > 0 && personItem) {
+            const matchedBulk = bulkRemarks.find(br => {
+              const rStart = br.date;
+              const rEnd = br.dateEnd || br.date;
+              if (dateStr < rStart || dateStr > rEnd) return false;
+              if (!br.targetClasses || br.targetClasses.length === 0) return true;
+              return br.targetClasses.some(tc => {
+                const tcClean = String(tc).trim().toUpperCase();
+                if (!tcClean || tcClean === 'SEMUA' || tcClean === 'ALL' || !personClassClean) return true;
+                if (personClassClean === tcClean) return true;
+                if (personGrade && (tcClean === personGrade || tcClean === (personGrade === 'X' ? '10' : personGrade === 'XI' ? '11' : '12'))) return true;
+                return personClassClean.split(/\s+/).includes(tcClean);
+              });
+            });
+            if (matchedBulk) return true;
           }
           
           const matchedEvent = academicCalendar.find(evt => {
@@ -2550,11 +2576,15 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  let finalStatus = status;
 
                  // Proteksi cerdas: Jika record berasal dari sinkronisasi otomatis mesin (bukan manual admin/guru),
-                 // dan siswa sebenarnya memiliki jam tap masuk yang sah dan tidak terlambat (!prevDayData.isLate),
-                 // jangan biarkan status 'Terlambat' dari cron/jadwal usang menimpa kehadiran siswa menjadi merah.
-                 if (isOtomatis && prevDayData.in && !prevDayData.isLate && status === "Terlambat") {
-                   finalIsLate = false;
-                   finalStatus = "Hadir";
+                 // lindungi data kehadiran fisik siswa dari override status otomatis yang salah
+                 if (isOtomatis && (prevDayData.in || prevDayData.out)) {
+                   if (status === "Alpa") {
+                     finalStatus = prevDayData.isLate ? "Terlambat" : "Hadir";
+                     finalIsLate = !!prevDayData.isLate;
+                   } else if (!prevDayData.isLate && status === "Terlambat") {
+                     finalIsLate = false;
+                     finalStatus = "Hadir";
+                   }
                  }
 
                  matrix[targetKey].days[day] = {
@@ -2708,8 +2738,27 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   return false;
                 });
 
-                if (holidayEvt) {
-                  let reasonText = "";
+                let matchedBulkRemark = null;
+                if (Array.isArray(bulkRemarks) && bulkRemarks.length > 0) {
+                  matchedBulkRemark = bulkRemarks.find(br => {
+                    const rStart = br.date;
+                    const rEnd = br.dateEnd || br.date;
+                    if (dateStr < rStart || dateStr > rEnd) return false;
+                    if (!br.targetClasses || br.targetClasses.length === 0) return true;
+                    return br.targetClasses.some(tc => {
+                      const tcClean = String(tc).trim().toUpperCase();
+                      if (!tcClean || tcClean === 'SEMUA' || tcClean === 'ALL' || !cClean) return true;
+                      if (cClean === tcClean) return true;
+                      if (pGrade && (tcClean === pGrade || tcClean === (pGrade === 'X' ? '10' : pGrade === 'XI' ? '11' : '12'))) return true;
+                      return cClean.split(/\s+/).includes(tcClean);
+                    });
+                  });
+                }
+
+                let reasonText = "";
+                if (matchedBulkRemark) {
+                  reasonText = matchedBulkRemark.keterangan || matchedBulkRemark.label || "Keterangan Massal";
+                } else if (holidayEvt) {
                   if (holidayEvt.attendanceRemark && holidayEvt.attendanceRemark.trim() && holidayEvt.attendanceRemark.trim() !== "-") {
                     reasonText = holidayEvt.attendanceRemark.trim();
                   } else if (holidayEvt.title && holidayEvt.title.trim() && holidayEvt.title.trim() !== "-") {
@@ -2720,7 +2769,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   } else {
                     reasonText = "Libur Kalender Akademik";
                   }
+                }
 
+                if (holidayEvt || matchedBulkRemark) {
                   item.days[day] = {
                     in: "Libur",
                     out: "Libur",
@@ -2734,9 +2785,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               continue;
             }
 
-            // CRITICAL CHECK: If student has mutated out on or before this date, do NOT mark Alpa!
+            // CRITICAL CHECK: If student has mutated out on or before this date, do NOT mark Alpa or let automated record override!
             if (item.is_mutasi && item.tanggal_keluar && dateStr >= item.tanggal_keluar) {
-              if (!hasRecord) {
+              const isAutoRec = dayData?.isManual === false || dayData?.approval_status === 'otomatis';
+              if (!hasRecord || isAutoRec) {
                 item.days[day] = {
                   in: "Mutasi",
                   out: "Mutasi",

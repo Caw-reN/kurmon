@@ -1318,8 +1318,37 @@ async function _isHolidayOrWeekend(dateStr, targetClassOrRole = "Semua") {
               if (!matchGrade && !matchClass && !matchRole) continue;
             }
 
-            const reason = evt.holidayReason || (evt.title ? `Libur: ${evt.title}` : "Libur Kalender Akademik");
+            const reason = evt.attendanceRemark || evt.holidayReason || (evt.title ? `Libur: ${evt.title}` : "Libur Kalender Akademik");
             return { isHoliday: true, reason };
+          }
+        }
+
+        // Cek bulk attendance remarks (keterangan massal absensi)
+        const bulkRes = await _dbPool.query("SELECT data FROM app_data WHERE store_key = 'bulk_attendance_remarks' LIMIT 1").catch(() => ({ rows: [] }));
+        if (bulkRes.rows.length > 0 && bulkRes.rows[0].data) {
+          const bulkRemarks = typeof bulkRes.rows[0].data === 'string' ? JSON.parse(bulkRes.rows[0].data) : (bulkRes.rows[0].data || []);
+          if (Array.isArray(bulkRemarks) && bulkRemarks.length > 0) {
+            for (const br of bulkRemarks) {
+              const rStart = br.date;
+              const rEnd = br.dateEnd || br.date;
+              if (dateStr >= rStart && dateStr <= rEnd) {
+                const bClasses = Array.isArray(br.targetClasses) ? br.targetClasses : (br.targetClasses ? [br.targetClasses] : []);
+                const isAllSchool = bClasses.length === 0 || bClasses.some(tc => String(tc).trim().toUpperCase() === 'SEMUA' || String(tc).trim().toUpperCase() === 'ALL');
+                if (!isAllSchool) {
+                  if (targetClean === "SEMUA" || targetClean === "ALL" || !targetClean) continue;
+                  const matched = bClasses.some(tc => {
+                    const tcClean = String(tc).trim().toUpperCase();
+                    if (!tcClean) return false;
+                    if (targetClean === tcClean) return true;
+                    if (targetGrade && (tcClean === targetGrade || tcClean === (targetGrade === 'X' ? '10' : targetGrade === 'XI' ? '11' : '12'))) return true;
+                    return targetClean.split(/\s+/).includes(tcClean);
+                  });
+                  if (!matched) continue;
+                }
+                const reason = br.keterangan || br.label || "Libur / Keterangan Massal";
+                return { isHoliday: true, reason };
+              }
+            }
           }
         }
       }

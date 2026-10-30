@@ -216,7 +216,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         showToast(`Berhasil menyimpan perizinan ${permissionForm.status} untuk ${selectedCell.name}.`);
         setSelectedCell(null);
         setPermissionForm({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null, gdriveUrl: null, replaceImage: true });
-        fetchData();
+        fetchData(true);
       } else {
         showToast(json.error || "Gagal menyimpan pengajuan.", "error");
       }
@@ -750,9 +750,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
         if (dayData) {
           const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
           if (status === "Sakit") totals.sakit[dayNum]++;
-          else if (status === "Izin" || status === "Dinas Luar") totals.izin[dayNum]++;
+          else if (status === "Izin" || status === "Dinas Luar" || status === "Cuti") totals.izin[dayNum]++;
           else if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") totals.alpa[dayNum]++;
-          else if (dayData.isLate || status === "Terlambat") totals.terlambat[dayNum]++;
+          else if (dayData.isLate || status === "Terlambat") {
+            totals.terlambat[dayNum]++;
+            totals.hadir[dayNum]++;
+          }
           else if (dayData.in || dayData.out || status === "Hadir") totals.hadir[dayNum]++;
         }
       });
@@ -1068,7 +1071,10 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
           maxConsecutiveLate = currConsecutiveLate;
         }
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
-        currConsecutiveLate = 0;
+        const isLibur = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur";
+        if (!isLibur) {
+          currConsecutiveLate = 0;
+        }
       }
 
       if (dayData && (dayData.status === "Alpa" || dayData.status === "Alpa (Tanpa Keterangan)" || dayData.in === "Alpa")) {
@@ -1077,7 +1083,10 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
           maxConsecutiveAlpa = currConsecutiveAlpa;
         }
       } else if (dayData && (dayData.in || dayData.out || dayData.status)) {
-        currConsecutiveAlpa = 0;
+        const isLibur = dayData.isHoliday || dayData.status === "Libur" || dayData.in === "Libur";
+        if (!isLibur) {
+          currConsecutiveAlpa = 0;
+        }
       }
     });
 
@@ -1129,16 +1138,23 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     };
   }, []);
 
-  const getDayBadge = (dayData) => {
-    if (!dayData) return <span className="text-[10px] text-slate-300 font-bold">-</span>;
-    
-    const status = dayData.status || (dayData.isLate ? "Terlambat" : (dayData.in || dayData.out ? "Hadir" : ""));
-    const inTime = formatAttendanceTime(dayData.in);
-    const outTime = formatAttendanceTime(dayData.out);
-    
-    if (dayData.isHoliday || status === "Libur" || dayData.in === "Libur" || dayData.out === "Libur") {
-      const rawNote = dayData.note || '';
-      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+  const getDayBadge = (dayData, personRole = "karyawan", dateStr = "") => {
+    const holidayInfo = dateStr ? getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, personRole) : null;
+    if (!dayData && !holidayInfo) return <span className="text-[10px] text-slate-300 font-bold">-</span>;
+
+    const effectiveData = dayData || { isHoliday: true, status: "Libur", note: holidayInfo?.reason || "Libur Kalender Akademik" };
+    const status = effectiveData.status || (effectiveData.isLate ? "Terlambat" : (effectiveData.in || effectiveData.out ? "Hadir" : ""));
+    const inTime = formatAttendanceTime(effectiveData.in);
+    const outTime = formatAttendanceTime(effectiveData.out);
+    const hasRealTaps = Boolean(inTime && inTime !== "Libur") || Boolean(outTime && outTime !== "Libur");
+
+    const isExplicitHoliday = effectiveData.isHoliday || status === "Libur" || effectiveData.in === "Libur" || effectiveData.out === "Libur";
+    const isScheduledHoliday = Boolean(holidayInfo) && !hasRealTaps;
+
+    if (isExplicitHoliday || isScheduledHoliday) {
+      const rawNote = effectiveData.note || '';
+      const isInternal = rawNote.toLowerCase().includes("mesin") || rawNote.startsWith("Dari mesin") || rawNote.startsWith("Alpa Otomatis") || rawNote.startsWith("Hadir (Hari Libur");
+      const noteText = (!isInternal && rawNote) ? rawNote : (holidayInfo?.reason || '');
       return (
         <div 
           className="text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 border border-rose-300 text-center flex flex-col items-center justify-center min-h-[36px] shadow-2xs"
@@ -1665,7 +1681,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                                 {dayData?.pending_permission && (
                                    <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
                                 )}
-                                {getDayBadge(dayData)}
+                                {getDayBadge(dayData, d.role || "karyawan", `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`)}
                              </td>
                           );
                        })}

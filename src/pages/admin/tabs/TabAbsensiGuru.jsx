@@ -32,7 +32,7 @@ export default function TabAbsensiGuru(props) {
       attendanceSelectedStatus,
     )
     : attendanceSelectedStatus;
-  const isPermitSelected = ["Izin","Sakit"].includes(attendanceSelectedStatus);
+  const isPermitSelected = ["Izin", "Sakit", "Dinas Luar", "Cuti", "Dispensasi"].includes(attendanceSelectedStatus);
   const canSubmitAttendance =
     isPermitSelected
       ? !isCheckingIn
