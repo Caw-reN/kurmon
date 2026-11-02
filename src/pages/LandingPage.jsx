@@ -760,6 +760,83 @@ export default function LandingPage() {
 
 
 
+  const [academicServiceQuery, setAcademicServiceQuery] = useState("");
+
+  const academicServices = useMemo(() => [
+    { 
+      id: 'jadwal',
+      title: cleanText(appSettings.serviceLabel1 !== undefined ? appSettings.serviceLabel1 : "Jadwal"), 
+      desc: appSettings.serviceDesc1 || "Lihat jadwal pelajaran dan kegiatan kelas.", 
+      icon: Calendar, 
+      path: "/jadwal",
+      highlight: true,
+    },
+    { 
+      id: 'denah',
+      title: cleanText(appSettings.serviceLabel2 !== undefined ? appSettings.serviceLabel2 : "Denah Ruang"), 
+      desc: appSettings.serviceDesc2 || "Temukan lokasi ruang di lingkungan sekolah.", 
+      icon: MapPin, 
+      path: "/denah",
+    },
+    { 
+      id: 'materi',
+      title: cleanText(appSettings.serviceLabel3 !== undefined ? appSettings.serviceLabel3 : "Materi Ajar"), 
+      desc: appSettings.serviceDesc3 || "Buka materi untuk mendukung pembelajaran.", 
+      icon: BookOpen, 
+      path: "/materi-ajar",
+    },
+    { 
+      id: 'kalender',
+      title: cleanText(appSettings.serviceLabel4 !== undefined ? appSettings.serviceLabel4 : "Kalender"), 
+      desc: appSettings.serviceDesc4 || "Periksa agenda dan tanggal penting sekolah.", 
+      icon: CalendarDays, 
+      path: "/kalender",
+    },
+    { 
+      id: 'pkl',
+      title: cleanText(appSettings.serviceLabel5 !== undefined ? appSettings.serviceLabel5 : "Lokasi PKL"), 
+      desc: appSettings.serviceDesc5 || "Temukan informasi lokasi praktik kerja lapangan.", 
+      icon: Briefcase, 
+      path: "/pkl-locations",
+    },
+    { 
+      id: 'struktur',
+      title: cleanText(appSettings.serviceLabel6 !== undefined ? appSettings.serviceLabel6 : "Struktur"), 
+      desc: appSettings.serviceDesc6 || "Kenali susunan organisasi sekolah.", 
+      icon: Users, 
+      path: "/struktur",
+    },
+    { 
+      id: 'peraturan',
+      title: cleanText(appSettings.serviceLabel7 !== undefined ? appSettings.serviceLabel7 : "Peraturan"), 
+      desc: appSettings.serviceDesc7 || "Baca ketentuan yang berlaku di sekolah.", 
+      icon: ShieldCheck, 
+      isPdfRules: true,
+    },
+  ], [appSettings]);
+
+  const filteredAcademicServices = useMemo(() => {
+    if (!academicServiceQuery.trim()) return academicServices;
+    const q = academicServiceQuery.toLowerCase();
+    return academicServices.filter(s => 
+      s.title.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)
+    );
+  }, [academicServices, academicServiceQuery]);
+
+  useEffect(() => {
+    const handleSlashKey = (e) => {
+      if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        const searchEl = document.getElementById('academic-service-search');
+        if (searchEl) {
+          searchEl.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleSlashKey);
+    return () => window.removeEventListener('keydown', handleSlashKey);
+  }, []);
+
   const publicServices = [
     { label: cleanText(appSettings.serviceLabel1 !== undefined ? appSettings.serviceLabel1 :"Jadwal Pelajaran"), subtitle:"Semester 1", svgIcon:"060-calendar.svg", icon: CalendarDays, defaultColor:"#D97706", customColor: appSettings.serviceColor1, customIcon: appSettings.serviceIconImage1, path:"/jadwal" },
     { label: cleanText(appSettings.serviceLabel2 !== undefined ? appSettings.serviceLabel2 :"Denah Kelas"), subtitle:"Gedung Utama", svgIcon:"016-map pin.svg", icon: MapPin, defaultColor:"#0284C7", customColor: appSettings.serviceColor2, customIcon: appSettings.serviceIconImage2, path:"/denah" },
@@ -1733,45 +1810,179 @@ export default function LandingPage() {
 
         </div>
 
-        {/* MIDDLE SECTION: LAYANAN PUBLIK */}
-        <div className="shrink-0 mb-6 lg:mb-8 middle-layanan-section relative z-10">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-card)] py-3.5 md:py-4 px-4 md:px-8 w-full">
-            <h2 className="text-xs lg:text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-3 text-center">Layanan Publik</h2>
-            <div className="grid grid-cols-7 gap-2 lg:gap-4 w-full items-center">
-              {publicServices.map((service, idx) => {
-                const activeColor = service.customColor || service.defaultColor;
+        {/* LAYANAN AKADEMIK HINGGA BANTUAN SECTION (MODERN ELEGANT REDESIGN) */}
+        <div className="shrink-0 mb-10 lg:mb-12 middle-layanan-section relative z-10 w-full">
+          {/* 1. KARTU BESAR LAYANAN AKADEMIK */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-10 w-full mb-10 lg:mb-14 relative z-10 text-left">
+            {/* Top Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  Layanan akademik
+                </h2>
+                <p className="text-xs sm:text-sm font-semibold text-slate-400 mt-1">
+                  Pilih layanan untuk melanjutkan aktivitasmu.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald-800 transition-colors bg-transparent border-none p-0 cursor-pointer self-start sm:self-auto"
+              >
+                <span>Terhubung ke sistem sekolah</span>
+                <ArrowUpRight size={14} strokeWidth={2.4} />
+              </button>
+            </div>
+
+            {/* Search Bar Input */}
+            <div className="w-full max-w-md my-6 relative">
+              <Search size={16} strokeWidth={2.4} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input 
+                type="text" 
+                placeholder="Cari layanan: jadwal, materi, PKL..." 
+                value={academicServiceQuery}
+                onChange={(e) => setAcademicServiceQuery(e.target.value)}
+                id="academic-service-search"
+                className="w-full h-11 pl-10 pr-10 bg-slate-50/70 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15 focus:border-[var(--ui-primary)] focus:bg-white transition-all shadow-2xs"
+              />
+              {academicServiceQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setAcademicServiceQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer bg-transparent border-none"
+                  title="Hapus pencarian"
+                >
+                  <X size={14} />
+                </button>
+              ) : (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] font-mono text-slate-400 shadow-2xs pointer-events-none">
+                  /
+                </span>
+              )}
+            </div>
+
+            {/* Grid 7 Layanan: 4 di baris atas, 3 di baris bawah */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+              {filteredAcademicServices.map((service) => {
+                const IconComp = service.icon;
+                const isHighlighted = service.highlight && !academicServiceQuery;
+
                 return (
-                  <button
-                    key={idx}
-                    onClick={() =>{
+                  <div
+                    key={service.id}
+                    onClick={() => {
                       if (service.isPdfRules) {
                         setShowRulesModal(true);
-                      } else {
+                      } else if (service.path) {
                         navigate(service.path);
                       }
                     }}
-                    className="flex flex-col items-center justify-center gap-2.5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer bg-transparent border-none py-1 group w-full relative mx-auto"
+                    className={`group rounded-2xl p-5 flex flex-col justify-between min-h-[135px] text-left transition-all duration-200 cursor-pointer border select-none ${
+                      isHighlighted 
+                        ? 'bg-[#f3f8e6] border-[#d7e7b4] hover:border-[#c5db98] shadow-2xs' 
+                        : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5'
+                    }`}
                   >
-                    <div 
-                      className="w-12 h-12 rounded-[var(--ui-radius-card)] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 relative z-10 shrink-0 shadow-xs"
-                      style={{ 
-                        backgroundColor: hexToRgba(activeColor, 0.08),
-                        border: `1px solid ${hexToRgba(activeColor, 0.12)}`
-                      }}
-                    >
-                      {service.customIcon ? (
-                        <img src={service.customIcon} alt="" className="w-5.5 h-5.5 object-contain" />
-                      ) : (
-                        <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 object-contain" />
-                      )}
+                    {/* Top Row: Icon di kiri, panah di kanan */}
+                    <div className="flex items-start justify-between w-full">
+                      <div className="text-slate-800">
+                        <IconComp size={20} strokeWidth={2.2} />
+                      </div>
+                      <ArrowUpRight 
+                        size={14} 
+                        strokeWidth={2.2} 
+                        className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" 
+                      />
                     </div>
-                    <span className="text-[10.5px] lg:text-[11.5px] font-black text-slate-700 tracking-tight leading-none text-center w-full truncate px-1 relative z-10">
-                      {getShortLabel(service.label)}
-                    </span>
-                  </button>
+
+                    {/* Bottom Row: Judul & Deskripsi */}
+                    <div className="mt-4">
+                      <h3 className="text-sm font-black text-slate-900 tracking-tight group-hover:text-[var(--ui-primary)] transition-colors">
+                        {service.title}
+                      </h3>
+                      <p className="text-xs font-semibold text-slate-400 group-hover:text-slate-500 mt-1 leading-relaxed">
+                        {service.desc}
+                      </p>
+                    </div>
+                  </div>
                 );
               })}
             </div>
+          </div>
+
+          {/* 2. SEKSI INFORMASI PENDUKUNG */}
+          <div className="my-10 lg:my-14 w-full relative z-10 text-left">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Kolom Kiri */}
+              <div className="md:col-span-6 lg:col-span-5 flex flex-col items-start">
+                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 font-sans">
+                  INFORMASI PENDUKUNG
+                </span>
+                <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-1.5 mb-2.5 leading-tight">
+                  Kenali lingkungan sekolahmu.
+                </h2>
+                <p className="text-xs sm:text-sm font-semibold text-slate-400 leading-relaxed max-w-md">
+                  Temukan ruang, struktur organisasi, dan ketentuan sekolah sebelum memulai aktivitas.
+                </p>
+              </div>
+
+              {/* Kolom Kanan: 3 Tautan Horizontal dengan Garis Pemisah */}
+              <div className="md:col-span-6 lg:col-span-7">
+                <div className="divide-y divide-slate-200/80 border-t border-b border-slate-200/80 w-full">
+                  <div 
+                    onClick={() => navigate('/denah')}
+                    className="py-3.5 flex items-center justify-between group cursor-pointer transition-colors"
+                  >
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
+                      Denah ruang
+                    </span>
+                    <ArrowUpRight size={15} strokeWidth={2.4} className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
+
+                  <div 
+                    onClick={() => navigate('/struktur')}
+                    className="py-3.5 flex items-center justify-between group cursor-pointer transition-colors"
+                  >
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
+                      Struktur organisasi
+                    </span>
+                    <ArrowUpRight size={15} strokeWidth={2.4} className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
+
+                  <div 
+                    onClick={() => setShowRulesModal(true)}
+                    className="py-3.5 flex items-center justify-between group cursor-pointer transition-colors"
+                  >
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
+                      Peraturan sekolah
+                    </span>
+                    <ArrowUpRight size={15} strokeWidth={2.4} className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. BANNER KESULITAN MENGAKSES SISTEM? (BANTUAN) */}
+          <div className="bg-[#0c3928] text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md my-8 lg:my-10 w-full relative z-10 text-left overflow-hidden">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
+                Kesulitan mengakses sistem?
+              </h3>
+              <p className="text-xs sm:text-sm font-semibold text-emerald-200/80 mt-1.5 leading-relaxed">
+                Baca panduan layanan atau hubungi sekolah untuk bantuan akun.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPublicHelp(true)}
+              className="bg-[#c8ed69] hover:bg-[#b8e254] text-[#0c3928] font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
+            >
+              <span>Panduan & Bantuan</span>
+              <ArrowUpRight size={15} strokeWidth={2.8} />
+            </button>
           </div>
         </div>
 
