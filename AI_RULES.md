@@ -14,9 +14,10 @@ Kamu adalah asisten coding dengan mode hemat token maksimal dan kepatuhan kode t
 
 ## 1. Stack Proyek Terkini
 - **Frontend:** React 19 + Vite 8 + TailwindCSS + Zustand + Lucide React + Base UI / Radix UI
-- **PWA:** Vite PWA (`vite-plugin-pwa`) + Service Worker + Auto Geolocation & Notification Prompt (`PermissionPromptModal.jsx`)
-- **Backend:** Node.js (Express) + PostgreSQL (`pg` pool) + Telegram Bot API
+- **PWA & Offline:** Vite PWA (`vite-plugin-pwa`) + Service Worker + Native IndexedDB (`kurmon_offline_db`)
+- **Backend:** Node.js ESM (`server/auth-server.mjs`, `server/routes/`) + PostgreSQL 16 (`pg` pool) + Telegram Bot API
 - **State & Data Store:** Zustand (`useDataStore`, `useAppStore`, `useAuthStore`)
+- **Mesin Presensi:** Hikvision Terminal ISAPI Client (Multi-device pull otomatis)
 - **Export/Import:** SheetJS (`xlsx`) + jsPDF + FileSaver
 
 ---
@@ -27,40 +28,52 @@ Kamu adalah asisten coding dengan mode hemat token maksimal dan kepatuhan kode t
 - **Dashboard Utama:** `src/pages/DashboardPage.jsx`
 - **Halaman Tab Admin:** `src/pages/admin/tabs/` (`TabAkademik.jsx`, `TabTampilan.jsx`, `TabPesan.jsx`, `TabGenerate.jsx`, dll)
 - **Halaman Master Data:** `src/pages/admin/master_data/` (`MasterDataGuru.jsx`, `MasterDataSiswa.jsx`, `MasterDataKelas.jsx`, dll)
+- **Halaman Presensi & Hikvision:** `src/pages/admin/hikvision/` (`HikvisionStudentReport.jsx`, `HikvisionTeacherReport.jsx`, `HikvisionStaffReport.jsx`, `HikvisionDashboard.jsx`)
 - **Halaman Kedisiplinan & Piket:** `src/pages/kedisiplinan/` (`AbsensiSiswa.jsx`, `PanelPiket.jsx`, `JurnalHarianGuru.jsx`, `RekapKedisiplinan.jsx`)
+- **Komponen Maintenance & Notifikasi:** `src/components/maintenance/`, `src/components/notifications/`
 - **Komponen UI Kustom:** `src/components/ui.jsx`, `src/components/CustomSelect.jsx`, `src/components/modals.jsx`
 - **Styling Global & Engine:** `src/index.css`, `src/utils/branding.js`
-- **Backend & Integrasi Bot:** `server/index.js`, `server/telegramBot.js`, `server/database.js`
+- **Backend Modular Routes:** `server/routes/` (`auth.mjs`, `data.mjs`, `hikvision.mjs`, `students.mjs`, `teachers.mjs`, `staffs.mjs`, `settings.mjs`)
 
 ---
 
-## 3. Desain & Kustomisasi UI (STRICT UI COMPLIANCE)
+## 3. Aturan Integritas Sistem & Presensi (ATTENDANCE & SYSTEM INTEGRITY)
+- **STANDAR BIOMETRIK SISWA:**
+  - Presensi fisik sah siswa **HANYA** berasal dari **Fingerprint (`minor: 38`)** dan **Face ID (`minor: 75` / `104`)**.
+  - Event kartu RFID (`minor: 1`) **DILARANG KERAS** untuk siswa guna mencegah praktik titip absen.
+  - Jangan pernah menghapus atau memfilter event Face ID `minor: 75`.
+- **NORMALISASI NIS:**
+  - Pemetaan NIS 8-digit mesin ke NIS 9-digit master wajib menggunakan pemetaan aman suffix `slice(1)` tanpa tabrakan ID.
+- **HIERARKI STATUS:**
+  - Izin / Sakit / Dispensasi resmi di `kedisiplinan_absensi` memiliki prioritas di atas scan mesin. Status Alpa tidak boleh ditetapkan sebelum jam masuk presensi resmi berakhir.
+- **PROTEKSI MODE MAINTENANCE:**
+  - Mode maintenance wajib mempertahankan bypass khusus Super Admin di front-end dan back-end (HTTP 503 untuk non-admin).
+
+---
+
+## 4. Desain & Kustomisasi UI (STRICT UI COMPLIANCE)
 - **KONSISTENSI KUSTOMISASI WEB (CARD STYLE ENGINE):**
-  - Setiap card, panel, atau kontainer utama **WAJIB** menggunakan class `.ui-card` dengan border dinamis `border border-[var(--ui-card-border-color,transparent)]` dan shadow dinamis `shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]`.
-  - Wajib mematuhi pengaturan Admin **Desain Card / Panel** (`appSettings.cardStyle`):
-    - **`shadow-sm` ("Bayangan Mengambang / Elevated"):** Seluruh card tanpa outline garis luar (`border-color: transparent !important`), melayang dengan shadow halus (`var(--ui-card-shadow)`).
-    - **`border` ("Garis Batas Halus / Clean Border"):** Seluruh card konsisten bergaris batas halus 1px (`1px solid var(--ui-border-soft, #e2e8f0)`).
-    - **`flat` ("Warna Datar Padat"):** Seluruh card tanpa border dan tanpa shadow.
-  - **Dilarang keras** meng-hardcode border kasar seperti `border border-[var(--ui-border-soft)]` dengan warna statis gelap (`#d4dde9`).
-- **SINGLE UNIFIED CONTAINER CARD:** Satukan navigasi sub-tab, filter pencarian, tombol aksi, tabel desktop, kartu mobile, dan footer pagination ke dalam **1 Kontainer UI Card Terpadu** (`ui-card bg-white border border-[var(--ui-card-border-color,transparent)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden`). Hindari membuat kartu-kartu kecil yang bertumpuk berantakan.
-- **NO DUPLICATE HEADERS:** Dilarang meletakkan `PageHeader` ganda/bertumpuk di dalam child component jika parent component sudah memilikinya.
+  - Setiap card atau kontainer utama **WAJIB** menggunakan class `.ui-card` dengan border `border border-[var(--ui-card-border-color,transparent)]` dan shadow `shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]`.
+  - Wajib mematuhi pengaturan `appSettings.cardStyle` (`shadow-sm`, `border`, `flat`). Dilarang meng-hardcode border kasar gelap statis (`#d4dde9`).
 - **BORDER RADIUS & SHADOW SYSTEM:**
   - Gunakan CSS variables: `var(--ui-radius-card)`, `var(--ui-radius-control)`, `var(--ui-radius-small)`, `rounded-[var(--ui-radius-pill)]`.
   - Gunakan layered soft shadows: `shadow-2xs`, `shadow-xs`, `var(--ui-shadow-card)`, `var(--ui-shadow-float)`.
-- **TEMA WARNA & PALET:** Gunakan CSS variable/skema HSL (`var(--ui-primary)`, `var(--ui-accent)`, `bg-emerald-600`, `bg-teal-600`, `bg-slate-50`, backdrop-blur) yang padu. Dilarang memakai warna polos dasar (*plain red*, *plain blue*, *plain green*) yang merusak estetika web.
-- **NO NATIVE HTML DEFAULT COMPONENTS:** Dilarang menggunakan elemen HTML mentah tanpa style (seperti `<select>` native atau dialog native). WAJIB menggunakan `CustomSelect` / `UISelect` dan `<Modal>`.
-- **RESPONSIF DESKTOP & MOBILE:** Setiap perubahan UI WAJIB dioptimalkan dan diuji untuk desktop maupun mobile (layout grid `lg:grid-cols-...`, tabel `hidden md:block`, card mobile `md:hidden`).
+- **BADGE INDIKATOR MATRIKS:**
+  - Seluruh badge status presensi di tabel matriks wajib menggunakan komponen *badge pill pastel* modern (`rounded-[var(--ui-radius-small)]`, `shadow-2xs`). Dilarang kembali ke teks mentah tanpa badge.
+- **TEMA WARNA & PALET:** Gunakan CSS variable/skema HSL (`var(--ui-primary)`, `var(--ui-accent)`, `bg-emerald-600`, `bg-teal-600`, `bg-slate-50`, backdrop-blur). Dilarang memakai warna polos dasar (*plain red*, *plain blue*, *plain green*).
+- **NO NATIVE HTML DEFAULT COMPONENTS:** Dilarang menggunakan elemen HTML mentah tanpa style (seperti `<select>` native atau dialog native). Gunakan `CustomSelect` / `UISelect` dan `<Modal>`.
+- **RESPONSIF DESKTOP & MOBILE:** Setiap perubahan UI WAJIB dioptimalkan untuk desktop maupun mobile.
 
 ---
 
-## 4. Keamanan & Integritas Data
+## 5. Keamanan & Integritas Data
 - **Password Hashing:** Password pengguna admin dan guru wajib menggunakan algoritma hash standar proyek (PBKDF2 via `src/utils/security.js`).
 - **Data Sanitization:** Selalu bersihkan payload teks dan input berbahaya sebelum disimpan ke PostgreSQL.
 - **State Hydration:** Pastikan sinkronisasi data antar tab/perangkat menggunakan hook `useAdminDatabaseSync` dan store yang tepat.
 
 ---
 
-## 5. Prosedur Verifikasi Wajib
+## 6. Prosedur Verifikasi Wajib
 Sebelum menandai tugas selesai atau memberikan laporan akhir:
-1. **Unit Tests:** Jalankan `npm test` dan pastikan seluruh test suite lolos 100% tanpa kegagalan.
+1. **Unit Tests:** Jalankan `npm test` dan pastikan seluruh test suite lolos 100% tanpa kegagalan (`0 failed`).
 2. **Build Validation:** Jalankan `npm run build` dan pastikan proses build production berhasil tanpa error atau peringatan modul rusak.
