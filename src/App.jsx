@@ -268,6 +268,7 @@ export default function App() {
   const [error, setError] = useState(null);
   const [isFatalOffline, setIsFatalOffline] = useState(false);
   const [sessionWarning, setSessionWarning] = useState(false);
+  const appSettingsFromStore = useDataStore((state) => state.appSettings);
 
   // F-10 FIX: Auto-logout saat sesi tidak aktif selama 8 jam
   const handleSessionExpired = useCallback(() => {
@@ -411,7 +412,7 @@ export default function App() {
     throw new Error(error || "Koneksi ke server utama terputus dan tidak ada data luring (cache) yang tersedia.");
   }
 
-  const appSettings = useDataStore((state) => state.appSettings) || getDatabaseSnapshot()?.appSettings || {};
+  const appSettings = appSettingsFromStore || getDatabaseSnapshot()?.appSettings || {};
   const session = getSession();
   const isAdmin = session && (session.role === 'admin' || session.role === 'superadmin');
   const isMaintenanceActive = Boolean(appSettings?.maintenance?.isActive);
