@@ -775,11 +775,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               const isStudentDevice = device.device_type === 'siswa' || String(device.name || '').toLowerCase().includes('siswa');
               const validLogs = logs.filter(l => {
                 if (!l.employeeNoString && !l.employeeNo) return false;
-                // STRICT BIOMETRIC ENFORCEMENT: Mesin siswa hanya menerima 38 (fingerprint) dan 104 (face)
+                // STRICT BIOMETRIC ENFORCEMENT: Mesin siswa menerima 38 (fingerprint) dan 75 / 104 (face ID)
                 if (isStudentDevice) {
-                  return l.minor === 38 || l.minor === 104;
+                  return l.minor === 38 || l.minor === 75 || l.minor === 104;
                 }
-                return l.minor === 38 || l.minor === 104 || l.minor === 75 || l.minor === 1;
+                return l.minor === 38 || l.minor === 75 || l.minor === 104 || l.minor === 1;
               });
               const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
               for (const l of validLogs) {
@@ -2394,9 +2394,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             }
 
             // STRICT BIOMETRIC ENFORCEMENT:
-            // Siswa HANYA menggunakan fingerprint (5-38) dan faceid (5-104).
-            // Tap kartu (5-75 atau 5-1) diabaikan agar siswa tidak hadir tidak dapat titip kartu.
-            if (logRole === 'siswa' && (log.event_type === '5-75' || log.event_type?.endsWith('-75') || log.event_type === '5-1' || log.event_type?.endsWith('-1'))) {
+            // Siswa HANYA menggunakan fingerprint (5-38) dan faceid (5-75 / 5-104).
+            // Tap kartu RFID (5-1) diabaikan untuk siswa agar siswa tidak hadir tidak dapat titip kartu.
+            if (logRole === 'siswa' && (log.event_type === '5-1' || log.event_type?.endsWith('-1'))) {
               return;
             }
 

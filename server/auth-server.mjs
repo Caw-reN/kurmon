@@ -336,15 +336,15 @@ export async function pullHikvisionLogs(force = false) {
             }
 
             // STRICT BIOMETRIC ENFORCEMENT:
-            // Sekolah HANYA menggunakan absensi Fingerprint (minor 38) dan Face ID (minor 104).
-            // minor 75 (Kartu RFID) dan minor 1 DILARANG untuk siswa agar siswa yang tidak hadir tidak dapat titip kartu.
+            // Sekolah HANYA menggunakan absensi Fingerprint (minor 38) dan Face ID (minor 75 / 104).
+            // minor 1 (Kartu RFID) DILARANG untuk siswa agar siswa yang tidak hadir tidak dapat titip kartu.
             if (personType === 'siswa' || dtype === 'siswa') {
-              if (log.minor !== 38 && log.minor !== 104) {
+              if (log.minor !== 38 && log.minor !== 75 && log.minor !== 104) {
                 continue;
               }
             } else {
               // Guru / Karyawan
-              if (log.minor !== 38 && log.minor !== 104 && log.minor !== 75 && log.minor !== 1) {
+              if (log.minor !== 38 && log.minor !== 75 && log.minor !== 104 && log.minor !== 1) {
                 continue;
               }
             }
@@ -587,7 +587,7 @@ async function autoSyncStudentAttendanceToAppData() {
       LEFT JOIN hikvision_devices d ON l.device_id = d.id
       WHERE (l.person_type IN ('siswa', 'unknown') OR l.person_type IS NULL)
         AND l.employee_id !~* '^[a-z]'
-        AND l.event_type IN ('5-38', '5-104')
+        AND l.event_type IN ('5-38', '5-75', '5-104')
         AND l.timestamp >= NOW() - INTERVAL '3 days'
       ORDER BY l.timestamp ASC
     `);
