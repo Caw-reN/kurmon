@@ -2579,6 +2579,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  const existingPending = matrix[targetKey].days[day]?.pending_permission;
                  const prevDayData = matrix[targetKey].days[day] || {};
                  
+                 const isOtomatis = rec.approval_status === 'otomatis' || (rec.pelapor_nama && String(rec.pelapor_nama).toLowerCase().includes('mesin'));
+
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
                  const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
@@ -2589,7 +2591,6 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  const isAfternoonTime = parsedTime && parsedTime >= cutoffTime;
                  const actualOut = prevDayData.out || (isAfternoonTime ? parsedTime : null) || (isPermit ? status : null);
 
-                 const isOtomatis = rec.approval_status === 'otomatis' || (rec.pelapor_nama && String(rec.pelapor_nama).toLowerCase().includes('mesin'));
                  let finalIsLate = isLate;
                  let finalStatus = status;
 
