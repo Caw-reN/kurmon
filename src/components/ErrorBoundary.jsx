@@ -54,16 +54,42 @@ export default class ErrorBoundary extends React.Component {
     if (
       errorMsg.includes('Failed to fetch dynamically imported module') || 
       errorMsg.includes('Importing a module script failed') ||
-      errorMsg.includes('error loading dynamically imported module')
+      errorMsg.includes('error loading dynamically imported module') ||
+      errorMsg.includes('Minified React error #310')
     ) {
-      window.location.reload();
+      this.handleHardReload();
       return;
     }
     this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
-  handleHardReload = () => {
-    window.location.reload();
+  handleHardReload = async () => {
+    try {
+      // 1. Unregister all service workers so stale chunks are evicted
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      // 2. Clear all cache storage keys
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        const cacheKeys = await caches.keys();
+        for (const key of cacheKeys) {
+          await caches.delete(key);
+        }
+      }
+    } catch (e) {
+      console.warn("Gagal membersihkan cache worker:", e);
+    }
+    // 3. Force cache-busting hard reload
+    try {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.set('_cb', Date.now().toString());
+      window.location.replace(cleanUrl.toString());
+    } catch {
+      window.location.reload();
+    }
   };
 
   render() {
