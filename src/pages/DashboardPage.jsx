@@ -2841,6 +2841,16 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       return recDate === todayStr || recDate === new Date().toISOString().slice(0, 10);
     });
 
+    const extractJktDate = (val) => {
+      if (!val) return '';
+      if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) return val.slice(0, 10);
+      try {
+        return new Date(val).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      } catch (e) {
+        return '';
+      }
+    };
+
     const candidateTeacherLogs = [
       ...(dashLogs?.teacherLogs || []),
       ...(dashLogs?.recentLogs || [])
@@ -2853,8 +2863,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       if (!isTeacherMatch) return false;
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return false;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-      return logDateStr === todayStr;
+      return extractJktDate(logDate) === todayStr;
     });
 
     // 2. Gabungkan log absensi dari Apps & Hikvision untuk menghindari duplikat (ambil scan TERAWAL)
@@ -2929,6 +2938,16 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       ...(dashLogs?.teacherLogs || [])
     ];
 
+    const extractJktDate = (val) => {
+      if (!val) return '';
+      if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) return val.slice(0, 10);
+      try {
+        return new Date(val).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      } catch (e) {
+        return '';
+      }
+    };
+
     const recentLogs = candidateStaffLogs.filter(r => {
       const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
       const empId = String(r.employee_id || '').toLowerCase();
@@ -2937,8 +2956,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       if (type.includes('GURU') && !empId.startsWith('k') && !validStaffs.has(empId)) return false;
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return false;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-      return logDateStr === todayStr;
+      return extractJktDate(logDate) === todayStr;
     });
 
     const mergedLogs = {};
@@ -2991,12 +3009,20 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
   const siswaStats = useMemo(() => {
     const todayStrJkt = todayStr || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const extractJktDate = (val) => {
+      if (!val) return '';
+      if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}/.test(val)) return val.slice(0, 10);
+      try {
+        return new Date(val).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      } catch (e) {
+        return '';
+      }
+    };
 
     const hikLogs = (dashLogs?.hikvisionStudentToday || []).filter(r => {
       const logDate = r?.timestamp || r?.created_at || r?.date;
       if (!logDate) return false;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-      return logDateStr === todayStrJkt;
+      return extractJktDate(logDate) === todayStrJkt;
     });
 
     const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
@@ -3007,15 +3033,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return false;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-      return logDateStr === todayStrJkt;
+      return extractJktDate(logDate) === todayStrJkt;
     });
 
     const manualAbsenceLogs = (dashLogs?.studentAbsenceLogs || []).filter(r => {
       const logDate = r?.date || r?.tanggal || r?.created_at || '';
       if (!logDate) return false;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-      return logDateStr === todayStrJkt;
+      return extractJktDate(logDate) === todayStrJkt;
     });
     
     // Combine logs
@@ -3111,7 +3135,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     }
 
     return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
-  }, [dashLogs, storeStudents, isWeekendOrHoliday]);
+  }, [dashLogs, storeStudents, isWeekendOrHoliday, todayStr]);
 
   const guruPercent = guruStats.totalGuru > 0 
     ? Math.min(100, Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100))

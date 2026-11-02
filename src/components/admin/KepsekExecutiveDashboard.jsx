@@ -173,8 +173,10 @@ export default function KepsekExecutiveDashboard({
       const t = String(r?.true_person_type || r?.role_type || r?.device_type || '').toUpperCase();
       if (!t.includes('GURU')) return false; // HANYA GURU
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
-      if (!logDate) return true;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      if (!logDate) return false;
+      const logDateStr = (typeof logDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(logDate))
+        ? logDate.slice(0, 10)
+        : new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       return logDateStr === todayStr;
     });
     const merged = {};
@@ -258,8 +260,10 @@ export default function KepsekExecutiveDashboard({
       // Masukkan jika memang karyawan
       if (validKaryawanIds.has(idRaw) || validKaryawanNames.has(nameRaw) || type.includes('KARYAWAN') || type.includes('STAFF') || type.includes('PEGAWAI') || type.includes('TU')) {
         const logDate = r?.timestamp || r?.created_at || r?.date || '';
-        if (!logDate) return true;
-        const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        if (!logDate) return false;
+        const logDateStr = (typeof logDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(logDate))
+          ? logDate.slice(0, 10)
+          : new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
         return logDateStr === todayStr;
       }
       return false;
@@ -319,8 +323,10 @@ export default function KepsekExecutiveDashboard({
       if (type.includes('guru') || type.includes('karyawan')) return false;
       
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
-      if (!logDate) return true;
-      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      if (!logDate) return false;
+      const logDateStr = (typeof logDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(logDate))
+        ? logDate.slice(0, 10)
+        : new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
     });
     let allLogs = [...hikLogs];

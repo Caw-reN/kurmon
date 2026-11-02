@@ -363,6 +363,50 @@ export default function TabTampilan(props) {
                               )}
                             </div>
                           </div>
+                          {/* Pita Header Atas (Top Ribbon) */}
+                          <div className="p-4 rounded-[var(--ui-radius-card)] bg-slate-50/80 border border-slate-200/80 flex flex-col gap-3">
+                            <div>
+                              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                                Pita Header Atas (Top Ribbon)
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Kustomisasi teks dan warna pada pita atas navbar publik.</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Teks Sisi Kiri (Nama Sekolah / Instansi)</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Default: Nama Sekolah" 
+                                  value={appSettings.topRibbonLeftText || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, topRibbonLeftText: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Teks Sisi Kanan (Portal Layanan)</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Default: Portal layanan akademik - [Nama Sekolah]" 
+                                  value={appSettings.topRibbonRightText || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, topRibbonRightText: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1.5 block">Warna Latar Pita Atas</label>
+                              <div className="flex items-center gap-3">
+                                <input 
+                                  type="color" 
+                                  value={appSettings.topRibbonColor || appSettings.primaryColor || "#153f32"} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, topRibbonColor: e.target.value })} 
+                                  className="w-14 h-9 border border-slate-200 bg-white rounded-[var(--ui-radius-small)] cursor-pointer shadow-xs p-0.5" 
+                                />
+                                <span className="text-xs font-mono font-bold text-slate-600 uppercase">{appSettings.topRibbonColor || appSettings.primaryColor || "#153f32"}</span>
+                              </div>
+                            </div>
+                          </div>
+
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Badge / Tag Portal Hero (Opsional)</label>
                             <input 

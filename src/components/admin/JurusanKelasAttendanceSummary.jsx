@@ -47,7 +47,9 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
       const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       dashLogs.studentAbsenceLogs.forEach(a => {
         const itemDate = a.date || a.tanggal || a.created_at || '';
-        const itemDateStr = itemDate ? new Date(itemDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : '';
+        const itemDateStr = (typeof itemDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(itemDate))
+          ? itemDate.slice(0, 10)
+          : (itemDate ? new Date(itemDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : '');
         if (itemDateStr && itemDateStr !== todayStr) return;
         const nis = String(a.siswa_nis || a.nis || '').trim().toLowerCase();
         const name = String(a.siswa_nama || a.student_name || a.name || '').trim().toLowerCase();

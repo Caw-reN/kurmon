@@ -174,10 +174,10 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
         >
           <div className="max-w-[1400px] mx-auto px-6 md:px-8 flex items-center justify-between">
             <span className="tracking-wider uppercase font-mono font-bold text-white">
-              {schoolName.toUpperCase()}
+              {appSettings?.topRibbonLeftText || schoolName.toUpperCase()}
             </span>
             <span className="text-emerald-100/80 font-medium hidden sm:inline text-[11.5px]">
-              {t('Portal layanan akademik - ', 'Academic service portal - ')}{schoolName}
+              {appSettings?.topRibbonRightText || `${t('Portal layanan akademik - ', 'Academic service portal - ')}${schoolName}`}
             </span>
           </div>
         </div>

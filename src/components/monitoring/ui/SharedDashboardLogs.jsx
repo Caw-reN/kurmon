@@ -369,8 +369,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         if (type.includes('guru') || type.includes('karyawan')) return false;
         // Pastikan log adalah hari ini (WIB)
         const logDate = item.timestamp || item.created_at || item.date || '';
-        if (!logDate) return true; // Kalau tidak ada tanggal, tetap tampilkan
-        const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        if (!logDate) return false;
+        const logDateStr = (typeof logDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(logDate))
+          ? logDate.slice(0, 10)
+          : new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
         return logDateStr === todayStr;
       });
     }

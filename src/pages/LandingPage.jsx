@@ -2006,7 +2006,7 @@ export default function LandingPage() {
         </div>
 
         {/* LAYANAN AKADEMIK SECTION */}
-        <div id="layanan-akademik" className="shrink-0 mb-5 lg:mb-6 middle-layanan-section relative z-10 w-full scroll-mt-28">
+        <div id="layanan-akademik" className="shrink-0 mb-3.5 lg:mb-4 middle-layanan-section relative z-10 w-full scroll-mt-28">
           {/* 1. KARTU BESAR LAYANAN AKADEMIK (SPLIT DESKTOP DENGAN KARTU DI KANAN MENGISI RUANG KOSONG) */}
           <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-8 xl:p-9 w-full mb-0 relative z-10 text-left">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
