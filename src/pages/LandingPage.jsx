@@ -1559,14 +1559,8 @@ export default function LandingPage() {
 
                 return (
                   <div 
-                    className="w-full rounded-2xl h-[62px] sm:h-[66px] px-3 bg-white shadow-xs text-slate-800 relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-slate-200/80 select-none"
+                    className="w-full rounded-2xl h-[60px] sm:h-[64px] px-3 bg-white shadow-xs text-slate-800 relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-slate-200/80 select-none"
                   >
-                    {/* Top delicate accent bar */}
-                    <div 
-                      className="absolute top-0 left-0 right-0 h-1"
-                      style={{ backgroundColor: styleInfo.color }}
-                    />
-
                     {/* Tombol Panah Kiri */}
                     <button
                       type="button"
@@ -1578,7 +1572,7 @@ export default function LandingPage() {
                     </button>
 
                     {/* Konten Tengah: Logo + Info Keahlian */}
-                    <div className="flex-1 flex items-center gap-2.5 px-2 min-w-0 z-10">
+                    <div className="flex-1 flex items-center gap-3 px-2 min-w-0 z-10">
                       {/* Logo Badge */}
                       <div className="w-9 h-9 rounded-xl bg-slate-50 p-1 shadow-2xs border border-slate-200/70 flex items-center justify-center shrink-0">
                         {activeProgram.image ? (
@@ -1590,24 +1584,12 @@ export default function LandingPage() {
 
                       {/* Teks */}
                       <div className="flex-1 min-w-0 text-left">
-                        <div className="flex items-center gap-1.5">
-                          <span 
-                            className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-2xs"
-                            style={{
-                              backgroundColor: hexToRgba(styleInfo.color, 0.08),
-                              borderColor: hexToRgba(styleInfo.color, 0.25),
-                              color: styleInfo.color
-                            }}
-                          >
-                            {activeProgram.badge || getMajorAbbreviation(activeProgram.name, activeIdx)}
-                          </span>
-                          <span className="text-[9.5px] font-semibold text-slate-400 truncate">
-                            {activeProgram.desc || styleInfo.tagline}
-                          </span>
-                        </div>
-                        <h3 className="text-[12px] sm:text-[12.5px] font-black text-slate-900 uppercase tracking-tight truncate leading-tight mt-0.5">
+                        <h3 className="text-xs sm:text-[12.5px] font-black text-slate-900 uppercase tracking-tight truncate leading-tight">
                           {activeProgram.name}
                         </h3>
+                        <p className="text-[10px] sm:text-[10.5px] font-semibold text-slate-400 truncate mt-0.5">
+                          {activeProgram.desc || styleInfo.tagline}
+                        </p>
                       </div>
                     </div>
 
@@ -1657,7 +1639,7 @@ export default function LandingPage() {
       </div>
 
       {/* DESKTOP VIEW RESPONSIVE NATURAL WRAPPER */}
-      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[72px] pb-12 desktop-layout-wrapper">
+      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[64px] lg:pt-[70px] pb-6 lg:pb-8 desktop-layout-wrapper">
 
 
         {/* TOP ROW: HERO & ILLUSTRATION */}
@@ -1752,8 +1734,8 @@ export default function LandingPage() {
         </div>
 
         {/* MIDDLE SECTION: LAYANAN PUBLIK */}
-        <div className="shrink-0 my-4 lg:my-6 middle-layanan-section relative z-10">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-card)] py-4 md:py-5 px-4 md:px-8 w-full">
+        <div className="shrink-0 my-3 lg:my-4 middle-layanan-section relative z-10">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-card)] py-3.5 md:py-4 px-4 md:px-8 w-full">
             <h2 className="text-xs lg:text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-3 text-center">Layanan Publik</h2>
             <div className="grid grid-cols-7 gap-2 lg:gap-4 w-full items-center">
               {publicServices.map((service, idx) => {
@@ -1793,20 +1775,20 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* JURUSAN / PROGRAM KEAHLIAN UNGGULAN (SOPHISTICATED PREMIUM CARDS) */}
-        <div className="shrink-0 my-6 lg:my-8 bottom-jurusan-section relative z-10">
+        {/* JURUSAN / PROGRAM KEAHLIAN UNGGULAN (CLEAN MINIMALIST CARDS) */}
+        <div className="shrink-0 my-4 lg:my-5 bottom-jurusan-section relative z-10">
           {/* Centered Title */}
-          <div className="flex flex-col items-center justify-center text-center mb-5 lg:mb-6">
-            <h2 className="text-lg lg:text-2xl font-black text-slate-800 tracking-tight leading-none">
+          <div className="flex flex-col items-center justify-center text-center mb-3.5 lg:mb-4.5">
+            <h2 className="text-base lg:text-xl font-black text-slate-800 tracking-tight leading-none">
               {appSettings.trustedByText || "Program Keahlian Unggulan"}
             </h2>
-            <p className="text-xs text-slate-400 font-semibold mt-1.5 max-w-lg">
+            <p className="text-[11px] lg:text-xs text-slate-400 font-semibold mt-1 max-w-lg">
               {appSettings.trustedBySubtitle || "Kompetensi keahlian terakreditasi berstandar industri & siap kerja global"}
             </p>
           </div>
 
-          {/* 4 Clean Modern Cards Grid: Adaptive 2 cols on md/lg, 4 cols on xl */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-5 w-full">
+          {/* 4 Clean Modern Cards Grid: Exactly 4 in 1 row */}
+          <div className="grid grid-cols-4 gap-3.5 lg:gap-4.5 w-full">
             {[1, 2, 3, 4].map((idx) => {
               const name = appSettings[`partner${idx}`];
               if (!name) return null;
@@ -1822,68 +1804,29 @@ export default function LandingPage() {
               return (
                 <div 
                   key={idx} 
-                  className="group relative rounded-2xl p-4 lg:p-4.5 bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between min-h-[145px] lg:min-h-[155px] w-full overflow-hidden cursor-pointer select-none text-slate-800"
+                  className="group relative rounded-2xl p-3.5 lg:p-4 bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between h-[88px] lg:h-[96px] w-full overflow-hidden cursor-pointer select-none text-slate-800"
                 >
-                  {/* Top Delicate Accent Bar */}
-                  <div 
-                    className="absolute top-0 left-0 right-0 h-1 transition-all duration-300 group-hover:h-1.5"
-                    style={{ backgroundColor: styleInfo.color }}
-                  />
-
-                  {/* Subtle Ambient Watermark Background Icon */}
-                  <div 
-                    className="absolute -right-2 -bottom-2 w-20 h-20 transition-all duration-500 pointer-events-none flex items-center justify-center opacity-25 group-hover:opacity-60 z-0"
-                    style={{ color: hexToRgba(styleInfo.color, 0.15) }}
-                  >
-                    <IconComponent size={72} strokeWidth={1.2} />
-                  </div>
-
-                  {/* TOP ROW: Badge Singkatan Keahlian (Pastel Pill) & Floating Logo */}
-                  <div className="relative z-10 flex items-start justify-between gap-2.5 w-full">
-                    <div 
-                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-2xs border transition-colors shrink-0"
-                      style={{
-                        backgroundColor: hexToRgba(styleInfo.color, 0.08),
-                        borderColor: hexToRgba(styleInfo.color, 0.22),
-                        color: styleInfo.color
-                      }}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: styleInfo.color }} />
-                      <span>{appSettings[`partnerBadge${idx}`] || getMajorAbbreviation(name, idx)}</span>
-                    </div>
-
-                    {/* Clean Logo Container */}
-                    <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl bg-slate-50/90 border border-slate-200/70 p-1 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 group-hover:scale-105 transition-all duration-300">
+                  {/* Top Row: Logo Container on Right */}
+                  <div className="flex items-start justify-end w-full">
+                    <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-slate-50/90 border border-slate-200/70 p-1 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 group-hover:scale-105 transition-all duration-300">
                       {imageSrc ? (
                         <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center" style={{ color: styleInfo.color }}>
-                          <IconComponent size={20} strokeWidth={2.2} />
+                          <IconComponent size={18} strokeWidth={2.2} />
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* MIDDLE: Major Title & Tagline */}
-                  <div className="relative z-10 my-2 flex-1 flex flex-col justify-center min-w-0">
-                    <h3 className="text-xs sm:text-[13px] lg:text-[14px] font-black text-slate-900 tracking-tight leading-snug uppercase group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2">
+                  {/* Bottom: Major Title & Tagline */}
+                  <div className="min-w-0 pr-1">
+                    <h3 className="text-xs lg:text-[13px] font-black text-slate-900 tracking-tight leading-snug uppercase group-hover:text-[var(--ui-primary)] transition-colors truncate">
                       {name}
                     </h3>
-                    <p className="text-[10.5px] font-semibold text-slate-400 group-hover:text-slate-500 mt-0.5 line-clamp-1 transition-colors">
+                    <p className="text-[10px] lg:text-[10.5px] font-semibold text-slate-400 group-hover:text-slate-500 mt-0.5 truncate transition-colors">
                       {desc || styleInfo.tagline}
                     </p>
-                  </div>
-
-                  {/* BOTTOM ROW: Accreditation Pill & Action Arrow */}
-                  <div className="relative z-10 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                    <div className="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-500 group-hover:text-slate-700 transition-colors">
-                      <CheckCircle2 size={12} strokeWidth={2.4} style={{ color: styleInfo.color }} className="shrink-0" />
-                      <span className="truncate">{appSettings[`partnerTag${idx}`] || appSettings.programBottomTag || "Standar Industri"}</span>
-                    </div>
-
-                    <div className="w-6.5 h-6.5 rounded-full bg-slate-100/90 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white group-hover:scale-110 transition-all duration-300 flex items-center justify-center shadow-2xs shrink-0">
-                      <ArrowUpRight size={12} strokeWidth={2.5} />
-                    </div>
                   </div>
                 </div>
               );
@@ -1893,8 +1836,8 @@ export default function LandingPage() {
 
         {/* MITRA & KERJASAMA (Clean Spacious Borderless Marquee) */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <div className="shrink-0 my-6 lg:my-8 mitra-kerjasama-section relative z-10">
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-3.5 px-6 md:px-8 w-full flex items-center gap-5">
+          <div className="shrink-0 my-3 lg:my-4 mitra-kerjasama-section relative z-10">
+            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-2.5 lg:py-3 px-6 md:px-8 w-full flex items-center gap-5">
               <span className="text-[10px] lg:text-[10.5px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
                 Mitra Industri & Kerjasama
               </span>
@@ -1923,7 +1866,7 @@ export default function LandingPage() {
 
             {/* DESKTOP FOOTER */}
       <footer className="hidden md:block w-full bg-white/85 backdrop-blur-xl border-t border-slate-200/90 relative z-20 mt-auto print:hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-10">
+        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-6 lg:py-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
             
             {/* Column 1: Brand Profile & Status (5 cols) */}
