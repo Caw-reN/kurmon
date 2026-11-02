@@ -4,7 +4,7 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { 
   MessageSquare, Send, LayoutTemplate, Pin, Calendar, User, EyeOff, Eye, Trash2, Edit2,
   AlertTriangle, AlertOctagon, Info, CheckCircle2, Wrench, Shield, Clock, Phone,
-  Sparkles, Megaphone, Power, Award, Monitor, Lock, ShieldCheck, Sliders, RefreshCw, LogIn, Check
+  Sparkles, Megaphone, Power, Award, Monitor, Lock, ShieldCheck, Sliders, RefreshCw, LogIn
 } from 'lucide-react';
 import { UISelect } from '../../../components/ui.jsx';
 import { useAppStore } from '../../../store/useAppStore.js';
@@ -179,70 +179,34 @@ export default function TabPesan(props) {
 
   return (
     <div className="flex flex-col gap-5 sm:gap-6 w-full animate-in fade-in duration-300">
+      {/* PageHeader Terintegrasi Sub-Tabs (Sesuai Standar Konsistensi Web & Theme) */}
       <PageHeader
         title="Pusat Pesan & Informasi Sistem"
         icon={MessageSquare}
         description="Kelola pengumuman dashboard, siaran peringatan instan (alert banner), dan kontrol mode pemeliharaan (maintenance) aplikasi."
+        tabs={[
+          {
+            id: 'pesan',
+            label: `Pengumuman (${dashboardMessages.length})`,
+            icon: MessageSquare
+          },
+          {
+            id: 'siaran',
+            label: broadcastForm.isActive ? 'Pita Siaran (Aktif)' : 'Pita Peringatan & Siaran',
+            icon: Megaphone
+          },
+          {
+            id: 'maintenance',
+            label: maintenanceForm.isActive ? 'Maintenance (Aktif)' : 'Mode Pemeliharaan',
+            icon: Wrench
+          }
+        ]}
+        activeTab={activeSubTab}
+        onTabChange={setActiveSubTab}
       />
 
-      {/* Modern Sub-Tab Pill Navigation (Mengikuti Standar Kustomisasi Web) */}
-      <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-[var(--ui-radius-card)] border border-slate-200/80 w-fit shadow-2xs">
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('pesan')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
-            activeSubTab === 'pesan'
-              ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
-          }`}
-        >
-          <MessageSquare size={15} className="shrink-0" />
-          <span>Pengumuman Dashboard</span>
-          <span className="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
-            {dashboardMessages.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('siaran')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
-            activeSubTab === 'siaran'
-              ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
-          }`}
-        >
-          <Megaphone size={15} className="shrink-0" />
-          <span>Pita Peringatan &amp; Siaran</span>
-          {broadcastForm.isActive && (
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveSubTab('maintenance')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
-            activeSubTab === 'maintenance'
-              ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
-          }`}
-        >
-          <Wrench size={15} className="shrink-0" />
-          <span>Mode Pemeliharaan</span>
-          {maintenanceForm.isActive && (
-            <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-50 border border-rose-200 text-rose-700 text-[9px] font-black uppercase tracking-wider">
-              Aktif
-            </span>
-          )}
-        </button>
-      </div>
-
       {/* ========================================================================= */}
-      {/* TAB 1: PENGUMUMAN DASHBOARD (ORIGINAL LOGIC)                               */}
+      {/* TAB 1: PENGUMUMAN DASHBOARD                                               */}
       {/* ========================================================================= */}
       {activeSubTab === 'pesan' && (
         <div
@@ -250,17 +214,17 @@ export default function TabPesan(props) {
         >
           {/* Form Buat Pesan */}
           {canEdit && (
-            <section className="ui-card h-fit flex flex-col bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
-              <div className="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/50 to-white">
+            <section className="ui-card h-fit flex flex-col bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden">
+              <div className="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/60 to-white flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
-                    <MessageSquare size={18} />
+                  <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 shadow-2xs">
+                    <MessageSquare size={18} strokeWidth={2.2} />
                   </div>
                   <div>
-                    <h2 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
+                    <h2 className="text-base md:text-lg font-black text-slate-800 tracking-tight leading-tight">
                       Buat Pengumuman
                     </h2>
-                    <p className="text-[11px] md:text-xs text-slate-500 font-medium">
+                    <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
                       Pesan akan tayang di dasbor pengguna.
                     </p>
                   </div>
@@ -269,7 +233,7 @@ export default function TabPesan(props) {
 
               <div className="p-4 md:p-5 space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                     Judul Pesan <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -280,12 +244,12 @@ export default function TabPesan(props) {
                         title: e.target.value
                       })
                     }
-                    className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all outline-none"
+                    className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     placeholder="Contoh: Rapat evaluasi pekan ini"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                     Isi Pesan <span className="text-rose-500">*</span>
                   </label>
                   <textarea
@@ -296,14 +260,14 @@ export default function TabPesan(props) {
                         body: e.target.value
                       })
                     }
-                    className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-sm font-semibold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 min-h-[100px] transition-all resize-y outline-none"
+                    className="w-full min-h-[96px] p-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-semibold text-slate-800 transition-all outline-none resize-y shadow-2xs"
                     placeholder="Tulis pengumuman singkat dan jelas..."
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                       Target
                     </label>
                     <UISelect
@@ -314,7 +278,7 @@ export default function TabPesan(props) {
                           target: e.target.value
                         })
                       }
-                      className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] outline-none"
+                      className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     >
                       {DASHBOARD_MESSAGE_TARGETS.map((target) => (
                         <option key={target.value} value={target.value}>
@@ -324,7 +288,7 @@ export default function TabPesan(props) {
                     </UISelect>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                       Prioritas
                     </label>
                     <UISelect
@@ -335,7 +299,7 @@ export default function TabPesan(props) {
                           priority: e.target.value
                         })
                       }
-                      className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] outline-none"
+                      className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     >
                       {DASHBOARD_MESSAGE_PRIORITIES.map((priority) => (
                         <option key={priority.value} value={priority.value}>
@@ -348,7 +312,7 @@ export default function TabPesan(props) {
 
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
                   <div>
-                    <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                       Mulai Tampil
                     </label>
                     <input
@@ -360,11 +324,11 @@ export default function TabPesan(props) {
                           startDate: e.target.value
                         })
                       }
-                      className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all outline-none"
+                      className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                    <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                       Selesai Tampil
                     </label>
                     <input
@@ -376,16 +340,21 @@ export default function TabPesan(props) {
                           endDate: e.target.value
                         })
                       }
-                      className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all outline-none"
+                      className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     />
                   </div>
                 </div>
 
-                <label className="flex items-center justify-between gap-3 bg-slate-50/50 border border-slate-200 rounded-[var(--ui-radius-small)] px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors mt-2">
-                  <span className="text-xs font-bold text-slate-700">
-                    Sematkan (Pin) di Dashboard
-                  </span>
-                  <div className="relative inline-block w-9 h-5">
+                <label className="p-3.5 rounded-[var(--ui-radius-control)] bg-slate-50/80 border border-slate-200/90 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/60 transition-colors shadow-2xs">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">
+                      Sematkan (Pin) di Dashboard
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 block">
+                      Pesan akan selalu berada di posisi paling atas dasbor.
+                    </span>
+                  </div>
+                  <div className="relative inline-block w-11 h-6 shrink-0">
                     <input
                       type="checkbox"
                       checked={!!dashboardMessageForm.pinned}
@@ -397,18 +366,19 @@ export default function TabPesan(props) {
                       }
                       className="peer sr-only"
                     />
-                    <div className="w-9 h-5 bg-slate-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[var(--ui-primary)]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--ui-primary)]"></div>
+                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--ui-primary)] shadow-inner"></div>
                   </div>
                 </label>
 
-                <div className="pt-4">
+                <div className="pt-2">
                   <button
                     type="button"
                     onClick={handleSaveDashboardMessage}
-                    className="w-full flex justify-center items-center gap-2 px-4 py-3 rounded-[var(--ui-radius-small)] text-white font-bold text-sm tracking-wide shadow-sm hover:opacity-90 hover:-translate-y-0.5 transition-all outline-none cursor-pointer"
+                    className="w-full h-10 px-6 rounded-[var(--ui-radius-control)] text-white font-black text-xs uppercase tracking-wider shadow-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer inline-flex items-center justify-center gap-2"
                     style={{ backgroundColor: 'var(--ui-primary)' }}
                   >
-                    <Send size={16} /> Publikasikan Pengumuman
+                    <Send size={15} />
+                    <span>Publikasikan Pengumuman</span>
                   </button>
                 </div>
               </div>
@@ -416,32 +386,32 @@ export default function TabPesan(props) {
           )}
 
           {/* Daftar Pesan */}
-          <section className="ui-card flex flex-col h-full min-h-[400px] bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between gap-4">
+          <section className="ui-card flex flex-col h-full min-h-[420px] bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden">
+            <div className="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/60 to-white flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
+                <h2 className="text-base md:text-lg font-black text-slate-800 tracking-tight leading-tight">
                   Daftar Pengumuman
                 </h2>
-                <p className="text-[11px] md:text-xs text-slate-500 font-medium">
+                <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
                   {dashboardMessages.length} pesan tersimpan dalam sistem.
                 </p>
               </div>
-              <div className="w-9 h-9 md:w-10 md:h-10 rounded-[var(--ui-radius-small)] bg-slate-50 border flex items-center justify-center text-slate-400 shrink-0">
-                <LayoutTemplate size={16} />
+              <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-500 shrink-0 shadow-2xs">
+                <LayoutTemplate size={18} strokeWidth={2.2} />
               </div>
             </div>
 
             <div className="p-4 md:p-5 space-y-3 md:space-y-4 flex-1 bg-slate-50/30">
               {dashboardMessages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center py-12 px-6 bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-small)]">
-                  <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mb-4">
-                    <MessageSquare size={24} />
+                <div className="flex flex-col items-center justify-center h-full text-center py-12 px-6 bg-white border border-dashed border-slate-300 rounded-[var(--ui-radius-card)]">
+                  <div className="w-14 h-14 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-3">
+                    <MessageSquare size={22} />
                   </div>
-                  <h3 className="text-base md:text-lg font-bold text-slate-700">
+                  <h3 className="text-sm md:text-base font-black text-slate-700">
                     Belum Ada Pengumuman
                   </h3>
-                  <p className="text-[11px] md:text-sm font-medium text-slate-500 mt-2 max-w-sm">
-                    Buat pesan baru menggunakan form di sebelah kiri untuk
+                  <p className="text-xs font-semibold text-slate-400 mt-1 max-w-sm">
+                    Buat pesan baru menggunakan formulir di sebelah kiri untuk
                     menampilkannya di dashboard pengguna.
                   </p>
                 </div>
@@ -456,11 +426,11 @@ export default function TabPesan(props) {
                   return (
                     <article
                       key={message.id}
-                      className={`relative border bg-white rounded-[var(--ui-radius-card)] ${isActive ? "border-slate-200 shadow-sm" : "border-slate-100 opacity-60 bg-slate-50/50"} p-4 md:p-5 transition-all group`}
+                      className={`relative border bg-white rounded-[var(--ui-radius-card)] ${isActive ? "border-slate-200/90 shadow-2xs" : "border-slate-100 opacity-60 bg-slate-50/50"} p-4 md:p-5 transition-all group`}
                     >
                       {message.pinned && isActive && (
                         <div 
-                          className="absolute -top-2 -right-2 w-7 h-7 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-sm z-10 cursor-pointer transition-colors" 
+                          className="absolute -top-2 -right-2 w-7 h-7 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-xs z-10 cursor-pointer transition-colors" 
                           title="Disematkan (Pinned). Klik untuk melepaskan sematan."
                           onClick={() => {
                             if (updateDashboardMessage) {
@@ -480,37 +450,37 @@ export default function TabPesan(props) {
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mb-2.5">
                             <span
-                              className={`px-2 py-0.5 rounded-[var(--ui-radius-small)] border text-[10px] font-bold tracking-wide ${priority.className}`}
+                              className={`px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] border text-[10px] font-black tracking-wide uppercase ${priority.className}`}
                             >
                               {priority.label}
                             </span>
-                            <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 text-[10px] font-bold border border-slate-200 tracking-wide">
+                            <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-100 text-slate-600 text-[10px] font-black uppercase border border-slate-200/80 tracking-wide">
                               Untuk: {DASHBOARD_MESSAGE_TARGETS.find(
                                 (t) => t.value === message.target,
                               )?.label || "Semua"}
                             </span>
                             {!isActive && (
-                              <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-200 text-slate-600 text-[10px] font-bold uppercase border border-slate-300 tracking-wide">
+                              <span className="px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-slate-200 text-slate-600 text-[10px] font-black uppercase border border-slate-300 tracking-wide">
                                 Nonaktif
                               </span>
                             )}
                           </div>
 
-                          <h3 className="text-base md:text-lg font-bold text-slate-800 leading-snug">
+                          <h3 className="text-sm md:text-base font-black text-slate-800 leading-snug">
                             {message.title}
                           </h3>
-                          <p className="text-[13px] md:text-sm text-slate-600 mt-1.5 leading-relaxed whitespace-pre-wrap break-words">
+                          <p className="text-xs md:text-sm text-slate-600 mt-1.5 leading-relaxed whitespace-pre-wrap break-words font-medium">
                             {message.body}
                           </p>
 
                           <div className="flex flex-wrap items-center gap-3 md:gap-4 mt-3 pt-3 border-t border-slate-100">
-                            <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-semibold text-slate-500">
+                            <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold text-slate-500">
                               <Calendar size={12} />
                               <span>{message.startDate || "Sekarang"}</span>
                               <span className="text-slate-300">&rarr;</span>
                               <span>{message.endDate || "Seterusnya"}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-semibold text-slate-500">
+                            <div className="flex items-center gap-1.5 text-[10px] md:text-[11px] font-bold text-slate-500">
                               <User size={12} />
                               <span>Oleh {message.createdBy || "Sistem"}</span>
                             </div>
@@ -534,7 +504,7 @@ export default function TabPesan(props) {
                                   });
                                   window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
-                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-indigo-100 hover:border-indigo-200"
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 border-indigo-100 hover:border-indigo-200"
                               >
                                 <Edit2 size={13} />
                                 <span>Edit</span>
@@ -545,7 +515,7 @@ export default function TabPesan(props) {
                                     !isActive,
                                   )
                                 }
-                                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] ${isActive ? "bg-white border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50" : "bg-[var(--ui-primary)] text-white border-transparent shadow-sm"}`}
+                                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] text-xs font-bold ${isActive ? "bg-white border-slate-200 text-slate-600 hover:text-amber-600 hover:border-amber-200 hover:bg-amber-50" : "bg-[var(--ui-primary)] text-white border-transparent shadow-sm"}`}
                               >
                                 {isActive ? (
                                   <>
@@ -559,7 +529,7 @@ export default function TabPesan(props) {
                               </Button>
                               <Button variant="outline" size="sm"
                                 onClick={() => handleRemoveDashboardMessageSafe(message.id)}
-                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 text-[11px] text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-100 hover:border-rose-200"
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-100 hover:border-rose-200"
                               >
                                 <Trash2 size={13} />
                                 <span>Hapus</span>
@@ -622,14 +592,14 @@ export default function TabPesan(props) {
                   <span className={`text-[11px] font-black uppercase tracking-wider ${broadcastForm.isActive ? 'text-amber-700' : 'text-slate-400'}`}>
                     {broadcastForm.isActive ? 'Tayang' : 'Mati'}
                   </span>
-                  <div className="relative inline-block w-12 h-7">
+                  <div className="relative inline-block w-11 h-6 shrink-0">
                     <input
                       type="checkbox"
                       checked={broadcastForm.isActive}
                       onChange={(e) => setBroadcastForm({ ...broadcastForm, isActive: e.target.checked })}
                       className="peer sr-only"
                     />
-                    <div className="w-12 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
+                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
                   </div>
                 </label>
               </div>
@@ -644,7 +614,7 @@ export default function TabPesan(props) {
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Batas Input Jurnal KBM", "Harap seluruh bapak/ibu guru melengkapi pengisian jurnal KBM hari ini sebelum jam 15.00 WIB.", "warning")}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
                   <Clock size={13} className="text-amber-600 shrink-0" />
                   <span>Batas Input Jurnal</span>
@@ -652,7 +622,7 @@ export default function TabPesan(props) {
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Pemberitahuan Mendesak", "Jadwal KBM hari ini dipadatkan sampai pukul 12.00 WIB sehubungan dengan agenda rapat dinas.", "danger")}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100/80 border border-rose-200/90 text-rose-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100/80 border border-rose-200/90 text-rose-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
                   <AlertOctagon size={13} className="text-rose-600 shrink-0" />
                   <span>Pengumuman Pulang Cepat</span>
@@ -660,7 +630,7 @@ export default function TabPesan(props) {
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Agenda Upacara Hari Senin", "Seluruh siswa dan dewan guru diwajibkan mengenakan seragam dinas lengkap dan hadir tepat waktu pukul 06.45 WIB.", "info")}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
                   <Info size={13} className="text-sky-600 shrink-0" />
                   <span>Agenda Upacara</span>
@@ -668,7 +638,7 @@ export default function TabPesan(props) {
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Selamat & Sukses", "Selamat atas prestasi Juara 1 LKS tingkat wilayah yang diraih oleh perwakilan siswa sekolah kita!", "success")}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[var(--ui-radius-control)] bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
                   <Award size={13} className="text-emerald-600 shrink-0" />
                   <span>Berita Prestasi</span>
@@ -681,25 +651,25 @@ export default function TabPesan(props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Tipe Notifikasi */}
                 <div>
-                  <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                     Jenis Siaran (Tingkat Urgensi)
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { value: "warning", label: "Peringatan", icon: AlertTriangle, color: "text-amber-700 border-amber-300 bg-amber-50" },
-                      { value: "danger", label: "Darurat / Penting", icon: AlertOctagon, color: "text-rose-700 border-rose-300 bg-rose-50" },
-                      { value: "info", label: "Informasi Resmi", icon: Info, color: "text-sky-700 border-sky-300 bg-sky-50" },
-                      { value: "success", label: "Sukses / Berita", icon: CheckCircle2, color: "text-emerald-700 border-emerald-300 bg-emerald-50" }
+                      { value: "danger", label: "Darurat", icon: AlertOctagon, color: "text-rose-700 border-rose-300 bg-rose-50" },
+                      { value: "info", label: "Informasi", icon: Info, color: "text-sky-700 border-sky-300 bg-sky-50" },
+                      { value: "success", label: "Berita", icon: CheckCircle2, color: "text-emerald-700 border-emerald-300 bg-emerald-50" }
                     ].map(t => (
                       <button
                         key={t.value}
                         type="button"
                         onClick={() => setBroadcastForm({ ...broadcastForm, type: t.value })}
-                        className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          broadcastForm.type === t.value ? `${t.color} ring-2 ring-slate-800 shadow-2xs` : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                        className={`flex items-center gap-2 h-9 px-3 rounded-[var(--ui-radius-control)] border text-xs font-bold transition-all cursor-pointer ${
+                          broadcastForm.type === t.value ? `${t.color} ring-2 ring-[var(--ui-primary)] shadow-2xs` : 'bg-slate-50/80 border-slate-200 text-slate-600 hover:bg-slate-100'
                         }`}
                       >
-                        <t.icon size={15} />
+                        <t.icon size={14} className="shrink-0" />
                         <span className="truncate">{t.label}</span>
                       </button>
                     ))}
@@ -708,13 +678,13 @@ export default function TabPesan(props) {
 
                 {/* Target Audiens */}
                 <div>
-                  <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                     Target Penerima
                   </label>
                   <UISelect
                     value={broadcastForm.target}
                     onChange={(e) => setBroadcastForm({ ...broadcastForm, target: e.target.value })}
-                    className="w-full border border-slate-200 bg-slate-50 px-3 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:bg-white outline-none"
+                    className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                   >
                     <option value="all">Semua Pengguna (Civitas Akademika)</option>
                     <option value="guru">Khusus Bapak/Ibu Guru Saja</option>
@@ -729,7 +699,7 @@ export default function TabPesan(props) {
 
               {/* Judul Peringatan */}
               <div>
-                <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                   Judul Singkat Siaran <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -737,13 +707,13 @@ export default function TabPesan(props) {
                   value={broadcastForm.title}
                   onChange={(e) => setBroadcastForm({ ...broadcastForm, title: e.target.value })}
                   placeholder="Misal: Batas Akhir Input Nilai"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all"
+                  className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                 />
               </div>
 
               {/* Isi Pesan Peringatan */}
               <div>
-                <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                   Isi Pesan Peringatan <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -751,35 +721,41 @@ export default function TabPesan(props) {
                   value={broadcastForm.message}
                   onChange={(e) => setBroadcastForm({ ...broadcastForm, message: e.target.value })}
                   placeholder="Tulis pesan lengkap yang ingin disiarkan ke pengguna..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none transition-all resize-y"
+                  className="w-full min-h-[96px] p-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/15 text-xs font-semibold text-slate-800 transition-all outline-none resize-y shadow-2xs"
                 />
               </div>
 
-              {/* Opsi Tambahan */}
+              {/* Opsi Tambahan (Standardized Toggle Cards) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={broadcastForm.isPopup}
-                    onChange={(e) => setBroadcastForm({ ...broadcastForm, isPopup: e.target.checked })}
-                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-                  />
+                <label className="p-3.5 rounded-[var(--ui-radius-control)] bg-slate-50/80 border border-slate-200/90 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/60 transition-colors shadow-2xs">
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block">Tampilkan sebagai Pop-up Modal</span>
-                    <span className="text-[10px] font-semibold text-slate-400 block">Dialog peringatan akan langsung muncul begitu pengguna membuka aplikasi.</span>
+                    <span className="text-xs font-bold text-slate-800 block">Tampilkan Pop-up Modal</span>
+                    <span className="text-[10px] font-semibold text-slate-400 block">Muncul otomatis saat membuka aplikasi.</span>
+                  </div>
+                  <div className="relative inline-block w-11 h-6 shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={broadcastForm.isPopup}
+                      onChange={(e) => setBroadcastForm({ ...broadcastForm, isPopup: e.target.checked })}
+                      className="peer sr-only"
+                    />
+                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 cursor-pointer transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={broadcastForm.dismissible}
-                    onChange={(e) => setBroadcastForm({ ...broadcastForm, dismissible: e.target.checked })}
-                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
-                  />
+                <label className="p-3.5 rounded-[var(--ui-radius-control)] bg-slate-50/80 border border-slate-200/90 flex items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/60 transition-colors shadow-2xs">
                   <div>
                     <span className="text-xs font-bold text-slate-800 block">Dapat Ditutup Pengguna</span>
-                    <span className="text-[10px] font-semibold text-slate-400 block">Pengguna dapat menekan tombol silang (X) untuk menyembunyikan banner.</span>
+                    <span className="text-[10px] font-semibold text-slate-400 block">Pengguna dapat klik (X) untuk sembunyikan.</span>
+                  </div>
+                  <div className="relative inline-block w-11 h-6 shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={broadcastForm.dismissible}
+                      onChange={(e) => setBroadcastForm({ ...broadcastForm, dismissible: e.target.checked })}
+                      className="peer sr-only"
+                    />
+                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
                   </div>
                 </label>
               </div>
@@ -791,7 +767,7 @@ export default function TabPesan(props) {
                 type="button"
                 onClick={handleSaveBroadcast}
                 disabled={isSavingBroadcast}
-                className="h-10 px-6 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-60"
+                className="h-10 px-6 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs uppercase tracking-wider shadow-sm transition-all active:scale-[0.98] cursor-pointer disabled:opacity-60 inline-flex items-center justify-center gap-2"
               >
                 <Send size={14} strokeWidth={2.4} />
                 <span>{isSavingBroadcast ? "Menyimpan & Menyiarkan..." : "Simpan & Siarkan Pengumuman"}</span>
@@ -801,21 +777,21 @@ export default function TabPesan(props) {
 
           {/* Pratinjau Tampilan Siaran Langsung */}
           <aside className="space-y-4">
-            <div className="ui-card bg-slate-50/80 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3.5">
+            <div className="ui-card bg-slate-50/80 border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-5 space-y-4">
               <div className="flex items-center gap-2 text-slate-700">
                 <Sparkles size={16} className="text-amber-500" />
                 <h4 className="text-xs font-black uppercase tracking-wider">Pratinjau Siaran (Live Preview)</h4>
               </div>
               <p className="text-[11px] font-semibold text-slate-400 leading-relaxed">
-                Beginilah tampilan pita pemberitahuan yang akan muncul di layar seluruh pengguna target:
+                Tampilan pita pemberitahuan yang akan muncul di layar seluruh pengguna target:
               </p>
 
               {/* Preview Pita Banner */}
-              <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2">
+              <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/90 shadow-2xs space-y-2">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
                   Pita Atas (Top Alert Ribbon)
                 </span>
-                <div className={`p-3 rounded-lg border text-left flex items-start gap-2.5 ${
+                <div className={`p-3 rounded-[var(--ui-radius-control)] border text-left flex items-start gap-2.5 ${
                   broadcastForm.type === 'danger' ? 'bg-rose-50 border-rose-200 text-rose-950' :
                   broadcastForm.type === 'info' ? 'bg-sky-50 border-sky-200 text-sky-950' :
                   broadcastForm.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-950' :
@@ -840,17 +816,17 @@ export default function TabPesan(props) {
 
               {/* Preview Pop-Up Modal */}
               {broadcastForm.isPopup && (
-                <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2">
+                <div className="p-3.5 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/90 shadow-2xs space-y-2">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
                     Dialog Pop-Up (Modal View)
                   </span>
-                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-center flex flex-col items-center gap-2">
+                  <div className="p-4 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50 text-center flex flex-col items-center gap-2">
                     <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
                       <AlertTriangle size={18} />
                     </div>
                     <strong className="text-xs font-black text-slate-800">{broadcastForm.title || "Judul"}</strong>
                     <p className="text-[10px] text-slate-600 leading-snug">{broadcastForm.message || "Isi pesan..."}</p>
-                    <div className="w-full mt-1 py-1.5 rounded-lg bg-amber-600 text-white text-[10px] font-bold">
+                    <div className="w-full mt-1 py-1.5 rounded-[var(--ui-radius-control)] bg-amber-600 text-white text-[10px] font-bold">
                       Saya Mengerti
                     </div>
                   </div>
@@ -908,14 +884,14 @@ export default function TabPesan(props) {
                   <span className={`text-[11px] font-black uppercase tracking-wider ${maintenanceForm.isActive ? 'text-rose-700' : 'text-emerald-700'}`}>
                     {maintenanceForm.isActive ? 'Aktif' : 'Nonaktif'}
                   </span>
-                  <div className="relative inline-block w-12 h-7">
+                  <div className="relative inline-block w-11 h-6 shrink-0">
                     <input
                       type="checkbox"
                       checked={maintenanceForm.isActive}
                       onChange={(e) => setMaintenanceForm({ ...maintenanceForm, isActive: e.target.checked })}
                       className="peer sr-only"
                     />
-                    <div className={`w-12 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all ${
+                    <div className={`w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all ${
                       maintenanceForm.isActive ? 'peer-checked:bg-rose-600' : 'peer-checked:bg-emerald-600'
                     } shadow-inner`}></div>
                   </div>
@@ -933,7 +909,7 @@ export default function TabPesan(props) {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                   Judul Layar Pemeliharaan <span className="text-rose-500">*</span>
                 </label>
                 <input
@@ -941,26 +917,26 @@ export default function TabPesan(props) {
                   value={maintenanceForm.title}
                   onChange={(e) => setMaintenanceForm({ ...maintenanceForm, title: e.target.value })}
                   placeholder="Misal: Sistem Sedang Dalam Pemeliharaan Berkala"
-                  className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all shadow-2xs"
+                  className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                   Pesan / Penjelasan untuk Pengguna <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={maintenanceForm.message}
                   onChange={(e) => setMaintenanceForm({ ...maintenanceForm, message: e.target.value })}
-                  placeholder="Tulis alasan atau instruksi selama pemeliharaan berlangsung..."
-                  className="w-full px-3.5 py-2.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all resize-y shadow-2xs"
+                  placeholder="Tulis alasan atau keterangan pemeliharaan yang ditampilkan kepada pengguna..."
+                  className="w-full min-h-[96px] p-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-semibold text-slate-800 transition-all outline-none resize-y shadow-2xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                     Perkiraan Selesai (Estimasi Waktu)
                   </label>
                   <div className="relative">
@@ -970,13 +946,13 @@ export default function TabPesan(props) {
                       value={maintenanceForm.estimatedEnd}
                       onChange={(e) => setMaintenanceForm({ ...maintenanceForm, estimatedEnd: e.target.value })}
                       placeholder="Contoh: Pukul 15:00 WIB"
-                      className="w-full h-10 pl-9 pr-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all shadow-2xs"
+                      className="w-full h-10 pl-9 pr-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
+                  <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 ml-0.5 mb-1.5 block">
                     Kontak Bantuan / WhatsApp Admin
                   </label>
                   <div className="relative">
@@ -986,7 +962,7 @@ export default function TabPesan(props) {
                       value={maintenanceForm.contactInfo}
                       onChange={(e) => setMaintenanceForm({ ...maintenanceForm, contactInfo: e.target.value })}
                       placeholder="Contoh: 0812-3456-7890 (Admin IT)"
-                      className="w-full h-10 pl-9 pr-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all shadow-2xs"
+                      className="w-full h-10 pl-9 pr-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/15 text-xs font-bold text-slate-800 transition-all outline-none shadow-2xs"
                     />
                   </div>
                 </div>
@@ -1007,7 +983,7 @@ export default function TabPesan(props) {
                 type="button"
                 onClick={handleSaveMaintenance}
                 disabled={isSavingMaintenance}
-                className={`h-10 px-6 rounded-[var(--ui-radius-control)] font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-60 text-white ${
+                className={`h-10 px-6 rounded-[var(--ui-radius-control)] font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98] cursor-pointer disabled:opacity-60 text-white ${
                   maintenanceForm.isActive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)]'
                 }`}
               >
@@ -1025,7 +1001,7 @@ export default function TabPesan(props) {
 
           {/* Pratinjau Layar Pemeliharaan (Browser Device Mockup) */}
           <aside className="space-y-4">
-            <div className="ui-card bg-slate-50/80 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3.5">
+            <div className="ui-card bg-slate-50/80 border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-5 space-y-4">
               <div className="flex items-center gap-2 text-slate-700">
                 <Monitor size={16} className="text-[var(--ui-primary)]" />
                 <h4 className="text-xs font-black uppercase tracking-wider">Pratinjau Layar Maintenance</h4>
@@ -1035,7 +1011,7 @@ export default function TabPesan(props) {
               </p>
 
               {/* Browser Window Mockup Frame */}
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden text-center flex flex-col">
+              <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/90 shadow-sm overflow-hidden text-center flex flex-col">
                 
                 {/* Browser Window Top Bar */}
                 <div className="bg-slate-100/90 px-3 py-2 border-b border-slate-200 flex items-center justify-between gap-2 shrink-0">
@@ -1051,17 +1027,17 @@ export default function TabPesan(props) {
                   <div className="w-7 shrink-0" />
                 </div>
 
-                {/* Live Preview Canvas */}
+                {/* Live Preview Canvas (Matching Image 4) */}
                 <div 
-                  className="p-5 flex flex-col items-center gap-3 relative select-none"
+                  className="p-5 sm:p-6 flex flex-col items-center gap-3 relative select-none"
                   style={{
                     background: "radial-gradient(ellipse at 50% 20%, #f0fdf4 0%, #f8fafc 60%, #e2e8f0 100%)"
                   }}
                 >
                   {/* Maintenance Icon Badge with Clock Sub-badge */}
-                  <div className="relative mt-1">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-300 text-amber-600 flex items-center justify-center shadow-xs">
-                      <Wrench size={26} strokeWidth={2.2} />
+                  <div className="relative mb-2 mt-1">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-300 text-amber-600 flex items-center justify-center shadow-xs">
+                      <Wrench size={30} strokeWidth={2.2} />
                     </div>
                     <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
                       <Clock size={11} strokeWidth={2.5} />
@@ -1069,78 +1045,65 @@ export default function TabPesan(props) {
                   </div>
 
                   {/* Status Pill Badge */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-black tracking-wide uppercase shadow-2xs">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-black tracking-wide uppercase shadow-2xs mb-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                     <span>Mode Pemeliharaan Sistem Aktif</span>
                   </div>
 
                   {/* Title & Description */}
-                  <div className="space-y-1 max-w-[280px]">
-                    <h5 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight leading-snug">
+                  <div className="space-y-1 w-full max-w-xs mb-1">
+                    <h5 className="text-sm sm:text-base font-black text-slate-800 tracking-tight leading-snug">
                       {maintenanceForm.title || "Sistem Sedang Dalam Pemeliharaan"}
                     </h5>
-                    <p className="text-[10px] text-slate-500 font-semibold leading-relaxed line-clamp-3">
+                    <p className="text-xs text-slate-500 font-semibold leading-relaxed line-clamp-3">
                       {maintenanceForm.message || "Aplikasi sedang melakukan peningkatan performa dan sinkronisasi server berkala. Silakan kembali lagi nanti."}
                     </p>
                   </div>
 
-                  {/* 2 Feature Cards (Matching Live Screen) */}
-                  <div className="grid grid-cols-2 gap-2 w-full max-w-[290px] text-left">
-                    <div className="bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 shadow-2xs">
-                      <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                        <CheckCircle2 size={13} strokeWidth={2.4} />
+                  {/* 2 Feature Cards (Matching Image 4) */}
+                  <div className="grid grid-cols-2 gap-2.5 w-full max-w-xs text-left mb-1">
+                    <div className="bg-white/95 border border-slate-200/90 rounded-xl p-2.5 flex items-start gap-2 shadow-2xs">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                        {maintenanceForm.estimatedEnd ? <Clock size={14} strokeWidth={2.4} /> : <CheckCircle2 size={14} strokeWidth={2.4} />}
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Proses</span>
-                        <span className="text-[9.5px] font-black text-slate-700 truncate block">Pembaruan Rutin</span>
+                        <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider block">
+                          {maintenanceForm.estimatedEnd ? "Estimasi" : "Proses Berjalan"}
+                        </span>
+                        <span className="text-[10px] font-black text-slate-700 truncate block mt-0.5">
+                          {maintenanceForm.estimatedEnd || "Pembaruan Rutin"}
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 shadow-2xs">
-                      <div className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                        <Shield size={13} strokeWidth={2.4} />
+                    <div className="bg-white/95 border border-slate-200/90 rounded-xl p-2.5 flex items-start gap-2 shadow-2xs">
+                      <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 mt-0.5">
+                        {maintenanceForm.contactInfo ? <Phone size={14} strokeWidth={2.4} /> : <Shield size={14} strokeWidth={2.4} />}
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Keamanan</span>
-                        <span className="text-[9.5px] font-black text-slate-700 truncate block">Data Aman</span>
+                        <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider block">
+                          {maintenanceForm.contactInfo ? "Bantuan" : "Keamanan Data"}
+                        </span>
+                        <span className="text-[10px] font-black text-slate-700 truncate block mt-0.5">
+                          {maintenanceForm.contactInfo || "Data Aman Terjaga"}
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Dynamic Info Rows if filled */}
-                  {maintenanceForm.estimatedEnd && (
-                    <div className="w-full max-w-[290px] bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 text-left shadow-2xs">
-                      <Clock size={13} className="text-emerald-600 shrink-0" />
-                      <div className="min-w-0 text-[10px]">
-                        <span className="text-slate-400 font-bold mr-1">Selesai:</span>
-                        <span className="text-slate-800 font-black">{maintenanceForm.estimatedEnd}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {maintenanceForm.contactInfo && (
-                    <div className="w-full max-w-[290px] bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 text-left shadow-2xs">
-                      <Phone size={13} className="text-sky-600 shrink-0" />
-                      <div className="min-w-0 text-[10px]">
-                        <span className="text-slate-400 font-bold mr-1">Bantuan:</span>
-                        <span className="text-slate-800 font-black truncate">{maintenanceForm.contactInfo}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Refresh Button Mock */}
-                  <div className="w-full max-w-[290px]">
-                    <div className="w-full py-2 px-3 rounded-xl bg-emerald-600 text-white font-black text-[10px] flex items-center justify-center gap-1.5 shadow-xs">
-                      <RefreshCw size={11} strokeWidth={2.5} />
+                  {/* Refresh Button Mock (Matching Image 4) */}
+                  <div className="w-full max-w-xs mt-1">
+                    <div className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 text-white font-black text-xs flex items-center justify-center gap-2 shadow-xs cursor-default">
+                      <RefreshCw size={13} strokeWidth={2.5} />
                       <span>Muat Ulang / Cek Status Sistem</span>
                     </div>
                   </div>
 
-                  {/* Mini Footer */}
-                  <div className="w-full max-w-[290px] pt-2 border-t border-slate-200/60 flex items-center justify-between text-[9px] text-slate-400 font-bold">
-                    <span>Sekolah • KG2 School</span>
-                    <span className="inline-flex items-center gap-1 text-slate-600 bg-white/80 border border-slate-200/70 px-1.5 py-0.5 rounded shadow-2xs font-extrabold">
-                      <LogIn size={9} />
+                  {/* Mini Footer (Matching Image 4) */}
+                  <div className="w-full max-w-xs pt-3 mt-1 border-t border-slate-200/70 flex items-center justify-between text-[10px] text-slate-400 font-bold">
+                    <span>SMK Negeri 1 • KG2 School</span>
+                    <span className="inline-flex items-center gap-1.5 text-slate-700 bg-white/95 border border-slate-200/90 px-2.5 py-1 rounded-lg shadow-2xs font-extrabold text-[10px]">
+                      <LogIn size={11} strokeWidth={2.4} />
                       <span>Login Admin</span>
                     </span>
                   </div>

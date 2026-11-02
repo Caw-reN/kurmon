@@ -161,10 +161,10 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
           type="button"
           onClick={handleRefresh}
           disabled={isChecking}
-          className="w-full py-3 px-4 rounded-xl text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-98 cursor-pointer disabled:opacity-60"
+          className="w-full h-11 px-4 rounded-[var(--ui-radius-control)] text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] cursor-pointer disabled:opacity-60"
           style={{ background: primaryColor }}
         >
-          <RefreshCw size={16} className={isChecking ? "animate-spin" : ""} />
+          <RefreshCw size={15} className={isChecking ? "animate-spin" : ""} />
           <span>{isChecking ? "Memeriksa Status..." : "Muat Ulang / Cek Status Sistem"}</span>
         </button>
 
@@ -176,7 +176,7 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
           <button
             type="button"
             onClick={() => setShowLoginModal(true)}
-            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-emerald-700 font-black text-xs transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-lg shadow-2xs"
+            className="inline-flex items-center gap-1.5 text-slate-600 hover:text-emerald-700 font-black text-xs transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-[var(--ui-radius-control)] shadow-2xs"
           >
             <LogIn size={13} strokeWidth={2.5} />
             <span>Login Admin</span>
@@ -187,7 +187,7 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
       {/* Admin Login Modal (Bypass during maintenance) */}
       {showLoginModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
+          <div className="w-full max-w-sm bg-white rounded-[var(--ui-radius-card)] border border-slate-200 shadow-2xl p-6 relative animate-in zoom-in-95 duration-200">
             <button
               type="button"
               onClick={() => { setShowLoginModal(false); setLoginError(''); }}
@@ -197,17 +197,17 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
                 <Shield size={20} strokeWidth={2.5} />
               </div>
               <div>
                 <h3 className="text-base font-black text-slate-800 tracking-tight">Akses Administrator</h3>
-                <p className="text-[11px] font-semibold text-slate-400">Masuk untuk mengelola & mematikan maintenance</p>
+                <p className="text-[11px] font-semibold text-slate-400">Masuk untuk mengelola &amp; mematikan maintenance</p>
               </div>
             </div>
 
             {loginError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-start gap-2">
+              <div className="mb-4 p-3 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold flex items-start gap-2">
                 <AlertTriangle size={15} className="shrink-0 mt-0.5 text-rose-500" />
                 <span>{loginError}</span>
               </div>
@@ -215,7 +215,7 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
 
             <form onSubmit={handleAdminLogin} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1 ml-0.5">Username Admin</label>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 ml-0.5">Username Admin</label>
                 <input
                   type="text"
                   autoFocus
@@ -223,26 +223,26 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
                   value={adminUsername}
                   onChange={(e) => setAdminUsername(e.target.value)}
                   placeholder="admin"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 text-xs font-bold text-slate-800 outline-none transition-all shadow-2xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1 ml-0.5">Password</label>
+                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 ml-0.5">Password</label>
                 <input
                   type="password"
                   required
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/80 hover:bg-slate-50 focus:bg-white focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 text-xs font-bold text-slate-800 outline-none transition-all shadow-2xs"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-2 py-2.5 px-4 rounded-xl text-white font-black text-xs flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer disabled:opacity-60"
+                className="w-full mt-2 h-10 px-4 rounded-[var(--ui-radius-control)] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-xs active:scale-[0.98] cursor-pointer disabled:opacity-60"
                 style={{ background: primaryColor }}
               >
                 <LogIn size={15} strokeWidth={2.4} />
