@@ -61,7 +61,7 @@ export default function SilabusPage() {
   }, [dataVersion]);
 
   const { primaryColor, accentColor, fontFamily, appName, logoText, footerText, contactEmail, contactPhone } = appSettings;
-  const shellCard ="bg-white/60 backdrop-blur-xl rounded-[var(--ui-radius-card)] shadow-sm border border-white/50";
+  const shellCard = "bg-white rounded-[var(--ui-radius-card)] shadow-2xs border border-slate-200/90";
   const fieldClass ="bg-slate-50 border-none rounded-[var(--ui-radius-control)] py-2.5 px-3 text-xs font-bold text-slate-700 outline-none focus:bg-white focus:border-slate-300 transition-all cursor-pointer shadow-sm";
   const printButtonClass ="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] font-bold transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-white";
   const subjectButtonClass = (isActive) => `w-full text-left px-3 py-2.5 rounded-[var(--ui-radius-control)] font-bold transition-all flex items-center justify-between border cursor-pointer ${isActive ?"text-white border-transparent -emerald-600/15" :"bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-100"}`;
@@ -136,9 +136,22 @@ export default function SilabusPage() {
 
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 pb-4 border-b border-slate-100 print-hidden">
             <div className="flex-grow">
-              <span className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Detail Administrasi Guru</span>
+              <div 
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 border shadow-2xs"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
+                  color: 'var(--ui-primary, #059669)'
+                }}
+              >
+                <span 
+                  className="w-2 h-2 rounded-full animate-pulse" 
+                  style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+                />
+                Layanan Publik • Administrasi Guru
+              </div>
               <div className="flex flex-wrap items-center gap-3 mt-1">
-                <h2 className="text-[20px] font-black text-slate-800 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
                   {activeSubject ? activeSubject : "Semua Mata Pelajaran"}
                 </h2>
                 <Button

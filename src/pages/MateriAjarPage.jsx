@@ -166,7 +166,7 @@ export default function MateriAjarPage() {
 
   const { primaryColor } = appSettings;
 
-  const shellCard = "bg-white/70 backdrop-blur-xl rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80";
+  const shellCard = "bg-white rounded-[var(--ui-radius-card)] shadow-2xs border border-slate-200/90";
   const searchFieldClass = "w-full bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-control)] py-2 pl-9 pr-3 text-xs font-bold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all shadow-xs";
 
   // Build unique subject list from materi
@@ -236,12 +236,25 @@ export default function MateriAjarPage() {
           {/* Header & Filter Controls Section */}
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 pb-4 border-b border-slate-200/80 print-hidden">
             <div className="flex-grow">
-              <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">E-Learning & Bahan Belajar</span>
+              <div 
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 border shadow-2xs"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
+                  color: 'var(--ui-primary, #059669)'
+                }}
+              >
+                <span 
+                  className="w-2 h-2 rounded-full animate-pulse" 
+                  style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
+                />
+                Layanan Publik • Bahan Belajar
+              </div>
               <div className="flex flex-wrap items-center gap-2.5 mt-0.5">
-                <h2 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
                   {activeSubject ? activeSubject : "Semua Materi Pelajaran"}
                 </h2>
-                <span className="text-xs font-black bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] border border-[var(--ui-primary)]/20">
+                <span className="text-xs font-black bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] px-2.5 py-0.5 rounded-full border border-[var(--ui-primary)]/20">
                   {filteredMateri.length} Materi
                 </span>
               </div>
@@ -596,7 +609,7 @@ function TilesView({
                 <button
                   type="button"
                   onClick={() => onOpenLink(item)}
-                  className="w-full py-1.5 px-3 rounded-[var(--ui-radius-control)] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
+                  className="w-full py-1.5 px-3 rounded-[var(--ui-radius-control)] bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-xs cursor-pointer transition-all"
                 >
                   {getLinkIcon(item.link_url)}
                   <span>{getLinkLabel(item.link_url)}</span>
@@ -884,7 +897,7 @@ function ContentView({
                   <button
                     type="button"
                     onClick={() => onOpenLink(item)}
-                    className="w-full sm:w-auto py-2 px-4 rounded-[var(--ui-radius-control)] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-xs active:scale-95 cursor-pointer transition-all"
+                    className="w-full sm:w-auto py-2 px-4 rounded-[var(--ui-radius-control)] bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white flex items-center justify-center gap-1.5 shadow-xs active:scale-95 cursor-pointer transition-all"
                   >
                     {getLinkIcon(item.link_url)}
                     <span>{getLinkLabel(item.link_url)}</span>

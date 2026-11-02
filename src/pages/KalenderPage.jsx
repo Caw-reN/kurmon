@@ -293,14 +293,7 @@ export default function KalenderPage() {
     <div className="w-full flex flex-col gap-6 select-none animate-in fade-in duration-300 pb-12">
       
       {/* ── 1. HERO HEADER CARD (SEJAJAR DENGAN NAVBAR & KONSISTEN) ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50/40 rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/80 shadow-sm">
-        {/* Subtle Ambient Glow */}
-        <div 
-          className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-3xl pointer-events-none opacity-20" 
-          style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-        />
-        <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
-
+      <div className="relative overflow-hidden bg-white rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/90 shadow-2xs">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           
           {/* Header Title & Subtitle (Desktop only, mobile title is in top bar) */}
@@ -331,7 +324,7 @@ export default function KalenderPage() {
 
           {/* KPI Mini Stat Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+            <div className="bg-slate-50/80 rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
               <div className="flex items-center gap-2 mb-1" style={{ color: 'var(--ui-primary, #059669)' }}>
                 <CalendarDays size={16} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Total Agenda</span>
@@ -341,7 +334,7 @@ export default function KalenderPage() {
               </span>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+            <div className="bg-slate-50/80 rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
               <div className="flex items-center gap-2 text-amber-600 mb-1">
                 <Clock size={16} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Bulan Ini</span>
@@ -351,7 +344,7 @@ export default function KalenderPage() {
               </span>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+            <div className="bg-slate-50/80 rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
               <div className="flex items-center gap-2 text-sky-600 mb-1">
                 <Sparkles size={16} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Mendatang</span>
@@ -361,7 +354,7 @@ export default function KalenderPage() {
               </span>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/70 shadow-2xs flex flex-col justify-center">
+            <div className="bg-slate-50/80 rounded-[var(--ui-radius-card,16px)] p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
               <div className="flex items-center gap-2 text-rose-600 mb-1">
                 <Calendar size={16} strokeWidth={2.5} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">Hari Libur</span>

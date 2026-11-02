@@ -192,7 +192,7 @@ export default function PublicLayout() {
       })()}
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 pt-20 sm:pt-28 pb-28 md:pb-12'}`}>
+      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 pt-24 md:pt-36 pb-28 md:pb-16'}`}>
         <Outlet context={{ appSettings, setIsLoginModalOpen, setModalViewMode }} />
       </main>
 

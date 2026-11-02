@@ -85,15 +85,13 @@ export default function ValidasiSiswa() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200/80 flex items-center justify-center p-4 font-sans text-slate-800">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans text-slate-800">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200/80 animate-in fade-in zoom-in-95 duration-300">
         
         {/* Header Banner */}
         <div className={`p-6 text-white flex flex-col items-center justify-center text-center relative overflow-hidden ${
-          status === 'valid' ? 'bg-gradient-to-br from-emerald-600 to-teal-700' : 'bg-gradient-to-br from-rose-600 to-rose-800'
+          status === 'valid' ? 'bg-emerald-600' : 'bg-rose-600'
         }`}>
-          {/* Subtle background badge ornament */}
-          <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
           
           {status === 'valid' ? (
             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-2 shadow-inner border border-white/30">
