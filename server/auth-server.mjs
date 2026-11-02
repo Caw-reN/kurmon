@@ -3443,8 +3443,7 @@ const server = createServer(async (req, res) => {
 
         let hikvisionStudentToday = [];
         let teacherLogs = [];
-        // Selalu gunakan toLocaleDateString dengan timezone WIB agar konsisten
-        const todayJktDate = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        // todayJktDate sudah dideklarasikan di awal handler /api/dashboard/logs
         try {
           let hConfig = {};
           try {
