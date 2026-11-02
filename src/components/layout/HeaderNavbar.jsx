@@ -8,7 +8,25 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeLang, setActiveLang] = useState('ID');
+  const [activeLang, setActiveLangState] = useState(() => {
+    try {
+      return localStorage.getItem('kurmon_lang') || 'ID';
+    } catch {
+      return 'ID';
+    }
+  });
+
+  const setActiveLang = (lang) => {
+    setActiveLangState(lang);
+    try {
+      localStorage.setItem('kurmon_lang', lang);
+      window.dispatchEvent(new CustomEvent('kurmon_lang_change', { detail: lang }));
+    } catch {
+      // ignore
+    }
+  };
+
+  const t = (idText, enText) => activeLang === 'EN' ? enText : idText;
 
   // Modal states
   const [isBantuanOpen, setIsBantuanOpen] = useState(false);
@@ -122,18 +140,18 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       <header role="banner" className="landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col shadow-xs select-none">
         {/* 1. TOP RIBBON: SMK KARYA GUNA 2 BEKASI & PORTAL LAYANAN */}
         <div 
-          className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-colors"
+          className="w-full text-white text-[11px] font-bold py-2 border-b transition-colors"
           style={{ 
             backgroundColor: appSettings?.topRibbonColor || primaryColor || '#153f32',
             borderBottomColor: 'rgba(255, 255, 255, 0.15)'
           }}
         >
-          <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8 flex items-center justify-between">
             <span className="tracking-wider uppercase font-mono font-bold text-white">
               {schoolName.toUpperCase()}
             </span>
             <span className="text-emerald-100/80 font-medium hidden sm:inline text-[11.5px]">
-              Portal layanan akademik - {schoolName}
+              {t('Portal layanan akademik - ', 'Academic service portal - ')}{schoolName}
             </span>
           </div>
         </div>
@@ -170,7 +188,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   className="text-[9.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] mt-1 leading-none font-mono"
                   style={{ color: '#64748b' }}
                 >
-                  {appSettings?.logoSmallText || "SISTEM INFORMASI AKADEMIK"}
+                  {appSettings?.logoSmallText || t("SISTEM INFORMASI AKADEMIK", "ACADEMIC INFORMATION SYSTEM")}
                 </span>
               </div>
             </Link>
@@ -181,26 +199,26 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 <button
                   type="button"
                   onClick={scrollToLayanan}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-emerald-800"
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)]"
                   style={{ color: '#334155' }}
                 >
-                  Layanan
+                  {t('Layanan', 'Services')}
                 </button>
                 <button
                   type="button"
                   onClick={scrollToAksesAkun}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-emerald-800"
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)]"
                   style={{ color: '#334155' }}
                 >
-                  Akses Akun
+                  {t('Akses Akun', 'Account Access')}
                 </button>
                 <button
                   type="button"
                   onClick={handleOpenBantuan}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-emerald-800"
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)]"
                   style={{ color: '#334155' }}
                 >
-                  Bantuan
+                  {t('Bantuan', 'Help')}
                 </button>
               </nav>
 
@@ -251,9 +269,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
                 className="rounded-xl text-white text-xs lg:text-sm font-bold flex items-center gap-2 px-5 py-2.5 shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer border-none"
                 style={{ backgroundColor: primaryButtonColor, color: '#ffffff' }}
-                title="Buka Portal & Masuk Akun"
+                title={t("Buka Portal & Masuk Akun", "Open Portal & Sign In")}
               >
-                <span>Masuk Akun</span>
+                <span>{t("Masuk Akun", "Sign In")}</span>
                 <ArrowUpRight size={15} strokeWidth={2.6} />
               </button>
             </div>

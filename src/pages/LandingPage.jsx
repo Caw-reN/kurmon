@@ -760,13 +760,35 @@ export default function LandingPage() {
 
 
 
+  const [activeLang, setActiveLang] = useState(() => {
+    try {
+      return localStorage.getItem('kurmon_lang') || 'ID';
+    } catch {
+      return 'ID';
+    }
+  });
+
+  useEffect(() => {
+    const handleLangChange = (e) => {
+      if (e?.detail) {
+        setActiveLang(e.detail);
+      }
+    };
+    window.addEventListener('kurmon_lang_change', handleLangChange);
+    return () => window.removeEventListener('kurmon_lang_change', handleLangChange);
+  }, []);
+
+  const t = (idText, enText) => activeLang === 'EN' ? enText : idText;
+
   const [academicServiceQuery, setAcademicServiceQuery] = useState("");
 
   const academicServices = useMemo(() => [
     { 
       id: 'jadwal',
-      title: cleanText(appSettings.serviceLabel1 !== undefined ? appSettings.serviceLabel1 : "Jadwal"), 
-      desc: appSettings.serviceDesc1 || "Lihat jadwal pelajaran dan kegiatan kelas.", 
+      title: appSettings.serviceLabel1 !== undefined && appSettings.serviceLabel1 !== ""
+        ? cleanText(appSettings.serviceLabel1) 
+        : t("Jadwal", "Schedule"), 
+      desc: appSettings.serviceDesc1 || t("Lihat jadwal pelajaran dan kegiatan kelas.", "View class schedules and activities."), 
       svgIcon: "060-calendar.svg",
       icon: CalendarDays, 
       defaultColor: "#D97706",
@@ -777,8 +799,10 @@ export default function LandingPage() {
     },
     { 
       id: 'denah',
-      title: cleanText(appSettings.serviceLabel2 !== undefined ? appSettings.serviceLabel2 : "Denah Ruang"), 
-      desc: appSettings.serviceDesc2 || "Temukan lokasi ruang di lingkungan sekolah.", 
+      title: appSettings.serviceLabel2 !== undefined && appSettings.serviceLabel2 !== ""
+        ? cleanText(appSettings.serviceLabel2) 
+        : t("Denah Ruang", "Campus Map"), 
+      desc: appSettings.serviceDesc2 || t("Temukan lokasi ruang di lingkungan sekolah.", "Find room locations across campus."), 
       svgIcon: "016-map pin.svg",
       icon: MapPin, 
       defaultColor: "#0284C7",
@@ -788,8 +812,10 @@ export default function LandingPage() {
     },
     { 
       id: 'materi',
-      title: cleanText(appSettings.serviceLabel3 !== undefined ? appSettings.serviceLabel3 : "Materi Ajar"), 
-      desc: appSettings.serviceDesc3 || "Buka materi untuk mendukung pembelajaran.", 
+      title: appSettings.serviceLabel3 !== undefined && appSettings.serviceLabel3 !== ""
+        ? cleanText(appSettings.serviceLabel3) 
+        : t("Materi Ajar", "Materials"), 
+      desc: appSettings.serviceDesc3 || t("Buka materi untuk mendukung pembelajaran.", "Access materials to support learning."), 
       svgIcon: "066-education.svg",
       icon: BookOpenText, 
       defaultColor: "#7C3AED",
@@ -799,8 +825,10 @@ export default function LandingPage() {
     },
     { 
       id: 'kalender',
-      title: cleanText(appSettings.serviceLabel4 !== undefined ? appSettings.serviceLabel4 : "Kalender"), 
-      desc: appSettings.serviceDesc4 || "Periksa agenda dan tanggal penting sekolah.", 
+      title: appSettings.serviceLabel4 !== undefined && appSettings.serviceLabel4 !== ""
+        ? cleanText(appSettings.serviceLabel4) 
+        : t("Kalender", "Calendar"), 
+      desc: appSettings.serviceDesc4 || t("Periksa agenda dan tanggal penting sekolah.", "Check events and important dates."), 
       svgIcon: "086-calendar.svg",
       icon: Calendar, 
       defaultColor: "#15803D",
@@ -810,8 +838,10 @@ export default function LandingPage() {
     },
     { 
       id: 'pkl',
-      title: cleanText(appSettings.serviceLabel5 !== undefined ? appSettings.serviceLabel5 : "Lokasi PKL"), 
-      desc: appSettings.serviceDesc5 || "Temukan informasi lokasi praktik kerja lapangan.", 
+      title: appSettings.serviceLabel5 !== undefined && appSettings.serviceLabel5 !== ""
+        ? cleanText(appSettings.serviceLabel5) 
+        : t("Lokasi PKL", "Internship"), 
+      desc: appSettings.serviceDesc5 || t("Temukan informasi lokasi praktik kerja lapangan.", "Find vocational internship locations."), 
       svgIcon: "008-warehouse.svg",
       icon: Briefcase, 
       defaultColor: "#DB2777",
@@ -821,8 +851,10 @@ export default function LandingPage() {
     },
     { 
       id: 'struktur',
-      title: cleanText(appSettings.serviceLabel6 !== undefined ? appSettings.serviceLabel6 : "Struktur"), 
-      desc: appSettings.serviceDesc6 || "Kenali susunan organisasi sekolah.", 
+      title: appSettings.serviceLabel6 !== undefined && appSettings.serviceLabel6 !== ""
+        ? cleanText(appSettings.serviceLabel6) 
+        : t("Struktur", "Structure"), 
+      desc: appSettings.serviceDesc6 || t("Kenali susunan organisasi sekolah.", "Learn the school organizational chart."), 
       svgIcon: "045-account.svg",
       icon: Users, 
       defaultColor: "#E11D48",
@@ -832,8 +864,10 @@ export default function LandingPage() {
     },
     { 
       id: 'peraturan',
-      title: cleanText(appSettings.serviceLabel7 !== undefined ? appSettings.serviceLabel7 : "Peraturan"), 
-      desc: appSettings.serviceDesc7 || "Baca ketentuan yang berlaku di sekolah.", 
+      title: appSettings.serviceLabel7 !== undefined && appSettings.serviceLabel7 !== ""
+        ? cleanText(appSettings.serviceLabel7) 
+        : t("Peraturan", "School Rules"), 
+      desc: appSettings.serviceDesc7 || t("Baca ketentuan yang berlaku di sekolah.", "Read official school code of conduct."), 
       svgIcon: "013-shield.svg",
       icon: ShieldCheck, 
       defaultColor: "#E11D48",
@@ -841,7 +875,7 @@ export default function LandingPage() {
       customIcon: appSettings.serviceIconImage7,
       isPdfRules: true,
     },
-  ], [appSettings]);
+  ], [appSettings, activeLang]);
 
   const filteredAcademicServices = useMemo(() => {
     if (!academicServiceQuery.trim()) return academicServices;
@@ -1769,7 +1803,7 @@ export default function LandingPage() {
                 <span 
                   className="text-[11px] font-black tracking-wider uppercase font-mono text-emerald-300"
                 >
-                  PORTAL AKADEMIK {appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}
+                  {t("PORTAL AKADEMIK", "ACADEMIC PORTAL")} {appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}
                 </span>
               </div>
 
@@ -1779,7 +1813,7 @@ export default function LandingPage() {
                 onClick={handleCycleWeather}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-all"
                 style={{ borderRadius: '12px' }}
-                title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
+                title={manualWeather ? t("Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis", "Manual Mode: Click to cycle or return to Auto Weather") : t("Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual.", "Auto Mode: Synced with Bekasi live weather. Click for manual simulation.")}
               >
                 {weatherCondition === 'night' && <Moon size={12} className="text-amber-200 shrink-0" />}
                 {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-300 shrink-0 animate-bounce" />}
@@ -1810,12 +1844,12 @@ export default function LandingPage() {
                 appSettings.heroTitle
               ) : (
                 <>
-                  Aktivitas akademik,
+                  {t("Aktivitas akademik,", "Academic activities,")}
                   <span 
                     className="block mt-1 drop-shadow-sm" 
                     style={{ color: appSettings.heroHighlightColor || accentColor || '#a3e635' }}
                   >
-                    lebih terarah.
+                    {t("lebih terarah.", "more focused.")}
                   </span>
                 </>
               )}
@@ -1828,7 +1862,7 @@ export default function LandingPage() {
             >
               {appSettings.heroSubtitle && appSettings.heroSubtitle !== "Sistem informasi terpadu guru dan siswa untuk jadwal, denah, hingga materi ajar."
                 ? cleanText(appSettings.heroSubtitle)
-                : "Akses jadwal pelajaran, materi ajar, kalender akademik, dan informasi PKL dalam satu portal. Masuk ke akun untuk melanjutkan aktivitas sekolahmu."}
+                : t("Akses jadwal pelajaran, materi ajar, kalender akademik, dan informasi PKL dalam satu portal. Masuk ke akun untuk melanjutkan aktivitas sekolahmu.", "Access class schedules, teaching materials, academic calendar, and internship info in one unified portal. Sign in to your account to continue your school activities.")}
             </p>
 
             {/* Two Action Buttons */}
@@ -1839,7 +1873,7 @@ export default function LandingPage() {
                 className="h-11 px-6 rounded-xl text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all active:scale-95 cursor-pointer border-none"
                 style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#059669' }}
               >
-                <span>Masuk ke Sistem</span>
+                <span>{t("Masuk ke Sistem", "Sign In to Portal")}</span>
                 <ArrowUpRight size={15} strokeWidth={2.8} />
               </button>
 
@@ -1853,7 +1887,7 @@ export default function LandingPage() {
                 }}
                 className="h-11 px-5 rounded-xl bg-white/90 hover:bg-white text-slate-900 border border-white/60 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer backdrop-blur-md"
               >
-                <span>Lihat Layanan</span>
+                <span>{t("Lihat Layanan", "Explore Services")}</span>
                 <ArrowDown size={14} strokeWidth={2.6} className="text-slate-600" />
               </button>
             </div>
@@ -1868,10 +1902,10 @@ export default function LandingPage() {
                   color: '#ffffff'
                 }}
               >
-                Akses publik
+                {t("Akses publik", "Public access")}
               </span>
               <span className="text-xs font-medium text-slate-200 drop-shadow-xs">
-                Informasi umum dapat dibuka melalui menu layanan.
+                {t("Informasi umum dapat dibuka melalui menu layanan.", "General information can be accessed via the services menu.")}
               </span>
             </div>
           </div>
@@ -1883,16 +1917,16 @@ export default function LandingPage() {
               <div className="flex items-center gap-2 text-slate-700">
                 <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#059669' }} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-mono">
-                  Akses Akun
+                  {t("Akses Akun", "Account Access")}
                 </span>
               </div>
 
               {/* Welcome Heading */}
               <h2 className="text-2xl sm:text-[25px] font-black text-slate-900 tracking-tight mt-4 leading-tight">
-                Selamat datang kembali.
+                {t("Selamat datang kembali.", "Welcome back.")}
               </h2>
               <p className="text-xs sm:text-[13px] font-semibold text-slate-400 mt-1 mb-5">
-                Lanjutkan melalui akun sekolah yang sudah kamu miliki.
+                {t("Lanjutkan melalui akun sekolah yang sudah kamu miliki.", "Continue using your registered school account.")}
               </p>
 
               <div className="border-t border-slate-100 my-4" />
@@ -1906,10 +1940,10 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
-                      Siswa
+                      {t("Siswa", "Student")}
                     </h4>
                     <p className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-0.5 leading-snug">
-                      Akses kegiatan belajar dan layanan siswa.
+                      {t("Akses kegiatan belajar dan layanan siswa.", "Access learning activities and student services.")}
                     </p>
                   </div>
                 </div>
@@ -1921,10 +1955,10 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
-                      Guru & tenaga kependidikan
+                      {t("Guru & tenaga kependidikan", "Teachers & Staff")}
                     </h4>
                     <p className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-0.5 leading-snug">
-                      Akses layanan sesuai kewenangan akun.
+                      {t("Akses layanan sesuai kewenangan akun.", "Access services according to account authority.")}
                     </p>
                   </div>
                 </div>
@@ -1937,21 +1971,21 @@ export default function LandingPage() {
                 className="w-full mt-6 h-12 rounded-xl text-white font-bold text-xs sm:text-sm px-5 flex items-center justify-between shadow-xs hover:shadow-md transition-all active:scale-[0.99] cursor-pointer border-none"
                 style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#059669' }}
               >
-                <span>Buka Portal & Masuk Akun</span>
+                <span>{t("Buka Portal & Masuk Akun", "Open Portal & Sign In")}</span>
                 <ArrowUpRight size={16} strokeWidth={2.4} />
               </button>
 
               {/* Sub notes */}
               <div className="mt-3.5 text-center">
                 <p className="text-[11px] font-semibold text-slate-400">
-                  Proses masuk dilanjutkan di sistem akademik sekolah.
+                  {t("Proses masuk dilanjutkan di sistem akademik sekolah.", "Sign in continues in the school academic system.")}
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowPublicHelp(true)}
                   className="mt-1 text-xs font-bold underline transition-colors cursor-pointer bg-transparent border-none p-0 inline-block text-slate-700 hover:text-emerald-800"
                 >
-                  Butuh bantuan akses akun?
+                  {t("Butuh bantuan akses akun?", "Need account access help?")}
                 </button>
               </div>
             </div>
@@ -1969,10 +2003,10 @@ export default function LandingPage() {
               <div className="w-full lg:w-72 xl:w-80 shrink-0 flex flex-col justify-between self-stretch">
                 <div>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
-                    Layanan akademik
+                    {t("Layanan akademik", "Academic Services")}
                   </h2>
                   <p className="text-xs sm:text-sm font-semibold text-slate-400 mt-1 leading-snug">
-                    Pilih layanan untuk melanjutkan aktivitasmu.
+                    {t("Pilih layanan untuk melanjutkan aktivitasmu.", "Select a service to continue your activities.")}
                   </p>
                 </div>
 
@@ -1981,7 +2015,7 @@ export default function LandingPage() {
                   <Search size={16} strokeWidth={2.4} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   <input 
                     type="text" 
-                    placeholder="Cari layanan: jadwal, materi, PKL..." 
+                    placeholder={t("Cari layanan: jadwal, materi, PKL...", "Search services: schedule, materials, internship...")} 
                     value={academicServiceQuery}
                     onChange={(e) => setAcademicServiceQuery(e.target.value)}
                     id="academic-service-search"
@@ -1992,7 +2026,7 @@ export default function LandingPage() {
                       type="button"
                       onClick={() => setAcademicServiceQuery('')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer bg-transparent border-none"
-                      title="Hapus pencarian"
+                      title={t("Hapus pencarian", "Clear search")}
                     >
                       <X size={14} />
                     </button>
@@ -2055,65 +2089,12 @@ export default function LandingPage() {
                   })}
                   {filteredAcademicServices.length === 0 && (
                     <div className="col-span-full py-8 text-center text-slate-400 font-semibold text-xs">
-                      Tidak ada layanan akademik yang sesuai dengan "{academicServiceQuery}"
+                      {t(`Tidak ada layanan akademik yang sesuai dengan "${academicServiceQuery}"`, `No academic services found matching "${academicServiceQuery}"`)}
                     </div>
                   )}
                 </div>
               </div>
 
-            </div>
-          </div>
-
-          {/* 2. SEKSI INFORMASI PENDUKUNG */}
-          <div className="my-10 lg:my-14 w-full relative z-10 text-left">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
-              {/* Kolom Kiri */}
-              <div className="md:col-span-6 lg:col-span-5 flex flex-col items-start">
-                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 font-sans">
-                  INFORMASI PENDUKUNG
-                </span>
-                <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight mt-1.5 mb-2.5 leading-tight">
-                  Kenali lingkungan sekolahmu.
-                </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-400 leading-relaxed max-w-md">
-                  Temukan ruang, struktur organisasi, dan ketentuan sekolah sebelum memulai aktivitas.
-                </p>
-              </div>
-
-              {/* Kolom Kanan: 3 Tautan Horizontal dengan Garis Pemisah */}
-              <div className="md:col-span-6 lg:col-span-7">
-                <div className="divide-y divide-slate-200/80 border-t border-b border-slate-200/80 w-full">
-                  <div 
-                    onClick={() => navigate('/denah')}
-                    className="py-3.5 flex items-center justify-between group cursor-pointer transition-colors"
-                  >
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
-                      Denah ruang
-                    </span>
-                    <ArrowUpRight size={15} strokeWidth={2.4} className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                  </div>
-
-                  <div 
-                    onClick={() => navigate('/struktur')}
-                    className="py-3.5 flex items-center justify-between group cursor-pointer transition-colors"
-                  >
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
-                      Struktur organisasi
-                    </span>
-                    <ArrowUpRight size={15} strokeWidth={2.4} className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                  </div>
-
-                  <div 
-                    onClick={() => setShowRulesModal(true)}
-                    className="py-3.5 flex items-center justify-between group cursor-pointer transition-colors"
-                  >
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">
-                      Peraturan sekolah
-                    </span>
-                    <ArrowUpRight size={15} strokeWidth={2.4} className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -2170,7 +2151,7 @@ export default function LandingPage() {
           <div className="shrink-0 mb-6 lg:mb-8 mitra-kerjasama-section relative z-10">
             <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-2.5 lg:py-3 px-6 md:px-8 w-full flex items-center gap-5">
               <span className="text-[10px] lg:text-[10.5px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
-                Mitra Industri & Kerjasama
+                {t("Mitra Industri & Kerjasama", "Industry & Educational Partners")}
               </span>
               <div className="h-4 w-px bg-slate-200 shrink-0" />
               <div className="relative flex-1 overflow-hidden flex py-0.5">
@@ -2203,10 +2184,10 @@ export default function LandingPage() {
           >
             <div>
               <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
-                {appSettings.helpBannerTitle || "Kesulitan mengakses sistem?"}
+                {appSettings.helpBannerTitle || t("Kesulitan mengakses sistem?", "Trouble accessing the system?")}
               </h3>
               <p className="text-xs sm:text-sm font-semibold text-emerald-100/80 mt-1.5 leading-relaxed">
-                {appSettings.helpBannerSubtitle || "Baca panduan layanan atau hubungi sekolah untuk bantuan akun."}
+                {appSettings.helpBannerSubtitle || t("Baca panduan layanan atau hubungi sekolah untuk bantuan akun.", "Read service guides or contact school admin for account assistance.")}
               </p>
             </div>
 
@@ -2219,7 +2200,7 @@ export default function LandingPage() {
                 color: primaryColor ? `color-mix(in srgb, ${primaryColor} 90%, #000000)` : '#153f32'
               }}
             >
-              <span>{appSettings.helpBannerButtonText || "Panduan & Bantuan"}</span>
+              <span>{appSettings.helpBannerButtonText || t("Panduan & Bantuan", "Guide & Support")}</span>
               <ArrowUpRight size={15} strokeWidth={2.8} />
             </button>
           </div>
@@ -2282,19 +2263,19 @@ export default function LandingPage() {
                 className="text-xs font-black uppercase tracking-wider mb-3.5"
                 style={{ color: primaryColor ? `color-mix(in srgb, ${primaryColor} 88%, #000000)` : '#153f32' }}
               >
-                Jelajahi Portal
+                {t("Jelajahi Portal", "Explore Portal")}
               </h4>
               <div className="flex flex-col gap-2.5 text-xs font-medium text-slate-600">
                 <Link to="/jadwal" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <span>Jadwal Pelajaran</span>
+                  <span>{t("Jadwal Pelajaran", "Class Schedule")}</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </Link>
                 <Link to="/materi-ajar" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <span>Materi Ajar</span>
+                  <span>{t("Materi Ajar", "Teaching Materials")}</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </Link>
                 <Link to="/kalender" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <span>Kalender Sekolah</span>
+                  <span>{t("Kalender Sekolah", "School Calendar")}</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </Link>
               </div>
@@ -2306,7 +2287,7 @@ export default function LandingPage() {
                 className="text-xs font-black uppercase tracking-wider mb-3.5"
                 style={{ color: primaryColor ? `color-mix(in srgb, ${primaryColor} 88%, #000000)` : '#153f32' }}
               >
-                Tetap Terhubung
+                {t("Tetap Terhubung", "Stay Connected")}
               </h4>
               <div className="flex flex-col gap-2.5 text-xs font-medium text-slate-600">
                 <a 
@@ -2321,7 +2302,7 @@ export default function LandingPage() {
                   onClick={() => setIsLoginModalOpen(true)}
                   className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
                 >
-                  <span>Sistem akademik sekolah</span>
+                  <span>{t("Sistem akademik sekolah", "School academic system")}</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </button>
                 <button 
@@ -2329,7 +2310,7 @@ export default function LandingPage() {
                   onClick={() => setShowPublicHelp(true)}
                   className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
                 >
-                  <span>Pusat bantuan</span>
+                  <span>{t("Pusat bantuan", "Help center")}</span>
                 </button>
               </div>
             </div>
@@ -2348,7 +2329,7 @@ export default function LandingPage() {
               )}
             </p>
             <div className="text-slate-500 text-xs font-medium">
-              Pratinjau antarmuka · Data akademik tersedia di sistem asli
+              {t("Pratinjau antarmuka · Data akademik tersedia di sistem asli", "Interface preview · Academic data available in original system")}
             </div>
           </div>
         </div>
