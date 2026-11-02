@@ -119,13 +119,13 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
   return (
     <>
-      <header role="banner" className="landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col shadow-xs select-none">
+      <header role="banner" className={`landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col select-none transition-all duration-300 ${scrolled ? 'shadow-xs' : 'shadow-none'}`}>
         {/* 1. TOP RIBBON: SMK KARYA GUNA 2 BEKASI & PORTAL LAYANAN */}
         <div 
-          className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-colors"
+          className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-all duration-300 backdrop-blur-md"
           style={{ 
-            backgroundColor: primaryColor,
-            borderBottomColor: hexToRgba('#ffffff', 0.12)
+            backgroundColor: hexToRgba(primaryColor, scrolled ? 0.95 : 0.82),
+            borderBottomColor: hexToRgba('#ffffff', 0.15)
           }}
         >
           <div className="max-w-[1400px] mx-auto flex items-center justify-between">
@@ -138,8 +138,14 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
           </div>
         </div>
 
-        {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON */}
-        <div className="w-full bg-white border-b border-slate-200/90 shadow-2xs">
+        {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON (TRANSPARAN GLASS) */}
+        <div 
+          className={`w-full transition-all duration-300 ${
+            scrolled 
+              ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/90 shadow-xs' 
+              : 'bg-white/35 backdrop-blur-xl border-b border-white/25 shadow-2xs'
+          }`}
+        >
           <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-[68px] sm:h-[72px] flex items-center justify-between">
             {/* Kiri: Logo Kotak Hijau & Teks Brand */}
             <Link to="/" className="flex items-center gap-3.5 select-none no-underline group">
@@ -157,7 +163,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               <div className="flex flex-col text-left">
                 <div className="flex items-baseline">
                   <span 
-                    className="text-lg lg:text-[21px] font-black tracking-tight leading-none"
+                    className="text-lg lg:text-[21px] font-black tracking-tight leading-none drop-shadow-2xs"
                     style={{ color: '#0f172a' }}
                   >
                     {appName}
@@ -168,7 +174,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 </div>
                 <span 
                   className="text-[9.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] mt-1 leading-none font-mono"
-                  style={{ color: '#64748b' }}
+                  style={{ color: scrolled ? '#64748b' : '#334155' }}
                 >
                   {appSettings?.logoSmallText || "SISTEM INFORMASI AKADEMIK"}
                 </span>
@@ -182,7 +188,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   type="button"
                   onClick={scrollToLayanan}
                   className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
-                  style={{ color: '#334155' }}
+                  style={{ color: '#0f172a' }}
                 >
                   Layanan
                 </button>
@@ -190,7 +196,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   type="button"
                   onClick={scrollToAksesAkun}
                   className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
-                  style={{ color: '#334155' }}
+                  style={{ color: '#0f172a' }}
                 >
                   Akses Akun
                 </button>
@@ -198,15 +204,19 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   type="button"
                   onClick={handleOpenBantuan}
                   className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
-                  style={{ color: '#334155' }}
+                  style={{ color: '#0f172a' }}
                 >
                   Bantuan
                 </button>
               </nav>
 
-              {/* Improved Language Switcher (Segmented Control dengan Radius Serasi) */}
+              {/* Improved Language Switcher (Segmented Control dengan Radius Serasi & Transparan) */}
               <div 
-                className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs"
+                className={`inline-flex items-center p-1 rounded-xl border shadow-2xs transition-all ${
+                  scrolled 
+                    ? 'bg-slate-100/90 border-slate-200/90' 
+                    : 'bg-white/60 border-white/50 backdrop-blur-md'
+                }`}
                 style={{ borderRadius: '12px' }}
               >
                 <button
