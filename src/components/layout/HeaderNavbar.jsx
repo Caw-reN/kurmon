@@ -119,39 +119,33 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
   return (
     <>
-      <header role="banner" className={`landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col select-none transition-all duration-300 ${scrolled ? 'shadow-xs' : 'shadow-none'}`}>
+      <header role="banner" className="landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col shadow-xs select-none">
         {/* 1. TOP RIBBON: SMK KARYA GUNA 2 BEKASI & PORTAL LAYANAN */}
         <div 
-          className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-all duration-300 backdrop-blur-md"
+          className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-colors"
           style={{ 
-            backgroundColor: hexToRgba(primaryColor, scrolled ? 0.95 : 0.82),
-            borderBottomColor: hexToRgba('#ffffff', 0.15)
+            backgroundColor: '#153f32',
+            borderBottomColor: 'rgba(255, 255, 255, 0.12)'
           }}
         >
           <div className="max-w-[1400px] mx-auto flex items-center justify-between">
-            <span className="tracking-wider uppercase font-mono font-bold" style={{ color: accentColor }}>
+            <span className="tracking-wider uppercase font-mono font-bold text-white">
               {schoolName.toUpperCase()}
             </span>
-            <span className="text-white/90 font-medium hidden sm:inline text-[11.5px]">
+            <span className="text-emerald-100/80 font-medium hidden sm:inline text-[11.5px]">
               Portal layanan akademik - {schoolName}
             </span>
           </div>
         </div>
 
-        {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON (TRANSPARAN GLASS) */}
-        <div 
-          className={`w-full transition-all duration-300 ${
-            scrolled 
-              ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200/90 shadow-xs' 
-              : 'bg-white/35 backdrop-blur-xl border-b border-white/25 shadow-2xs'
-          }`}
-        >
+        {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON */}
+        <div className="w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-2xs">
           <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-[68px] sm:h-[72px] flex items-center justify-between">
             {/* Kiri: Logo Kotak Hijau & Teks Brand */}
             <Link to="/" className="flex items-center gap-3.5 select-none no-underline group">
               <div 
                 className="w-10 h-10 lg:w-11 lg:h-11 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-2xs group-hover:scale-105 transition-all duration-300 shrink-0"
-                style={{ backgroundColor: primaryColor }}
+                style={{ backgroundColor: primaryColor || '#153f32' }}
               >
                 {logoUrl ? (
                   <img src={logoUrl} alt="Logo" className="w-7 h-7 object-contain" />
@@ -163,7 +157,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               <div className="flex flex-col text-left">
                 <div className="flex items-baseline">
                   <span 
-                    className="text-lg lg:text-[21px] font-black tracking-tight leading-none drop-shadow-2xs"
+                    className="text-lg lg:text-[21px] font-black tracking-tight leading-none"
                     style={{ color: '#0f172a' }}
                   >
                     {appName}
@@ -174,7 +168,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 </div>
                 <span 
                   className="text-[9.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] mt-1 leading-none font-mono"
-                  style={{ color: scrolled ? '#64748b' : '#334155' }}
+                  style={{ color: '#64748b' }}
                 >
                   {appSettings?.logoSmallText || "SISTEM INFORMASI AKADEMIK"}
                 </span>
@@ -187,36 +181,32 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 <button
                   type="button"
                   onClick={scrollToLayanan}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
-                  style={{ color: '#0f172a' }}
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-emerald-800"
+                  style={{ color: '#334155' }}
                 >
                   Layanan
                 </button>
                 <button
                   type="button"
                   onClick={scrollToAksesAkun}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
-                  style={{ color: '#0f172a' }}
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-emerald-800"
+                  style={{ color: '#334155' }}
                 >
                   Akses Akun
                 </button>
                 <button
                   type="button"
                   onClick={handleOpenBantuan}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
-                  style={{ color: '#0f172a' }}
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-emerald-800"
+                  style={{ color: '#334155' }}
                 >
                   Bantuan
                 </button>
               </nav>
 
-              {/* Improved Language Switcher (Segmented Control dengan Radius Serasi & Transparan) */}
+              {/* Improved Language Switcher (Segmented Control dengan Radius Serasi) */}
               <div 
-                className={`inline-flex items-center p-1 rounded-xl border shadow-2xs transition-all ${
-                  scrolled 
-                    ? 'bg-slate-100/90 border-slate-200/90' 
-                    : 'bg-white/60 border-white/50 backdrop-blur-md'
-                }`}
+                className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs"
                 style={{ borderRadius: '12px' }}
               >
                 <button

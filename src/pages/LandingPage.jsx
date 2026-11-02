@@ -1992,20 +1992,9 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Kolom Kanan: Pindah kesini (Terhubung ke sistem sekolah + 7 Kartu Layanan 1 Baris) */}
-              <div className="flex-1 w-full min-w-0 flex flex-col">
-                <div className="flex items-center justify-end mb-2.5">
-                  <button
-                    type="button"
-                    onClick={() => setIsLoginModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald-800 transition-colors bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    <span>Terhubung ke sistem sekolah</span>
-                    <ArrowUpRight size={14} strokeWidth={2.4} />
-                  </button>
-                </div>
-
-                {/* Grid 7 Layanan: Tepat 1 Baris di Layar Lebar */}
+              {/* Kolom Kanan: 7 Kartu Layanan 1 Baris Minimalis Sesuai Mockup */}
+              <div className="flex-1 w-full min-w-0 flex flex-col justify-center">
+                {/* Grid 7 Layanan: Tepat 1 Baris di Layar Lebar (Ikon & Judul Bersih Tanpa Panah / Deskripsi) */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 xl:gap-3 w-full">
                   {filteredAcademicServices.map((service) => {
                     const IconComp = service.icon;
@@ -2022,47 +2011,33 @@ export default function LandingPage() {
                             navigate(service.path);
                           }
                         }}
-                        className={`group rounded-2xl p-3 xl:p-3.5 flex flex-col justify-between min-h-[125px] xl:min-h-[135px] text-left transition-all duration-200 cursor-pointer border select-none ${
+                        className={`group rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center min-h-[92px] lg:min-h-[98px] transition-all duration-200 cursor-pointer border select-none ${
                           isHighlighted 
                             ? 'bg-[#f4fae9] border-[#cce49e] hover:border-[#b8da7e] shadow-2xs hover:shadow-xs hover:-translate-y-0.5' 
                             : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5'
                         }`}
                       >
-                        {/* Top Row: Icon Asli Berwarna di kiri, panah di kanan */}
-                        <div className="flex items-start justify-between w-full">
-                          <div 
-                            className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
-                            style={{ 
-                              backgroundColor: hexToRgba(activeColor, 0.08),
-                              border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
-                            }}
-                          >
-                            {service.customIcon ? (
-                              <img src={service.customIcon} alt="" className="w-5 h-5 xl:w-5.5 xl:h-5.5 object-contain" />
-                            ) : service.svgIcon ? (
-                              <img src={`/icons/${service.svgIcon}`} alt="" className="w-5 h-5 xl:w-5.5 xl:h-5.5 object-contain" />
-                            ) : (
-                              <IconComp size={18} strokeWidth={2.2} style={{ color: activeColor }} />
-                            )}
-                          </div>
-                          <div className="w-5 h-5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100/80 transition-all shrink-0">
-                            <ArrowUpRight 
-                              size={13} 
-                              strokeWidth={2.4} 
-                              className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" 
-                            />
-                          </div>
+                        {/* Ikon Layanan Berwarna */}
+                        <div 
+                          className="w-10 h-10 lg:w-11 lg:h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
+                          style={{ 
+                            backgroundColor: hexToRgba(activeColor, 0.08),
+                            border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
+                          }}
+                        >
+                          {service.customIcon ? (
+                            <img src={service.customIcon} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
+                          ) : service.svgIcon ? (
+                            <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
+                          ) : (
+                            <IconComp size={20} strokeWidth={2.2} style={{ color: activeColor }} />
+                          )}
                         </div>
 
-                        {/* Bottom Row: Judul & Deskripsi */}
-                        <div className="mt-2.5">
-                          <h3 className="text-xs font-black text-slate-900 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors truncate">
-                            {service.title}
-                          </h3>
-                          <p className="text-[10px] font-semibold text-slate-400 group-hover:text-slate-500 mt-0.5 leading-snug line-clamp-2">
-                            {service.desc}
-                          </p>
-                        </div>
+                        {/* Judul Layanan Saja */}
+                        <h3 className="text-xs sm:text-[12.5px] font-black text-slate-800 tracking-tight leading-tight group-hover:text-[var(--ui-primary)] transition-colors mt-2 text-center truncate w-full">
+                          {service.title}
+                        </h3>
                       </div>
                     );
                   })}
