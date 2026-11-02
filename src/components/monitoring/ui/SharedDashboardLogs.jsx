@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Loader2, ExternalLink, MessageCircle } from 'lucide-react';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
@@ -127,10 +127,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   // Toggle check specifically for Student Dashboard
   const isVisibleForStudent = isFiturAktif('show_dashboard_logs_siswa') ?? true;
 
-  useEffect(() => {
+  const fetchLogs = useCallback(() => {
     const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
 
-    // Fetch both dashboard logs and recent hikvision logs concurrently
     Promise.all([
       fetch('/api/dashboard/logs', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false })),
       fetch('/api/hikvision/dashboard', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false }))
@@ -152,7 +151,13 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       })
       .catch(() => { })
       .finally(() => setLogsLoading(false));
-  }, []);
+  }, [onLogsFetched]);
+
+  useEffect(() => {
+    fetchLogs();
+    const interval = setInterval(fetchLogs, 60000);
+    return () => clearInterval(interval);
+  }, [fetchLogs]);
 
   const fmtTime = (ts) => {
     // A5 FIX: Selalu gunakan timezone WIB agar jam tidak bergeser di browser luar WIB

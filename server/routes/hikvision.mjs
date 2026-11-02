@@ -277,12 +277,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "GET" && url.pathname === "/api/hikvision/dashboard") {
       if (!requireAuthenticated(req, res)) return;
       try {
-        global._hikvDashCache = global._hikvDashCache || { time: 0, data: null };
-        if (Date.now() - global._hikvDashCache.time < 60000 && global._hikvDashCache.data) {
+        const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        global._hikvDashCache = global._hikvDashCache || { time: 0, data: null, date: null };
+        if (global._hikvDashCache.date === todayJkt && Date.now() - global._hikvDashCache.time < 60000 && global._hikvDashCache.data) {
           return send(req, res, 200, global._hikvDashCache.data);
         }
-
-        const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
         // Run devices query + attendance config + all log queries IN PARALLEL
         const [devicesResult, hConfig, recentLogsRes, staffLogsRes, teacherLogsRes, lastSeenRes] = await Promise.all([
@@ -471,7 +470,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           staffLogs: staffLogsRes.rows.map(mapLogStatus),
           teacherLogs: teacherLogsRes.rows.map(mapLogStatus)
         };
-        global._hikvDashCache = { time: Date.now(), data: responseData };
+        global._hikvDashCache = { date: todayJkt, time: Date.now(), data: responseData };
         send(req, res, 200, responseData);
       } catch (err) {
         sendDatabaseError(req, res, err);

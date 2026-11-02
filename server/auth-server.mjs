@@ -2857,8 +2857,9 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       try {
-        global._dashLogsCache = global._dashLogsCache || { time: 0, data: null };
-        if (Date.now() - global._dashLogsCache.time < 30000 && global._dashLogsCache.data) {
+        const todayJktDate = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        global._dashLogsCache = global._dashLogsCache || { time: 0, data: null, date: null };
+        if (global._dashLogsCache.date === todayJktDate && Date.now() - global._dashLogsCache.time < 30000 && global._dashLogsCache.data) {
           return send(req, res, 200, global._dashLogsCache.data);
         }
         let loginLogs = [];
@@ -3160,7 +3161,7 @@ const server = createServer(async (req, res) => {
         let studentAbsenceLogs = [];
         try {
           let sAbsQ = `
-            SELECT siswa_nis as nis, status, tanggal as date, created_at, keterangan, pelapor_nama
+            SELECT siswa_nis as nis, status, TO_CHAR(tanggal, 'YYYY-MM-DD') as date, created_at, keterangan, pelapor_nama
             FROM kedisiplinan_absensi
           `;
           let sAbsP = [];
@@ -3642,6 +3643,7 @@ const server = createServer(async (req, res) => {
             totalTeachers: teachers.length
           }
         };
+        global._dashLogsCache.date = todayJktDate;
         global._dashLogsCache.time = Date.now();
         global._dashLogsCache.data = responseData;
         return send(req, res, 200, responseData);

@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen, ArrowUpRight } from 'lucide-react';
 
 
 export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolProfile, onPanduanClick }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeLang, setActiveLangState] = useState(() => {
@@ -53,7 +53,14 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
   const logoUrl = appSettings?.logoWebUrl || schoolProfile?.logo_url || appSettings?.logoUrl;
   const logoText = appSettings?.logoText || '2';
   const appName = appSettings?.appName || 'KG2 School';
-  const schoolName = appSettings?.instansiName || (appSettings?.schoolName && appSettings.schoolName !== 'SMK Negeri 1' ? appSettings.schoolName : null) || schoolProfile?.nama_sekolah || 'SMK Karya Guna 2 Bekasi';
+  const rawSchool = 
+    appSettings?.instansiName || 
+    (appSettings?.schoolName && appSettings.schoolName !== 'SMK Negeri 1' ? appSettings.schoolName : null) || 
+    schoolProfile?.nama_sekolah || 
+    'SMK Karya Guna 2 Bekasi';
+  const schoolName = (rawSchool && rawSchool.toLowerCase().includes('negeri 1'))
+    ? 'SMK Karya Guna 2 Bekasi'
+    : (rawSchool || 'SMK Karya Guna 2 Bekasi');
 
   // Dynamic colors from admin settings
   const primaryColor = appSettings?.primaryColor || '#059669';
@@ -119,20 +126,31 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
   const scrollToLayanan = (e) => {
     e?.preventDefault?.();
-    const el = document.getElementById('layanan-akademik');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (location.pathname !== '/') {
+      navigate('/#layanan-akademik');
+      setTimeout(() => {
+        document.getElementById('layanan-akademik')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    } else {
+      document.getElementById('layanan-akademik')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setMobileMenuOpen(false);
   };
 
   const scrollToAksesAkun = (e) => {
     e?.preventDefault?.();
-    const el = document.getElementById('akses-akun');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } else if (setIsLoginModalOpen) {
-      setIsLoginModalOpen(true);
+    if (location.pathname !== '/') {
+      navigate('/#akses-akun');
+      setTimeout(() => {
+        document.getElementById('akses-akun')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    } else {
+      const el = document.getElementById('akses-akun');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (setIsLoginModalOpen) {
+        setIsLoginModalOpen(true);
+      }
     }
     setMobileMenuOpen(false);
   };

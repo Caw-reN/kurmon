@@ -2791,15 +2791,21 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   const storeStaffs = useDataStore(state => state.staffs);
   const storeStudents = useDataStore(state => state.students);
   const staffs = (_staffs && _staffs.length > 0) ? _staffs : (storeStaffs && storeStaffs.length > 0 ? storeStaffs : []);
-  const todayStr = useMemo(() => {
-    return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+  const [todayStr, setTodayStr] = useState(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const nowStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      setTodayStr(prev => (prev !== nowStr ? nowStr : prev));
+    }, 15000);
+    return () => clearInterval(timer);
   }, []);
 
   const isWeekendOrHoliday = useMemo(() => {
     const d = new Date();
     const day = d.getDay();
     if (day === 0 || day === 6) return true; // Sabtu & Minggu
-    const jktDateStr = d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const jktDateStr = todayStr;
     const cal = useAppStore.getState().academicCalendar || [];
     return cal.some(evt => {
       const s = evt.dateStart || evt.date;
@@ -2809,7 +2815,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       }
       return false;
     });
-  }, []);
+  }, [todayStr]);
 
   // ── Role-guard ──
   const isKaryawan = currentUser?.role === 'karyawan' || currentUser?.role === 'staf';
