@@ -204,17 +204,21 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 </button>
               </nav>
 
-              {/* Improved Language Switcher (Segmented Pill dengan SVG Crisp) */}
-              <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200/90 shadow-2xs">
+              {/* Improved Language Switcher (Segmented Control dengan Radius Serasi) */}
+              <div 
+                className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs"
+                style={{ borderRadius: '12px' }}
+              >
                 <button
                   type="button"
                   onClick={() => setActiveLang('ID')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border-none ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border-none ${
                     activeLang === 'ID'
                       ? 'bg-white shadow-2xs font-extrabold'
                       : 'bg-transparent hover:text-slate-900 font-semibold'
                   }`}
                   style={{
+                    borderRadius: '8px',
                     color: activeLang === 'ID' ? '#0f172a' : '#64748b'
                   }}
                   title="Bahasa Indonesia"
@@ -225,12 +229,13 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 <button
                   type="button"
                   onClick={() => setActiveLang('EN')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border-none ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border-none ${
                     activeLang === 'EN'
                       ? 'bg-white shadow-2xs font-extrabold'
                       : 'bg-transparent hover:text-slate-900 font-semibold'
                   }`}
                   style={{
+                    borderRadius: '8px',
                     color: activeLang === 'EN' ? '#0f172a' : '#64748b'
                   }}
                   title="English"
@@ -256,22 +261,27 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             {/* Hamburger Menu Button (Mobile) */}
             <div className="flex items-center gap-2.5 md:hidden">
               {/* Quick Language Toggle */}
-              <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200/80">
+              <div 
+                className="inline-flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200/80"
+                style={{ borderRadius: '10px' }}
+              >
                 <button
                   type="button"
                   onClick={() => setActiveLang('ID')}
-                  className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border-none cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border-none cursor-pointer ${
                     activeLang === 'ID' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
                   }`}
+                  style={{ borderRadius: '7px' }}
                 >
                   ID
                 </button>
                 <button
                   type="button"
                   onClick={() => setActiveLang('EN')}
-                  className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border-none cursor-pointer ${
+                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border-none cursor-pointer ${
                     activeLang === 'EN' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
                   }`}
+                  style={{ borderRadius: '7px' }}
                 >
                   EN
                 </button>

@@ -1755,10 +1755,11 @@ export default function LandingPage() {
             {/* Top Tag & Live Weather Badge */}
             <div className="flex flex-wrap items-center gap-2.5 mb-4">
               <div 
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full shadow-xs backdrop-blur-md"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl shadow-xs backdrop-blur-md"
                 style={{
                   backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '12px'
                 }}
               >
                 <span 
@@ -1776,7 +1777,8 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={handleCycleWeather}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-all"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-all"
+                style={{ borderRadius: '12px' }}
                 title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
               >
                 {weatherCondition === 'night' && <Moon size={12} className="text-amber-200 shrink-0" />}
@@ -1787,10 +1789,11 @@ export default function LandingPage() {
                   Bekasi {weatherTemp ? `${weatherTemp}°C` : ''}
                 </span>
                 <span 
-                  className="text-[9px] font-extrabold px-1.5 py-0.2 rounded"
+                  className="text-[9.5px] font-black px-1.5 py-0.5 rounded-md"
                   style={{
                     backgroundColor: accentColor || '#a3e635',
-                    color: '#064e3b'
+                    color: '#064e3b',
+                    borderRadius: '6px'
                   }}
                 >
                   {manualWeather ? 'Manual' : 'Live'}
@@ -1865,22 +1868,10 @@ export default function LandingPage() {
           <div id="akses-akun" className="w-full lg:w-[430px] shrink-0 flex justify-center lg:justify-end">
             <div className="bg-white/98 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl hover:shadow-2xl transition-shadow p-6 sm:p-7 lg:p-8 w-full max-w-[430px] text-left relative">
               {/* Top Header of the Card */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-slate-700">
-                  <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#064e3b' }} />
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-mono">
-                    Akses Akun
-                  </span>
-                </div>
-                <span 
-                  className="text-[10.5px] font-bold px-2.5 py-0.5 rounded-lg shadow-2xs font-sans"
-                  style={{
-                    backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.08),
-                    border: `1px solid ${hexToRgba(primaryColor || '#064e3b', 0.2)}`,
-                    color: primaryColor || '#064e3b'
-                  }}
-                >
-                  Portal Internal
+              <div className="flex items-center gap-2 text-slate-700">
+                <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#064e3b' }} />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-mono">
+                  Akses Akun
                 </span>
               </div>
 
@@ -1956,124 +1947,133 @@ export default function LandingPage() {
 
         </div>
 
-        {/* LAYANAN AKADEMIK HINGGA BANTUAN SECTION (MODERN ELEGANT REDESIGN) */}
+        {/* LAYANAN AKADEMIK SECTION */}
         <div id="layanan-akademik" className="shrink-0 mb-10 lg:mb-12 middle-layanan-section relative z-10 w-full scroll-mt-28">
-          {/* 1. KARTU BESAR LAYANAN AKADEMIK */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-10 w-full mb-10 lg:mb-14 relative z-10 text-left">
-            {/* Top Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  Layanan akademik
-                </h2>
-                <p className="text-xs sm:text-sm font-semibold text-slate-400 mt-1">
-                  Pilih layanan untuk melanjutkan aktivitasmu.
-                </p>
+          {/* 1. KARTU BESAR LAYANAN AKADEMIK (SPLIT DESKTOP DENGAN KARTU DI KANAN MENGISI RUANG KOSONG) */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-8 xl:p-9 w-full mb-10 lg:mb-14 relative z-10 text-left">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
+              
+              {/* Kolom Kiri: Judul, Subtitle, & Search Input */}
+              <div className="w-full lg:w-72 xl:w-80 shrink-0 flex flex-col justify-between self-stretch">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                    Layanan akademik
+                  </h2>
+                  <p className="text-xs sm:text-sm font-semibold text-slate-400 mt-1 leading-snug">
+                    Pilih layanan untuk melanjutkan aktivitasmu.
+                  </p>
+                </div>
+
+                {/* Search Bar Input */}
+                <div className="w-full mt-4 lg:mt-6 relative">
+                  <Search size={16} strokeWidth={2.4} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <input 
+                    type="text" 
+                    placeholder="Cari layanan: jadwal, materi, PKL..." 
+                    value={academicServiceQuery}
+                    onChange={(e) => setAcademicServiceQuery(e.target.value)}
+                    id="academic-service-search"
+                    className="w-full h-11 pl-10 pr-10 bg-slate-50/70 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15 focus:border-[var(--ui-primary)] focus:bg-white transition-all shadow-2xs"
+                  />
+                  {academicServiceQuery ? (
+                    <button
+                      type="button"
+                      onClick={() => setAcademicServiceQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer bg-transparent border-none"
+                      title="Hapus pencarian"
+                    >
+                      <X size={14} />
+                    </button>
+                  ) : (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] font-mono text-slate-400 shadow-2xs pointer-events-none">
+                      /
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsLoginModalOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald-800 transition-colors bg-transparent border-none p-0 cursor-pointer self-start sm:self-auto"
-              >
-                <span>Terhubung ke sistem sekolah</span>
-                <ArrowUpRight size={14} strokeWidth={2.4} />
-              </button>
-            </div>
-
-            {/* Search Bar Input */}
-            <div className="w-full max-w-md my-6 relative">
-              <Search size={16} strokeWidth={2.4} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-              <input 
-                type="text" 
-                placeholder="Cari layanan: jadwal, materi, PKL..." 
-                value={academicServiceQuery}
-                onChange={(e) => setAcademicServiceQuery(e.target.value)}
-                id="academic-service-search"
-                className="w-full h-11 pl-10 pr-10 bg-slate-50/70 border border-slate-200/80 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/15 focus:border-[var(--ui-primary)] focus:bg-white transition-all shadow-2xs"
-              />
-              {academicServiceQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setAcademicServiceQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer bg-transparent border-none"
-                  title="Hapus pencarian"
-                >
-                  <X size={14} />
-                </button>
-              ) : (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[11px] font-mono text-slate-400 shadow-2xs pointer-events-none">
-                  /
-                </span>
-              )}
-            </div>
-
-            {/* Grid 7 Layanan: Tepat 1 Baris di Desktop (7 Kolom) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 lg:gap-3.5 w-full">
-              {filteredAcademicServices.map((service) => {
-                const IconComp = service.icon;
-                const isHighlighted = service.highlight && !academicServiceQuery;
-                const activeColor = service.customColor || service.defaultColor;
-
-                return (
-                  <div
-                    key={service.id}
-                    onClick={() => {
-                      if (service.isPdfRules) {
-                        setShowRulesModal(true);
-                      } else if (service.path) {
-                        navigate(service.path);
-                      }
-                    }}
-                    className={`group rounded-2xl p-3.5 lg:p-4 flex flex-col justify-between min-h-[135px] lg:min-h-[142px] text-left transition-all duration-200 cursor-pointer border select-none ${
-                      isHighlighted 
-                        ? 'bg-[#f4fae9] border-[#cce49e] hover:border-[#b8da7e] shadow-2xs hover:shadow-xs hover:-translate-y-0.5' 
-                        : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5'
-                    }`}
+              {/* Kolom Kanan: Pindah kesini (Terhubung ke sistem sekolah + 7 Kartu Layanan 1 Baris) */}
+              <div className="flex-1 w-full min-w-0 flex flex-col">
+                <div className="flex items-center justify-end mb-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-emerald-800 transition-colors bg-transparent border-none p-0 cursor-pointer"
                   >
-                    {/* Top Row: Icon Asli Berwarna di kiri, panah di kanan */}
-                    <div className="flex items-start justify-between w-full">
-                      <div 
-                        className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
-                        style={{ 
-                          backgroundColor: hexToRgba(activeColor, 0.08),
-                          border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
-                        }}
-                      >
-                        {service.customIcon ? (
-                          <img src={service.customIcon} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
-                        ) : service.svgIcon ? (
-                          <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
-                        ) : (
-                          <IconComp size={20} strokeWidth={2.2} style={{ color: activeColor }} />
-                        )}
-                      </div>
-                      <div className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100/80 transition-all shrink-0">
-                        <ArrowUpRight 
-                          size={14} 
-                          strokeWidth={2.4} 
-                          className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" 
-                        />
-                      </div>
-                    </div>
-
-                    {/* Bottom Row: Judul & Deskripsi */}
-                    <div className="mt-3">
-                      <h3 className="text-xs lg:text-[13px] font-black text-slate-900 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors truncate">
-                        {service.title}
-                      </h3>
-                      <p className="text-[10px] lg:text-[11px] font-semibold text-slate-400 group-hover:text-slate-500 mt-1 leading-snug line-clamp-2">
-                        {service.desc}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-              {filteredAcademicServices.length === 0 && (
-                <div className="col-span-full py-8 text-center text-slate-400 font-semibold text-xs">
-                  Tidak ada layanan akademik yang sesuai dengan "{academicServiceQuery}"
+                    <span>Terhubung ke sistem sekolah</span>
+                    <ArrowUpRight size={14} strokeWidth={2.4} />
+                  </button>
                 </div>
-              )}
+
+                {/* Grid 7 Layanan: Tepat 1 Baris di Layar Lebar */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 xl:gap-3 w-full">
+                  {filteredAcademicServices.map((service) => {
+                    const IconComp = service.icon;
+                    const isHighlighted = service.highlight && !academicServiceQuery;
+                    const activeColor = service.customColor || service.defaultColor;
+
+                    return (
+                      <div
+                        key={service.id}
+                        onClick={() => {
+                          if (service.isPdfRules) {
+                            setShowRulesModal(true);
+                          } else if (service.path) {
+                            navigate(service.path);
+                          }
+                        }}
+                        className={`group rounded-2xl p-3 xl:p-3.5 flex flex-col justify-between min-h-[125px] xl:min-h-[135px] text-left transition-all duration-200 cursor-pointer border select-none ${
+                          isHighlighted 
+                            ? 'bg-[#f4fae9] border-[#cce49e] hover:border-[#b8da7e] shadow-2xs hover:shadow-xs hover:-translate-y-0.5' 
+                            : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5'
+                        }`}
+                      >
+                        {/* Top Row: Icon Asli Berwarna di kiri, panah di kanan */}
+                        <div className="flex items-start justify-between w-full">
+                          <div 
+                            className="w-9 h-9 xl:w-10 xl:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
+                            style={{ 
+                              backgroundColor: hexToRgba(activeColor, 0.08),
+                              border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
+                            }}
+                          >
+                            {service.customIcon ? (
+                              <img src={service.customIcon} alt="" className="w-5 h-5 xl:w-5.5 xl:h-5.5 object-contain" />
+                            ) : service.svgIcon ? (
+                              <img src={`/icons/${service.svgIcon}`} alt="" className="w-5 h-5 xl:w-5.5 xl:h-5.5 object-contain" />
+                            ) : (
+                              <IconComp size={18} strokeWidth={2.2} style={{ color: activeColor }} />
+                            )}
+                          </div>
+                          <div className="w-5 h-5 rounded-md flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100/80 transition-all shrink-0">
+                            <ArrowUpRight 
+                              size={13} 
+                              strokeWidth={2.4} 
+                              className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" 
+                            />
+                          </div>
+                        </div>
+
+                        {/* Bottom Row: Judul & Deskripsi */}
+                        <div className="mt-2.5">
+                          <h3 className="text-xs font-black text-slate-900 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors truncate">
+                            {service.title}
+                          </h3>
+                          <p className="text-[10px] font-semibold text-slate-400 group-hover:text-slate-500 mt-0.5 leading-snug line-clamp-2">
+                            {service.desc}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {filteredAcademicServices.length === 0 && (
+                    <div className="col-span-full py-8 text-center text-slate-400 font-semibold text-xs">
+                      Tidak ada layanan akademik yang sesuai dengan "{academicServiceQuery}"
+                    </div>
+                  )}
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -2128,27 +2128,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* 3. BANNER KESULITAN MENGAKSES SISTEM? (BANTUAN) */}
-          <div className="bg-[#0c3928] text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md my-8 lg:my-10 w-full relative z-10 text-left overflow-hidden">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
-                Kesulitan mengakses sistem?
-              </h3>
-              <p className="text-xs sm:text-sm font-semibold text-emerald-200/80 mt-1.5 leading-relaxed">
-                Baca panduan layanan atau hubungi sekolah untuk bantuan akun.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowPublicHelp(true)}
-              className="bg-[#c8ed69] hover:bg-[#b8e254] text-[#0c3928] font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
-            >
-              <span>Panduan & Bantuan</span>
-              <ArrowUpRight size={15} strokeWidth={2.8} />
-            </button>
           </div>
         </div>
 
@@ -2238,6 +2217,29 @@ export default function LandingPage() {
             </div>
           </div>
         )}
+
+        {/* BANNER KESULITAN MENGAKSES SISTEM? (BANTUAN) - PINDAH KE BAWAH DI ATAS FOOTER */}
+        <div className="shrink-0 mb-8 lg:mb-10 w-full relative z-10 text-left">
+          <div className="bg-[#0c3928] text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md w-full overflow-hidden">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
+                Kesulitan mengakses sistem?
+              </h3>
+              <p className="text-xs sm:text-sm font-semibold text-emerald-200/80 mt-1.5 leading-relaxed">
+                Baca panduan layanan atau hubungi sekolah untuk bantuan akun.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPublicHelp(true)}
+              className="bg-[#c8ed69] hover:bg-[#b8e254] text-[#0c3928] font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
+            >
+              <span>Panduan & Bantuan</span>
+              <ArrowUpRight size={15} strokeWidth={2.8} />
+            </button>
+          </div>
+        </div>
 
       </div>
 
