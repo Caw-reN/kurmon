@@ -907,7 +907,7 @@ export default function LandingPage() {
     <div className="relative flex flex-col min-h-screen w-full bg-[var(--ui-bg)] overflow-x-hidden font-sans" style={{'--accent-color': accentColor ||'#a3e635','--ui-primary': primaryColor ||'#4B7BE5' }}>
 
       {/* GLOBAL DECORATIVE BACKGROUND (DESKTOP) */}
-      <div className="hidden md:block absolute top-0 left-0 w-full h-[54vh] pointer-events-none z-0 overflow-hidden select-none">
+      <div className="hidden md:block absolute top-0 left-0 w-full h-[620px] lg:h-[680px] pointer-events-none z-0 overflow-hidden select-none">
         {/* Background Image Sekolah */}
         <img
           src={appSettings?.heroImage || '/hero_illustration.jpg'}
@@ -922,11 +922,17 @@ export default function LandingPage() {
           }}
         />
 
-        {/* Scrim Gradasi Lembut Dinamis sesuai Cuaca Bekasi (Clean Light Backdrop) */}
+        {/* Scrim Gradasi Transparan Dinamis - Menjaga Background Ilustrasi Sekolah Tetap Terlihat Nyata & Jelas */}
         <div 
           className="absolute inset-0 pointer-events-none transition-all duration-700"
           style={{
-            background: 'linear-gradient(180deg, rgba(248, 250, 247, 0.90) 0%, rgba(248, 250, 247, 0.96) 60%, rgba(255, 255, 255, 1) 100%)'
+            background: weatherCondition === 'night' 
+              ? 'linear-gradient(180deg, rgba(10, 22, 38, 0.52) 0%, rgba(15, 23, 42, 0.32) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+              : weatherCondition === 'rain'
+              ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(30, 41, 59, 0.35) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+              : weatherCondition === 'hot'
+              ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.25) 0%, rgba(245, 158, 11, 0.15) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.18) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
           }}
         />
 
@@ -1749,19 +1755,18 @@ export default function LandingPage() {
             {/* Top Tag & Live Weather Badge */}
             <div className="flex flex-wrap items-center gap-2.5 mb-4">
               <div 
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full shadow-2xs"
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full shadow-xs backdrop-blur-md"
                 style={{
-                  backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.08),
-                  border: `1px solid ${hexToRgba(primaryColor || '#064e3b', 0.2)}`
+                  backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)'
                 }}
               >
                 <span 
                   className="w-2 h-2 rounded-full animate-pulse shrink-0" 
-                  style={{ backgroundColor: primaryColor || '#064e3b' }} 
+                  style={{ backgroundColor: accentColor || '#a3e635' }} 
                 />
                 <span 
-                  className="text-[11px] font-black tracking-wider uppercase font-mono"
-                  style={{ color: primaryColor || '#064e3b' }}
+                  className="text-[11px] font-black tracking-wider uppercase font-mono text-emerald-300"
                 >
                   PORTAL AKADEMIK {appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}
                 </span>
@@ -1771,21 +1776,21 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={handleCycleWeather}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 hover:bg-white active:scale-95 border border-slate-200/90 text-slate-600 hover:text-slate-900 text-[11px] font-bold shadow-2xs cursor-pointer transition-all"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-all"
                 title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
               >
-                {weatherCondition === 'night' && <Moon size={12} className="text-indigo-500 shrink-0" />}
-                {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-500 shrink-0 animate-bounce" />}
-                {weatherCondition === 'hot' && <Sun size={12} className="text-amber-500 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
-                {weatherCondition === 'cloudy' && <CloudSun size={12} className="text-emerald-500 shrink-0" />}
+                {weatherCondition === 'night' && <Moon size={12} className="text-amber-200 shrink-0" />}
+                {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-300 shrink-0 animate-bounce" />}
+                {weatherCondition === 'hot' && <Sun size={12} className="text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
+                {weatherCondition === 'cloudy' && <CloudSun size={12} className="text-emerald-300 shrink-0" />}
                 <span>
                   Bekasi {weatherTemp ? `${weatherTemp}°C` : ''}
                 </span>
                 <span 
                   className="text-[9px] font-extrabold px-1.5 py-0.2 rounded"
                   style={{
-                    backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.12),
-                    color: primaryColor || '#064e3b'
+                    backgroundColor: accentColor || '#a3e635',
+                    color: '#064e3b'
                   }}
                 >
                   {manualWeather ? 'Manual' : 'Live'}
@@ -1794,18 +1799,18 @@ export default function LandingPage() {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-slate-900 leading-[1.12]">
+            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-white leading-[1.12] drop-shadow-sm">
               Aktivitas akademik,
               <span 
-                className="block mt-1" 
-                style={{ color: appSettings.heroHighlightColor || accentColor || '#5e7e28' }}
+                className="block mt-1 drop-shadow-sm" 
+                style={{ color: appSettings.heroHighlightColor || accentColor || '#a3e635' }}
               >
                 lebih terarah.
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xs sm:text-sm lg:text-[14px] font-semibold text-slate-400 mt-3.5 mb-6 max-w-[480px] leading-relaxed">
+            <p className="text-xs sm:text-sm lg:text-[14px] font-medium text-slate-200 mt-3.5 mb-6 max-w-[480px] leading-relaxed drop-shadow-xs">
               {appSettings.heroSubtitle && appSettings.heroSubtitle !== "Sistem informasi terpadu guru dan siswa untuk jadwal, denah, hingga materi ajar."
                 ? cleanText(appSettings.heroSubtitle)
                 : "Akses jadwal pelajaran, materi ajar, kalender akademik, dan informasi PKL dalam satu portal. Masuk ke akun untuk melanjutkan aktivitas sekolahmu."}
@@ -1816,11 +1821,11 @@ export default function LandingPage() {
               <button 
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)} 
-                className="h-11 px-6 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md hover:scale-[1.02] transition-all active:scale-95 cursor-pointer border-none"
+                className="h-11 px-6 rounded-xl text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all active:scale-95 cursor-pointer border-none"
                 style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#064e3b' }}
               >
                 <span>Masuk ke Sistem</span>
-                <ArrowUpRight size={15} strokeWidth={2.6} />
+                <ArrowUpRight size={15} strokeWidth={2.8} />
               </button>
 
               <button
@@ -1831,26 +1836,26 @@ export default function LandingPage() {
                     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
                 }}
-                className="h-11 px-5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs hover:shadow-xs transition-all active:scale-95 cursor-pointer"
+                className="h-11 px-5 rounded-xl bg-white/90 hover:bg-white text-slate-900 border border-white/60 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer backdrop-blur-md"
               >
                 <span>Lihat Layanan</span>
-                <ArrowDown size={14} strokeWidth={2.4} className="text-slate-500" />
+                <ArrowDown size={14} strokeWidth={2.6} className="text-slate-600" />
               </button>
             </div>
 
             {/* Micro Note: Akses Publik */}
             <div className="flex items-center gap-2.5 mt-5">
               <span 
-                className="text-[11px] font-black px-2.5 py-0.5 rounded-lg shadow-2xs font-mono"
+                className="text-[11px] font-black px-2.5 py-0.5 rounded-lg shadow-xs font-mono backdrop-blur-md"
                 style={{
-                  backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.08),
-                  border: `1px solid ${hexToRgba(primaryColor || '#064e3b', 0.2)}`,
-                  color: primaryColor || '#064e3b'
+                  backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  color: '#ffffff'
                 }}
               >
                 Akses publik
               </span>
-              <span className="text-xs font-semibold text-slate-400">
+              <span className="text-xs font-medium text-slate-200 drop-shadow-xs">
                 Informasi umum dapat dibuka melalui menu layanan.
               </span>
             </div>
@@ -1858,7 +1863,7 @@ export default function LandingPage() {
 
           {/* Right Column: Kartu Putih Akses Akun */}
           <div id="akses-akun" className="w-full lg:w-[430px] shrink-0 flex justify-center lg:justify-end">
-            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow p-6 sm:p-7 lg:p-8 w-full max-w-[430px] text-left relative">
+            <div className="bg-white/98 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl hover:shadow-2xl transition-shadow p-6 sm:p-7 lg:p-8 w-full max-w-[430px] text-left relative">
               {/* Top Header of the Card */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-slate-700">
