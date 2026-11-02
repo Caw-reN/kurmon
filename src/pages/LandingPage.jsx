@@ -904,7 +904,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative flex flex-col min-h-screen w-full bg-[var(--ui-bg)] overflow-x-hidden font-sans" style={{'--accent-color': accentColor ||'#a3e635','--ui-primary': primaryColor ||'#4B7BE5' }}>
+    <div className="relative flex flex-col min-h-screen w-full bg-[var(--ui-bg)] overflow-x-hidden font-sans" style={{ '--accent-color': accentColor || '#c8ed69', '--ui-primary': primaryColor || '#059669' }}>
 
       {/* GLOBAL DECORATIVE BACKGROUND (DESKTOP) */}
       <div className="hidden md:block absolute top-0 left-0 w-full h-[620px] lg:h-[680px] pointer-events-none z-0 overflow-hidden select-none">
@@ -1825,7 +1825,7 @@ export default function LandingPage() {
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)} 
                 className="h-11 px-6 rounded-xl text-white text-xs sm:text-sm font-black flex items-center gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all active:scale-95 cursor-pointer border-none"
-                style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#064e3b' }}
+                style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#059669' }}
               >
                 <span>Masuk ke Sistem</span>
                 <ArrowUpRight size={15} strokeWidth={2.8} />
@@ -1869,7 +1869,7 @@ export default function LandingPage() {
             <div className="bg-white/98 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl hover:shadow-2xl transition-shadow p-6 sm:p-7 lg:p-8 w-full max-w-[430px] text-left relative">
               {/* Top Header of the Card */}
               <div className="flex items-center gap-2 text-slate-700">
-                <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#064e3b' }} />
+                <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#059669' }} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-mono">
                   Akses Akun
                 </span>
@@ -1923,7 +1923,7 @@ export default function LandingPage() {
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)}
                 className="w-full mt-6 h-12 rounded-xl text-white font-bold text-xs sm:text-sm px-5 flex items-center justify-between shadow-xs hover:shadow-md transition-all active:scale-[0.99] cursor-pointer border-none"
-                style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#064e3b' }}
+                style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#059669' }}
               >
                 <span>Buka Portal & Masuk Akun</span>
                 <ArrowUpRight size={16} strokeWidth={2.4} />
@@ -2107,17 +2107,7 @@ export default function LandingPage() {
         </div>
 
         {/* JURUSAN / PROGRAM KEAHLIAN UNGGULAN (CLEAN MINIMALIST CARDS) */}
-        <div className="shrink-0 mb-6 lg:mb-7 bottom-jurusan-section relative z-10">
-          {/* Centered Title */}
-          <div className="flex flex-col items-center justify-center text-center mb-3.5 lg:mb-4.5">
-            <h2 className="text-base lg:text-xl font-black text-slate-800 tracking-tight leading-none">
-              {appSettings.trustedByText || "Program Keahlian Unggulan"}
-            </h2>
-            <p className="text-[11px] lg:text-xs text-slate-400 font-semibold mt-1 max-w-lg">
-              {appSettings.trustedBySubtitle || "Kompetensi keahlian terakreditasi berstandar industri & siap kerja global"}
-            </p>
-          </div>
-
+        <div className="shrink-0 mb-6 lg:mb-8 bottom-jurusan-section relative z-10">
           {/* 4 Clean Modern Cards Grid: Exactly 4 in 1 row */}
           <div className="grid grid-cols-4 gap-3.5 lg:gap-4.5 w-full">
             {[1, 2, 3, 4].map((idx) => {
@@ -2193,12 +2183,12 @@ export default function LandingPage() {
 
         {/* BANNER KESULITAN MENGAKSES SISTEM? (BANTUAN) - PINDAH KE BAWAH DI ATAS FOOTER */}
         <div className="shrink-0 mb-8 lg:mb-10 w-full relative z-10 text-left">
-          <div className="bg-[#0c3928] text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md w-full overflow-hidden">
+          <div className="bg-[#153f32] text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md w-full overflow-hidden">
             <div>
               <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
                 Kesulitan mengakses sistem?
               </h3>
-              <p className="text-xs sm:text-sm font-semibold text-emerald-200/80 mt-1.5 leading-relaxed">
+              <p className="text-xs sm:text-sm font-semibold text-emerald-100/80 mt-1.5 leading-relaxed">
                 Baca panduan layanan atau hubungi sekolah untuk bantuan akun.
               </p>
             </div>
@@ -2206,7 +2196,7 @@ export default function LandingPage() {
             <button
               type="button"
               onClick={() => setShowPublicHelp(true)}
-              className="bg-[#c8ed69] hover:bg-[#b8e254] text-[#0c3928] font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
+              className="bg-[#c8ed69] hover:bg-[#b8e254] text-[#153f32] font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
             >
               <span>Panduan & Bantuan</span>
               <ArrowUpRight size={15} strokeWidth={2.8} />
@@ -2216,132 +2206,113 @@ export default function LandingPage() {
 
       </div>
 
-            {/* DESKTOP FOOTER */}
-      <footer className="hidden md:block w-full bg-white/85 backdrop-blur-xl border-t border-slate-200/90 relative z-20 mt-auto print:hidden">
-        <div className="w-full max-w-[1440px] mx-auto px-6 lg:px-12 py-6 lg:py-8">
+      {/* FOOTER (LAYOUT & WARNA SINKRON DENGAN PANDUAN GAMBAR USER) */}
+      <footer className="w-full bg-[#f7f8f2] border-t border-[#dde3d9] relative z-20 mt-auto pb-24 md:pb-8 print:hidden select-none">
+        <div className="w-full max-w-[1400px] mx-auto px-6 md:px-8 py-8 lg:py-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
             
-            {/* Column 1: Brand Profile & Status (5 cols) */}
-            <div className="md:col-span-5 flex flex-col items-start text-left gap-3">
-              <div className="flex items-center gap-3">
+            {/* Column 1: Brand Profile & Alamat Kampus (6 cols) */}
+            <div className="md:col-span-6 lg:col-span-6 flex flex-col items-start text-left">
+              <div className="flex items-center gap-3.5">
                 {appSettings.logoImage ? (
-                  <img src={appSettings.logoImage} alt="Logo" className="w-11 h-11 object-contain rounded-[var(--ui-radius-small)]" />
+                  <img src={appSettings.logoImage} alt="Logo" className="w-10 h-10 lg:w-11 lg:h-11 object-contain rounded-xl shrink-0" />
                 ) : (
                   <div 
-                    className="w-11 h-11 rounded-[var(--ui-radius-small)] flex items-center justify-center text-white font-black text-base shadow-xs"
-                    style={{ backgroundColor: primaryColor || 'var(--ui-primary, #059669)' }}
+                    className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl flex items-center justify-center text-white font-black text-lg shadow-2xs shrink-0"
+                    style={{ backgroundColor: primaryColor || '#059669' }}
                   >
-                    {appSettings.logoText || "TS"}
+                    {appSettings.logoText || "2"}
                   </div>
                 )}
-                <div className="flex flex-col">
-                  <span className="font-black text-slate-800 text-[17px] tracking-tight leading-tight">
-                    {appSettings.appName || "Sistem Akademik & Kurikulum"}
-                  </span>
-                  <span className="text-slate-500 text-xs font-bold mt-0.5">
-                    {appSettings.instansiName || "Institusi Pendidikan Terpadu"}
+                <div className="flex flex-col text-left">
+                  <div className="flex items-baseline">
+                    <span className="font-black text-[#153f32] text-lg lg:text-xl tracking-tight leading-none">
+                      {appSettings.appName || "KG2 School"}
+                    </span>
+                    <span className="font-black text-[#059669] text-lg lg:text-xl leading-none ml-0.5">
+                      .
+                    </span>
+                  </div>
+                  <span className="text-slate-500 text-[10.5px] lg:text-[11px] font-bold uppercase tracking-wider mt-1">
+                    {appSettings.schoolName || appSettings.instansiName || "SMK KARYA GUNA 2 BEKASI"}
                   </span>
                 </div>
               </div>
 
-              <div className="text-slate-500 text-xs font-medium leading-relaxed max-w-md mt-1">
-                {appSettings.schoolAddress || appSettings.schoolProfile?.alamat || "Portal resmi manajemen pembelajaran, jadwal pelajaran terpadu, presensi digital, dan sistem informasi akademik."}
-              </div>
-            </div>
-
-            {/* Column 2: Layanan Publik (4 cols) */}
-            <div className="md:col-span-4 flex flex-col text-left">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3.5">
-                Layanan & Menu Informasi
-              </h4>
-              <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 text-xs font-bold text-slate-600">
-                <Link to="/jadwal" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <CalendarDays size={13} className="text-slate-400 shrink-0" />
-                  <span>Jadwal Pelajaran</span>
-                </Link>
-                <Link to="/denah" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <MapPin size={13} className="text-slate-400 shrink-0" />
-                  <span>Denah Ruang</span>
-                </Link>
-                <Link to="/materi-ajar" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <BookOpenText size={13} className="text-slate-400 shrink-0" />
-                  <span>Materi Ajar</span>
-                </Link>
-                <Link to="/kalender" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <Calendar size={13} className="text-slate-400 shrink-0" />
-                  <span>Kalender Sekolah</span>
-                </Link>
-                <Link to="/pkl-locations" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <Briefcase size={13} className="text-slate-400 shrink-0" />
-                  <span>Mitra PKL</span>
-                </Link>
-                <Link to="/struktur" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
-                  <Users size={13} className="text-slate-400 shrink-0" />
-                  <span>Struktur Organisasi</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* Column 3: Bantuan & Kontak (3 cols) */}
-            <div className="md:col-span-3 flex flex-col items-start md:items-end text-left md:text-right">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3.5">
-                Bantuan & Akses Portal
-              </h4>
-              <div className="flex flex-col gap-2.5 w-full items-start md:items-end">
-                <button
-                  type="button"
-                  onClick={() => setIsLoginModalOpen(true)}
-                  className="px-4 py-2 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)] text-white text-xs font-black shadow-xs transition-all cursor-pointer flex items-center gap-2 border-none"
-                >
-                  <LogIn size={13} />
-                  <span>Masuk Portal Internal</span>
-                </button>
-
-                <div className="flex items-center gap-3 text-xs font-bold text-slate-500 mt-1">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPublicGuide(true)} 
-                    className="hover:text-[var(--ui-primary)] transition-colors bg-transparent border-none p-0 cursor-pointer font-bold"
-                  >
-                    Panduan
-                  </button>
-                  <span className="w-1 h-1 rounded-full bg-slate-300" />
-                  <button 
-                    type="button" 
-                    onClick={() => setShowPublicHelp(true)} 
-                    className="hover:text-[var(--ui-primary)] transition-colors bg-transparent border-none p-0 cursor-pointer font-bold"
-                  >
-                    Bantuan FAQ
-                  </button>
-                </div>
-
-                {(appSettings.contactPhone || appSettings.contactEmail) && (
-                  <p className="text-[11px] font-semibold text-slate-400 mt-2 text-left md:text-right">
-                    {appSettings.contactPhone && <span>WhatsApp: {appSettings.contactPhone}</span>}
-                    {appSettings.contactPhone && appSettings.contactEmail && <br />}
-                    {appSettings.contactEmail && <span>Email: {appSettings.contactEmail}</span>}
-                  </p>
+              <div className="mt-4 text-slate-500 text-xs font-medium leading-relaxed max-w-md">
+                {appSettings.schoolAddress ? (
+                  <div className="whitespace-pre-line">{appSettings.schoolAddress}</div>
+                ) : (
+                  <>
+                    <p>Kampus A: Jl. Karang Satria No. 503, Duren Jaya,</p>
+                    <p>Bekasi Timur, Kota Bekasi.</p>
+                    <p className="mt-1">Kampus B: Jl. Kusuma Barat XI, Duren Jaya, Bekasi Timur.</p>
+                  </>
                 )}
+              </div>
+            </div>
+
+            {/* Column 2: Jelajahi Portal (3 cols) */}
+            <div className="md:col-span-3 lg:col-span-3 flex flex-col text-left">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#153f32] mb-3.5">
+                Jelajahi Portal
+              </h4>
+              <div className="flex flex-col gap-2.5 text-xs font-medium text-slate-600">
+                <Link to="/jadwal" className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                  <span>Jadwal Pelajaran</span>
+                  <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
+                </Link>
+                <Link to="/materi-ajar" className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                  <span>Materi Ajar</span>
+                  <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
+                </Link>
+                <Link to="/kalender" className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                  <span>Kalender Sekolah</span>
+                  <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Column 3: Tetap Terhubung (3 cols) */}
+            <div className="md:col-span-3 lg:col-span-3 flex flex-col text-left">
+              <h4 className="text-xs font-black uppercase tracking-wider text-[#153f32] mb-3.5">
+                Tetap Terhubung
+              </h4>
+              <div className="flex flex-col gap-2.5 text-xs font-medium text-slate-600">
+                <a 
+                  href={`mailto:${appSettings.contactEmail || 'info@smkkg2.sch.id'}`} 
+                  className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600"
+                >
+                  <span>{appSettings.contactEmail || 'info@smkkg2.sch.id'}</span>
+                  <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
+                </a>
+                <button 
+                  type="button" 
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
+                >
+                  <span>Sistem akademik sekolah</span>
+                  <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowPublicHelp(true)}
+                  className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
+                >
+                  <span>Pusat bantuan</span>
+                </button>
               </div>
             </div>
 
           </div>
 
           {/* Bottom Copyright Row */}
-          <div className="w-full border-t border-slate-200/70 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-400">
+          <div className="w-full border-t border-[#dde3d9] mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-slate-500">
             <p>
-              {appSettings.footerDescription ? (
-                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
-              ) : appSettings.footerText ? (
-                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerText) }} />
-              ) : (
-                `© ${new Date().getFullYear()} ${appSettings.appName || "Sistem Akademik"}. Seluruh hak cipta dilindungi undang-undang.`
-              )}
+              © {new Date().getFullYear()} {appSettings.appName || "KG2 School"} · {appSettings.schoolName || appSettings.instansiName || "SMK Karya Guna 2 Bekasi"}
             </p>
-            <div className="flex items-center gap-4 text-slate-500">
-              <span className="hover:text-[var(--ui-primary)] cursor-pointer transition-colors">Kebijakan Privasi</span>
-              <span className="w-1 h-1 bg-slate-300 rounded-full" />
-              <span className="hover:text-[var(--ui-primary)] cursor-pointer transition-colors">Syarat & Ketentuan</span>
+            <div className="text-slate-500 text-xs font-medium">
+              Pratinjau antarmuka · Data akademik tersedia di sistem asli
             </div>
           </div>
         </div>

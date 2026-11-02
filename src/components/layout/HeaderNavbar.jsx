@@ -30,7 +30,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
   const schoolName = appSettings?.schoolName || 'SMK Karya Guna 2 Bekasi';
 
   // Dynamic colors from admin settings
-  const primaryColor = appSettings?.primaryColor || '#064e3b';
+  const primaryColor = appSettings?.primaryColor || '#059669';
   const accentColor = appSettings?.accentColor || '#c8ed69';
   const primaryButtonColor = appSettings?.primaryButtonColor || primaryColor;
   const contactEmail = appSettings?.contactEmail || 'admin@school.sch.id';
@@ -162,7 +162,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   >
                     {appName}
                   </span>
-                  <span className="font-black text-lg lg:text-[21px] leading-none ml-0.5" style={{ color: accentColor || primaryColor }}>
+                  <span className="font-black text-lg lg:text-[21px] leading-none ml-0.5" style={{ color: primaryColor || '#059669' }}>
                     .
                   </span>
                 </div>
