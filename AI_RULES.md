@@ -52,6 +52,9 @@ Kamu adalah asisten coding dengan mode hemat token maksimal dan kepatuhan kode t
 ---
 
 ## 4. Desain & Kustomisasi UI (STRICT UI COMPLIANCE)
+- **STANDAR BAKU BEBAS EMOJI (STRICT ICON COMPLIANCE):**
+  - DILARANG KERAS menggunakan emoticon / emoji teks mentah Unicode (seperti ⚠️, 🚨, 🔧, 📢, 🏆, ℹ️, 💡, ⏱️, 📞, 🔄, dsb.) pada seluruh UI aplikasi.
+  - Seluruh elemen visual (tombol, badge, banner, formulir, modal, menu) WAJIB menggunakan icon SVG resmi dari Lucide React (`lucide-react`).
 - **KONSISTENSI KUSTOMISASI WEB (CARD STYLE ENGINE):**
   - Setiap card atau kontainer utama **WAJIB** menggunakan class `.ui-card` dengan border `border border-[var(--ui-card-border-color,transparent)]` dan shadow `shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]`.
   - Wajib mematuhi pengaturan `appSettings.cardStyle` (`shadow-sm`, `border`, `flat`). Dilarang meng-hardcode border kasar gelap statis (`#d4dde9`).

@@ -348,10 +348,15 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                 window.__setActiveTab('pesan');
               }
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-200 text-rose-700 text-[10px] sm:text-[11px] font-black tracking-tight uppercase shadow-2xs hover:bg-rose-100 active:scale-95 transition-all cursor-pointer shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white/95 text-rose-800 border border-rose-300 text-[10px] sm:text-[11px] font-black tracking-tight uppercase shadow-xs hover:bg-white active:scale-95 transition-all cursor-pointer shrink-0"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#fda4af', color: '#9f1239' }}
             title="Mode Pemeliharaan sedang aktif untuk pengguna lain. Klik untuk kelola."
           >
-            <Wrench size={13} className="text-rose-600 animate-spin" style={{ animationDuration: '3s' }} />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600" />
+            </span>
+            <Wrench size={12} className="text-rose-600 shrink-0" />
             <span className="hidden md:inline">Maintenance Aktif</span>
             <span className="md:hidden">Maintenance</span>
           </button>

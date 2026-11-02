@@ -4,7 +4,7 @@ import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subs
 import { useDataStore } from './store/useDataStore.js';
 import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import { BarChart2, AlertTriangle, Lightbulb, Wrench } from 'lucide-react';
+import { BarChart2, AlertTriangle, Lightbulb, Wrench, ArrowRight } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
@@ -439,25 +439,30 @@ export default function App() {
     <ErrorBoundary>
       <GlobalDialogProvider>
         <BrowserRouter>
-          {/* Banner Peringatan untuk Admin saat Mode Maintenance Aktif */}
+          {/* Banner Peringatan Elegan untuk Admin saat Mode Maintenance Aktif */}
           {isMaintenanceActive && isAdmin && (
-            <div className="bg-amber-600 text-white px-3 sm:px-6 py-2 text-xs font-black flex items-center justify-between shadow-xs z-50 shrink-0">
-              <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto w-full">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Wrench size={15} className="shrink-0 animate-spin" style={{ animationDuration: '4s' }} />
-                  <span className="truncate">Perhatian: Mode Pemeliharaan Sistem sedang AKTIF untuk Guru, Siswa, dan Pengunjung Publik.</span>
+            <div className="w-full bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-b border-amber-300/80 px-3 sm:px-6 py-2 text-amber-950 backdrop-blur-md z-50 shrink-0 shadow-2xs">
+              <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto w-full text-xs font-bold">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-500/20 text-amber-800 shrink-0 border border-amber-300/60 shadow-2xs">
+                    <Wrench size={13} className="animate-spin" style={{ animationDuration: '6s' }} />
+                  </span>
+                  <span className="truncate font-extrabold text-amber-900 tracking-tight text-[11px] sm:text-xs">
+                    Perhatian: Mode Pemeliharaan Sistem sedang AKTIF untuk Guru, Siswa, dan Pengunjung Publik.
+                  </span>
                 </div>
-                <a 
-                  href="/dashboard"
+                <button
+                  type="button"
                   onClick={() => {
                     if (typeof window !== 'undefined' && window.__setActiveTab) {
                       window.__setActiveTab('pesan');
                     }
                   }}
-                  className="underline font-bold bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded text-[10px] sm:text-[11px] shrink-0 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[var(--ui-radius-control)] bg-amber-700/10 hover:bg-amber-700/20 text-amber-900 border border-amber-300/90 text-[10px] sm:text-[11px] font-black tracking-tight shrink-0 transition-all cursor-pointer shadow-2xs active:scale-95"
                 >
-                  Kelola di Menu Pesan &rarr;
-                </a>
+                  <span>Kelola di Menu Pesan</span>
+                  <ArrowRight size={12} strokeWidth={2.5} />
+                </button>
               </div>
             </div>
           )}

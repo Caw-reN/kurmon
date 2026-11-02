@@ -4,7 +4,7 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { 
   MessageSquare, Send, LayoutTemplate, Pin, Calendar, User, EyeOff, Eye, Trash2, Edit2,
   AlertTriangle, AlertOctagon, Info, CheckCircle2, Wrench, Shield, Clock, Phone,
-  Sparkles, Megaphone, Power
+  Sparkles, Megaphone, Power, Award, Monitor, Lock, ShieldCheck, Sliders, RefreshCw, LogIn, Check
 } from 'lucide-react';
 import { UISelect } from '../../../components/ui.jsx';
 import { useAppStore } from '../../../store/useAppStore.js';
@@ -185,18 +185,18 @@ export default function TabPesan(props) {
         description="Kelola pengumuman dashboard, siaran peringatan instan (alert banner), dan kontrol mode pemeliharaan (maintenance) aplikasi."
       />
 
-      {/* Modern Sub-Tab Pill Navigation */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-[var(--ui-radius-card,1rem)] border border-slate-200/80 w-fit">
+      {/* Modern Sub-Tab Pill Navigation (Mengikuti Standar Kustomisasi Web) */}
+      <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-[var(--ui-radius-card)] border border-slate-200/80 w-fit shadow-2xs">
         <button
           type="button"
           onClick={() => setActiveSubTab('pesan')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-small,0.65rem)] text-xs font-black transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
             activeSubTab === 'pesan'
-              ? 'bg-white text-slate-800 shadow-xs'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+              ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
           }`}
         >
-          <MessageSquare size={15} />
+          <MessageSquare size={15} className="shrink-0" />
           <span>Pengumuman Dashboard</span>
           <span className="px-1.5 py-0.2 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
             {dashboardMessages.length}
@@ -206,32 +206,35 @@ export default function TabPesan(props) {
         <button
           type="button"
           onClick={() => setActiveSubTab('siaran')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-small,0.65rem)] text-xs font-black transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
             activeSubTab === 'siaran'
-              ? 'bg-white text-slate-800 shadow-xs'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+              ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
           }`}
         >
-          <Megaphone size={15} />
+          <Megaphone size={15} className="shrink-0" />
           <span>Pita Peringatan &amp; Siaran</span>
           {broadcastForm.isActive && (
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title="Siaran Aktif" />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+            </span>
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setActiveSubTab('maintenance')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-small,0.65rem)] text-xs font-black transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-[var(--ui-radius-control)] text-xs font-black transition-all cursor-pointer ${
             activeSubTab === 'maintenance'
-              ? 'bg-white text-slate-800 shadow-xs'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+              ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
           }`}
         >
-          <Wrench size={15} />
+          <Wrench size={15} className="shrink-0" />
           <span>Mode Pemeliharaan</span>
           {maintenanceForm.isActive && (
-            <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-bold uppercase animate-pulse">
+            <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-50 border border-rose-200 text-rose-700 text-[9px] font-black uppercase tracking-wider">
               Aktif
             </span>
           )}
@@ -575,44 +578,64 @@ export default function TabPesan(props) {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: PITA PERINGATAN & SIARAN INSTAN (NEW FEATURE)                     */}
+      {/* TAB 2: PITA PERINGATAN & SIARAN INSTAN                                   */}
       {/* ========================================================================= */}
       {activeSubTab === 'siaran' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full animate-in fade-in duration-200">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 w-full animate-in fade-in duration-200">
           {/* Form Konfigurasi Siaran */}
-          <section className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-xs p-5 md:p-6 space-y-6">
+          <section className="ui-card bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-5 md:p-6 space-y-6 overflow-hidden">
             
             {/* Header Box & Toggle Status Switch */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0">
-                  <Megaphone size={20} strokeWidth={2.4} />
+            <div className={`p-4 sm:p-5 rounded-[var(--ui-radius-card)] border transition-all ${
+              broadcastForm.isActive 
+                ? 'bg-gradient-to-r from-amber-50/90 via-yellow-50/30 to-amber-50/90 border-amber-200/90 ring-1 ring-amber-400/20 shadow-xs' 
+                : 'bg-slate-50/80 border-slate-200/90'
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-12 h-12 rounded-[var(--ui-radius-control)] flex items-center justify-center shrink-0 shadow-sm ${
+                    broadcastForm.isActive ? 'bg-amber-500 text-white' : 'bg-slate-200 text-slate-600'
+                  }`}>
+                    <Megaphone size={22} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border ${
+                        broadcastForm.isActive 
+                          ? 'bg-amber-100/90 text-amber-900 border-amber-300' 
+                          : 'bg-slate-100 text-slate-600 border-slate-300'
+                      }`}>
+                        <span className="relative flex h-2 w-2">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${broadcastForm.isActive ? 'bg-amber-400' : 'bg-slate-400'} opacity-75`} />
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${broadcastForm.isActive ? 'bg-amber-500' : 'bg-slate-500'}`} />
+                        </span>
+                        <span>{broadcastForm.isActive ? "Siaran Aktif Tayang" : "Siaran Nonaktif"}</span>
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-slate-600 mt-1 leading-snug">
+                      {broadcastForm.isActive ? "Pita pengumuman saat ini SEDANG TAYANG di atas aplikasi pengguna." : "Pita pengumuman saat ini MATI (tidak ditayangkan ke pengguna)."}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-800">Status Siaran Peringatan</h3>
-                  <p className="text-[11px] font-semibold text-slate-500">
-                    {broadcastForm.isActive ? "Pita pengumuman saat ini SEDANG TAYANG di atas aplikasi pengguna." : "Pita pengumuman saat ini MATI (tidak tayang)."}
-                  </p>
-                </div>
-              </div>
 
-              <label className="flex items-center gap-2.5 cursor-pointer self-start sm:self-center">
-                <span className={`text-xs font-black uppercase tracking-wider ${broadcastForm.isActive ? 'text-amber-700' : 'text-slate-400'}`}>
-                  {broadcastForm.isActive ? 'Siaran Aktif' : 'Nonaktif'}
-                </span>
-                <div className="relative inline-block w-11 h-6">
-                  <input
-                    type="checkbox"
-                    checked={broadcastForm.isActive}
-                    onChange={(e) => setBroadcastForm({ ...broadcastForm, isActive: e.target.checked })}
-                    className="peer sr-only"
-                  />
-                  <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
-                </div>
-              </label>
+                <label className="flex items-center gap-3 cursor-pointer self-start sm:self-center shrink-0">
+                  <span className={`text-[11px] font-black uppercase tracking-wider ${broadcastForm.isActive ? 'text-amber-700' : 'text-slate-400'}`}>
+                    {broadcastForm.isActive ? 'Tayang' : 'Mati'}
+                  </span>
+                  <div className="relative inline-block w-12 h-7">
+                    <input
+                      type="checkbox"
+                      checked={broadcastForm.isActive}
+                      onChange={(e) => setBroadcastForm({ ...broadcastForm, isActive: e.target.checked })}
+                      className="peer sr-only"
+                    />
+                    <div className="w-12 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500 shadow-inner"></div>
+                  </div>
+                </label>
+              </div>
             </div>
 
-            {/* Template Rekomendasi Cepat */}
+            {/* Template Rekomendasi Cepat (Zero Emoji - 100% SVG Icon Compliance) */}
             <div>
               <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-2">
                 Pilihan Pesan Cepat (Preset)
@@ -621,30 +644,34 @@ export default function TabPesan(props) {
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Batas Input Jurnal KBM", "Harap seluruh bapak/ibu guru melengkapi pengisian jurnal KBM hari ini sebelum jam 15.00 WIB.", "warning")}
-                  className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-amber-50 hover:bg-amber-100/80 border border-amber-200/90 text-amber-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
-                  ⚠️ Batas Input Jurnal
+                  <Clock size={13} className="text-amber-600 shrink-0" />
+                  <span>Batas Input Jurnal</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Pemberitahuan Mendesak", "Jadwal KBM hari ini dipadatkan sampai pukul 12.00 WIB sehubungan dengan agenda rapat dinas.", "danger")}
-                  className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200/80 text-rose-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100/80 border border-rose-200/90 text-rose-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
-                  🚨 Pengumuman Pulang Cepat
+                  <AlertOctagon size={13} className="text-rose-600 shrink-0" />
+                  <span>Pengumuman Pulang Cepat</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Agenda Upacara Hari Senin", "Seluruh siswa dan dewan guru diwajibkan mengenakan seragam dinas lengkap dan hadir tepat waktu pukul 06.45 WIB.", "info")}
-                  className="px-2.5 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 border border-sky-200/80 text-sky-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-sky-50 hover:bg-sky-100/80 border border-sky-200/90 text-sky-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
-                  ℹ️ Agenda Upacara
+                  <Info size={13} className="text-sky-600 shrink-0" />
+                  <span>Agenda Upacara</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyBroadcastPreset("Selamat & Sukses", "Selamat atas prestasi Juara 1 LKS tingkat wilayah yang diraih oleh perwakilan siswa sekolah kita!", "success")}
-                  className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 text-emerald-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-control)] bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/90 text-emerald-900 text-xs font-bold transition-all shadow-2xs active:scale-95 cursor-pointer"
                 >
-                  🏆 Berita Prestasi
+                  <Award size={13} className="text-emerald-600 shrink-0" />
+                  <span>Berita Prestasi</span>
                 </button>
               </div>
             </div>
@@ -764,9 +791,9 @@ export default function TabPesan(props) {
                 type="button"
                 onClick={handleSaveBroadcast}
                 disabled={isSavingBroadcast}
-                className="py-3 px-6 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-60"
+                className="h-10 px-6 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-60"
               >
-                <Send size={15} strokeWidth={2.4} />
+                <Send size={14} strokeWidth={2.4} />
                 <span>{isSavingBroadcast ? "Menyimpan & Menyiarkan..." : "Simpan & Siarkan Pengumuman"}</span>
               </button>
             </div>
@@ -774,7 +801,7 @@ export default function TabPesan(props) {
 
           {/* Pratinjau Tampilan Siaran Langsung */}
           <aside className="space-y-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-card)] p-4 sm:p-5 space-y-4">
+            <div className="ui-card bg-slate-50/80 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3.5">
               <div className="flex items-center gap-2 text-slate-700">
                 <Sparkles size={16} className="text-amber-500" />
                 <h4 className="text-xs font-black uppercase tracking-wider">Pratinjau Siaran (Live Preview)</h4>
@@ -784,9 +811,9 @@ export default function TabPesan(props) {
               </p>
 
               {/* Preview Pita Banner */}
-              <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
+              <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2">
                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
-                  Pita Atas (Top Alert Bar)
+                  Pita Atas (Top Alert Ribbon)
                 </span>
                 <div className={`p-3 rounded-lg border text-left flex items-start gap-2.5 ${
                   broadcastForm.type === 'danger' ? 'bg-rose-50 border-rose-200 text-rose-950' :
@@ -813,7 +840,7 @@ export default function TabPesan(props) {
 
               {/* Preview Pop-Up Modal */}
               {broadcastForm.isPopup && (
-                <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-2">
+                <div className="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2">
                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">
                     Dialog Pop-Up (Modal View)
                   </span>
@@ -835,44 +862,51 @@ export default function TabPesan(props) {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: MODE PEMELIHARAAN SISTEM (MAINTENANCE MODE) (NEW FEATURE)         */}
+      {/* TAB 3: MODE PEMELIHARAAN SISTEM (MAINTENANCE MODE)                         */}
       {/* ========================================================================= */}
       {activeSubTab === 'maintenance' && (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 w-full animate-in fade-in duration-200">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 w-full animate-in fade-in duration-200">
           {/* Form Konfigurasi Maintenance */}
-          <section className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] shadow-xs p-5 md:p-6 space-y-6">
+          <section className="ui-card bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-5 md:p-6 space-y-6 overflow-hidden">
             
-            {/* Status Switch Box */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+            {/* Status Switch Box (Card Pastel Modern) */}
+            <div className={`p-4 sm:p-5 rounded-[var(--ui-radius-card)] border transition-all ${
               maintenanceForm.isActive 
-                ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-500/20' 
-                : 'bg-emerald-50/60 border-emerald-200'
+                ? 'bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 border-rose-200/90 ring-1 ring-rose-400/20 shadow-xs' 
+                : 'bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-emerald-50/90 border-emerald-200/90 shadow-xs'
             }`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-xs ${
-                    maintenanceForm.isActive ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+                  <div className={`w-12 h-12 rounded-[var(--ui-radius-control)] flex items-center justify-center shrink-0 shadow-sm ${
+                    maintenanceForm.isActive ? 'bg-rose-500 text-white' : 'bg-emerald-600 text-white'
                   }`}>
-                    {maintenanceForm.isActive ? <Wrench size={24} className="animate-bounce" /> : <Shield size={24} />}
+                    {maintenanceForm.isActive ? <Wrench size={22} className="animate-spin" style={{ animationDuration: '6s' }} /> : <ShieldCheck size={24} />}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${maintenanceForm.isActive ? 'bg-rose-600 animate-ping' : 'bg-emerald-500'}`} />
-                      <h3 className="text-base font-black text-slate-900">
-                        {maintenanceForm.isActive ? "Mode Pemeliharaan Aktif" : "Sistem Berjalan Normal (Online)"}
-                      </h3>
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase tracking-wider border ${
+                        maintenanceForm.isActive 
+                          ? 'bg-rose-100/90 text-rose-800 border-rose-300' 
+                          : 'bg-emerald-100/90 text-emerald-800 border-emerald-300'
+                      }`}>
+                        <span className="relative flex h-2 w-2">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${maintenanceForm.isActive ? 'bg-rose-400' : 'bg-emerald-400'} opacity-75`} />
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${maintenanceForm.isActive ? 'bg-rose-600' : 'bg-emerald-600'}`} />
+                        </span>
+                        <span>{maintenanceForm.isActive ? "Mode Maintenance Aktif" : "Sistem Normal (Online)"}</span>
+                      </span>
                     </div>
-                    <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                    <p className="text-xs font-semibold text-slate-600 mt-1 leading-snug">
                       {maintenanceForm.isActive 
-                        ? "Hanya Administrator yang dapat mengakses dashboard. Pengguna lain (Guru, Siswa, Tamu) akan melihat layar maintenance."
-                        : "Seluruh civitas akademika dan masyarakat dapat mengakses aplikasi sekolah secara normal."}
+                        ? "Hanya Administrator yang dapat mengakses dashboard. Pengguna lain (Guru, Siswa, Tamu) otomatis dialihkan ke layar pemeliharaan."
+                        : "Seluruh civitas akademika dan masyarakat dapat mengakses aplikasi sekolah secara penuh tanpa hambatan."}
                     </p>
                   </div>
                 </div>
 
                 <label className="flex items-center gap-3 cursor-pointer self-start sm:self-center shrink-0">
-                  <span className={`text-xs font-black uppercase tracking-wider ${maintenanceForm.isActive ? 'text-rose-700' : 'text-emerald-700'}`}>
-                    {maintenanceForm.isActive ? 'Maintenance Aktif' : 'Normal / Online'}
+                  <span className={`text-[11px] font-black uppercase tracking-wider ${maintenanceForm.isActive ? 'text-rose-700' : 'text-emerald-700'}`}>
+                    {maintenanceForm.isActive ? 'Aktif' : 'Nonaktif'}
                   </span>
                   <div className="relative inline-block w-12 h-7">
                     <input
@@ -881,14 +915,23 @@ export default function TabPesan(props) {
                       onChange={(e) => setMaintenanceForm({ ...maintenanceForm, isActive: e.target.checked })}
                       className="peer sr-only"
                     />
-                    <div className="w-12 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-rose-600 shadow-inner"></div>
+                    <div className={`w-12 h-7 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all ${
+                      maintenanceForm.isActive ? 'peer-checked:bg-rose-600' : 'peer-checked:bg-emerald-600'
+                    } shadow-inner`}></div>
                   </div>
                 </label>
               </div>
             </div>
 
-            {/* Form Fields */}
+            {/* Form Fields Section */}
             <div className="space-y-4">
+              <div className="flex items-center gap-2 pb-1 border-b border-slate-100">
+                <Sliders size={14} className="text-slate-400" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                  Konten &amp; Tampilan Layar Pengguna
+                </span>
+              </div>
+
               <div>
                 <label className="text-xs font-bold text-slate-700 ml-0.5 mb-1.5 block">
                   Judul Layar Pemeliharaan <span className="text-rose-500">*</span>
@@ -898,7 +941,7 @@ export default function TabPesan(props) {
                   value={maintenanceForm.title}
                   onChange={(e) => setMaintenanceForm({ ...maintenanceForm, title: e.target.value })}
                   placeholder="Misal: Sistem Sedang Dalam Pemeliharaan Berkala"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none transition-all"
+                  className="w-full h-10 px-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all shadow-2xs"
                 />
               </div>
 
@@ -911,7 +954,7 @@ export default function TabPesan(props) {
                   value={maintenanceForm.message}
                   onChange={(e) => setMaintenanceForm({ ...maintenanceForm, message: e.target.value })}
                   placeholder="Tulis alasan atau instruksi selama pemeliharaan berlangsung..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-800 focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none transition-all resize-y"
+                  className="w-full px-3.5 py-2.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all resize-y shadow-2xs"
                 />
               </div>
 
@@ -921,13 +964,13 @@ export default function TabPesan(props) {
                     Perkiraan Selesai (Estimasi Waktu)
                   </label>
                   <div className="relative">
-                    <Clock size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                    <Clock size={15} className="absolute left-3.5 top-3 text-slate-400" />
                     <input
                       type="text"
                       value={maintenanceForm.estimatedEnd}
                       onChange={(e) => setMaintenanceForm({ ...maintenanceForm, estimatedEnd: e.target.value })}
                       placeholder="Contoh: Pukul 15:00 WIB"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none transition-all"
+                      className="w-full h-10 pl-9 pr-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all shadow-2xs"
                     />
                   </div>
                 </div>
@@ -937,23 +980,23 @@ export default function TabPesan(props) {
                     Kontak Bantuan / WhatsApp Admin
                   </label>
                   <div className="relative">
-                    <Phone size={16} className="absolute left-3.5 top-3 text-slate-400" />
+                    <Phone size={15} className="absolute left-3.5 top-3 text-slate-400" />
                     <input
                       type="text"
                       value={maintenanceForm.contactInfo}
                       onChange={(e) => setMaintenanceForm({ ...maintenanceForm, contactInfo: e.target.value })}
                       placeholder="Contoh: 0812-3456-7890 (Admin IT)"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none transition-all"
+                      className="w-full h-10 pl-9 pr-3.5 rounded-[var(--ui-radius-control)] border border-slate-200 bg-slate-50/70 text-xs font-bold text-slate-800 focus:bg-white focus:border-[var(--ui-primary)] focus:ring-2 focus:ring-[var(--ui-primary)]/20 outline-none transition-all shadow-2xs"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Admin Bypass Guarantee Notice */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs flex items-start gap-2.5">
+              <div className="p-3.5 rounded-[var(--ui-radius-control)] bg-slate-50/80 border border-slate-200/90 text-slate-600 text-xs flex items-start gap-2.5 shadow-2xs">
                 <Shield size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">
-                  <strong>Akses Khusus Administrator:</strong> Selama pemeliharaan aktif, Super Admin tetap dapat masuk dan membuka menu pengelolaan sistem tanpa terhalang.
+                <span className="leading-relaxed text-[11px] font-medium">
+                  <strong className="text-slate-800 font-bold">Akses Khusus Administrator:</strong> Selama pemeliharaan aktif, Super Admin tetap dapat masuk dan membuka menu pengelolaan sistem tanpa terhalang.
                 </span>
               </div>
             </div>
@@ -964,56 +1007,142 @@ export default function TabPesan(props) {
                 type="button"
                 onClick={handleSaveMaintenance}
                 disabled={isSavingMaintenance}
-                className={`py-3 px-6 rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-60 text-white ${
-                  maintenanceForm.isActive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                className={`h-10 px-6 rounded-[var(--ui-radius-control)] font-black text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-60 text-white ${
+                  maintenanceForm.isActive ? 'bg-rose-600 hover:bg-rose-700' : 'bg-[var(--ui-primary)] hover:bg-[var(--ui-primary-hover)]'
                 }`}
               >
-                <Power size={15} strokeWidth={2.4} />
+                {maintenanceForm.isActive ? <Power size={14} strokeWidth={2.4} /> : <CheckCircle2 size={14} strokeWidth={2.4} />}
                 <span>
                   {isSavingMaintenance 
                     ? "Menyimpan Perubahan..." 
                     : maintenanceForm.isActive 
                       ? "Terapkan Mode Pemeliharaan" 
-                      : "Simpan & Matikan Pemeliharaan"}
+                      : "Simpan Pengaturan"}
                 </span>
               </button>
             </div>
           </section>
 
-          {/* Pratinjau Layar Pemeliharaan */}
+          {/* Pratinjau Layar Pemeliharaan (Browser Device Mockup) */}
           <aside className="space-y-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-card)] p-4 sm:p-5 space-y-4">
+            <div className="ui-card bg-slate-50/80 border border-slate-200/90 rounded-[var(--ui-radius-card)] p-4 sm:p-5 shadow-xs space-y-3.5">
               <div className="flex items-center gap-2 text-slate-700">
-                <Sparkles size={16} className="text-rose-500" />
+                <Monitor size={16} className="text-[var(--ui-primary)]" />
                 <h4 className="text-xs font-black uppercase tracking-wider">Pratinjau Layar Maintenance</h4>
               </div>
               <p className="text-[11px] font-semibold text-slate-400 leading-relaxed">
-                Miniatur layar yang akan ditampilkan secara otomatis kepada pengguna biasa:
+                Miniatur tampilan responsif yang dilihat guru, siswa, dan pengunjung saat mode pemeliharaan aktif:
               </p>
 
-              {/* Mini Preview Box */}
-              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex flex-col items-center text-center space-y-2.5">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shadow-2xs">
-                  <Wrench size={24} />
-                </div>
-                <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-black uppercase">
-                  Dalam Pemeliharaan
-                </span>
-                <strong className="text-xs font-black text-slate-800 leading-snug">
-                  {maintenanceForm.title || "Sistem Dalam Pemeliharaan"}
-                </strong>
-                <p className="text-[10px] text-slate-500 leading-tight">
-                  {maintenanceForm.message || "Pesan detail pemeliharaan..."}
-                </p>
-                {maintenanceForm.estimatedEnd && (
-                  <div className="w-full text-left bg-slate-50 p-2 rounded-lg border border-slate-100 text-[10px]">
-                    <span className="text-slate-400 block font-bold">Estimasi Selesai:</span>
-                    <span className="text-slate-700 font-extrabold">{maintenanceForm.estimatedEnd}</span>
+              {/* Browser Window Mockup Frame */}
+              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden text-center flex flex-col">
+                
+                {/* Browser Window Top Bar */}
+                <div className="bg-slate-100/90 px-3 py-2 border-b border-slate-200 flex items-center justify-between gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-400/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
                   </div>
-                )}
-                <div className="w-full pt-1">
-                  <div className="py-2 px-3 rounded-lg bg-emerald-700 text-white font-bold text-[10px]">
-                    Muat Ulang / Cek Status
+                  <div className="flex items-center justify-center gap-1 bg-white/90 px-2.5 py-0.5 rounded-full border border-slate-200/80 text-[9.5px] font-bold text-slate-500 max-w-[180px] truncate">
+                    <Lock size={10} className="text-emerald-600 shrink-0" />
+                    <span className="truncate">sekolah.sch.id</span>
+                  </div>
+                  <div className="w-7 shrink-0" />
+                </div>
+
+                {/* Live Preview Canvas */}
+                <div 
+                  className="p-5 flex flex-col items-center gap-3 relative select-none"
+                  style={{
+                    background: "radial-gradient(ellipse at 50% 20%, #f0fdf4 0%, #f8fafc 60%, #e2e8f0 100%)"
+                  }}
+                >
+                  {/* Maintenance Icon Badge with Clock Sub-badge */}
+                  <div className="relative mt-1">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-300 text-amber-600 flex items-center justify-center shadow-xs">
+                      <Wrench size={26} strokeWidth={2.2} />
+                    </div>
+                    <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                      <Clock size={11} strokeWidth={2.5} />
+                    </span>
+                  </div>
+
+                  {/* Status Pill Badge */}
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[9px] font-black tracking-wide uppercase shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Mode Pemeliharaan Sistem Aktif</span>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="space-y-1 max-w-[280px]">
+                    <h5 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight leading-snug">
+                      {maintenanceForm.title || "Sistem Sedang Dalam Pemeliharaan"}
+                    </h5>
+                    <p className="text-[10px] text-slate-500 font-semibold leading-relaxed line-clamp-3">
+                      {maintenanceForm.message || "Aplikasi sedang melakukan peningkatan performa dan sinkronisasi server berkala. Silakan kembali lagi nanti."}
+                    </p>
+                  </div>
+
+                  {/* 2 Feature Cards (Matching Live Screen) */}
+                  <div className="grid grid-cols-2 gap-2 w-full max-w-[290px] text-left">
+                    <div className="bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 shadow-2xs">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={13} strokeWidth={2.4} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Proses</span>
+                        <span className="text-[9.5px] font-black text-slate-700 truncate block">Pembaruan Rutin</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 shadow-2xs">
+                      <div className="w-6 h-6 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                        <Shield size={13} strokeWidth={2.4} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Keamanan</span>
+                        <span className="text-[9.5px] font-black text-slate-700 truncate block">Data Aman</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Info Rows if filled */}
+                  {maintenanceForm.estimatedEnd && (
+                    <div className="w-full max-w-[290px] bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 text-left shadow-2xs">
+                      <Clock size={13} className="text-emerald-600 shrink-0" />
+                      <div className="min-w-0 text-[10px]">
+                        <span className="text-slate-400 font-bold mr-1">Selesai:</span>
+                        <span className="text-slate-800 font-black">{maintenanceForm.estimatedEnd}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {maintenanceForm.contactInfo && (
+                    <div className="w-full max-w-[290px] bg-white/90 border border-slate-200/80 rounded-xl p-2 flex items-center gap-2 text-left shadow-2xs">
+                      <Phone size={13} className="text-sky-600 shrink-0" />
+                      <div className="min-w-0 text-[10px]">
+                        <span className="text-slate-400 font-bold mr-1">Bantuan:</span>
+                        <span className="text-slate-800 font-black truncate">{maintenanceForm.contactInfo}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Refresh Button Mock */}
+                  <div className="w-full max-w-[290px]">
+                    <div className="w-full py-2 px-3 rounded-xl bg-emerald-600 text-white font-black text-[10px] flex items-center justify-center gap-1.5 shadow-xs">
+                      <RefreshCw size={11} strokeWidth={2.5} />
+                      <span>Muat Ulang / Cek Status Sistem</span>
+                    </div>
+                  </div>
+
+                  {/* Mini Footer */}
+                  <div className="w-full max-w-[290px] pt-2 border-t border-slate-200/60 flex items-center justify-between text-[9px] text-slate-400 font-bold">
+                    <span>Sekolah • KG2 School</span>
+                    <span className="inline-flex items-center gap-1 text-slate-600 bg-white/80 border border-slate-200/70 px-1.5 py-0.5 rounded shadow-2xs font-extrabold">
+                      <LogIn size={9} />
+                      <span>Login Admin</span>
+                    </span>
                   </div>
                 </div>
               </div>
