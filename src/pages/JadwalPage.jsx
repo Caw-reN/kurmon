@@ -134,20 +134,6 @@ export default function JadwalPage() {
       {/* Header & Tab Switcher Area */}
       <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 print-hidden">
         <div>
-          <div 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 border shadow-2xs"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
-              borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
-              color: 'var(--ui-primary, #059669)'
-            }}
-          >
-            <span 
-              className="w-2 h-2 rounded-full animate-pulse" 
-              style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-            />
-            Layanan Publik • Jadwal Akademik
-          </div>
           <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-800">
             Jadwal Akademik
           </h2>

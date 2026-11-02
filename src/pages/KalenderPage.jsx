@@ -298,21 +298,6 @@ export default function KalenderPage() {
           
           {/* Header Title & Subtitle (Desktop only, mobile title is in top bar) */}
           <div className="hidden md:block max-w-2xl">
-            <div 
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 border shadow-2xs"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
-                borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
-                color: 'var(--ui-primary, #059669)'
-              }}
-            >
-              <span 
-                className="w-2 h-2 rounded-full animate-pulse" 
-                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-              />
-              Layanan Publik • Kalender Akademik
-            </div>
-            
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
               Kalender Akademik & Agenda
             </h1>

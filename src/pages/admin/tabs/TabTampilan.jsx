@@ -364,6 +364,17 @@ export default function TabTampilan(props) {
                             </div>
                           </div>
                           <div>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Badge / Tag Portal Hero</label>
+                            <input 
+                              type="text" 
+                              placeholder="PORTAL AKADEMIK KG2" 
+                              value={appSettings.heroBadgeText || ""} 
+                              onChange={(e) => setAppSettings({ ...appSettings, heroBadgeText: e.target.value })} 
+                              className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                            />
+                            <p className="text-[11px] text-slate-400 mt-1 ml-1 font-medium">Teks tag kapsul kecil di atas headline utama landing page (kosongkan untuk nilai bawaan otomatis).</p>
+                          </div>
+                          <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Headline Utama</label>
                             <input type="text" value={appSettings.heroTitle} onChange={(e) => setAppSettings({ ...appSettings, heroTitle: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                           </div>
@@ -431,6 +442,126 @@ export default function TabTampilan(props) {
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Deskripsi Footer</label>
                             <textarea value={appSettings.footerDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, footerDescription: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs h-24 resize-none"></textarea>
+                          </div>
+
+                          <div className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-slate-50/80 border border-slate-200/80 space-y-4 shadow-2xs">
+                            <div className="border-b border-slate-200/80 pb-2.5">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">Pengaturan Kartu Akses Akun (Landing Page)</h4>
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5">Kustomisasi seluruh teks pada kartu putih akses akun di samping hero headline.</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Badge Kartu</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Akses Akun" 
+                                  value={appSettings.loginCardBadge || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardBadge: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Judul Sambutan Kartu</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Selamat datang kembali." 
+                                  value={appSettings.loginCardTitle || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardTitle: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Subjudul Sambutan</label>
+                              <input 
+                                type="text" 
+                                placeholder="Lanjutkan melalui akun sekolah yang sudah kamu miliki." 
+                                value={appSettings.loginCardSubtitle || ""} 
+                                onChange={(e) => setAppSettings({ ...appSettings, loginCardSubtitle: e.target.value })} 
+                                className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-slate-200/60">
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Peran 01 - Judul</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Siswa" 
+                                  value={appSettings.loginCardRole1Title || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardRole1Title: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Peran 01 - Keterangan</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Akses kegiatan belajar dan layanan siswa." 
+                                  value={appSettings.loginCardRole1Subtitle || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardRole1Subtitle: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Peran 02 - Judul</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Guru & tenaga kependidikan" 
+                                  value={appSettings.loginCardRole2Title || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardRole2Title: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Peran 02 - Keterangan</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Akses layanan sesuai kewenangan akun." 
+                                  value={appSettings.loginCardRole2Subtitle || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardRole2Subtitle: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 border-t border-slate-200/60">
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Tombol Masuk</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Buka Portal & Masuk Akun" 
+                                  value={appSettings.loginCardButtonText || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardButtonText: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Catatan Bawah Tombol</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Proses masuk dilanjutkan di sistem akademik sekolah." 
+                                  value={appSettings.loginCardFooterNote || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardFooterNote: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1 block">Teks Bantuan Akses</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Butuh bantuan akses akun?" 
+                                  value={appSettings.loginCardHelpText || ""} 
+                                  onChange={(e) => setAppSettings({ ...appSettings, loginCardHelpText: e.target.value })} 
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                                />
+                              </div>
+                            </div>
                           </div>
                           
                           <div>

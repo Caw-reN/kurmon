@@ -1813,7 +1813,7 @@ export default function LandingPage() {
                 <span 
                   className="text-[11px] font-black tracking-wider uppercase font-mono text-emerald-300"
                 >
-                  {t("PORTAL AKADEMIK", "ACADEMIC PORTAL")} {appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}
+                  {appSettings.heroBadgeText || `${t("PORTAL AKADEMIK", "ACADEMIC PORTAL")} ${appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}`}
                 </span>
               </div>
 
@@ -1927,16 +1927,16 @@ export default function LandingPage() {
               <div className="flex items-center gap-2 text-slate-700">
                 <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#059669' }} />
                 <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-mono">
-                  {t("Akses Akun", "Account Access")}
+                  {appSettings.loginCardBadge || t("Akses Akun", "Account Access")}
                 </span>
               </div>
 
               {/* Welcome Heading */}
               <h2 className="text-2xl sm:text-[25px] font-black text-slate-900 tracking-tight mt-4 leading-tight">
-                {t("Selamat datang kembali.", "Welcome back.")}
+                {appSettings.loginCardTitle || t("Selamat datang kembali.", "Welcome back.")}
               </h2>
               <p className="text-xs sm:text-[13px] font-semibold text-slate-400 mt-1 mb-5">
-                {t("Lanjutkan melalui akun sekolah yang sudah kamu miliki.", "Continue using your registered school account.")}
+                {appSettings.loginCardSubtitle || t("Lanjutkan melalui akun sekolah yang sudah kamu miliki.", "Continue using your registered school account.")}
               </p>
 
               <div className="border-t border-slate-100 my-4" />
@@ -1950,10 +1950,10 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
-                      {t("Siswa", "Student")}
+                      {appSettings.loginCardRole1Title || t("Siswa", "Student")}
                     </h4>
                     <p className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-0.5 leading-snug">
-                      {t("Akses kegiatan belajar dan layanan siswa.", "Access learning activities and student services.")}
+                      {appSettings.loginCardRole1Subtitle || t("Akses kegiatan belajar dan layanan siswa.", "Access learning activities and student services.")}
                     </p>
                   </div>
                 </div>
@@ -1965,10 +1965,10 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
-                      {t("Guru & tenaga kependidikan", "Teachers & Staff")}
+                      {appSettings.loginCardRole2Title || t("Guru & tenaga kependidikan", "Teachers & Staff")}
                     </h4>
                     <p className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-0.5 leading-snug">
-                      {t("Akses layanan sesuai kewenangan akun.", "Access services according to account authority.")}
+                      {appSettings.loginCardRole2Subtitle || t("Akses layanan sesuai kewenangan akun.", "Access services according to account authority.")}
                     </p>
                   </div>
                 </div>
@@ -1981,21 +1981,21 @@ export default function LandingPage() {
                 className="w-full mt-6 h-12 rounded-xl text-white font-bold text-xs sm:text-sm px-5 flex items-center justify-between shadow-xs hover:shadow-md transition-all active:scale-[0.99] cursor-pointer border-none"
                 style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#059669' }}
               >
-                <span>{t("Buka Portal & Masuk Akun", "Open Portal & Sign In")}</span>
+                <span>{appSettings.loginCardButtonText || t("Buka Portal & Masuk Akun", "Open Portal & Sign In")}</span>
                 <ArrowUpRight size={16} strokeWidth={2.4} />
               </button>
 
               {/* Sub notes */}
               <div className="mt-3.5 text-center">
                 <p className="text-[11px] font-semibold text-slate-400">
-                  {t("Proses masuk dilanjutkan di sistem akademik sekolah.", "Sign in continues in the school academic system.")}
+                  {appSettings.loginCardFooterNote || t("Proses masuk dilanjutkan di sistem akademik sekolah.", "Sign in continues in the school academic system.")}
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowPublicHelp(true)}
                   className="mt-1 text-xs font-bold underline transition-colors cursor-pointer bg-transparent border-none p-0 inline-block text-slate-700 hover:text-emerald-800"
                 >
-                  {t("Butuh bantuan akses akun?", "Need account access help?")}
+                  {appSettings.loginCardHelpText || t("Butuh bantuan akses akun?", "Need account access help?")}
                 </button>
               </div>
             </div>

@@ -236,20 +236,6 @@ export default function MateriAjarPage() {
           {/* Header & Filter Controls Section */}
           <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4 pb-4 border-b border-slate-200/80 print-hidden">
             <div className="flex-grow">
-              <div 
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 border shadow-2xs"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
-                  borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
-                  color: 'var(--ui-primary, #059669)'
-                }}
-              >
-                <span 
-                  className="w-2 h-2 rounded-full animate-pulse" 
-                  style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-                />
-                Layanan Publik • Bahan Belajar
-              </div>
               <div className="flex flex-wrap items-center gap-2.5 mt-0.5">
                 <h2 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">
                   {activeSubject ? activeSubject : "Semua Materi Pelajaran"}

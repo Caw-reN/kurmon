@@ -46,20 +46,6 @@ export default function DenahPage() {
       <div className="flex flex-col gap-6 w-full max-w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white rounded-[var(--ui-radius-card,24px)] p-5 sm:p-6 shadow-2xs border border-slate-200/90 z-30 print-hidden">
           <div>
-            <div 
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 border shadow-2xs"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
-                borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
-                color: 'var(--ui-primary, #059669)'
-              }}
-            >
-              <span 
-                className="w-2 h-2 rounded-full animate-pulse" 
-                style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-              />
-              Layanan Publik • Tata Ruang
-            </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Denah Tata Ruang Kelas
             </h1>

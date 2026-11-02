@@ -169,20 +169,6 @@ export default function StrukturOrganisasiPage() {
         
         {/* Header Section */}
         <div className="text-center mb-8 max-w-2xl mx-auto px-4">
-          <div 
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3 border shadow-2xs"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--ui-primary, #059669) 10%, transparent)',
-              borderColor: 'color-mix(in srgb, var(--ui-primary, #059669) 25%, transparent)',
-              color: 'var(--ui-primary, #059669)'
-            }}
-          >
-            <span 
-              className="w-2 h-2 rounded-full animate-pulse" 
-              style={{ backgroundColor: 'var(--ui-primary, #059669)' }}
-            />
-            Profil Sekolah • Struktur Organisasi
-          </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight leading-tight mb-4">
             Struktur Organisasi
           </h1>
