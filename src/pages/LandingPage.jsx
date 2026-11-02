@@ -2135,27 +2135,25 @@ export default function LandingPage() {
               return (
                 <div 
                   key={idx} 
-                  className="group relative rounded-2xl p-3.5 lg:p-4 bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between h-[88px] lg:h-[96px] w-full overflow-hidden cursor-pointer select-none text-slate-800"
+                  className="group relative rounded-2xl p-3 sm:p-3.5 lg:p-4 bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-3 lg:gap-3.5 h-[80px] lg:h-[88px] w-full overflow-hidden cursor-pointer select-none text-slate-800 text-left"
                 >
-                  {/* Top Row: Logo Container on Right */}
-                  <div className="flex items-start justify-end w-full">
-                    <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-xl bg-slate-50/90 border border-slate-200/70 p-1 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 group-hover:scale-105 transition-all duration-300">
-                      {imageSrc ? (
-                        <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ color: styleInfo.color }}>
-                          <IconComponent size={18} strokeWidth={2.2} />
-                        </div>
-                      )}
-                    </div>
+                  {/* Sisi Kiri: Logo Jurusan */}
+                  <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl bg-slate-50/90 border border-slate-200/70 p-1.5 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 group-hover:scale-105 transition-all duration-300">
+                    {imageSrc ? (
+                      <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center" style={{ color: styleInfo.color }}>
+                        <IconComponent size={20} strokeWidth={2.2} />
+                      </div>
+                    )}
                   </div>
 
-                  {/* Bottom: Major Title & Tagline */}
-                  <div className="min-w-0 pr-1">
+                  {/* Sisi Kanan: Teks Judul & Subtitle */}
+                  <div className="min-w-0 flex-1">
                     <h3 className="text-xs lg:text-[13px] font-black text-slate-900 tracking-tight leading-snug uppercase group-hover:text-[var(--ui-primary)] transition-colors truncate">
                       {name}
                     </h3>
-                    <p className="text-[10px] lg:text-[10.5px] font-semibold text-slate-400 group-hover:text-slate-500 mt-0.5 truncate transition-colors">
+                    <p className="text-[10px] lg:text-[11px] font-semibold text-slate-400 group-hover:text-slate-500 mt-0.5 truncate transition-colors">
                       {desc || styleInfo.tagline}
                     </p>
                   </div>
