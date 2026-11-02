@@ -2540,11 +2540,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const canonNis = String(matrix[k]?.nis || '').trim().toLowerCase();
             if (kStr) {
               nisToMatrixKey.set(kStr, k);
-              if (kStr.length >= 5) nisToMatrixKey.set(kStr.slice(-5), k);
+              if (kStr.length === 9) nisToMatrixKey.set(kStr.slice(1), k);
             }
             if (canonNis) {
               nisToMatrixKey.set(canonNis, k);
-              if (canonNis.length >= 5) nisToMatrixKey.set(canonNis.slice(-5), k);
+              if (canonNis.length === 9) nisToMatrixKey.set(canonNis.slice(1), k);
             }
           });
 
@@ -2558,8 +2558,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           sAbsRes.rows.forEach(rec => {
             const recNis = String(rec.siswa_nis || '').trim().toLowerCase();
             let targetKey = nisToMatrixKey.get(recNis);
-            if (!targetKey && recNis.length >= 5) {
-              targetKey = nisToMatrixKey.get(recNis.slice(-5));
+            if (!targetKey && recNis.length === 9) {
+              targetKey = nisToMatrixKey.get(recNis.slice(1));
             }
             if (targetKey && matrix[targetKey]) {
               const day = rec.tanggal_str ? parseInt(rec.tanggal_str.substring(8, 10), 10) : new Date(rec.tanggal).getDate();
@@ -2580,6 +2580,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  const prevDayData = matrix[targetKey].days[day] || {};
                  
                  const isOtomatis = rec.approval_status === 'otomatis' || (rec.pelapor_nama && String(rec.pelapor_nama).toLowerCase().includes('mesin'));
+
+                 // STRICT BIOMETRIC ENFORCEMENT PADA SINKRONISASI OTOMATIS:
+                 // Jika record di kedisiplinan_absensi berstatus Hadir/Terlambat dan berasal dari mesin otomatis (isOtomatis),
+                 // tetapi siswa TIDAK MEMILIKI scan biometrik valid pada hari tersebut (!prevDayData.in && !prevDayData.out),
+                 // maka record ini dipicu oleh tap kartu (titip kartu) dan WAJIB DIABAIKAN agar siswa tidak hadir tidak berubah jadi Hadir!
+                 if (isOtomatis && (status === "Hadir" || status === "Terlambat") && !prevDayData.in && !prevDayData.out) {
+                   return;
+                 }
 
                  // Ambil jam scan mesin asli jika ada, atau jam dari keterangan (contoh "07:06")
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
