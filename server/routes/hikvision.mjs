@@ -941,6 +941,9 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             existingTeacherIds.add(recordId);
             attendanceProcessed++;
           } else if (personType === 'siswa') {
+            // Proteksi: Hanya sesi Masuk Pagi pada hari sekolah aktif yang dicatat ke kedisiplinan_absensi
+            // Jangan memasukkan sesi Pulang Sore atau Hari Libur sebagai 'Hadir' resmi jika siswa tidak absen pagi
+            if (sessionName !== "Masuk Pagi" || isWeekendHoliday) return;
             const actualNis = resolveNis(empId);
             if (!actualNis) return;
             const recordKey = `${actualNis}_${date}`;
@@ -950,7 +953,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               siswa_nis: actualNis, 
               tanggal: date, 
               status, 
-              keterangan: isWeekendHoliday ? `Mesin: ${log.location} (${time}) - Kegiatan/Libur` : `Mesin: ${log.location} (${time})`,
+              keterangan: `Mesin: ${log.location} (${time})`,
               pelapor_nama: "Mesin Hikvision",
               approval_status: "otomatis"
             });
@@ -2565,7 +2568,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                  const timeMatch = String(rec.keterangan || '').match(/(\d{1,2}[:.]\d{2})/);
                  const parsedTime = timeMatch ? timeMatch[1].replace('.', ':') : null;
                  const isPermit = ["Izin", "Sakit", "Alpa", "Cuti", "Dinas Luar", "PraPKL", "Pra-PKL", "PKL", "Libur", "Dispensasi"].includes(status) || String(status || '').startsWith("PKL");
-                 const actualIn = prevDayData.in || (parsedTime && parsedTime < "12:00" ? parsedTime : null) || (isPermit ? status : (status === "Hadir" && !prevDayData.out ? "07:00" : null));
+                 const actualIn = prevDayData.in || (parsedTime && parsedTime < "12:00" ? parsedTime : null) || (isPermit ? status : (status === "Hadir" && !isOtomatis && !prevDayData.out ? "07:00" : null));
                  const dayOfWeek = rec.tanggal_str ? new Date(rec.tanggal_str + 'T00:00:00').getDay() : 0;
                  const cutoffTime = dayOfWeek === 5 ? "11:20" : "12:00";
                  const isAfternoonTime = parsedTime && parsedTime >= cutoffTime;

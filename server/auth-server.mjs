@@ -289,14 +289,15 @@ export async function pullHikvisionLogs(force = false) {
         let startTime = new Date();
         if (lastLogRes.rows[0]?.last_ts) {
           const lastTsDate = new Date(lastLogRes.rows[0].last_ts);
-          // Jika timestamp terakhir ada di masa depan karena salah jam, fallback ke 48 jam yang lalu
-          if (lastTsDate.getTime() > Date.now() + 2 * 60 * 60 * 1000) {
-            startTime = new Date(Date.now() - 48 * 60 * 60 * 1000);
+          const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+          // Cegah rentang waktu terlalu lebar (misal > 3 hari) agar tidak timeout saat polling berkala
+          if (lastTsDate.getTime() > Date.now() + 2 * 60 * 60 * 1000 || lastTsDate.getTime() < threeDaysAgo) {
+            startTime = new Date(threeDaysAgo);
           } else {
             startTime = new Date(lastTsDate.getTime() - 24 * 60 * 60 * 1000);
           }
         } else {
-          startTime = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+          startTime = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
         }
 
         // Tambahkan toleransi 2 jam ke endTime untuk mengantisipasi clock skew minor pada mesin Hikvision
@@ -628,18 +629,19 @@ async function autoSyncStudentAttendanceToAppData() {
     for (const [key, item] of firstLogMap.entries()) {
       const time = item.time_str.substring(11, 16); // "HH:MM"
       const isHoliday = isHolidayDate(item.date);
+      // Proteksi: Jangan masukkan tap akhir pekan/libur ke kedisiplinan_absensi resmi sekolah
+      if (isHoliday) continue;
+
+      // Proteksi: Jika tap pertama baru terjadi siang/sore (>= 12:00), siswa tidak tap pagi
+      // Jangan otomatis dibuat Hadir penuh di kedisiplinan_absensi
+      if (toMinutes(time) >= toMinutes("12:00")) continue;
       
       let status = 'Hadir';
       let ket = `Mesin: ${item.location || item.ip_address || 'Hikvision'} (${time} WIB)`;
-      if (isHoliday) {
-        status = 'Hadir';
-        ket += ' - Kegiatan / Libur';
+      if (toMinutes(time) > toMinutes(siswaMasukLate)) {
+        status = 'Terlambat';
       } else {
-        if (toMinutes(time) > toMinutes(siswaMasukLate)) {
-          status = 'Terlambat';
-        } else {
-          status = 'Hadir';
-        }
+        status = 'Hadir';
       }
 
       try {
@@ -649,11 +651,11 @@ async function autoSyncStudentAttendanceToAppData() {
           VALUES ($1, $2, $3, $4, 'Mesin Hikvision', 'otomatis')
           ON CONFLICT (siswa_nis, tanggal) DO UPDATE
           SET status = CASE 
-                WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi') THEN kedisiplinan_absensi.status
+                WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi', 'Alpa') THEN kedisiplinan_absensi.status
                 ELSE EXCLUDED.status
               END,
               keterangan = CASE
-                WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi') THEN kedisiplinan_absensi.keterangan
+                WHEN kedisiplinan_absensi.status IN ('Izin', 'Sakit', 'Dispensasi', 'Alpa') THEN kedisiplinan_absensi.keterangan
                 ELSE EXCLUDED.keterangan
               END
         `, [item.actualNis, item.date, status, ket]);
