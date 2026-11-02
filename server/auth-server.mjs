@@ -312,16 +312,6 @@ export async function pullHikvisionLogs(force = false) {
             let employeeNo = String(log.employeeNoString || log.employeeNo || '').trim();
             if (!employeeNo) continue;
             
-            // Only save verified attendance events: 75 (face), 38 (fingerprint), 1 (card), 104 (mask/face)
-            if (log.minor !== 75 && log.minor !== 38 && log.minor !== 1 && log.minor !== 104) {
-              continue;
-            }
-
-            const eventType = `${log.major}-${log.minor}`;
-            const logTime = (log.time || '').replace('T', ' ').substring(0, 19);
-            const logHhmm = logTime.substring(11, 16);
-            const logMin  = toMinutes(logHhmm);
-
             // ── Identity lookup via pre-loaded Maps (O(1), no extra queries) ──
             const empKey = String(employeeNo).toLowerCase();
             let personType = null;
@@ -344,6 +334,25 @@ export async function pullHikvisionLogs(force = false) {
             if (!personType) {
               continue;
             }
+
+            // STRICT BIOMETRIC ENFORCEMENT:
+            // Sekolah HANYA menggunakan absensi Fingerprint (minor 38) dan Face ID (minor 104).
+            // minor 75 (Kartu RFID) dan minor 1 DILARANG untuk siswa agar siswa yang tidak hadir tidak dapat titip kartu.
+            if (personType === 'siswa' || dtype === 'siswa') {
+              if (log.minor !== 38 && log.minor !== 104) {
+                continue;
+              }
+            } else {
+              // Guru / Karyawan
+              if (log.minor !== 38 && log.minor !== 104 && log.minor !== 75 && log.minor !== 1) {
+                continue;
+              }
+            }
+
+            const eventType = `${log.major}-${log.minor}`;
+            const logTime = (log.time || '').replace('T', ' ').substring(0, 19);
+            const logHhmm = logTime.substring(11, 16);
+            const logMin  = toMinutes(logHhmm);
 
             // Insert raw attendance tap without dropping - all taps must be retained for report aggregation
             const insRes = await dbPool.query(
@@ -378,7 +387,7 @@ export async function pullHikvisionLogs(force = false) {
                 targetPhone = p?.phone || null;
               }
 
-              if (lateLimit && (log.minor === 75 || log.minor === 38)) {
+              if (lateLimit && (log.minor === 38 || log.minor === 104 || (log.minor === 75 && personType !== 'siswa'))) {
                 const closeLimit = toMinutes(
                   (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
                 );
@@ -578,6 +587,7 @@ async function autoSyncStudentAttendanceToAppData() {
       LEFT JOIN hikvision_devices d ON l.device_id = d.id
       WHERE (l.person_type IN ('siswa', 'unknown') OR l.person_type IS NULL)
         AND l.employee_id !~* '^[a-z]'
+        AND l.event_type IN ('5-38', '5-104')
         AND l.timestamp >= NOW() - INTERVAL '3 days'
       ORDER BY l.timestamp ASC
     `);

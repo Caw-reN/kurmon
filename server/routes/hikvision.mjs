@@ -772,7 +772,15 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             const logs = await api.searchEvents(startTime, endTime);
             
             if (logs && logs.length > 0) {
-              const validLogs = logs.filter(l => (l.employeeNoString || l.employeeNo) && (l.minor === 75 || l.minor === 38 || l.minor === 1 || l.minor === 104));
+              const isStudentDevice = device.device_type === 'siswa' || String(device.name || '').toLowerCase().includes('siswa');
+              const validLogs = logs.filter(l => {
+                if (!l.employeeNoString && !l.employeeNo) return false;
+                // STRICT BIOMETRIC ENFORCEMENT: Mesin siswa hanya menerima 38 (fingerprint) dan 104 (face)
+                if (isStudentDevice) {
+                  return l.minor === 38 || l.minor === 104;
+                }
+                return l.minor === 38 || l.minor === 104 || l.minor === 75 || l.minor === 1;
+              });
               const query = `INSERT INTO hikvision_logs (device_id, employee_id, timestamp, event_type, person_type, created_at) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) ON CONFLICT (device_id, employee_id, timestamp) DO NOTHING`;
               for (const l of validLogs) {
                 let empRaw = String(l.employeeNoString || l.employeeNo || '').trim();
@@ -2383,6 +2391,13 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               logRole = "guru";
             } else if (reportType === "karyawan" || reportType === "staff") {
               logRole = "karyawan";
+            }
+
+            // STRICT BIOMETRIC ENFORCEMENT:
+            // Siswa HANYA menggunakan fingerprint (5-38) dan faceid (5-104).
+            // Tap kartu (5-75 atau 5-1) diabaikan agar siswa tidak hadir tidak dapat titip kartu.
+            if (logRole === 'siswa' && (log.event_type === '5-75' || log.event_type?.endsWith('-75') || log.event_type === '5-1' || log.event_type?.endsWith('-1'))) {
+              return;
             }
 
             const day = parseInt(log.time_str.substring(8, 10), 10);
