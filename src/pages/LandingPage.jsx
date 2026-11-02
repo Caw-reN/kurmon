@@ -1802,18 +1802,30 @@ export default function LandingPage() {
             </div>
 
             {/* Main Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-white leading-[1.12] drop-shadow-sm">
-              Aktivitas akademik,
-              <span 
-                className="block mt-1 drop-shadow-sm" 
-                style={{ color: appSettings.heroHighlightColor || accentColor || '#a3e635' }}
-              >
-                lebih terarah.
-              </span>
+            <h1 
+              className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight leading-[1.12] drop-shadow-sm"
+              style={{ color: appSettings.heroTitleColor || '#ffffff' }}
+            >
+              {appSettings.heroTitle ? (
+                appSettings.heroTitle
+              ) : (
+                <>
+                  Aktivitas akademik,
+                  <span 
+                    className="block mt-1 drop-shadow-sm" 
+                    style={{ color: appSettings.heroHighlightColor || accentColor || '#a3e635' }}
+                  >
+                    lebih terarah.
+                  </span>
+                </>
+              )}
             </h1>
 
             {/* Subtitle */}
-            <p className="text-xs sm:text-sm lg:text-[14px] font-medium text-slate-200 mt-3.5 mb-6 max-w-[480px] leading-relaxed drop-shadow-xs">
+            <p 
+              className="text-xs sm:text-sm lg:text-[14px] font-medium mt-3.5 mb-6 max-w-[480px] leading-relaxed drop-shadow-xs"
+              style={{ color: appSettings.heroSubtitleColor || '#e2e8f0' }}
+            >
               {appSettings.heroSubtitle && appSettings.heroSubtitle !== "Sistem informasi terpadu guru dan siswa untuk jadwal, denah, hingga materi ajar."
                 ? cleanText(appSettings.heroSubtitle)
                 : "Akses jadwal pelajaran, materi ajar, kalender akademik, dan informasi PKL dalam satu portal. Masuk ke akun untuk melanjutkan aktivitas sekolahmu."}
@@ -2183,22 +2195,31 @@ export default function LandingPage() {
 
         {/* BANNER KESULITAN MENGAKSES SISTEM? (BANTUAN) - PINDAH KE BAWAH DI ATAS FOOTER */}
         <div className="shrink-0 mb-8 lg:mb-10 w-full relative z-10 text-left">
-          <div className="bg-[#153f32] text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md w-full overflow-hidden">
+          <div 
+            className="text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md w-full overflow-hidden"
+            style={{ 
+              backgroundColor: appSettings.supportBannerBgColor || (primaryColor ? `color-mix(in srgb, ${primaryColor} 82%, #000000)` : '#153f32') 
+            }}
+          >
             <div>
               <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white leading-tight">
-                Kesulitan mengakses sistem?
+                {appSettings.helpBannerTitle || "Kesulitan mengakses sistem?"}
               </h3>
               <p className="text-xs sm:text-sm font-semibold text-emerald-100/80 mt-1.5 leading-relaxed">
-                Baca panduan layanan atau hubungi sekolah untuk bantuan akun.
+                {appSettings.helpBannerSubtitle || "Baca panduan layanan atau hubungi sekolah untuk bantuan akun."}
               </p>
             </div>
 
             <button
               type="button"
               onClick={() => setShowPublicHelp(true)}
-              className="bg-[#c8ed69] hover:bg-[#b8e254] text-[#153f32] font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
+              className="font-black text-xs sm:text-sm px-5 py-3 rounded-xl flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer border-none shrink-0"
+              style={{
+                backgroundColor: appSettings.actionButtonColor || accentColor || '#c8ed69',
+                color: primaryColor ? `color-mix(in srgb, ${primaryColor} 90%, #000000)` : '#153f32'
+              }}
             >
-              <span>Panduan & Bantuan</span>
+              <span>{appSettings.helpBannerButtonText || "Panduan & Bantuan"}</span>
               <ArrowUpRight size={15} strokeWidth={2.8} />
             </button>
           </div>
@@ -2206,8 +2227,8 @@ export default function LandingPage() {
 
       </div>
 
-      {/* FOOTER (LAYOUT & WARNA SINKRON DENGAN PANDUAN GAMBAR USER) */}
-      <footer className="w-full bg-[#f7f8f2] border-t border-[#dde3d9] relative z-20 mt-auto pb-24 md:pb-8 print:hidden select-none">
+      {/* DESKTOP FOOTER (LAYOUT & WARNA SINKRON DENGAN PANDUAN GAMBAR USER) */}
+      <footer className="hidden md:block w-full bg-[#f7f8f2] border-t border-[#dde3d9] relative z-20 mt-auto print:hidden select-none">
         <div className="w-full max-w-[1400px] mx-auto px-6 md:px-8 py-8 lg:py-10">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
             
@@ -2226,10 +2247,13 @@ export default function LandingPage() {
                 )}
                 <div className="flex flex-col text-left">
                   <div className="flex items-baseline">
-                    <span className="font-black text-[#153f32] text-lg lg:text-xl tracking-tight leading-none">
+                    <span 
+                      className="font-black text-lg lg:text-xl tracking-tight leading-none"
+                      style={{ color: primaryColor ? `color-mix(in srgb, ${primaryColor} 88%, #000000)` : '#153f32' }}
+                    >
                       {appSettings.appName || "KG2 School"}
                     </span>
-                    <span className="font-black text-[#059669] text-lg lg:text-xl leading-none ml-0.5">
+                    <span className="font-black text-lg lg:text-xl leading-none ml-0.5" style={{ color: primaryColor || '#059669' }}>
                       .
                     </span>
                   </div>
@@ -2240,8 +2264,8 @@ export default function LandingPage() {
               </div>
 
               <div className="mt-4 text-slate-500 text-xs font-medium leading-relaxed max-w-md">
-                {appSettings.schoolAddress ? (
-                  <div className="whitespace-pre-line">{appSettings.schoolAddress}</div>
+                {appSettings.schoolAddress || appSettings.schoolProfile?.alamat ? (
+                  <div className="whitespace-pre-line">{appSettings.schoolAddress || appSettings.schoolProfile?.alamat}</div>
                 ) : (
                   <>
                     <p>Kampus A: Jl. Karang Satria No. 503, Duren Jaya,</p>
@@ -2254,19 +2278,22 @@ export default function LandingPage() {
 
             {/* Column 2: Jelajahi Portal (3 cols) */}
             <div className="md:col-span-3 lg:col-span-3 flex flex-col text-left">
-              <h4 className="text-xs font-black uppercase tracking-wider text-[#153f32] mb-3.5">
+              <h4 
+                className="text-xs font-black uppercase tracking-wider mb-3.5"
+                style={{ color: primaryColor ? `color-mix(in srgb, ${primaryColor} 88%, #000000)` : '#153f32' }}
+              >
                 Jelajahi Portal
               </h4>
               <div className="flex flex-col gap-2.5 text-xs font-medium text-slate-600">
-                <Link to="/jadwal" className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                <Link to="/jadwal" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
                   <span>Jadwal Pelajaran</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </Link>
-                <Link to="/materi-ajar" className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                <Link to="/materi-ajar" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
                   <span>Materi Ajar</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </Link>
-                <Link to="/kalender" className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                <Link to="/kalender" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
                   <span>Kalender Sekolah</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
                 </Link>
@@ -2275,13 +2302,16 @@ export default function LandingPage() {
 
             {/* Column 3: Tetap Terhubung (3 cols) */}
             <div className="md:col-span-3 lg:col-span-3 flex flex-col text-left">
-              <h4 className="text-xs font-black uppercase tracking-wider text-[#153f32] mb-3.5">
+              <h4 
+                className="text-xs font-black uppercase tracking-wider mb-3.5"
+                style={{ color: primaryColor ? `color-mix(in srgb, ${primaryColor} 88%, #000000)` : '#153f32' }}
+              >
                 Tetap Terhubung
               </h4>
               <div className="flex flex-col gap-2.5 text-xs font-medium text-slate-600">
                 <a 
                   href={`mailto:${appSettings.contactEmail || 'info@smkkg2.sch.id'}`} 
-                  className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600"
+                  className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600"
                 >
                   <span>{appSettings.contactEmail || 'info@smkkg2.sch.id'}</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
@@ -2289,7 +2319,7 @@ export default function LandingPage() {
                 <button 
                   type="button" 
                   onClick={() => setIsLoginModalOpen(true)}
-                  className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
+                  className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
                 >
                   <span>Sistem akademik sekolah</span>
                   <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
@@ -2297,7 +2327,7 @@ export default function LandingPage() {
                 <button 
                   type="button" 
                   onClick={() => setShowPublicHelp(true)}
-                  className="hover:text-[#153f32] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
+                  className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600 bg-transparent border-none p-0 cursor-pointer font-medium text-xs text-left"
                 >
                   <span>Pusat bantuan</span>
                 </button>
@@ -2309,7 +2339,13 @@ export default function LandingPage() {
           {/* Bottom Copyright Row */}
           <div className="w-full border-t border-[#dde3d9] mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-slate-500">
             <p>
-              © {new Date().getFullYear()} {appSettings.appName || "KG2 School"} · {appSettings.schoolName || appSettings.instansiName || "SMK Karya Guna 2 Bekasi"}
+              {appSettings.footerText ? (
+                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerText) }} />
+              ) : appSettings.footerDescription ? (
+                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
+              ) : (
+                `© ${new Date().getFullYear()} ${appSettings.appName || "KG2 School"} · ${appSettings.schoolName || appSettings.instansiName || "SMK Karya Guna 2 Bekasi"}`
+              )}
             </p>
             <div className="text-slate-500 text-xs font-medium">
               Pratinjau antarmuka · Data akademik tersedia di sistem asli

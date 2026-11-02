@@ -124,8 +124,8 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
         <div 
           className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-colors"
           style={{ 
-            backgroundColor: '#153f32',
-            borderBottomColor: 'rgba(255, 255, 255, 0.12)'
+            backgroundColor: appSettings?.topRibbonColor || primaryColor || '#153f32',
+            borderBottomColor: 'rgba(255, 255, 255, 0.15)'
           }}
         >
           <div className="max-w-[1400px] mx-auto flex items-center justify-between">
