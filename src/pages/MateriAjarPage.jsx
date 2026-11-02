@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useOutletContext } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { loadInitialState } from '../utils/state.js';
 import { getDatabaseSnapshot, subscribeDatabaseSnapshot } from '../utils/dataSource.js';
@@ -149,6 +149,9 @@ export default function MateriAjarPage() {
     }
   };
 
+  const outletContext = useOutletContext();
+  const outletAppSettings = outletContext?.appSettings;
+
   const appSettings = useMemo(() => {
     void dataVersion;
     const defaults = {
@@ -156,13 +159,13 @@ export default function MateriAjarPage() {
       accentColor: '#a3e635',
       fontFamily: 'Lexend',
       logoText: 'TS',
-      appName: 'TimeSchedule',
-      footerText: '© 2026 TimeSchedule by Admin.',
+      appName: 'SMK Karya Guna 2',
+      footerText: '© 2026 SMK Karya Guna 2 Bekasi',
       contactEmail: 'admin@school.sch.id',
       contactPhone: '+62 123-456-789'
     };
-    return { ...defaults, ...loadInitialState('appSettings', defaults) };
-  }, [dataVersion]);
+    return { ...defaults, ...loadInitialState('appSettings', defaults), ...(outletAppSettings || {}) };
+  }, [dataVersion, outletAppSettings]);
 
   const { primaryColor } = appSettings;
 

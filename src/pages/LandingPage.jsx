@@ -2227,23 +2227,23 @@ export default function LandingPage() {
             {/* Mobile Bottom Action Bar (Satu-satunya Bar Tombol Aksi di Bawah - Full Putih Bersih) */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[40] bg-white px-5 pt-3 pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+1rem))] select-none">
         <div className="w-full max-w-md mx-auto flex items-center gap-3">
-          {/* Tombol Pertama: Masuk Sekarang (Hijau solid #3DAA37 sesuai gambar user, flex-1, teks putih tebal, rounded-xl) */}
+          {/* Tombol Pertama: Masuk Sekarang (Mengikuti warna tombol primer dari setingan admin) */}
           <button
             type="button"
             onClick={() => setIsLoginModalOpen(true)}
-            style={{ backgroundColor: '#3DAA37' }}
-            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
+            style={{ backgroundColor: appSettings.primaryButtonColor || appSettings.primaryColor || '#059669' }}
+            className="flex-1 h-[50px] sm:h-[54px] rounded-xl text-white font-extrabold text-sm sm:text-base tracking-wide shadow-md flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer border-none"
           >
             Masuk Sekarang
           </button>
 
-          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna hijau solid #3DAA37 sama, ikon Bantuan (Membuka Bottom Sheet) */}
+          {/* Tombol Kedua: Kotak Persegi rounded-xl, warna selaras setingan admin, ikon Bantuan */}
           <button
             type="button"
             onClick={() => setShowPublicHelp(true)}
             title="Bantuan & Panduan"
-            style={{ backgroundColor: '#3DAA37' }}
-            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md shadow-green-950/20 flex items-center justify-center transition-all active:scale-[0.98] hover:bg-[#34942f] cursor-pointer border-none"
+            style={{ backgroundColor: appSettings.primaryButtonColor || appSettings.primaryColor || '#059669' }}
+            className="w-[50px] h-[50px] sm:w-[54px] sm:h-[54px] shrink-0 rounded-xl text-white shadow-md flex items-center justify-center transition-all active:scale-[0.98] cursor-pointer border-none"
           >
             <HelpCircle size={23} strokeWidth={2.3} />
           </button>

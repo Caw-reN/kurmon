@@ -56,6 +56,7 @@ export default function PublicFooter({
     appSettings?.schoolAddress || 
     appSettings?.schoolProfile?.alamat || 
     schoolProfile?.alamat ||
+    appSettings?.address ||
     null;
 
   return (

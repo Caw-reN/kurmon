@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from'react';
-import { useAppStore } from'../store/useAppStore';
-import { subscribeDatabaseSnapshot } from'../utils/dataSource.js';
-import { loadInitialState } from'../utils/state.js';
-import { Calendar, Users, Search, Printer } from'lucide-react';
-import JadwalPiket from'./kedisiplinan/JadwalPiket.jsx';
-import { CustomSelect } from'../components/CustomSelect.jsx';
-import { LegacyScheduleTable } from'../components/LegacyPreview.jsx';
+import { useEffect, useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { useAppStore } from '../store/useAppStore';
+import { subscribeDatabaseSnapshot } from '../utils/dataSource.js';
+import { loadInitialState } from '../utils/state.js';
+import { Calendar, Users, Search, Printer } from 'lucide-react';
+import JadwalPiket from './kedisiplinan/JadwalPiket.jsx';
+import { CustomSelect } from '../components/CustomSelect.jsx';
+import { LegacyScheduleTable } from '../components/LegacyPreview.jsx';
 import { Button } from '../components/ui.jsx';
 
 
@@ -16,6 +17,8 @@ export default function JadwalPage() {
   const [selectedMajor, setSelectedMajor] = useState("Semua");
   const [selectedClass, setSelectedClass] = useState("Semua");
   const [dataVersion, setDataVersion] = useState(0);
+  const outletContext = useOutletContext();
+  const outletAppSettings = outletContext?.appSettings;
   const { getClasses, getSchedule, getTeachers } = useAppStore();
   const [scheduleData, setScheduleData] = useState(() => ({
     classes: getClasses(),
@@ -40,16 +43,14 @@ export default function JadwalPage() {
       accentColor:"#a3e635",
       fontFamily:"Lexend",
       logoText:"TS",
-      appName:"TimeSchedule",
-      footerText:"© 2026 TimeSchedule by Admin.",
+      appName:"SMK Karya Guna 2",
+      footerText:"© 2026 SMK Karya Guna 2 Bekasi",
       contactEmail:"admin@school.sch.id",
       contactPhone:"+62 123-456-789"
     };
 
-    return { ...defaults, ...loadInitialState("appSettings", defaults) };
-  // dataVersion is updated when the active database snapshot changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataVersion]);
+    return { ...defaults, ...loadInitialState("appSettings", defaults), ...(outletAppSettings || {}) };
+  }, [dataVersion, outletAppSettings]);
   const { primaryColor, accentColor, fontFamily, appName, logoText, footerText, contactEmail, contactPhone } = appSettings;
 
   // Filter classes available for Class filter based on active Grade & Major

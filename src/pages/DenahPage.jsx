@@ -1,16 +1,19 @@
 import { Button } from '../components/ui.jsx';
-import { useEffect, useMemo, useState } from'react';
-import { subscribeDatabaseSnapshot } from'../utils/dataSource.js';
-import { loadInitialState } from'../utils/state.js';
-import { Printer } from'lucide-react';
-import { CustomSelect } from'../components/CustomSelect.jsx';
-import { LegacyDenahPreview } from'../components/LegacyPreview.jsx';
+import { useEffect, useMemo, useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { subscribeDatabaseSnapshot } from '../utils/dataSource.js';
+import { loadInitialState } from '../utils/state.js';
+import { Printer } from 'lucide-react';
+import { CustomSelect } from '../components/CustomSelect.jsx';
+import { LegacyDenahPreview } from '../components/LegacyPreview.jsx';
 
 
 export default function DenahPage() {
   const [dataVersion, setDataVersion] = useState(0);
   const [selectedDay, setSelectedDay] = useState(() => loadInitialState("layoutDay","Senin"));
   const [layoutPreset, setLayoutPreset] = useState(() => loadInitialState("layoutPreset","kampus_a"));
+  const outletContext = useOutletContext();
+  const outletAppSettings = outletContext?.appSettings;
   
   useEffect(() => {
     return subscribeDatabaseSnapshot(() => setDataVersion((version) => version + 1));
@@ -23,13 +26,13 @@ export default function DenahPage() {
       accentColor:"#a3e635",
       fontFamily:"Lexend",
       logoText:"TS",
-      appName:"TimeSchedule",
-      footerText:"© 2026 TimeSchedule by Admin.",
+      appName:"SMK Karya Guna 2",
+      footerText:"© 2026 SMK Karya Guna 2 Bekasi",
       contactEmail:"admin@school.sch.id",
       contactPhone:"+62 123-456-789"
     };
-    return { ...defaults, ...loadInitialState("appSettings", defaults) };
-  }, [dataVersion]);
+    return { ...defaults, ...loadInitialState("appSettings", defaults), ...(outletAppSettings || {}) };
+  }, [dataVersion, outletAppSettings]);
 
   const days = useMemo(() => {
     void dataVersion;

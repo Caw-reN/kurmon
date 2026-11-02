@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from'react';
-import { useSearchParams } from'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { useSearchParams, useOutletContext } from 'react-router-dom';
 import { useAppStore } from'../store/useAppStore';
 import { getDatabaseSnapshot, subscribeDatabaseSnapshot } from'../utils/dataSource.js';
 import { loadInitialState } from'../utils/state.js';
@@ -44,6 +44,9 @@ export default function SilabusPage() {
       .catch(err => console.error("Error fetching uploaded docs:", err));
   }, []);
 
+  const outletContext = useOutletContext();
+  const outletAppSettings = outletContext?.appSettings;
+
   const appSettings = useMemo(() => {
     void dataVersion;
     const defaults = {
@@ -51,14 +54,14 @@ export default function SilabusPage() {
       accentColor:"#a3e635",
       fontFamily:"Lexend",
       logoText:"TS",
-      appName:"TimeSchedule",
-      footerText:"© 2026 TimeSchedule by Admin.",
+      appName:"SMK Karya Guna 2",
+      footerText:"© 2026 SMK Karya Guna 2 Bekasi",
       contactEmail:"admin@school.sch.id",
       contactPhone:"+62 123-456-789"
     };
 
-    return { ...defaults, ...loadInitialState("appSettings", defaults) };
-  }, [dataVersion]);
+    return { ...defaults, ...loadInitialState("appSettings", defaults), ...(outletAppSettings || {}) };
+  }, [dataVersion, outletAppSettings]);
 
   const { primaryColor, accentColor, fontFamily, appName, logoText, footerText, contactEmail, contactPhone } = appSettings;
   const shellCard = "bg-white rounded-[var(--ui-radius-card)] shadow-2xs border border-slate-200/90";
