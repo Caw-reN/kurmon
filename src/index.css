@@ -208,16 +208,16 @@
 }
 /* Mode header-primary: Berwarna pada desktop (>=640px), putih bersih & netral pada mobile (<640px) */
 @media (min-width: 640px) {
-  .header-primary header,
+  .header-primary header:not(.landing-navbar),
   .header-primary .app-header {
     background-color: var(--ui-primary, #059669) !important;
     color: #ffffff !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
   }
-  .header-primary header h1,
-  .header-primary header p,
-  .header-primary header span:not(.bg-white *):not(.bg-card *),
+  .header-primary header:not(.landing-navbar) h1,
+  .header-primary header:not(.landing-navbar) p,
+  .header-primary header:not(.landing-navbar) span:not(.bg-white *):not(.bg-card *),
   .header-primary .app-header h1,
   .header-primary .app-header p,
   .header-primary .app-header span:not(.bg-white *):not(.bg-card *) {

@@ -1744,7 +1744,7 @@ export default function LandingPage() {
       </div>
 
       {/* DESKTOP VIEW RESPONSIVE NATURAL WRAPPER */}
-      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-8 lg:pt-10 pb-6 lg:pb-8 desktop-layout-wrapper">
+      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[106px] lg:pt-[116px] pb-6 lg:pb-8 desktop-layout-wrapper">
 
 
         {/* TOP ROW: HERO AKADEMIK & AKSES AKUN CARD */}

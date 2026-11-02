@@ -119,7 +119,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
   return (
     <>
-      <header role="banner" className="sticky top-0 z-50 flex flex-col w-full shadow-2xs select-none">
+      <header role="banner" className="landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col shadow-xs select-none">
         {/* 1. TOP RIBBON: SMK KARYA GUNA 2 BEKASI & PORTAL LAYANAN */}
         <div 
           className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-colors"
@@ -132,14 +132,14 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             <span className="tracking-wider uppercase font-mono font-bold" style={{ color: accentColor }}>
               {schoolName.toUpperCase()}
             </span>
-            <span className="text-white/80 font-medium hidden sm:inline text-[11.5px]">
+            <span className="text-white/90 font-medium hidden sm:inline text-[11.5px]">
               Portal layanan akademik - {schoolName}
             </span>
           </div>
         </div>
 
         {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON */}
-        <div className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+        <div className="w-full bg-white border-b border-slate-200/90 shadow-2xs">
           <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-[68px] sm:h-[72px] flex items-center justify-between">
             {/* Kiri: Logo Kotak Hijau & Teks Brand */}
             <Link to="/" className="flex items-center gap-3.5 select-none no-underline group">
@@ -156,14 +156,20 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
               <div className="flex flex-col text-left">
                 <div className="flex items-baseline">
-                  <span className="text-lg lg:text-[21px] font-black text-slate-900 tracking-tight leading-none">
+                  <span 
+                    className="text-lg lg:text-[21px] font-black tracking-tight leading-none"
+                    style={{ color: '#0f172a' }}
+                  >
                     {appName}
                   </span>
                   <span className="font-black text-lg lg:text-[21px] leading-none ml-0.5" style={{ color: accentColor || primaryColor }}>
                     .
                   </span>
                 </div>
-                <span className="text-[9.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1 leading-none font-mono">
+                <span 
+                  className="text-[9.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] mt-1 leading-none font-mono"
+                  style={{ color: '#64748b' }}
+                >
                   {appSettings?.logoSmallText || "SISTEM INFORMASI AKADEMIK"}
                 </span>
               </div>
@@ -175,39 +181,42 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 <button
                   type="button"
                   onClick={scrollToLayanan}
-                  className="text-xs lg:text-[13.5px] font-bold text-slate-700 hover:text-[var(--ui-primary)] transition-colors cursor-pointer bg-transparent border-none p-0"
-                  style={{ '--hover-color': primaryColor }}
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
+                  style={{ color: '#334155' }}
                 >
                   Layanan
                 </button>
                 <button
                   type="button"
                   onClick={scrollToAksesAkun}
-                  className="text-xs lg:text-[13.5px] font-bold text-slate-700 hover:text-[var(--ui-primary)] transition-colors cursor-pointer bg-transparent border-none p-0"
-                  style={{ '--hover-color': primaryColor }}
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
+                  style={{ color: '#334155' }}
                 >
                   Akses Akun
                 </button>
                 <button
                   type="button"
                   onClick={handleOpenBantuan}
-                  className="text-xs lg:text-[13.5px] font-bold text-slate-700 hover:text-[var(--ui-primary)] transition-colors cursor-pointer bg-transparent border-none p-0"
-                  style={{ '--hover-color': primaryColor }}
+                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:opacity-80"
+                  style={{ color: '#334155' }}
                 >
                   Bantuan
                 </button>
               </nav>
 
               {/* Improved Language Switcher (Segmented Pill dengan SVG Crisp) */}
-              <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs">
+              <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200/90 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setActiveLang('ID')}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border-none ${
                     activeLang === 'ID'
-                      ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
-                      : 'bg-transparent text-slate-400 hover:text-slate-700 font-semibold'
+                      ? 'bg-white shadow-2xs font-extrabold'
+                      : 'bg-transparent hover:text-slate-900 font-semibold'
                   }`}
+                  style={{
+                    color: activeLang === 'ID' ? '#0f172a' : '#64748b'
+                  }}
                   title="Bahasa Indonesia"
                 >
                   <IndoFlagMini />
@@ -218,9 +227,12 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                   onClick={() => setActiveLang('EN')}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border-none ${
                     activeLang === 'EN'
-                      ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
-                      : 'bg-transparent text-slate-400 hover:text-slate-700 font-semibold'
+                      ? 'bg-white shadow-2xs font-extrabold'
+                      : 'bg-transparent hover:text-slate-900 font-semibold'
                   }`}
+                  style={{
+                    color: activeLang === 'EN' ? '#0f172a' : '#64748b'
+                  }}
                   title="English"
                 >
                   <UKFlagMini />
@@ -233,7 +245,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
                 type="button"
                 onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
                 className="rounded-xl text-white text-xs lg:text-sm font-bold flex items-center gap-2 px-5 py-2.5 shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer border-none"
-                style={{ backgroundColor: primaryButtonColor }}
+                style={{ backgroundColor: primaryButtonColor, color: '#ffffff' }}
                 title="Buka Portal & Masuk Akun"
               >
                 <span>Masuk Akun</span>
