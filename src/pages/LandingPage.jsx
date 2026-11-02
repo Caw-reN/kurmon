@@ -1798,39 +1798,41 @@ export default function LandingPage() {
           <div className="flex-1 flex flex-col justify-center min-h-0 text-left max-w-[620px]">
             {/* Top Tag & Live Weather Badge */}
             <div className="flex flex-wrap items-center gap-2.5 mb-4">
-              <div 
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl shadow-xs backdrop-blur-md"
-                style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '12px'
-                }}
-              >
-                <span 
-                  className="w-2 h-2 rounded-full animate-pulse shrink-0" 
-                  style={{ backgroundColor: accentColor || '#a3e635' }} 
-                />
-                <span 
-                  className="text-[11px] font-black tracking-wider uppercase font-mono text-emerald-300"
+              {appSettings.heroBadgeText ? (
+                <div 
+                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl shadow-xs backdrop-blur-md"
+                  style={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px'
+                  }}
                 >
-                  {appSettings.heroBadgeText || `${t("PORTAL AKADEMIK", "ACADEMIC PORTAL")} ${appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}`}
-                </span>
-              </div>
+                  <span 
+                    className="w-2 h-2 rounded-full animate-pulse shrink-0" 
+                    style={{ backgroundColor: accentColor || '#a3e635' }} 
+                  />
+                  <span 
+                    className="text-[11px] font-black tracking-wider uppercase font-mono text-emerald-300"
+                  >
+                    {appSettings.heroBadgeText}
+                  </span>
+                </div>
+              ) : null}
 
-              {/* Live Weather Badge for Bekasi */}
+              {/* Live Weather Badge */}
               <button
                 type="button"
                 onClick={handleCycleWeather}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-all"
                 style={{ borderRadius: '12px' }}
-                title={manualWeather ? t("Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis", "Manual Mode: Click to cycle or return to Auto Weather") : t("Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual.", "Auto Mode: Synced with Bekasi live weather. Click for manual simulation.")}
+                title={manualWeather ? t("Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis", "Manual Mode: Click to cycle or return to Auto Weather") : t("Mode Otomatis: Sinkron cuaca asli. Klik untuk simulasi manual.", "Auto Mode: Synced with live weather. Click for manual simulation.")}
               >
                 {weatherCondition === 'night' && <Moon size={12} className="text-amber-200 shrink-0" />}
                 {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-300 shrink-0 animate-bounce" />}
                 {weatherCondition === 'hot' && <Sun size={12} className="text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
                 {weatherCondition === 'cloudy' && <CloudSun size={12} className="text-emerald-300 shrink-0" />}
                 <span>
-                  Bekasi {weatherTemp ? `${weatherTemp}°C` : ''}
+                  {appSettings.weatherCity || 'Bekasi'} {weatherTemp ? `${weatherTemp}°C` : ''}
                 </span>
                 <span 
                   className="text-[9.5px] font-black px-1.5 py-0.5 rounded-md"

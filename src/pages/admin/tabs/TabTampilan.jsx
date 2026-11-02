@@ -364,15 +364,15 @@ export default function TabTampilan(props) {
                             </div>
                           </div>
                           <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Badge / Tag Portal Hero</label>
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Badge / Tag Portal Hero (Opsional)</label>
                             <input 
                               type="text" 
-                              placeholder="PORTAL AKADEMIK KG2" 
+                              placeholder="Kosongkan jika ingin menghilangkan box badge ini" 
                               value={appSettings.heroBadgeText || ""} 
                               onChange={(e) => setAppSettings({ ...appSettings, heroBadgeText: e.target.value })} 
                               className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
                             />
-                            <p className="text-[11px] text-slate-400 mt-1 ml-1 font-medium">Teks tag kapsul kecil di atas headline utama landing page (kosongkan untuk nilai bawaan otomatis).</p>
+                            <p className="text-[11px] text-slate-400 mt-1 ml-1 font-medium">Teks tag kapsul di atas headline landing page. Jika dikosongkan, kotak badge akan dihilangkan sepenuhnya.</p>
                           </div>
                           <div>
                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Headline Utama</label>
