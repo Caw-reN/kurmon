@@ -1559,17 +1559,19 @@ export default function LandingPage() {
 
                 return (
                   <div 
-                    className="w-full rounded-2xl h-[60px] sm:h-[64px] px-3 shadow-md text-white relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-white/20 select-none"
-                    style={{
-                      backgroundColor: styleInfo.color,
-                      boxShadow: `0 8px 20px -4px ${hexToRgba(styleInfo.color, 0.35)}`
-                    }}
+                    className="w-full rounded-2xl h-[62px] sm:h-[66px] px-3 bg-white shadow-xs text-slate-800 relative overflow-hidden transition-all duration-500 flex items-center justify-between border border-slate-200/80 select-none"
                   >
+                    {/* Top delicate accent bar */}
+                    <div 
+                      className="absolute top-0 left-0 right-0 h-1"
+                      style={{ backgroundColor: styleInfo.color }}
+                    />
+
                     {/* Tombol Panah Kiri */}
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev === 0 ? availablePrograms.length - 1 : prev - 1))}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-white/20 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Sebelumnya"
                     >
                       <ChevronLeft size={18} strokeWidth={2.6} />
@@ -1578,25 +1580,32 @@ export default function LandingPage() {
                     {/* Konten Tengah: Logo + Info Keahlian */}
                     <div className="flex-1 flex items-center gap-2.5 px-2 min-w-0 z-10">
                       {/* Logo Badge */}
-                      <div className="w-9 h-9 rounded-xl bg-white p-1 shadow-sm border border-white/80 flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-xl bg-slate-50 p-1 shadow-2xs border border-slate-200/70 flex items-center justify-center shrink-0">
                         {activeProgram.image ? (
                           <img src={activeProgram.image} alt={activeProgram.name} className="w-full h-full object-contain" />
                         ) : (
-                          <ActiveIcon size={18} strokeWidth={2.2} className="text-slate-800" />
+                          <ActiveIcon size={18} strokeWidth={2.2} style={{ color: styleInfo.color }} />
                         )}
                       </div>
 
                       {/* Teks */}
                       <div className="flex-1 min-w-0 text-left">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] font-black uppercase tracking-wider text-white bg-black/25 px-2 py-0.5 rounded-full border border-white/20">
+                          <span 
+                            className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shadow-2xs"
+                            style={{
+                              backgroundColor: hexToRgba(styleInfo.color, 0.08),
+                              borderColor: hexToRgba(styleInfo.color, 0.25),
+                              color: styleInfo.color
+                            }}
+                          >
                             {activeProgram.badge || getMajorAbbreviation(activeProgram.name, activeIdx)}
                           </span>
-                          <span className="text-[9.5px] font-semibold text-white/85 truncate">
+                          <span className="text-[9.5px] font-semibold text-slate-400 truncate">
                             {activeProgram.desc || styleInfo.tagline}
                           </span>
                         </div>
-                        <h3 className="text-[12px] sm:text-[12.5px] font-black text-white uppercase tracking-tight truncate drop-shadow-xs leading-tight mt-0.5">
+                        <h3 className="text-[12px] sm:text-[12.5px] font-black text-slate-900 uppercase tracking-tight truncate leading-tight mt-0.5">
                           {activeProgram.name}
                         </h3>
                       </div>
@@ -1606,7 +1615,7 @@ export default function LandingPage() {
                     <button
                       type="button"
                       onClick={() => setActiveProgramIdx((prev) => (prev + 1) % availablePrograms.length)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white/85 hover:text-white hover:bg-white/20 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 transition-all cursor-pointer border-none z-10 shrink-0"
                       title="Selanjutnya"
                     >
                       <ChevronRight size={18} strokeWidth={2.6} />
@@ -1846,7 +1855,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* 4 Solid Modern Cards Grid */}
+          {/* 4 Clean Modern Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5 w-full">
             {[1, 2, 3, 4].map((idx) => {
               const name = appSettings[`partner${idx}`];
@@ -1863,55 +1872,67 @@ export default function LandingPage() {
               return (
                 <div 
                   key={idx} 
-                  className="group relative rounded-2xl lg:rounded-3xl p-4.5 lg:p-5 shadow-md hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between min-h-[142px] lg:min-h-[152px] w-full overflow-hidden cursor-pointer select-none text-white border border-white/20"
-                  style={{
-                    backgroundColor: styleInfo.color,
-                    boxShadow: `0 8px 24px -4px ${hexToRgba(styleInfo.color, 0.32)}, 0 2px 6px -1px rgba(0,0,0,0.06)`
-                  }}
+                  className="group relative rounded-2xl lg:rounded-3xl p-5 bg-white border border-slate-200/80 hover:border-slate-300 shadow-xs hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between min-h-[155px] lg:min-h-[168px] w-full overflow-hidden cursor-pointer select-none text-slate-800"
                 >
-                  {/* Ambient Watermark Background Icon */}
-                  <div className="absolute -right-3 -bottom-3 w-24 h-24 text-white/10 group-hover:scale-115 group-hover:rotate-6 group-hover:text-white/18 transition-all duration-500 pointer-events-none flex items-center justify-center">
-                    <IconComponent size={86} strokeWidth={1.4} />
+                  {/* Top Delicate Accent Bar */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 h-1 transition-all duration-300 group-hover:h-1.5"
+                    style={{ backgroundColor: styleInfo.color }}
+                  />
+
+                  {/* Subtle Ambient Watermark Background Icon */}
+                  <div 
+                    className="absolute -right-3 -bottom-3 w-24 h-24 transition-all duration-500 pointer-events-none flex items-center justify-center group-hover:scale-115 group-hover:rotate-6 opacity-35 group-hover:opacity-70 z-0"
+                    style={{ color: hexToRgba(styleInfo.color, 0.14) }}
+                  >
+                    <IconComponent size={86} strokeWidth={1.2} />
                   </div>
 
-                  {/* TOP ROW: Badge Singkatan Keahlian & Floating White Logo */}
+                  {/* TOP ROW: Badge Singkatan Keahlian (Pastel Pill) & Floating Logo */}
                   <div className="relative z-10 flex items-start justify-between gap-2.5 w-full">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/20 border border-white/25 text-[10px] font-black uppercase tracking-wider text-white shadow-2xs">
-                      <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                    <div 
+                      className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shadow-2xs border transition-colors"
+                      style={{
+                        backgroundColor: hexToRgba(styleInfo.color, 0.08),
+                        borderColor: hexToRgba(styleInfo.color, 0.25),
+                        color: styleInfo.color
+                      }}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: styleInfo.color }} />
                       <span>{appSettings[`partnerBadge${idx}`] || getMajorAbbreviation(name, idx)}</span>
                     </div>
 
-                    {/* Floating Logo Badge Container */}
-                    <div className="w-12 h-12 lg:w-13 lg:h-13 rounded-2xl bg-white p-1.5 shadow-md border border-white/80 flex items-center justify-center shrink-0 group-hover:scale-108 group-hover:rotate-2 group-hover:shadow-lg transition-all duration-300">
+                    {/* Clean Logo Container */}
+                    <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-slate-50/90 border border-slate-200/70 p-1.5 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-white group-hover:border-slate-300 group-hover:scale-105 group-hover:shadow-xs transition-all duration-300">
                       {imageSrc ? (
                         <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-contain" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-800">
-                          <IconComponent size={24} strokeWidth={2.2} />
+                        <div className="w-full h-full flex items-center justify-center" style={{ color: styleInfo.color }}>
+                          <IconComponent size={22} strokeWidth={2.2} />
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* MIDDLE: Major Title & Tagline */}
-                  <div className="relative z-10 my-2 flex-1 flex flex-col justify-center">
-                    <h3 className="text-[13.5px] lg:text-[15px] font-black text-white tracking-tight leading-snug uppercase drop-shadow-xs line-clamp-2">
+                  <div className="relative z-10 my-2.5 flex-1 flex flex-col justify-center">
+                    <h3 className="text-[13.5px] lg:text-[14.5px] font-black text-slate-900 tracking-tight leading-snug uppercase group-hover:text-[var(--ui-primary)] transition-colors line-clamp-2">
                       {name}
                     </h3>
-                    <p className="text-[11px] font-medium text-white/85 mt-1 line-clamp-1">
+                    <p className="text-[11px] font-semibold text-slate-400 group-hover:text-slate-500 mt-1 line-clamp-1 transition-colors">
                       {desc || styleInfo.tagline}
                     </p>
                   </div>
 
                   {/* BOTTOM ROW: Accreditation Pill & Action Arrow */}
-                  <div className="relative z-10 pt-2.5 border-t border-white/20 flex items-center justify-between">
-                    <div className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-white">
-                      <CheckCircle2 size={12} className="text-white shrink-0" />
+                  <div className="relative z-10 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-slate-500 group-hover:text-slate-700 transition-colors">
+                      <CheckCircle2 size={13} strokeWidth={2.4} style={{ color: styleInfo.color }} className="shrink-0" />
                       <span>{appSettings[`partnerTag${idx}`] || appSettings.programBottomTag || "Standar Industri"}</span>
                     </div>
 
-                    <div className="w-6.5 h-6.5 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:bg-white group-hover:text-slate-900 group-hover:translate-x-0.5 group-hover:scale-110 transition-all duration-300 shadow-xs">
-                      <ArrowUpRight size={13} strokeWidth={2.6} />
+                    <div className="w-7 h-7 rounded-full bg-slate-100/90 text-slate-400 group-hover:bg-[var(--ui-primary)] group-hover:text-white group-hover:scale-110 group-hover:shadow-xs transition-all duration-300 flex items-center justify-center shadow-2xs">
+                      <ArrowUpRight size={13} strokeWidth={2.5} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </div>
                   </div>
                 </div>
