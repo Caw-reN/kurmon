@@ -1639,11 +1639,11 @@ export default function LandingPage() {
       </div>
 
       {/* DESKTOP VIEW RESPONSIVE NATURAL WRAPPER */}
-      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[64px] lg:pt-[70px] pb-6 lg:pb-8 desktop-layout-wrapper">
+      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[58px] lg:pt-[64px] pb-6 lg:pb-8 desktop-layout-wrapper">
 
 
         {/* TOP ROW: HERO & ILLUSTRATION */}
-        <div className="flex-1 flex flex-row items-center justify-between gap-12 min-h-0 relative z-10">
+        <div className="flex flex-row items-center justify-between gap-12 pt-12 md:pt-16 lg:pt-20 pb-14 md:pb-20 lg:pb-28 min-h-0 relative z-10">
 
           {/* Left Column (Banner/Hero Text) */}
           <div className="flex-1 flex flex-col justify-center min-h-0 text-left">
@@ -1734,7 +1734,7 @@ export default function LandingPage() {
         </div>
 
         {/* MIDDLE SECTION: LAYANAN PUBLIK */}
-        <div className="shrink-0 my-3 lg:my-4 middle-layanan-section relative z-10">
+        <div className="shrink-0 mb-6 lg:mb-8 middle-layanan-section relative z-10">
           <div className="bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-border-muted)] shadow-[var(--ui-shadow-card)] py-3.5 md:py-4 px-4 md:px-8 w-full">
             <h2 className="text-xs lg:text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-3 text-center">Layanan Publik</h2>
             <div className="grid grid-cols-7 gap-2 lg:gap-4 w-full items-center">
@@ -1776,7 +1776,7 @@ export default function LandingPage() {
         </div>
 
         {/* JURUSAN / PROGRAM KEAHLIAN UNGGULAN (CLEAN MINIMALIST CARDS) */}
-        <div className="shrink-0 my-4 lg:my-5 bottom-jurusan-section relative z-10">
+        <div className="shrink-0 mb-6 lg:mb-7 bottom-jurusan-section relative z-10">
           {/* Centered Title */}
           <div className="flex flex-col items-center justify-center text-center mb-3.5 lg:mb-4.5">
             <h2 className="text-base lg:text-xl font-black text-slate-800 tracking-tight leading-none">
@@ -1836,7 +1836,7 @@ export default function LandingPage() {
 
         {/* MITRA & KERJASAMA (Clean Spacious Borderless Marquee) */}
         {appSettings.mitraKerjasama && appSettings.mitraKerjasama.length > 0 && (
-          <div className="shrink-0 my-3 lg:my-4 mitra-kerjasama-section relative z-10">
+          <div className="shrink-0 mb-6 lg:mb-8 mitra-kerjasama-section relative z-10">
             <div className="bg-white/90 backdrop-blur-md rounded-[var(--ui-radius-card)] shadow-xs py-2.5 lg:py-3 px-6 md:px-8 w-full flex items-center gap-5">
               <span className="text-[10px] lg:text-[10.5px] font-black text-slate-400 uppercase tracking-wider shrink-0 whitespace-nowrap">
                 Mitra Industri & Kerjasama
