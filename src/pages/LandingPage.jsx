@@ -767,7 +767,11 @@ export default function LandingPage() {
       id: 'jadwal',
       title: cleanText(appSettings.serviceLabel1 !== undefined ? appSettings.serviceLabel1 : "Jadwal"), 
       desc: appSettings.serviceDesc1 || "Lihat jadwal pelajaran dan kegiatan kelas.", 
-      icon: Calendar, 
+      svgIcon: "060-calendar.svg",
+      icon: CalendarDays, 
+      defaultColor: "#D97706",
+      customColor: appSettings.serviceColor1,
+      customIcon: appSettings.serviceIconImage1,
       path: "/jadwal",
       highlight: true,
     },
@@ -775,42 +779,66 @@ export default function LandingPage() {
       id: 'denah',
       title: cleanText(appSettings.serviceLabel2 !== undefined ? appSettings.serviceLabel2 : "Denah Ruang"), 
       desc: appSettings.serviceDesc2 || "Temukan lokasi ruang di lingkungan sekolah.", 
+      svgIcon: "016-map pin.svg",
       icon: MapPin, 
+      defaultColor: "#0284C7",
+      customColor: appSettings.serviceColor2,
+      customIcon: appSettings.serviceIconImage2,
       path: "/denah",
     },
     { 
       id: 'materi',
       title: cleanText(appSettings.serviceLabel3 !== undefined ? appSettings.serviceLabel3 : "Materi Ajar"), 
       desc: appSettings.serviceDesc3 || "Buka materi untuk mendukung pembelajaran.", 
-      icon: BookOpen, 
+      svgIcon: "066-education.svg",
+      icon: BookOpenText, 
+      defaultColor: "#7C3AED",
+      customColor: appSettings.serviceColor3,
+      customIcon: appSettings.serviceIconImage3,
       path: "/materi-ajar",
     },
     { 
       id: 'kalender',
       title: cleanText(appSettings.serviceLabel4 !== undefined ? appSettings.serviceLabel4 : "Kalender"), 
       desc: appSettings.serviceDesc4 || "Periksa agenda dan tanggal penting sekolah.", 
-      icon: CalendarDays, 
+      svgIcon: "086-calendar.svg",
+      icon: Calendar, 
+      defaultColor: "#15803D",
+      customColor: appSettings.serviceColor4,
+      customIcon: appSettings.serviceIconImage4,
       path: "/kalender",
     },
     { 
       id: 'pkl',
       title: cleanText(appSettings.serviceLabel5 !== undefined ? appSettings.serviceLabel5 : "Lokasi PKL"), 
       desc: appSettings.serviceDesc5 || "Temukan informasi lokasi praktik kerja lapangan.", 
+      svgIcon: "008-warehouse.svg",
       icon: Briefcase, 
+      defaultColor: "#DB2777",
+      customColor: appSettings.serviceColor5,
+      customIcon: appSettings.serviceIconImage5,
       path: "/pkl-locations",
     },
     { 
       id: 'struktur',
       title: cleanText(appSettings.serviceLabel6 !== undefined ? appSettings.serviceLabel6 : "Struktur"), 
       desc: appSettings.serviceDesc6 || "Kenali susunan organisasi sekolah.", 
+      svgIcon: "045-account.svg",
       icon: Users, 
+      defaultColor: "#E11D48",
+      customColor: appSettings.serviceColor6,
+      customIcon: appSettings.serviceIconImage6,
       path: "/struktur",
     },
     { 
       id: 'peraturan',
       title: cleanText(appSettings.serviceLabel7 !== undefined ? appSettings.serviceLabel7 : "Peraturan"), 
       desc: appSettings.serviceDesc7 || "Baca ketentuan yang berlaku di sekolah.", 
+      svgIcon: "013-shield.svg",
       icon: ShieldCheck, 
+      defaultColor: "#E11D48",
+      customColor: appSettings.serviceColor7,
+      customIcon: appSettings.serviceIconImage7,
       isPdfRules: true,
     },
   ], [appSettings]);
@@ -1862,11 +1890,12 @@ export default function LandingPage() {
               )}
             </div>
 
-            {/* Grid 7 Layanan: 4 di baris atas, 3 di baris bawah */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+            {/* Grid 7 Layanan: Tepat 1 Baris di Desktop (7 Kolom) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 lg:gap-3.5 w-full">
               {filteredAcademicServices.map((service) => {
                 const IconComp = service.icon;
                 const isHighlighted = service.highlight && !academicServiceQuery;
+                const activeColor = service.customColor || service.defaultColor;
 
                 return (
                   <div
@@ -1878,36 +1907,55 @@ export default function LandingPage() {
                         navigate(service.path);
                       }
                     }}
-                    className={`group rounded-2xl p-5 flex flex-col justify-between min-h-[135px] text-left transition-all duration-200 cursor-pointer border select-none ${
+                    className={`group rounded-2xl p-3.5 lg:p-4 flex flex-col justify-between min-h-[135px] lg:min-h-[142px] text-left transition-all duration-200 cursor-pointer border select-none ${
                       isHighlighted 
-                        ? 'bg-[#f3f8e6] border-[#d7e7b4] hover:border-[#c5db98] shadow-2xs' 
+                        ? 'bg-[#f4fae9] border-[#cce49e] hover:border-[#b8da7e] shadow-2xs hover:shadow-xs hover:-translate-y-0.5' 
                         : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5'
                     }`}
                   >
-                    {/* Top Row: Icon di kiri, panah di kanan */}
+                    {/* Top Row: Icon Asli Berwarna di kiri, panah di kanan */}
                     <div className="flex items-start justify-between w-full">
-                      <div className="text-slate-800">
-                        <IconComp size={20} strokeWidth={2.2} />
+                      <div 
+                        className="w-10 h-10 lg:w-11 lg:h-11 rounded-xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
+                        style={{ 
+                          backgroundColor: hexToRgba(activeColor, 0.08),
+                          border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
+                        }}
+                      >
+                        {service.customIcon ? (
+                          <img src={service.customIcon} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
+                        ) : service.svgIcon ? (
+                          <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
+                        ) : (
+                          <IconComp size={20} strokeWidth={2.2} style={{ color: activeColor }} />
+                        )}
                       </div>
-                      <ArrowUpRight 
-                        size={14} 
-                        strokeWidth={2.2} 
-                        className="text-slate-400 group-hover:text-slate-800 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" 
-                      />
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100/80 transition-all shrink-0">
+                        <ArrowUpRight 
+                          size={14} 
+                          strokeWidth={2.4} 
+                          className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" 
+                        />
+                      </div>
                     </div>
 
                     {/* Bottom Row: Judul & Deskripsi */}
-                    <div className="mt-4">
-                      <h3 className="text-sm font-black text-slate-900 tracking-tight group-hover:text-[var(--ui-primary)] transition-colors">
+                    <div className="mt-3">
+                      <h3 className="text-xs lg:text-[13px] font-black text-slate-900 tracking-tight leading-snug group-hover:text-[var(--ui-primary)] transition-colors truncate">
                         {service.title}
                       </h3>
-                      <p className="text-xs font-semibold text-slate-400 group-hover:text-slate-500 mt-1 leading-relaxed">
+                      <p className="text-[10px] lg:text-[11px] font-semibold text-slate-400 group-hover:text-slate-500 mt-1 leading-snug line-clamp-2">
                         {service.desc}
                       </p>
                     </div>
                   </div>
                 );
               })}
+              {filteredAcademicServices.length === 0 && (
+                <div className="col-span-full py-8 text-center text-slate-400 font-semibold text-xs">
+                  Tidak ada layanan akademik yang sesuai dengan "{academicServiceQuery}"
+                </div>
+              )}
             </div>
           </div>
 
