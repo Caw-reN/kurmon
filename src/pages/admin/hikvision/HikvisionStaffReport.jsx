@@ -1596,36 +1596,42 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       )}
 
       <div className="ui-card shadow-xs border border-slate-200/80 overflow-hidden relative z-10">
-        <div className="px-4 py-3 border-b border-slate-200/80 bg-slate-50/70 flex flex-col md:flex-row md:items-center justify-between gap-3">
-           <div className="text-xs font-bold text-slate-700 shrink-0">
-             Menampilkan Matriks Kehadiran <span className="font-black text-slate-900">({filteredData.length} Karyawan)</span>
+        <div className="px-4 py-2.5 border-b border-slate-200/80 bg-slate-50/80 flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
+           <div className="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-2">
+             <span>Menampilkan Matriks Kehadiran</span>
+             <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 text-slate-800 font-black text-[10px] shadow-2xs">
+               {filteredData.length} Karyawan
+             </span>
            </div>
            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[9.5px] border border-emerald-200 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[9.5px] border border-emerald-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[9.5px] border border-emerald-200 shadow-2xs">
-                <Sparkles size={10} className="text-indigo-600" /> Hadir + Ket
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[9.5px] border border-rose-300 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[9.5px] border border-rose-200 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[9.5px] border border-rose-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[9.5px] border border-indigo-200 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin / Cuti
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[9.5px] border border-amber-200 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[9.5px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[9.5px] border border-orange-200 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[9.5px] border border-orange-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[9.5px] border border-slate-200 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[9.5px] border border-indigo-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin / Cuti
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[9.5px] border border-amber-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[9.5px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[9.5px] border border-rose-300 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur
+              </span>
+
+              <div className="h-3 w-px bg-slate-300 mx-0.5 hidden xl:block"></div>
+
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[9.5px] border border-emerald-200 shadow-2xs">
+                <Sparkles size={10} className="text-indigo-600 shrink-0" /> Hadir + Ket
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[9.5px] border border-slate-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Kosong (-)
               </span>
            </div>
@@ -1828,23 +1834,23 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
           />
 
           {/* Legenda Indikator Matriks Kehadiran Karyawan */}
-          <div className="mt-3.5 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-2xs">
-            <div className="flex items-center gap-1.5 font-black uppercase text-slate-500 text-[10px] tracking-wider shrink-0">
-              <Info size={13} className="text-slate-400" />
-              <span>Keterangan Tanda & Warna Sel:</span>
+          <div className="mt-3.5 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col gap-2.5 text-xs shadow-2xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-slate-200/70">
+              <div className="flex items-center gap-1.5 font-black uppercase text-slate-500 text-[10px] tracking-wider shrink-0">
+                <Info size={13} className="text-slate-400" />
+                <span>Keterangan Tanda &amp; Warna Sel Matriks Kehadiran Karyawan:</span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium">Klik pada sel karyawan untuk melihat log detail atau input keterangan cuti/izin</span>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200 shadow-2xs">
-                <Sparkles size={10} className="text-indigo-600" /> Hadir + Tanda Keterangan
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Kalender Akademik
-              </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[10px] border border-orange-200 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[10px] border border-indigo-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin / Cuti
@@ -1855,8 +1861,15 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[10px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[10px] border border-orange-200 shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Kalender Akademik
+              </span>
+
+              {/* Separator */}
+              <div className="h-4 w-px bg-slate-300 mx-1 hidden lg:block"></div>
+
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200 shadow-2xs">
+                <Sparkles size={11} className="text-indigo-600 shrink-0" /> Hadir + Tanda Keterangan
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[10px] border border-slate-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Kosong (-)
