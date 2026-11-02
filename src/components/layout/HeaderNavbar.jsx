@@ -1,7 +1,7 @@
-import { useState, useEffect } from'react';
-import { useLocation } from'react-router-dom';
-import { Link } from'react-router-dom';
-import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen } from'lucide-react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen, ArrowUpRight } from 'lucide-react';
 
 
 export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolProfile, onPanduanClick }) {
@@ -19,32 +19,27 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    // Check initial scroll state immediately
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { to:'/', label:'Beranda' },
-    { to:'#bantuan', label:'Bantuan', isBantuan: true },
-    { to:'#panduan', label:'Panduan', isPanduan: true },
-  ];
-
-  // Resolve dynamic settings
+  // Resolve dynamic settings from admin
   const logoUrl = appSettings?.logoWebUrl || schoolProfile?.logo_url || appSettings?.logoUrl;
-  const logoText = appSettings?.logoText ||'TS';
-  const appName = appSettings?.appName ||'Sistem Akademik';
+  const logoText = appSettings?.logoText || '2';
+  const appName = appSettings?.appName || 'KG2 School';
+  const schoolName = appSettings?.schoolName || 'SMK Karya Guna 2 Bekasi';
 
-  // Fallback to reactive props directly, ensuring exact sync
-  const primaryColor = appSettings?.primaryColor ||'#064e3b';
-  const surfaceColor = appSettings?.surfaceColor || appSettings?.bgColor ||'#ffffff';
-  const contactEmail = appSettings?.contactEmail ||'admin@school.sch.id';
-  const contactPhone = appSettings?.contactPhone ||'+62 123-456-789';
+  // Dynamic colors from admin settings
+  const primaryColor = appSettings?.primaryColor || '#064e3b';
+  const accentColor = appSettings?.accentColor || '#c8ed69';
+  const primaryButtonColor = appSettings?.primaryButtonColor || primaryColor;
+  const contactEmail = appSettings?.contactEmail || 'admin@school.sch.id';
+  const contactPhone = appSettings?.contactPhone || '+62 123-456-789';
 
-  // Helper to convert hex to rgba for maximum browser compatibility without color-mix
+  // Helper to convert hex to rgba
   const hexToRgba = (hexColor, alpha = 1) => {
     try {
-      const cleanHex = String(hexColor).replace('#','').trim();
+      const cleanHex = String(hexColor).replace('#', '').trim();
       if (cleanHex.length === 3) {
         const r = parseInt(cleanHex[0] + cleanHex[0], 16);
         const g = parseInt(cleanHex[1] + cleanHex[1], 16);
@@ -64,13 +59,13 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
   // Format WhatsApp number
   const getWaLink = () => {
-    const cleanPhone = String(contactPhone).replace(/\D/g,'');
-    const waNumber = cleanPhone.startsWith('0') ?'62' + cleanPhone.slice(1) : cleanPhone;
+    const cleanPhone = String(contactPhone).replace(/\D/g, '');
+    const waNumber = cleanPhone.startsWith('0') ? '62' + cleanPhone.slice(1) : cleanPhone;
     return `https://wa.me/${waNumber}?text=Halo%20Admin%2C%20saya%20butuh%20bantuan%20terkait%20aplikasi%20${encodeURIComponent(appName)}...`;
   };
 
   const getAbsoluteUrl = (url) => {
-    if (!url) return'';
+    if (!url) return '';
     const trimmed = String(url).trim();
     if (/^https?:\/\//i.test(trimmed)) {
       return trimmed;
@@ -78,44 +73,16 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
     return `https://${trimmed}`;
   };
 
-  // Indo Flag Component (Red-White)
-  const IndoFlag = () => (
-    <div 
-      onClick={() => setActiveLang('ID')}
-      className={`w-7 h-[18px] rounded-[3px] overflow-hidden border flex flex-col cursor-pointer transition-all duration-200 ${
-        activeLang ==='ID' 
-          ?'scale-105 border-transparent shadow-xs' 
-          :'border-slate-200 opacity-60 hover:opacity-100'
-      }`}
-      style={{
-        boxShadow: activeLang ==='ID' 
-          ? `0 0 0 2px ${scrolled ? surfaceColor : primaryColor}` 
-          :'none'
-      }}
-      title="Bahasa Indonesia"
-    >
+  // Improved Crisp Mini Flags for Language Switcher
+  const IndoFlagMini = () => (
+    <div className="w-4 h-3 rounded-[2px] overflow-hidden border border-slate-300/80 flex flex-col shrink-0 shadow-2xs">
       <div className="bg-[#EF4444] h-1/2 w-full"></div>
       <div className="bg-white h-1/2 w-full"></div>
     </div>
   );
 
-  // UK Flag Component (Union Jack SVG)
-  const UKFlag = () => (
-    <svg 
-      onClick={() => setActiveLang('EN')}
-      viewBox="0 0 60 30" 
-      className={`w-7 h-[18px] rounded-[3px] overflow-hidden border cursor-pointer transition-all duration-200 ${
-        activeLang ==='EN' 
-          ?'scale-105 border-transparent shadow-xs' 
-          :'border-slate-200 opacity-60 hover:opacity-100'
-      }`}
-      style={{
-        boxShadow: activeLang ==='EN' 
-          ? `0 0 0 2px ${scrolled ? surfaceColor : primaryColor}` 
-          :'none'
-      }}
-      title="English"
-    >
+  const UKFlagMini = () => (
+    <svg viewBox="0 0 60 30" className="w-4 h-3 rounded-[2px] overflow-hidden border border-slate-300/80 shrink-0 shadow-2xs">
       <rect width="60" height="30" fill="#012169"/>
       <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
       <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="4"/>
@@ -124,251 +91,236 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
     </svg>
   );
 
-  const handleLinkClick = (e, link) => {
-    if (link.isBantuan || link.isPanduan) {
-      e.preventDefault();
-      if (link.isBantuan) {
-        setIsBantuanOpen(true);
-      } else if (link.isPanduan) {
-        setIsPanduanOpen(true);
-      }
+  const scrollToLayanan = (e) => {
+    e?.preventDefault?.();
+    const el = document.getElementById('layanan-akademik');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     setMobileMenuOpen(false);
   };
 
-  const [buttonHovered, setButtonHovered] = useState(false);
+  const scrollToAksesAkun = (e) => {
+    e?.preventDefault?.();
+    const el = document.getElementById('akses-akun');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (setIsLoginModalOpen) {
+      setIsLoginModalOpen(true);
+    }
+    setMobileMenuOpen(false);
+  };
 
-  // Determine dynamic styles based on headerStyle config
-  const headerStyle = appSettings?.headerStyle || 'primary'; // 'primary', 'glass', 'solid', 'minimal'
-  
-  let headerBgColor = primaryColor;
-  let headerBorderColor = hexToRgba(surfaceColor, 0.15);
-  let headerTextColor = surfaceColor; 
-  let headerMutedTextColor = hexToRgba(surfaceColor, 0.8);
-  let headerBackdropFilter = 'none';
-  let headerShadow = '0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1)';
-  
-  let buttonBorderColor = surfaceColor;
-  let buttonTextColor = surfaceColor;
-  let buttonBgColor = 'transparent';
-  let buttonHoverBgColor = surfaceColor;
-  let buttonHoverTextColor = primaryColor;
-
-  if (headerStyle === 'solid') {
-    headerBgColor = surfaceColor; // solid white/surface
-    headerBorderColor = 'rgba(0,0,0,0.08)';
-    headerTextColor = '#1e293b';
-    headerMutedTextColor = '#64748b';
-    headerBackdropFilter = 'none';
-    headerShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-    
-    buttonBorderColor = primaryColor;
-    buttonTextColor = primaryColor;
-    buttonHoverBgColor = primaryColor;
-    buttonHoverTextColor = surfaceColor;
-  } else if (headerStyle === 'glass') {
-    headerBgColor = surfaceColor; // Fallback from translucent to solid
-    headerBorderColor = 'rgba(0,0,0,0.05)';
-    headerTextColor = '#1e293b';
-    headerMutedTextColor = '#64748b';
-    headerBackdropFilter = 'none';
-    headerShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-    
-    buttonBorderColor = primaryColor;
-    buttonTextColor = primaryColor;
-    buttonHoverBgColor = primaryColor;
-    buttonHoverTextColor = surfaceColor;
-  } else if (headerStyle === 'minimal') {
-    headerBgColor = surfaceColor; // Fallback from thin glass to solid
-    headerBorderColor = 'rgba(255, 255, 255, 0.25)';
-    headerTextColor = primaryColor;
-    headerMutedTextColor = hexToRgba(primaryColor, 0.8);
-    headerBackdropFilter = 'none';
-    headerShadow = '0 8px 32px 0 rgba(0, 0, 0, 0.04)';
-    
-    buttonBorderColor = primaryColor;
-    buttonTextColor = primaryColor;
-    buttonHoverBgColor = primaryColor;
-    buttonHoverTextColor = surfaceColor;
-  }
+  const handleOpenBantuan = (e) => {
+    e?.preventDefault?.();
+    setIsBantuanOpen(true);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <>
-      <div 
-        role="banner"
-        className="fixed top-4 left-6 md:left-8 right-6 md:right-8 mx-auto max-w-[1336px] z-50 py-2 pl-4 md:pl-5 pr-6 md:pr-8 flex items-center justify-between transition-all duration-300 border rounded-[var(--ui-radius-card)]"
-        style={{
-          backgroundColor: headerBgColor,
-          borderColor: headerBorderColor,
-          backdropFilter: headerBackdropFilter,
-          WebkitBackdropFilter: headerBackdropFilter,
-          boxShadow: headerShadow,
-        }}
-      >
-        <div className="w-full flex items-center justify-between">
-          {/* Kiri: Logo Dinamis & Portal Teks */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 select-none group no-underline">
-            {/* Logo image or fallback initials */}
-            <div className="relative shrink-0 w-[30px] h-[30px] flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-              {logoUrl ? (
-                <img
-                  src={logoUrl}
-                  alt="Logo"
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <div
-                  className="h-full w-full rounded-[var(--ui-radius-small)] flex items-center justify-center font-black text-[10px] shrink-0 shadow-sm transition-colors duration-300"
-                  style={{ 
-                    backgroundColor: headerStyle === 'primary' ? surfaceColor : primaryColor,
-                    color: headerStyle === 'primary' ? primaryColor : surfaceColor
-                  }}
-                >
-                  {logoText}
-                </div>
-              )}
-            </div>
-            {/* Brand text */}
-            <div className="flex flex-col text-left justify-center leading-none">
-              <span 
-                className="text-[9.5px] font-bold uppercase tracking-[0.18em] leading-none mb-[3px] transition-colors duration-300"
-                style={{ color: headerMutedTextColor }}
-              >
-                {appSettings?.logoSmallText !== undefined ? appSettings.logoSmallText :"PORTAL"}
-              </span>
-              <span 
-                className="font-extrabold text-[15.5px] tracking-tight leading-none uppercase transition-colors duration-300"
-                style={{ color: headerTextColor }}
-              >
-                {appName}
-              </span>
-            </div>
-          </Link>
-
-          {/* Kanan: Navigasi, Bendera, dan Masuk (Desktop) */}
-          <div className="hidden md:flex items-center gap-8 lg:gap-10">
-            <nav className="flex items-center gap-6 lg:gap-8 font-sans">
-              {navLinks.map((link) => {
-                const isActive = location.pathname === link.to && !link.isBantuan && !link.isPanduan;
-                return (
-                  <Link
-                    key={link.label}
-                    to={link.to}
-                    onClick={(e) => handleLinkClick(e, link)}
-                    className="text-[14px] font-medium transition-colors duration-300 no-underline tracking-wide"
-                    style={{
-                      color: headerTextColor,
-                      opacity: isActive ? 1 : 0.75
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity ='1';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = isActive ?'1' :'0.75';
-                    }}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Bendera Negara */}
-            <div className="flex items-center gap-2 border-l border-slate-200/20 pl-6 lg:pl-8 h-5">
-              <IndoFlag />
-              <UKFlag />
-            </div>
-
-            {/* Tombol Masuk */}
-            <button
-              onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
-              className="rounded-[var(--ui-radius-small)] border text-[13.5px] transition-all duration-300 cursor-pointer flex items-center gap-1.5 h-10 px-4 text-sm font-bold"
-              style={{
-                borderColor: buttonBorderColor,
-                color: buttonHovered ? buttonHoverTextColor : buttonTextColor,
-                backgroundColor: buttonHovered ? buttonHoverBgColor : buttonBgColor
-              }}
-              onMouseEnter={() => setButtonHovered(true)}
-              onMouseLeave={() => setButtonHovered(false)}
-              title="Masuk ke Aplikasi"
-            >
-              <LogIn size={15} strokeWidth={2.5} />
-              Masuk
-            </button>
-          </div>
-
-          {/* Hamburger Menu Button (Mobile) */}
-          <div className="flex items-center gap-3 md:hidden">
-            {/* Quick Language Toggle */}
-            <div className="flex items-center gap-1.5 mr-2">
-              <IndoFlag />
-              <UKFlag />
-            </div>
-            
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1.5 rounded-[var(--ui-radius-small)] border transition-colors cursor-pointer bg-transparent"
-              style={{
-                borderColor: hexToRgba(headerTextColor, 0.3),
-                color: headerTextColor
-              }}
-            >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+      <header role="banner" className="sticky top-0 z-50 flex flex-col w-full shadow-2xs select-none">
+        {/* 1. TOP RIBBON: SMK KARYA GUNA 2 BEKASI & PORTAL LAYANAN */}
+        <div 
+          className="w-full text-white text-[11px] font-bold py-2 px-6 md:px-8 border-b transition-colors"
+          style={{ 
+            backgroundColor: primaryColor,
+            borderBottomColor: hexToRgba('#ffffff', 0.12)
+          }}
+        >
+          <div className="max-w-[1400px] mx-auto flex items-center justify-between">
+            <span className="tracking-wider uppercase font-mono font-bold" style={{ color: accentColor }}>
+              {schoolName.toUpperCase()}
+            </span>
+            <span className="text-white/80 font-medium hidden sm:inline text-[11.5px]">
+              Portal layanan akademik - {schoolName}
+            </span>
           </div>
         </div>
-      </div>
+
+        {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON */}
+        <div className="w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-[68px] sm:h-[72px] flex items-center justify-between">
+            {/* Kiri: Logo Kotak Hijau & Teks Brand */}
+            <Link to="/" className="flex items-center gap-3.5 select-none no-underline group">
+              <div 
+                className="w-10 h-10 lg:w-11 lg:h-11 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-2xs group-hover:scale-105 transition-all duration-300 shrink-0"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Logo" className="w-7 h-7 object-contain" />
+                ) : (
+                  <span>{logoText || "2"}</span>
+                )}
+              </div>
+
+              <div className="flex flex-col text-left">
+                <div className="flex items-baseline">
+                  <span className="text-lg lg:text-[21px] font-black text-slate-900 tracking-tight leading-none">
+                    {appName}
+                  </span>
+                  <span className="font-black text-lg lg:text-[21px] leading-none ml-0.5" style={{ color: accentColor || primaryColor }}>
+                    .
+                  </span>
+                </div>
+                <span className="text-[9.5px] lg:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1 leading-none font-mono">
+                  {appSettings?.logoSmallText || "SISTEM INFORMASI AKADEMIK"}
+                </span>
+              </div>
+            </Link>
+
+            {/* Kanan: Navigasi Menu, Ganti Bahasa, dan Tombol Masuk Akun (Desktop) */}
+            <div className="hidden md:flex items-center gap-7 lg:gap-8">
+              <nav className="flex items-center gap-6 lg:gap-7 font-sans">
+                <button
+                  type="button"
+                  onClick={scrollToLayanan}
+                  className="text-xs lg:text-[13.5px] font-bold text-slate-700 hover:text-[var(--ui-primary)] transition-colors cursor-pointer bg-transparent border-none p-0"
+                  style={{ '--hover-color': primaryColor }}
+                >
+                  Layanan
+                </button>
+                <button
+                  type="button"
+                  onClick={scrollToAksesAkun}
+                  className="text-xs lg:text-[13.5px] font-bold text-slate-700 hover:text-[var(--ui-primary)] transition-colors cursor-pointer bg-transparent border-none p-0"
+                  style={{ '--hover-color': primaryColor }}
+                >
+                  Akses Akun
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenBantuan}
+                  className="text-xs lg:text-[13.5px] font-bold text-slate-700 hover:text-[var(--ui-primary)] transition-colors cursor-pointer bg-transparent border-none p-0"
+                  style={{ '--hover-color': primaryColor }}
+                >
+                  Bantuan
+                </button>
+              </nav>
+
+              {/* Improved Language Switcher (Segmented Pill dengan SVG Crisp) */}
+              <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200/80 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveLang('ID')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border-none ${
+                    activeLang === 'ID'
+                      ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
+                      : 'bg-transparent text-slate-400 hover:text-slate-700 font-semibold'
+                  }`}
+                  title="Bahasa Indonesia"
+                >
+                  <IndoFlagMini />
+                  <span>ID</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLang('EN')}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border-none ${
+                    activeLang === 'EN'
+                      ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
+                      : 'bg-transparent text-slate-400 hover:text-slate-700 font-semibold'
+                  }`}
+                  title="English"
+                >
+                  <UKFlagMini />
+                  <span>EN</span>
+                </button>
+              </div>
+
+              {/* Tombol Masuk Akun */}
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
+                className="rounded-xl text-white text-xs lg:text-sm font-bold flex items-center gap-2 px-5 py-2.5 shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer border-none"
+                style={{ backgroundColor: primaryButtonColor }}
+                title="Buka Portal & Masuk Akun"
+              >
+                <span>Masuk Akun</span>
+                <ArrowUpRight size={15} strokeWidth={2.6} />
+              </button>
+            </div>
+
+            {/* Hamburger Menu Button (Mobile) */}
+            <div className="flex items-center gap-2.5 md:hidden">
+              {/* Quick Language Toggle */}
+              <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 border border-slate-200/80">
+                <button
+                  type="button"
+                  onClick={() => setActiveLang('ID')}
+                  className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border-none cursor-pointer ${
+                    activeLang === 'ID' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
+                  }`}
+                >
+                  ID
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveLang('EN')}
+                  className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold border-none cursor-pointer ${
+                    activeLang === 'EN' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
+                  }`}
+                >
+                  EN
+                </button>
+              </div>
+              
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer bg-white"
+              >
+                {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div 
-          className="md:hidden fixed top-[75px] left-4 right-4 border rounded-[var(--ui-radius-card)] z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-sm"
-          style={{
-            backgroundColor: headerBgColor === 'transparent' ? primaryColor : headerBgColor,
-            borderColor: headerBorderColor
-          }}
+          className="md:hidden fixed top-[110px] left-4 right-4 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-lg text-left"
         >
-          <nav className="flex flex-col gap-3.5">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.to && !link.isBantuan && !link.isPanduan;
-              return (
-                <Link
-                  key={link.label}
-                  to={link.to}
-                  onClick={(e) => handleLinkClick(e, link)}
-                  className="text-[14px] rounded-[var(--ui-radius-small)] transition-colors duration-200 no-underline text-left block h-10 px-4 text-sm font-bold"
-                  style={{
-                    color: isActive ? (headerStyle === 'primary' ? primaryColor : surfaceColor) : headerTextColor,
-                    backgroundColor: isActive ? (headerStyle === 'primary' ? surfaceColor : primaryColor) : 'transparent'
-                  }}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
+          <nav className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={scrollToLayanan}
+              className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
+            >
+              Layanan
+            </button>
+            <button
+              type="button"
+              onClick={scrollToAksesAkun}
+              className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
+            >
+              Akses Akun
+            </button>
+            <button
+              type="button"
+              onClick={handleOpenBantuan}
+              className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
+            >
+              Bantuan
+            </button>
           </nav>
           
-          <div className="border-t border-slate-200/20 pt-4 flex items-center justify-between">
-            <span 
-              className="text-[12px] font-medium uppercase tracking-wider"
-              style={{ color: headerMutedTextColor }}
-            >
+          <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 font-mono">
               Portal & Akses
             </span>
             <button
+              type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
                 if (setIsLoginModalOpen) setIsLoginModalOpen(true);
               }}
-              className="flex items-center gap-2 border rounded-[var(--ui-radius-small)] text-[13px] transition-colors cursor-pointer h-10 px-4 text-sm font-bold"
-              style={{
-                borderColor: surfaceColor,
-                color: surfaceColor,
-                backgroundColor:'transparent'
-              }}
+              className="flex items-center gap-2 rounded-xl text-xs font-bold text-white px-4 py-2.5 cursor-pointer border-none shadow-xs"
+              style={{ backgroundColor: primaryButtonColor }}
             >
-              <LogIn size={14} strokeWidth={2.5} />
-              Masuk Sistem
+              <span>Masuk Akun</span>
+              <ArrowUpRight size={14} strokeWidth={2.6} />
             </button>
           </div>
         </div>

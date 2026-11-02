@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
 import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun } from 'lucide-react';
-import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info } from 'lucide-react';
+import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info, ArrowDown, KeyRound } from 'lucide-react';
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
 import { getMajorAbbreviation } from '../utils/constants.js';
@@ -922,17 +922,11 @@ export default function LandingPage() {
           }}
         />
 
-        {/* Scrim Gradasi Lembut Dinamis sesuai Cuaca Bekasi */}
+        {/* Scrim Gradasi Lembut Dinamis sesuai Cuaca Bekasi (Clean Light Backdrop) */}
         <div 
           className="absolute inset-0 pointer-events-none transition-all duration-700"
           style={{
-            background: weatherCondition === 'night' 
-              ? 'linear-gradient(180deg, rgba(8, 15, 33, 0.88) 0%, rgba(15, 23, 42, 0.72) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
-              : weatherCondition === 'rain'
-              ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.80) 0%, rgba(30, 41, 59, 0.65) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
-              : weatherCondition === 'hot'
-              ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.32) 0%, rgba(245, 158, 11, 0.12) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
-              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.38) 0%, rgba(0, 0, 0, 0.08) 40%, rgba(255, 255, 255, 0.85) 88%, rgba(255, 255, 255, 1) 100%)'
+            background: 'linear-gradient(180deg, rgba(248, 250, 247, 0.90) 0%, rgba(248, 250, 247, 0.96) 60%, rgba(255, 255, 255, 1) 100%)'
           }}
         />
 
@@ -1744,102 +1738,221 @@ export default function LandingPage() {
       </div>
 
       {/* DESKTOP VIEW RESPONSIVE NATURAL WRAPPER */}
-      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[58px] lg:pt-[64px] pb-6 lg:pb-8 desktop-layout-wrapper">
+      <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-8 lg:pt-10 pb-6 lg:pb-8 desktop-layout-wrapper">
 
 
-        {/* TOP ROW: HERO & ILLUSTRATION */}
-        <div className="flex flex-row items-center justify-between gap-12 pt-12 md:pt-16 lg:pt-20 pb-14 md:pb-20 lg:pb-28 min-h-0 relative z-10">
+        {/* TOP ROW: HERO AKADEMIK & AKSES AKUN CARD */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 lg:gap-14 pt-4 md:pt-6 lg:pt-8 pb-12 md:pb-16 lg:pb-20 min-h-0 relative z-10">
 
-          {/* Left Column (Banner/Hero Text) */}
-          <div className="flex-1 flex flex-col justify-center min-h-0 text-left">
-            {/* Live Weather Badge for Bekasi (Clickable to preview/cycle weather) */}
-            <div className="mb-3">
+          {/* Left Column (Banner / Hero Text) */}
+          <div className="flex-1 flex flex-col justify-center min-h-0 text-left max-w-[620px]">
+            {/* Top Tag & Live Weather Badge */}
+            <div className="flex flex-wrap items-center gap-2.5 mb-4">
+              <div 
+                className="inline-flex items-center gap-2 px-3 py-1 rounded-full shadow-2xs"
+                style={{
+                  backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.08),
+                  border: `1px solid ${hexToRgba(primaryColor || '#064e3b', 0.2)}`
+                }}
+              >
+                <span 
+                  className="w-2 h-2 rounded-full animate-pulse shrink-0" 
+                  style={{ backgroundColor: primaryColor || '#064e3b' }} 
+                />
+                <span 
+                  className="text-[11px] font-black tracking-wider uppercase font-mono"
+                  style={{ color: primaryColor || '#064e3b' }}
+                >
+                  PORTAL AKADEMIK {appSettings.logoText || (appSettings.appName ? appSettings.appName.toUpperCase() : "KG2 SCHOOL")}
+                </span>
+              </div>
+
+              {/* Live Weather Badge for Bekasi */}
               <button
                 type="button"
                 onClick={handleCycleWeather}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white/85 hover:bg-white active:scale-95 backdrop-blur-md border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-bold tracking-wide shadow-xs cursor-pointer transition-all duration-300 select-none"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 hover:bg-white active:scale-95 border border-slate-200/90 text-slate-600 hover:text-slate-900 text-[11px] font-bold shadow-2xs cursor-pointer transition-all"
                 title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
               >
-                {weatherCondition === 'night' && <Moon size={14} className="text-indigo-500 shrink-0" />}
-                {weatherCondition === 'rain' && <CloudRain size={14} className="text-sky-500 shrink-0 animate-bounce" />}
-                {weatherCondition === 'hot' && <Sun size={14} className="text-amber-500 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
-                {weatherCondition === 'cloudy' && <CloudSun size={14} className="text-emerald-500 shrink-0" />}
+                {weatherCondition === 'night' && <Moon size={12} className="text-indigo-500 shrink-0" />}
+                {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-500 shrink-0 animate-bounce" />}
+                {weatherCondition === 'hot' && <Sun size={12} className="text-amber-500 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
+                {weatherCondition === 'cloudy' && <CloudSun size={12} className="text-emerald-500 shrink-0" />}
                 <span>
-                  Bekasi {weatherTemp ? `${weatherTemp}°C` : ''} • {
-                    weatherCondition === 'night' ? 'Malam Hari' :
-                    weatherCondition === 'rain' ? 'Cuaca Hujan' :
-                    weatherCondition === 'hot' ? 'Panas Terik' : 'Cerah Berawan'
-                  }
+                  Bekasi {weatherTemp ? `${weatherTemp}°C` : ''}
                 </span>
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-small)] ${manualWeather ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                <span 
+                  className="text-[9px] font-extrabold px-1.5 py-0.2 rounded"
+                  style={{
+                    backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.12),
+                    color: primaryColor || '#064e3b'
+                  }}
+                >
                   {manualWeather ? 'Manual' : 'Live'}
                 </span>
               </button>
             </div>
 
-            <h1 className="text-[28px] lg:text-[40px] font-black leading-[1.15] tracking-tight mb-4 max-w-[550px]" style={{ color: appSettings.heroTitleColor ||'#1e293b' }}>
-              {(() => {
-                const str = heroTitle ||"Aplikasi Jadwal, Denah & Materi Ajar Sekolah Terpadu";
-                if (str ==="Aplikasi Jadwal, Denah & Materi Ajar Sekolah Terpadu" || str ==="Aplikasi Jadwal, Denah & Materi Ajar Sekolah" || str ==="Aplikasi Jadwal, Denah & Materi Sekolah Terpadu" || str ==="Aplikasi Jadwal, Denah & Materi Sekolah") {
-                  return (
-                    <>
-                      Aplikasi <span className="font-script font-bold relative inline-block" style={{ color: appSettings.heroHighlightColor || primaryColor }}>
-                        Jadwal, Denah & Materi Ajar
-                        <svg className="absolute -bottom-2 left-0 w-full opacity-80" style={{ color: appSettings.heroHighlightColor || primaryColor }} viewBox="0 0 200 12" fill="none" preserveAspectRatio="none"><path d="M2 9c40-4 100-8 196-2" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      </span><br />Sekolah Terpadu
-                    </>
-                  );
-                }
-                if (str.includes('*')) {
-                  const parts = str.split('*');
-                  return (
-                    <>
-                      {parts.map((part, index) => {
-                        if (index % 2 === 1) {
-                          return (
-                            <span key={index} className="font-script font-bold relative inline-block" style={{ color: appSettings.heroHighlightColor || primaryColor }}>
-                              {part}
-                              <svg className="absolute -bottom-2 left-0 w-full opacity-80" style={{ color: appSettings.heroHighlightColor || primaryColor }} viewBox="0 0 200 12" fill="none" preserveAspectRatio="none"><path d="M2 9c40-4 100-8 196-2" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                            </span>
-                          );
-                        }
-                        return part.split('\\n').map((line, i, arr) => <React.Fragment key={i}>{line}{i < arr.length - 1 && <br />}</React.Fragment>);
-                      })}
-                    </>
-                  );
-                }
-                return str;
-              })()}
+            {/* Main Headline */}
+            <h1 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight text-slate-900 leading-[1.12]">
+              Aktivitas akademik,
+              <span 
+                className="block mt-1" 
+                style={{ color: appSettings.heroHighlightColor || accentColor || '#5e7e28' }}
+              >
+                lebih terarah.
+              </span>
             </h1>
 
-            <p className="text-[13.5px] lg:text-[14.5px] font-medium leading-relaxed max-w-[480px] mb-6" style={{ color: appSettings.heroSubtitleColor ||'#64748b' }}>
-              {cleanHeroSubtitle}
+            {/* Subtitle */}
+            <p className="text-xs sm:text-sm lg:text-[14px] font-semibold text-slate-400 mt-3.5 mb-6 max-w-[480px] leading-relaxed">
+              {appSettings.heroSubtitle && appSettings.heroSubtitle !== "Sistem informasi terpadu guru dan siswa untuk jadwal, denah, hingga materi ajar."
+                ? cleanText(appSettings.heroSubtitle)
+                : "Akses jadwal pelajaran, materi ajar, kalender akademik, dan informasi PKL dalam satu portal. Masuk ke akun untuk melanjutkan aktivitas sekolahmu."}
             </p>
 
-            <div className="flex flex-row items-center gap-4">
+            {/* Two Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3.5">
               <button 
+                type="button"
                 onClick={() => setIsLoginModalOpen(true)} 
-                data-slot="button"
-                data-variant="primary"
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-[var(--ui-radius-small)] text-white font-black text-xs uppercase tracking-wider hover:scale-[1.03] transition-all duration-300 cursor-pointer border-none btn-primary-theme"
-                style={{ backgroundColor: 'var(--ui-primary-btn, var(--ui-primary, #064e3b))' }}
+                className="h-11 px-6 rounded-xl text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs hover:shadow-md hover:scale-[1.02] transition-all active:scale-95 cursor-pointer border-none"
+                style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#064e3b' }}
               >
-                Masuk ke Aplikasi <ArrowRight size={14} strokeWidth={3} />
+                <span>Masuk ke Sistem</span>
+                <ArrowUpRight size={15} strokeWidth={2.6} />
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('layanan-akademik');
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="h-11 px-5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 text-slate-800 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs hover:shadow-xs transition-all active:scale-95 cursor-pointer"
+              >
+                <span>Lihat Layanan</span>
+                <ArrowDown size={14} strokeWidth={2.4} className="text-slate-500" />
+              </button>
+            </div>
+
+            {/* Micro Note: Akses Publik */}
+            <div className="flex items-center gap-2.5 mt-5">
+              <span 
+                className="text-[11px] font-black px-2.5 py-0.5 rounded-lg shadow-2xs font-mono"
+                style={{
+                  backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.08),
+                  border: `1px solid ${hexToRgba(primaryColor || '#064e3b', 0.2)}`,
+                  color: primaryColor || '#064e3b'
+                }}
+              >
+                Akses publik
+              </span>
+              <span className="text-xs font-semibold text-slate-400">
+                Informasi umum dapat dibuka melalui menu layanan.
+              </span>
             </div>
           </div>
 
-          {/* Right Column (Illustration) - Only render if custom background image is NOT set */}
-          {!appSettings.heroImage && (
-            <div className="w-[380px] lg:w-[450px] flex items-center justify-center shrink-0 min-h-0">
-              {/* Dikosongkan sesuai permintaan agar jadi blank saja ketika tidak ada gambar */}
+          {/* Right Column: Kartu Putih Akses Akun */}
+          <div id="akses-akun" className="w-full lg:w-[430px] shrink-0 flex justify-center lg:justify-end">
+            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow p-6 sm:p-7 lg:p-8 w-full max-w-[430px] text-left relative">
+              {/* Top Header of the Card */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <KeyRound size={16} strokeWidth={2.4} style={{ color: primaryColor || '#064e3b' }} />
+                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-800 font-mono">
+                    Akses Akun
+                  </span>
+                </div>
+                <span 
+                  className="text-[10.5px] font-bold px-2.5 py-0.5 rounded-lg shadow-2xs font-sans"
+                  style={{
+                    backgroundColor: hexToRgba(primaryColor || '#064e3b', 0.08),
+                    border: `1px solid ${hexToRgba(primaryColor || '#064e3b', 0.2)}`,
+                    color: primaryColor || '#064e3b'
+                  }}
+                >
+                  Portal Internal
+                </span>
+              </div>
+
+              {/* Welcome Heading */}
+              <h2 className="text-2xl sm:text-[25px] font-black text-slate-900 tracking-tight mt-4 leading-tight">
+                Selamat datang kembali.
+              </h2>
+              <p className="text-xs sm:text-[13px] font-semibold text-slate-400 mt-1 mb-5">
+                Lanjutkan melalui akun sekolah yang sudah kamu miliki.
+              </p>
+
+              <div className="border-t border-slate-100 my-4" />
+
+              {/* Roles List */}
+              <div className="space-y-3.5 my-4">
+                {/* 01 Siswa */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100/90 border border-slate-200/70 text-slate-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                    01
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                      Siswa
+                    </h4>
+                    <p className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-0.5 leading-snug">
+                      Akses kegiatan belajar dan layanan siswa.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 02 Guru & Tenaga Kependidikan */}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100/90 border border-slate-200/70 text-slate-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+                    02
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+                      Guru & tenaga kependidikan
+                    </h4>
+                    <p className="text-[11px] sm:text-xs font-semibold text-slate-400 mt-0.5 leading-snug">
+                      Akses layanan sesuai kewenangan akun.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Button: Buka Portal & Masuk Akun */}
+              <button
+                type="button"
+                onClick={() => setIsLoginModalOpen(true)}
+                className="w-full mt-6 h-12 rounded-xl text-white font-bold text-xs sm:text-sm px-5 flex items-center justify-between shadow-xs hover:shadow-md transition-all active:scale-[0.99] cursor-pointer border-none"
+                style={{ backgroundColor: appSettings.primaryButtonColor || primaryColor || '#064e3b' }}
+              >
+                <span>Buka Portal & Masuk Akun</span>
+                <ArrowUpRight size={16} strokeWidth={2.4} />
+              </button>
+
+              {/* Sub notes */}
+              <div className="mt-3.5 text-center">
+                <p className="text-[11px] font-semibold text-slate-400">
+                  Proses masuk dilanjutkan di sistem akademik sekolah.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPublicHelp(true)}
+                  className="mt-1 text-xs font-bold underline transition-colors cursor-pointer bg-transparent border-none p-0 inline-block text-slate-700 hover:text-emerald-800"
+                >
+                  Butuh bantuan akses akun?
+                </button>
+              </div>
             </div>
-          )}
+          </div>
 
         </div>
 
         {/* LAYANAN AKADEMIK HINGGA BANTUAN SECTION (MODERN ELEGANT REDESIGN) */}
-        <div className="shrink-0 mb-10 lg:mb-12 middle-layanan-section relative z-10 w-full">
+        <div id="layanan-akademik" className="shrink-0 mb-10 lg:mb-12 middle-layanan-section relative z-10 w-full scroll-mt-28">
           {/* 1. KARTU BESAR LAYANAN AKADEMIK */}
           <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-10 w-full mb-10 lg:mb-14 relative z-10 text-left">
             {/* Top Header */}
