@@ -399,15 +399,19 @@ export default function KepsekExecutiveDashboard({
       }
     });
 
-    // Merge manual absences from studentAbsenceLogs
+    // Merge manual absences from studentAbsenceLogs (strictly today only)
     if (dashLogs?.studentAbsenceLogs) {
+      const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       dashLogs.studentAbsenceLogs.forEach(a => {
-        const rawK = String(a.siswa_nis || '').trim().toLowerCase();
+        const itemDate = a.date || a.tanggal || a.created_at || '';
+        const itemDateStr = itemDate ? new Date(itemDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : '';
+        if (itemDateStr && itemDateStr !== todayStr) return;
+        const rawK = String(a.siswa_nis || a.nis || '').trim().toLowerCase();
         const k = (nisMap[rawK] ? String(nisMap[rawK].nis || rawK).toLowerCase() : rawK);
         if (k) {
           // If already present in uniq (e.g. they scanned but also got an absence log for some reason), we overlay the manual status
           if (!uniq[k]) {
-            uniq[k] = { employee_id: k, canonical_nis: k, status: a.status, timestamp: a.tanggal };
+            uniq[k] = { employee_id: k, canonical_nis: k, status: a.status, timestamp: a.tanggal || a.date };
           } else if (a.status && String(a.status).toLowerCase() !== 'hadir') {
             // Manual overrides scan
             uniq[k].status = a.status;

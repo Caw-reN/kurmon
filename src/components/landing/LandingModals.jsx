@@ -1,23 +1,41 @@
 import React, { useState } from 'react';
 import { ChevronLeft, X, Info, MessageSquare, Mail, Check, ArrowRight } from 'lucide-react';
 
-export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactEmail, appName, getWaLink }) => {
+export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactEmail, appName, getWaLink, lang }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
 
   if (!isOpen) return null;
 
+  const currentLang = lang || (() => {
+    try {
+      return localStorage.getItem('kurmon_lang') || 'ID';
+    } catch {
+      return 'ID';
+    }
+  })();
+  const t = (idText, enText) => currentLang === 'EN' ? enText : idText;
+
   const faqs = [
     {
-      q: "Bagaimana cara masuk ke sistem?",
-      a: "Klik tombol \"Masuk Sekarang\" di bar bawah (atau tombol \"Masuk\" di pojok kanan atas untuk desktop), lalu gunakan username dan password resmi yang diberikan oleh administrator sekolah."
+      q: t("Bagaimana cara masuk ke sistem?", "How do I sign in to the portal?"),
+      a: t(
+        "Klik tombol \"Masuk Sekarang\" di bar bawah (atau tombol \"Masuk\" di pojok kanan atas untuk desktop), lalu gunakan username dan password resmi yang diberikan oleh administrator sekolah.",
+        "Click the \"Sign In Now\" button in the bottom bar (or \"Sign In\" at the top right on desktop), then use the official credentials provided by the school administrator."
+      )
     },
     {
-      q: "Lupa password atau tidak bisa login?",
-      a: "Silakan hubungi administrator IT sekolah atau wali kelas Anda untuk mereset password akun Anda."
+      q: t("Lupa password atau tidak bisa login?", "Forgot password or unable to log in?"),
+      a: t(
+        "Silakan hubungi administrator IT sekolah atau wali kelas Anda untuk mereset password akun Anda.",
+        "Please contact the school IT administrator or your homeroom teacher to reset your password."
+      )
     },
     {
-      q: "Apakah jadwal pelajaran real-time?",
-      a: "Ya, setiap perubahan jadwal piket, guru pengganti, atau perubahan kelas yang dilakukan oleh admin kurikulum akan langsung diperbarui seketika di portal ini."
+      q: t("Apakah jadwal pelajaran real-time?", "Is the class schedule updated in real-time?"),
+      a: t(
+        "Ya, setiap perubahan jadwal piket, guru pengganti, atau perubahan kelas yang dilakukan oleh admin kurikulum akan langsung diperbarui seketika di portal ini.",
+        "Yes, every change made to duties, substitute teachers, or class schedules by the curriculum admin updates immediately on this portal."
+      )
     }
   ];
 
@@ -33,7 +51,9 @@ export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, c
 
         {/* Header */}
         <div className="px-6 pb-3 pt-4 md:pt-6 flex items-center justify-between">
-          <span className="font-black text-slate-800 text-[18px] md:text-[20px] tracking-tight">Hubungi & Bantuan</span>
+          <span className="font-black text-slate-800 text-[18px] md:text-[20px] tracking-tight">
+            {t("Hubungi & Bantuan", "Contact & Support")}
+          </span>
           <button onClick={onClose} className="cursor-pointer flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none">
             <X size={16} strokeWidth={2.5} />
           </button>
@@ -44,12 +64,17 @@ export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, c
           <div className="bg-indigo-50 border border-indigo-100 rounded-[var(--ui-radius-small)] p-4 text-indigo-800 flex items-start gap-2.5">
             <Info size={16} className="shrink-0 mt-0.5" style={{ color:'#1d4ed8' }} />
             <p className="leading-relaxed font-semibold text-left text-indigo-900 text-[11.5px]">
-              Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
+              {t(
+                "Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.",
+                "Need assistance signing in to the system or have academic questions? Please check the FAQ or contact the school admin below."
+              )}
             </p>
           </div>
 
           <div className="space-y-3">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pertanyaan Umum (FAQ)</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {t("Pertanyaan Umum (FAQ)", "Frequently Asked Questions (FAQ)")}
+            </p>
             <div className="space-y-2">
               {faqs.map((faq, idx) => {
                 const isOpen = openFaqIndex === idx;
@@ -77,7 +102,9 @@ export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, c
           </div>
 
           <div className="space-y-2.5">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hubungi Admin Sekolah</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {t("Hubungi Admin Sekolah", "Contact School Admin")}
+            </p>
             
             {contactPhone && (
               <a 
@@ -119,7 +146,7 @@ export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, c
             onClick={onClose}
             className="w-full h-11 flex items-center justify-center cursor-pointer border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 rounded-[var(--ui-radius-small)] font-bold text-xs uppercase tracking-wider transition-all active:scale-[0.98]"
           >
-            Tutup
+            {t("Tutup", "Close")}
           </button>
         </div>
       </div>

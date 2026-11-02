@@ -33,6 +33,14 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
   const [isPanduanOpen, setIsPanduanOpen] = useState(false);
 
   useEffect(() => {
+    const handleLangChange = (e) => {
+      if (e?.detail) setActiveLangState(e.detail);
+    };
+    window.addEventListener('kurmon_lang_change', handleLangChange);
+    return () => window.removeEventListener('kurmon_lang_change', handleLangChange);
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
@@ -45,7 +53,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
   const logoUrl = appSettings?.logoWebUrl || schoolProfile?.logo_url || appSettings?.logoUrl;
   const logoText = appSettings?.logoText || '2';
   const appName = appSettings?.appName || 'KG2 School';
-  const schoolName = appSettings?.schoolName || 'SMK Karya Guna 2 Bekasi';
+  const schoolName = appSettings?.instansiName || (appSettings?.schoolName && appSettings.schoolName !== 'SMK Negeri 1' ? appSettings.schoolName : null) || schoolProfile?.nama_sekolah || 'SMK Karya Guna 2 Bekasi';
 
   // Dynamic colors from admin settings
   const primaryColor = appSettings?.primaryColor || '#059669';
@@ -328,27 +336,27 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               onClick={scrollToLayanan}
               className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
             >
-              Layanan
+              {t('Layanan', 'Services')}
             </button>
             <button
               type="button"
               onClick={scrollToAksesAkun}
               className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
             >
-              Akses Akun
+              {t('Akses Akun', 'Account Access')}
             </button>
             <button
               type="button"
               onClick={handleOpenBantuan}
               className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
             >
-              Bantuan
+              {t('Bantuan', 'Help')}
             </button>
           </nav>
           
           <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
             <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 font-mono">
-              Portal & Akses
+              {t('Portal & Akses', 'Portal & Access')}
             </span>
             <button
               type="button"
@@ -359,7 +367,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               className="flex items-center gap-2 rounded-xl text-xs font-bold text-white px-4 py-2.5 cursor-pointer border-none shadow-xs"
               style={{ backgroundColor: primaryButtonColor }}
             >
-              <span>Masuk Akun</span>
+              <span>{t('Masuk Akun', 'Sign In')}</span>
               <ArrowUpRight size={14} strokeWidth={2.6} />
             </button>
           </div>
@@ -374,7 +382,7 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
             <div className="px-6 py-4 border-b border-slate-150 flex items-center justify-between bg-slate-50/50">
               <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
                 <HelpCircle className="text-indigo-500 animate-pulse" size={18} />
-                Pusat Bantuan & Layanan
+                {t('Pusat Bantuan & Layanan', 'Help Center & Services')}
               </h3>
               <button 
                 onClick={() => setIsBantuanOpen(false)} 
@@ -389,24 +397,45 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               <div className="bg-indigo-50 border border-indigo-100 rounded-[var(--ui-radius-small)] p-4 text-indigo-800 flex items-start gap-2.5">
                 <Info size={16} className="shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
-                  Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.
+                  {t(
+                    'Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.',
+                    'Need assistance signing in to the system or have academic questions? Please check the FAQ or contact the school admin below.'
+                  )}
                 </p>
               </div>
 
               <div className="space-y-3">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pertanyaan Umum (FAQ)</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {t('Pertanyaan Umum (FAQ)', 'Frequently Asked Questions (FAQ)')}
+                </p>
                 <div className="border border-slate-100 rounded-[var(--ui-radius-small)] p-3 bg-slate-50/40">
-                  <p className="font-extrabold text-slate-800 mb-1">Bagaimana cara masuk ke sistem?</p>
-                  <p className="leading-relaxed font-medium">Klik tombol"Masuk" di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.</p>
+                  <p className="font-extrabold text-slate-800 mb-1">
+                    {t('Bagaimana cara masuk ke sistem?', 'How do I sign in to the portal?')}
+                  </p>
+                  <p className="leading-relaxed font-medium">
+                    {t(
+                      'Klik tombol "Masuk" di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.',
+                      'Click the "Sign In" button at the top right, then use the official username and password provided by the school.'
+                    )}
+                  </p>
                 </div>
                 <div className="border border-slate-100 rounded-[var(--ui-radius-small)] p-3 bg-slate-50/40">
-                  <p className="font-extrabold text-slate-800 mb-1">Lupa password atau tidak bisa login?</p>
-                  <p className="leading-relaxed font-medium">Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.</p>
+                  <p className="font-extrabold text-slate-800 mb-1">
+                    {t('Lupa password atau tidak bisa login?', 'Forgot password or unable to log in?')}
+                  </p>
+                  <p className="leading-relaxed font-medium">
+                    {t(
+                      'Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.',
+                      'Please contact the school IT administrator to reset your account credentials.'
+                    )}
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-2.5 pt-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hubungi Admin Sekolah</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {t('Hubungi Admin Sekolah', 'Contact School Admin')}
+                </p>
                 
                 {contactPhone && (
                   <a 

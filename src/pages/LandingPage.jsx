@@ -795,7 +795,6 @@ export default function LandingPage() {
       customColor: appSettings.serviceColor1,
       customIcon: appSettings.serviceIconImage1,
       path: "/jadwal",
-      highlight: true,
     },
     { 
       id: 'denah',
@@ -1911,7 +1910,7 @@ export default function LandingPage() {
           </div>
 
           {/* Right Column: Kartu Putih Akses Akun */}
-          <div id="akses-akun" className="w-full lg:w-[430px] shrink-0 flex justify-center lg:justify-end">
+          <div id="akses-akun" className="w-full lg:w-[430px] shrink-0 flex justify-center lg:justify-end scroll-mt-32">
             <div className="bg-white/98 backdrop-blur-xl rounded-3xl border border-white/60 shadow-xl hover:shadow-2xl transition-shadow p-6 sm:p-7 lg:p-8 w-full max-w-[430px] text-left relative">
               {/* Top Header of the Card */}
               <div className="flex items-center gap-2 text-slate-700">
@@ -1994,9 +1993,9 @@ export default function LandingPage() {
         </div>
 
         {/* LAYANAN AKADEMIK SECTION */}
-        <div id="layanan-akademik" className="shrink-0 mb-10 lg:mb-12 middle-layanan-section relative z-10 w-full scroll-mt-28">
+        <div id="layanan-akademik" className="shrink-0 mb-5 lg:mb-6 middle-layanan-section relative z-10 w-full scroll-mt-28">
           {/* 1. KARTU BESAR LAYANAN AKADEMIK (SPLIT DESKTOP DENGAN KARTU DI KANAN MENGISI RUANG KOSONG) */}
-          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-8 xl:p-9 w-full mb-10 lg:mb-14 relative z-10 text-left">
+          <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8 lg:p-8 xl:p-9 w-full mb-0 relative z-10 text-left">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 lg:gap-8">
               
               {/* Kolom Kiri: Judul, Subtitle, & Search Input */}
@@ -2044,7 +2043,6 @@ export default function LandingPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 xl:gap-3 w-full">
                   {filteredAcademicServices.map((service) => {
                     const IconComp = service.icon;
-                    const isHighlighted = service.highlight && !academicServiceQuery;
                     const activeColor = service.customColor || service.defaultColor;
 
                     return (
@@ -2057,11 +2055,7 @@ export default function LandingPage() {
                             navigate(service.path);
                           }
                         }}
-                        className={`group rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center min-h-[92px] lg:min-h-[98px] transition-all duration-200 cursor-pointer border select-none ${
-                          isHighlighted 
-                            ? 'bg-[#f4fae9] border-[#cce49e] hover:border-[#b8da7e] shadow-2xs hover:shadow-xs hover:-translate-y-0.5' 
-                            : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5'
-                        }`}
+                        className="group rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center min-h-[92px] lg:min-h-[98px] transition-all duration-200 cursor-pointer border select-none bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5"
                       >
                         {/* Ikon Layanan Berwarna */}
                         <div 
@@ -2175,7 +2169,7 @@ export default function LandingPage() {
         )}
 
         {/* BANNER KESULITAN MENGAKSES SISTEM? (BANTUAN) - PINDAH KE BAWAH DI ATAS FOOTER */}
-        <div className="shrink-0 mb-8 lg:mb-10 w-full relative z-10 text-left">
+        <div id="bantuan" className="shrink-0 mb-8 lg:mb-10 w-full relative z-10 text-left scroll-mt-28">
           <div 
             className="text-white rounded-3xl p-6 sm:p-8 lg:p-9 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-md w-full overflow-hidden"
             style={{ 
@@ -2239,7 +2233,7 @@ export default function LandingPage() {
                     </span>
                   </div>
                   <span className="text-slate-500 text-[10.5px] lg:text-[11px] font-bold uppercase tracking-wider mt-1">
-                    {appSettings.schoolName || appSettings.instansiName || "SMK KARYA GUNA 2 BEKASI"}
+                    {appSettings.instansiName || (appSettings.schoolName && appSettings.schoolName !== 'SMK Negeri 1' ? appSettings.schoolName : null) || "SMK KARYA GUNA 2 BEKASI"}
                   </span>
                 </div>
               </div>
@@ -2320,13 +2314,18 @@ export default function LandingPage() {
           {/* Bottom Copyright Row */}
           <div className="w-full border-t border-[#dde3d9] mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-slate-500">
             <p>
-              {appSettings.footerText ? (
-                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerText) }} />
-              ) : appSettings.footerDescription ? (
-                <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
-              ) : (
-                `© ${new Date().getFullYear()} ${appSettings.appName || "KG2 School"} · ${appSettings.schoolName || appSettings.instansiName || "SMK Karya Guna 2 Bekasi"}`
-              )}
+              {(() => {
+                if (appSettings.footerDescription && appSettings.footerDescription.trim()) {
+                  return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />;
+                }
+                const ft = appSettings.footerText?.trim();
+                if (ft && (ft.includes('©') || ft.length > 10)) {
+                  return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(ft) }} />;
+                }
+                const year = ft || new Date().getFullYear();
+                const instansi = appSettings.instansiName || (appSettings.schoolName && appSettings.schoolName !== 'SMK Negeri 1' ? appSettings.schoolName : null) || "SMK Karya Guna 2 Bekasi";
+                return `© ${year} ${appSettings.appName || "KG2 School"} · ${instansi}`;
+              })()}
             </p>
             <div className="text-slate-500 text-xs font-medium">
               {t("Pratinjau antarmuka · Data akademik tersedia di sistem asli", "Interface preview · Academic data available in original system")}
@@ -2382,6 +2381,7 @@ export default function LandingPage() {
         contactEmail={appSettings?.contactEmail ||'admin@school.sch.id'}
         appName={appSettings?.appName ||'Sistem Akademik'}
         getWaLink={getWaLink}
+        lang={activeLang}
       />
     </div>
   );

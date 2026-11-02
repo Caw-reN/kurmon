@@ -44,10 +44,14 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
     });
 
     if (dashLogs?.studentAbsenceLogs) {
+      const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       dashLogs.studentAbsenceLogs.forEach(a => {
-        const nis = String(a.siswa_nis || '').trim().toLowerCase();
-        const name = String(a.siswa_nama || a.student_name || '').trim().toLowerCase();
-        const itemData = { status: String(a.status || 'Alpa').toLowerCase(), timestamp: a.tanggal };
+        const itemDate = a.date || a.tanggal || a.created_at || '';
+        const itemDateStr = itemDate ? new Date(itemDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : '';
+        if (itemDateStr && itemDateStr !== todayStr) return;
+        const nis = String(a.siswa_nis || a.nis || '').trim().toLowerCase();
+        const name = String(a.siswa_nama || a.student_name || a.name || '').trim().toLowerCase();
+        const itemData = { status: String(a.status || 'Alpa').toLowerCase(), timestamp: a.tanggal || a.date };
         if (nis) uniq.set(`id:${nis}`, itemData);
         if (name) uniq.set(`name:${name}`, itemData);
       });

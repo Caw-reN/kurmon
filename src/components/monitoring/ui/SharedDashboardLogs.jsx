@@ -404,10 +404,14 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
     logs = dedupeFront(logs);
 
-    // Merge manual attendances/absences
+    // Merge manual attendances/absences (strictly today only)
     if (dashLogs?.studentAbsenceLogs) {
+      const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       dashLogs.studentAbsenceLogs.forEach(a => {
-        const k = String(a.siswa_nis || '').trim().toLowerCase();
+        const itemDate = a.date || a.tanggal || a.created_at || '';
+        const itemDateStr = itemDate ? new Date(itemDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }) : '';
+        if (itemDateStr && itemDateStr !== todayStr) return;
+        const k = String(a.siswa_nis || a.nis || '').trim().toLowerCase();
         if (k) {
           const existing = logs.find(l => {
             const lId = String(l.canonical_nis || l.employee_id || l.nis || '').trim().toLowerCase();
@@ -418,7 +422,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               employee_id: k,
               canonical_nis: k,
               status: a.status,
-              timestamp: a.tanggal,
+              timestamp: a.tanggal || a.date,
               true_person_type: 'siswa',
               is_manual: true
             });

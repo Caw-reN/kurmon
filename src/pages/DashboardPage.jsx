@@ -2846,7 +2846,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       const isTeacherMatch = validTeachers.has(empId) || type.includes('GURU');
       if (!isTeacherMatch) return false;
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
-      if (!logDate) return true;
+      if (!logDate) return false;
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       return logDateStr === todayStr;
     });
@@ -2930,7 +2930,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       if (!isStaffMatch) return false;
       if (type.includes('GURU') && !empId.startsWith('k') && !validStaffs.has(empId)) return false;
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
-      if (!logDate) return true;
+      if (!logDate) return false;
       const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
       return logDateStr === todayStr;
     });
@@ -2984,24 +2984,38 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
   // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
   const siswaStats = useMemo(() => {
-    const hikLogs = dashLogs?.hikvisionStudentToday || [];
-    const recentLogs = dashLogs?.recentLogs || [];
-    const manualAbsenceLogs = dashLogs?.studentAbsenceLogs || [];
+    const todayStrJkt = todayStr || new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+
+    const hikLogs = (dashLogs?.hikvisionStudentToday || []).filter(r => {
+      const logDate = r?.timestamp || r?.created_at || r?.date;
+      if (!logDate) return false;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStrJkt;
+    });
+
+    const recentLogs = (dashLogs?.recentLogs || []).filter(r => {
+      const type = String(r.true_person_type || r.person_type || 'siswa').toLowerCase();
+      const empId = String(r.employee_id || r.nis || r.username || '');
+      if (empId.toUpperCase().startsWith('K')) return false;
+      if (type.includes('guru') || type.includes('karyawan')) return false;
+      
+      const logDate = r?.timestamp || r?.created_at || r?.date || '';
+      if (!logDate) return false;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStrJkt;
+    });
+
+    const manualAbsenceLogs = (dashLogs?.studentAbsenceLogs || []).filter(r => {
+      const logDate = r?.date || r?.tanggal || r?.created_at || '';
+      if (!logDate) return false;
+      const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      return logDateStr === todayStrJkt;
+    });
     
     // Combine logs
     let allLogs = [...hikLogs];
     if (allLogs.length === 0 && recentLogs.length > 0) {
-      allLogs = recentLogs.filter(r => {
-        const type = String(r.true_person_type || r.person_type || 'siswa').toLowerCase();
-        const empId = String(r.employee_id || r.nis || r.username || '');
-        if (empId.toUpperCase().startsWith('K')) return false;
-        if (type.includes('guru') || type.includes('karyawan')) return false;
-        
-        const logDate = r?.timestamp || r?.created_at || r?.date || '';
-        if (!logDate) return true;
-        const logDateStr = new Date(logDate).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-        return logDateStr === (new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }));
-      });
+      allLogs = [...recentLogs];
     }
     
     allLogs = [...allLogs, ...manualAbsenceLogs];

@@ -818,7 +818,7 @@ export default function TabTampilan(props) {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Instansi / Sekolah (Footer)</label>
-                          <input type="text" value={appSettings.instansiName ||""} onChange={(e) => setAppSettings({ ...appSettings, instansiName: e.target.value })} placeholder="Institusi Pendidikan Terpadu" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
+                          <input type="text" value={appSettings.instansiName ||""} onChange={(e) => setAppSettings({ ...appSettings, instansiName: e.target.value, schoolName: e.target.value })} placeholder="Institusi Pendidikan Terpadu" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Footer (Copyright)</label>
