@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, AlertOctagon, Info, CheckCircle2, X, Bell, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, AlertOctagon, Info, CheckCircle2, X } from 'lucide-react';
 
 export default function GlobalAlertModal({ broadcastAlert, currentUser }) {
   const [isOpen, setIsOpen] = useState(false);

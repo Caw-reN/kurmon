@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { AlertTriangle, AlertOctagon, Info, CheckCircle2, X, Bell } from 'lucide-react';
+import { AlertTriangle, AlertOctagon, Info, CheckCircle2, X } from 'lucide-react';
 
 export default function GlobalBroadcastAlert({ broadcastAlert, currentUser }) {
   const [isDismissed, setIsDismissed] = useState(false);
