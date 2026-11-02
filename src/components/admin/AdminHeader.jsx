@@ -5,7 +5,7 @@ import { Clock, MessageSquare,
   BookOpen, DoorOpen, Calendar, FileSpreadsheet, CalendarDays,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
   MonitorSmartphone, UserCog, User, HardDrive,
-  HelpCircle, Menu, Bell, LogOut, PanelLeftClose, PanelLeftOpen
+  HelpCircle, Menu, Bell, LogOut, PanelLeftClose, PanelLeftOpen, Wrench
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
@@ -340,6 +340,23 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
       {/* Right: Notifications & User Profile */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {appSettings?.maintenance?.isActive && (
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.__setActiveTab) {
+                window.__setActiveTab('pesan');
+              }
+            }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-rose-50 border border-rose-200 text-rose-700 text-[10px] sm:text-[11px] font-black tracking-tight uppercase shadow-2xs hover:bg-rose-100 active:scale-95 transition-all cursor-pointer shrink-0"
+            title="Mode Pemeliharaan sedang aktif untuk pengguna lain. Klik untuk kelola."
+          >
+            <Wrench size={13} className="text-rose-600 animate-spin" style={{ animationDuration: '3s' }} />
+            <span className="hidden md:inline">Maintenance Aktif</span>
+            <span className="md:hidden">Maintenance</span>
+          </button>
+        )}
+
         {workspaceGuide && (
           <Button
             type="button"

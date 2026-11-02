@@ -387,7 +387,7 @@ export async function pullHikvisionLogs(force = false) {
                 targetPhone = p?.phone || null;
               }
 
-              if (lateLimit && (log.minor === 38 || log.minor === 104 || (log.minor === 75 && personType !== 'siswa'))) {
+              if (lateLimit && (log.minor === 38 || log.minor === 75 || log.minor === 104)) {
                 const closeLimit = toMinutes(
                   (personType === 'siswa' ? config.siswa?.masuk_close : (personType === 'guru' ? config.guru?.masuk_close : config.karyawan?.masuk_close)) || "12:00"
                 );

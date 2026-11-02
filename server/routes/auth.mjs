@@ -313,6 +313,17 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         }
       }
 
+      // Check Maintenance Mode: If active, non-admin users cannot log in
+      if (payload.appSettings?.maintenance?.isActive === true) {
+        send(req, res, 503, {
+          ok: false,
+          error: payload.appSettings?.maintenance?.message || 'Sistem sedang dalam mode pemeliharaan (maintenance). Silakan coba beberapa saat lagi.',
+          isMaintenance: true,
+          estimatedEndTime: payload.appSettings?.maintenance?.estimatedEndTime || null
+        });
+        return true;
+      }
+
       // Teacher / Staff login
       let isStaffAccount = false;
       // Identifier eksplisit: code, nip, id, username, serta alias role/subrole/division

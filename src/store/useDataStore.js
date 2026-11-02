@@ -16,7 +16,25 @@ const defaultAppSettings = {
   syncServerUrl: "",
   syncInterval: 300000,
   academicYear: "2023/2024",
-  semester: "Ganjil"
+  semester: "Ganjil",
+  maintenance: {
+    isActive: false,
+    title: "Sistem Sedang Dalam Pemeliharaan",
+    message: "Aplikasi sedang melakukan peningkatan performa dan sinkronisasi server berkala. Silakan kembali lagi nanti.",
+    estimatedEnd: "",
+    contactInfo: "",
+    allowAdminBypass: true
+  },
+  broadcastAlert: {
+    isActive: false,
+    type: "warning",
+    title: "Pemberitahuan Penting",
+    message: "",
+    target: "all",
+    isPopup: false,
+    dismissible: true,
+    updatedAt: ""
+  }
 };
 
 export const useDataStore = create((set) => ({

@@ -4,11 +4,13 @@ import { clearLegacyLocalStorage, getDatabaseSnapshot, setDatabaseSnapshot, subs
 import { useDataStore } from './store/useDataStore.js';
 import { Navigate, Outlet, BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import { BarChart2, AlertTriangle, Lightbulb } from 'lucide-react';
+import { BarChart2, AlertTriangle, Lightbulb, Wrench } from 'lucide-react';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import GlobalDialogProvider from './components/GlobalDialogProvider.jsx';
 import PwaInstallPrompt from './components/PwaInstallPrompt.jsx';
 import PermissionPromptModal from './components/PermissionPromptModal.jsx';
+import GlobalBroadcastAlert from './components/notifications/GlobalBroadcastAlert.jsx';
+import GlobalAlertModal from './components/notifications/GlobalAlertModal.jsx';
 import { saveOfflineSnapshot, loadOfflineSnapshot } from './utils/offlineStorage.js';
 import { useSessionExpiry } from './hooks/useSessionExpiry.js';
 
@@ -62,6 +64,7 @@ if (typeof window !== "undefined") {
 // ── Core schedule app (lazy)
 const AdminApp = lazy(() => import("./AdminApp.jsx"));
 const LandingPage = lazy(() => import("./pages/LandingPage.jsx"));
+const GlobalMaintenancePage = lazy(() => import("./components/maintenance/GlobalMaintenancePage.jsx"));
 
 // ── Public schedule pages
 const JadwalPage = lazy(() => import('./pages/JadwalPage.jsx'));
@@ -408,6 +411,26 @@ export default function App() {
     throw new Error(error || "Koneksi ke server utama terputus dan tidak ada data luring (cache) yang tersedia.");
   }
 
+  const appSettings = useDataStore((state) => state.appSettings) || getDatabaseSnapshot()?.appSettings || {};
+  const session = getSession();
+  const isAdmin = session && (session.role === 'admin' || session.role === 'superadmin');
+  const isMaintenanceActive = Boolean(appSettings?.maintenance?.isActive);
+
+  // Jika sistem dalam pemeliharaan dan pengguna bukan Super Admin, tampilkan Layar Pemeliharaan
+  if (isMaintenanceActive && !isAdmin) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<Spinner />}>
+          <GlobalMaintenancePage 
+            maintenance={appSettings.maintenance} 
+            appSettings={appSettings} 
+            onAdminLoginSuccess={() => window.location.reload()}
+          />
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+
   const featureSettings = getDatabaseSnapshot().featureSettings || {};
   const featureEnabled = (key) => featureSettings?.[key] !== false;
 
@@ -415,6 +438,33 @@ export default function App() {
     <ErrorBoundary>
       <GlobalDialogProvider>
         <BrowserRouter>
+          {/* Banner Peringatan untuk Admin saat Mode Maintenance Aktif */}
+          {isMaintenanceActive && isAdmin && (
+            <div className="bg-amber-600 text-white px-3 sm:px-6 py-2 text-xs font-black flex items-center justify-between shadow-xs z-50 shrink-0">
+              <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto w-full">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Wrench size={15} className="shrink-0 animate-spin" style={{ animationDuration: '4s' }} />
+                  <span className="truncate">Perhatian: Mode Pemeliharaan Sistem sedang AKTIF untuk Guru, Siswa, dan Pengunjung Publik.</span>
+                </div>
+                <a 
+                  href="/dashboard"
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.__setActiveTab) {
+                      window.__setActiveTab('pesan');
+                    }
+                  }}
+                  className="underline font-bold bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded text-[10px] sm:text-[11px] shrink-0 transition-colors"
+                >
+                  Kelola di Menu Pesan &rarr;
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Global Broadcast Alert Banner & Popup Modal dari Admin */}
+          <GlobalBroadcastAlert broadcastAlert={appSettings?.broadcastAlert} currentUser={session} />
+          <GlobalAlertModal broadcastAlert={appSettings?.broadcastAlert} currentUser={session} />
+
           <Suspense fallback={<Spinner />}>
           <Routes>
           {/* ── Public Routes with Shared Layout ── */}
