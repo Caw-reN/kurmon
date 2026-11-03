@@ -240,15 +240,23 @@ export default function KepsekExecutiveDashboard({
 
   // ── Karyawan Attendance ───────────────────────────────────────────────────
   const karyawanStats = useMemo(() => {
-    const baseTotalKaryawan = (staffs || []).length || 27;
+    const baseTotalKaryawan = dashLogs?.totalStaffs || (staffs || []).length || 27;
     const validKaryawanIds = new Set();
     const validKaryawanNames = new Set();
     
     (staffs || []).forEach(t => {
-      ['code', 'username', 'employee_id', 'id', 'nip'].forEach(k => { 
+      ['code', 'username', 'employee_id', 'id', 'nip', 'staff_code'].forEach(k => { 
         if (t?.[k]) validKaryawanIds.add(String(t[k]).trim().toLowerCase()); 
       });
       const name = String(t?.name || t?.nama || '').trim().toLowerCase();
+      if (name) validKaryawanNames.add(name);
+    });
+
+    (dashLogs?.staffLogs || []).forEach(r => {
+      ['employee_id', 'username', 'id', 'canonical_nis'].forEach(k => {
+        if (r?.[k]) validKaryawanIds.add(String(r[k]).trim().toLowerCase());
+      });
+      const name = String(r?.name || r?.true_name || r?.student_name || '').trim().toLowerCase();
       if (name) validKaryawanNames.add(name);
     });
 
@@ -261,23 +269,31 @@ export default function KepsekExecutiveDashboard({
       const name = String(t?.name || t?.nama || '').trim().toLowerCase();
       if (name) validTeacherNames.add(name);
     });
+    (dashLogs?.teacherLogs || []).forEach(t => {
+      ['employee_id', 'username', 'id'].forEach(k => {
+        if (t?.[k]) validTeacherIds.add(String(t[k]).trim().toLowerCase());
+      });
+      const name = String(t?.name || t?.true_name || '').trim().toLowerCase();
+      if (name) validTeacherNames.add(name);
+    });
 
     const allRecentLogs = dashLogs?.recentLogs || [];
     const teacherLogs = dashLogs?.teacherLogs || [];
-    const combinedLogs = [...allRecentLogs, ...teacherLogs];
+    const staffLogs = dashLogs?.staffLogs || [];
+    const combinedLogs = [...allRecentLogs, ...teacherLogs, ...staffLogs];
 
     const karyawanLogs = combinedLogs.filter(r => {
       const type = String(r?.true_person_type || r?.role_type || r?.person_type || r?.device_type || '').toUpperCase();
       const idRaw = String(r?.employee_id || r?.username || r?.id || '').trim().toLowerCase();
       const nameRaw = String(r?.student_name || r?.true_person_name || r?.name || '').trim().toLowerCase();
 
-      // Abaikan jika terdaftar sebagai Guru atau Siswa
-      if (validTeacherIds.has(idRaw) || validTeacherNames.has(nameRaw) || type.includes('GURU') || type.includes('SISWA')) {
+      // Abaikan jika terdaftar sebagai Guru atau Siswa (kecuali kode diawali 'k' khas karyawan)
+      if ((validTeacherIds.has(idRaw) || validTeacherNames.has(nameRaw) || type.includes('GURU') || type.includes('SISWA')) && !idRaw.startsWith('k')) {
         return false;
       }
 
       // Masukkan jika memang karyawan
-      if (validKaryawanIds.has(idRaw) || validKaryawanNames.has(nameRaw) || type.includes('KARYAWAN') || type.includes('STAFF') || type.includes('PEGAWAI') || type.includes('TU')) {
+      if (validKaryawanIds.has(idRaw) || validKaryawanNames.has(nameRaw) || idRaw.startsWith('k') || type.includes('KARYAWAN') || type.includes('STAFF') || type.includes('PEGAWAI') || type.includes('TU')) {
         const logDate = r?.timestamp || r?.created_at || r?.date || '';
         if (!logDate) return false;
         const logDateStr = (typeof logDate === 'string' && /^\d{4}-\d{2}-\d{2}/.test(logDate))
@@ -290,7 +306,8 @@ export default function KepsekExecutiveDashboard({
 
     const merged = {};
     karyawanLogs.forEach(r => {
-      const k = String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase();
+      const idRaw = String(r?.employee_id || r?.username || r?.id || '').trim().toLowerCase();
+      const k = idRaw.startsWith('k') ? idRaw : (String(r?.employee_id || r?.username || r?.true_person_name || r?.name || r?.id || '').trim().toLowerCase());
       if (k) {
         if (!merged[k]) {
           merged[k] = r;
@@ -318,7 +335,6 @@ export default function KepsekExecutiveDashboard({
 
     const totalMasuk = s.Hadir + s.Terlambat;
     const totalKaryawan = baseTotalKaryawan;
-    const currentTimeJkt = new Date(Date.now() + 7 * 3600000).toISOString().slice(11, 19);
 
     if (isPastOrCutoff('karyawan')) {
       s.Alpa = Math.max(0, totalKaryawan - (totalMasuk + s.Izin + s.Sakit));
@@ -327,7 +343,7 @@ export default function KepsekExecutiveDashboard({
     return {
       ...s,
       totalMasuk,
-      belumAbsen: Math.max(0, totalKaryawan - totalMasuk),
+      belumAbsen: Math.max(0, totalKaryawan - (totalMasuk + s.Izin + s.Sakit + s.Alpa)),
       total: totalKaryawan
     };
   }, [todayStr, staffs, teachers, dashLogs]);
@@ -686,8 +702,8 @@ export default function KepsekExecutiveDashboard({
   }, [rooms, todayTeacherSchedule]);
 
   // ── Derived ───────────────────────────────────────────────────────────────
-  const totalGuruCount = (teachers || []).length || guruStats.total || 52;
-  const totalKaryawanCount = (staffs || []).length || karyawanStats.total || 0;
+  const totalGuruCount = dashLogs?.totalTeachers || (teachers || []).length || guruStats.total || 52;
+  const totalKaryawanCount = dashLogs?.totalStaffs || (staffs || []).length || karyawanStats.total || 0;
   const totalSiswaCount = (students || []).length || dashLogs?.totalStudents || 0;
   const totalClassesCount = (classes || []).length || 0;
   const totalJP = useMemo(() => (teachingLoads || []).reduce((s, l) => s + (Number(l?.duration) || 0), 0), [teachingLoads]);

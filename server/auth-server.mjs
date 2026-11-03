@@ -2871,6 +2871,7 @@ const server = createServer(async (req, res) => {
         // Fetch main store payload for student & teacher names
         let students = [];
         let teachers = [];
+        let staffs = [];
         let rawTeacherAbsenceLogs = [];
         let mainData = {};
         let startDate = null;
@@ -2895,6 +2896,11 @@ const server = createServer(async (req, res) => {
           try {
              const dbT = await dbPool.query('SELECT payload FROM mst_teachers');
              if (dbT.rows.length > 0) teachers = dbT.rows.map(r => r.payload);
+          } catch(e) {}
+          staffs = mainData.staffs || [];
+          try {
+             const dbSt = await dbPool.query('SELECT payload FROM mst_staffs');
+             if (dbSt.rows.length > 0) staffs = dbSt.rows.map(r => r.payload);
           } catch(e) {}
           try {
              let q = `
@@ -3443,6 +3449,7 @@ const server = createServer(async (req, res) => {
 
         let hikvisionStudentToday = [];
         let teacherLogs = [];
+        let staffLogs = [];
         // todayJktDate sudah dideklarasikan di awal handler /api/dashboard/logs
         try {
           let hConfig = {};
@@ -3618,7 +3625,8 @@ const server = createServer(async (req, res) => {
           };
 
           hikvisionStudentToday = dedupeLogs(allTodayRows.filter(r => String(r.true_person_type).toLowerCase() === 'siswa'));
-          teacherLogs = dedupeLogs(allTodayRows.filter(r => String(r.true_person_type).toLowerCase() !== 'siswa'));
+          staffLogs = dedupeLogs(allTodayRows.filter(r => String(r.true_person_type).toLowerCase() === 'karyawan'));
+          teacherLogs = dedupeLogs(allTodayRows.filter(r => String(r.true_person_type).toLowerCase() === 'guru'));
         } catch (e) {
           console.error("Error fetching today hikvision logs for dashboard:", e);
         }
@@ -3638,9 +3646,11 @@ const server = createServer(async (req, res) => {
             backupErrors,
             hikvisionStudentToday,
             teacherLogs,
+            staffLogs,
             attendanceConfig: hConfig,
             totalStudents: students.length,
-            totalTeachers: teachers.length
+            totalTeachers: teachers.length,
+            totalStaffs: staffs.length || 27
           }
         };
         global._dashLogsCache.date = todayJktDate;

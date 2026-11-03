@@ -139,7 +139,11 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         if (d1.ok) combined = { ...combined, ...d1.data };
         if (d2.ok) {
           combined.recentLogs = d2.recentLogs || [];
-          if (d2.staffLogs) combined.staffLogs = d2.staffLogs;
+          if (d2.staffLogs) {
+            combined.staffLogs = combined.staffLogs
+              ? [...combined.staffLogs, ...d2.staffLogs]
+              : d2.staffLogs;
+          }
           if (d2.teacherLogs) {
             combined.teacherLogs = combined.teacherLogs
               ? [...combined.teacherLogs, ...d2.teacherLogs]

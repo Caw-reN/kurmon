@@ -2825,32 +2825,39 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     (isWaka && activeDivision === 'kesiswaan');
 
   // Helper untuk menentukan batas jam masuk evaluasi Alpa
-  const getCutoffTime = (role = 'siswa') => {
+  const getCutoffTime = useCallback((role = 'siswa') => {
     const cfg = dashLogs?.attendanceConfig;
     const roleCfg = cfg?.[role] || cfg;
     const timeVal = roleCfg?.masuk_late || "07:01";
     return timeVal.length === 5 ? `${timeVal}:00` : timeVal;
-  };
+  }, [dashLogs?.attendanceConfig]);
 
-  const isPastOrCutoff = (role) => {
+  const isPastOrCutoff = useCallback((role) => {
     const todayJkt = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
     if (todayStr && todayStr < todayJkt) return true; // Hari kemarin sudah selesai
     if (isWeekendOrHoliday) return false; // Libur / Akhir pekan bebas alpa
     const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
     const cutoff = getCutoffTime(role);
     return currentTimeJkt >= cutoff;
-  };
+  }, [todayStr, isWeekendOrHoliday, getCutoffTime]);
 
   // ── Statistik Guru dari attendanceRecords & dashLogs ──
   const guruStats = useMemo(() => {
-    // 1. Buat Set daftar guru valid dari master data
+    // 1. Buat Set daftar guru valid dari master data & logs
     const validTeachers = new Set();
-    const baseTotalGuru = (teachers || []).length || 52;
+    const baseTotalGuru = dashLogs?.totalTeachers || (teachers || []).length || 53;
     (teachers || []).forEach(t => {
       if (t.code) validTeachers.add(String(t.code).toLowerCase());
       if (t.username) validTeachers.add(String(t.username).toLowerCase());
       if (t.name) validTeachers.add(String(t.name).toLowerCase());
       if (t.id) validTeachers.add(String(t.id).toLowerCase());
+      if (t.nip) validTeachers.add(String(t.nip).toLowerCase());
+    });
+    (dashLogs?.teacherLogs || []).forEach(t => {
+      if (t.employee_id) validTeachers.add(String(t.employee_id).toLowerCase());
+      if (t.username) validTeachers.add(String(t.username).toLowerCase());
+      if (t.name) validTeachers.add(String(t.name).toLowerCase());
+      if (t.true_name) validTeachers.add(String(t.true_name).toLowerCase());
     });
 
     const recs = (attendanceRecords || []).filter(r => {
@@ -2932,13 +2939,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     const totalMasuk = statuses.Hadir + statuses.Terlambat;
     const belumAbsen = Math.max(0, totalGuru - Object.keys(mergedLogs).length);
     return { ...statuses, belumAbsen, totalMasuk, totalGuru };
-  }, [attendanceRecords, todayStr, teachers, dashLogs, isWeekendOrHoliday]);
+  }, [attendanceRecords, todayStr, teachers, dashLogs, isWeekendOrHoliday, isPastOrCutoff]);
 
   // ── Statistik Karyawan ──
   const karyawanStats = useMemo(() => {
     const validStaffs = new Set();
     const currentStaffList = (staffs && staffs.length > 0) ? staffs : (storeStaffs && storeStaffs.length > 0 ? storeStaffs : []);
-    const baseTotalKaryawan = currentStaffList.length || 27;
+    const baseTotalKaryawan = dashLogs?.totalStaffs || currentStaffList.length || 27;
     currentStaffList.forEach(t => {
       if (t.code) validStaffs.add(String(t.code).toLowerCase());
       if (t.username) validStaffs.add(String(t.username).toLowerCase());
@@ -2946,6 +2953,26 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       if (t.id) validStaffs.add(String(t.id).toLowerCase());
       if (t.nip) validStaffs.add(String(t.nip).toLowerCase());
       if (t.staff_code) validStaffs.add(String(t.staff_code).toLowerCase());
+    });
+    (dashLogs?.staffLogs || []).forEach(r => {
+      if (r.employee_id) validStaffs.add(String(r.employee_id).toLowerCase());
+      if (r.username) validStaffs.add(String(r.username).toLowerCase());
+      if (r.name) validStaffs.add(String(r.name).toLowerCase());
+      if (r.true_name) validStaffs.add(String(r.true_name).toLowerCase());
+    });
+
+    const validTeachers = new Set();
+    (teachers || []).forEach(t => {
+      if (t.code) validTeachers.add(String(t.code).toLowerCase());
+      if (t.username) validTeachers.add(String(t.username).toLowerCase());
+      if (t.name) validTeachers.add(String(t.name).toLowerCase());
+      if (t.id) validTeachers.add(String(t.id).toLowerCase());
+      if (t.nip) validTeachers.add(String(t.nip).toLowerCase());
+    });
+    (dashLogs?.teacherLogs || []).forEach(t => {
+      if (t.employee_id) validTeachers.add(String(t.employee_id).toLowerCase());
+      if (t.username) validTeachers.add(String(t.username).toLowerCase());
+      if (t.name) validTeachers.add(String(t.name).toLowerCase());
     });
 
     const candidateStaffLogs = [
@@ -2966,10 +2993,17 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
     const recentLogs = candidateStaffLogs.filter(r => {
       const type = String(r.true_person_type || r.role_type || r.device_type || '').toUpperCase();
-      const empId = String(r.employee_id || '').toLowerCase();
-      const isStaffMatch = validStaffs.has(empId) || empId.startsWith('k') || type.includes('KARYAWAN') || type.includes('STAFF');
+      const empId = String(r.employee_id || r.username || r.id || '').toLowerCase();
+      const name = String(r.true_name || r.true_person_name || r.name || '').toLowerCase();
+
+      // Abaikan jika terdaftar sebagai Guru atau Siswa (kecuali kode diawali 'k' khas karyawan)
+      if ((validTeachers.has(empId) || (name && validTeachers.has(name)) || type.includes('GURU') || type.includes('SISWA')) && !empId.startsWith('k')) {
+        return false;
+      }
+
+      const isStaffMatch = validStaffs.has(empId) || (name && validStaffs.has(name)) || empId.startsWith('k') || type.includes('KARYAWAN') || type.includes('STAFF');
       if (!isStaffMatch) return false;
-      if (type.includes('GURU') && !empId.startsWith('k') && !validStaffs.has(empId)) return false;
+
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return false;
       return extractJktDate(logDate) === todayStr;
@@ -2977,7 +3011,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
     const mergedLogs = {};
     recentLogs.forEach(r => {
-      const key = String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
+      const empId = String(r.employee_id || r.username || r.id || '').toLowerCase();
+      const key = empId.startsWith('k') ? empId : String(r.employee_id || r.username || r.true_person_name || r.name || r.id || '').toLowerCase();
       if (key) {
         if (!mergedLogs[key]) {
           mergedLogs[key] = { ...r, source: 'machine' };
@@ -2993,9 +3028,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     });
 
     const statuses = { Hadir: 0, Terlambat: 0, Izin: 0, Sakit: 0, 'Dinas Luar': 0, Alpa: 0 };
-    let unknownCount = 0;
-    Object.entries(mergedLogs).forEach(([key, r]) => {
-      if (!validStaffs.has(key)) unknownCount++;
+    Object.values(mergedLogs).forEach((r) => {
       let s = String(r.status || 'Hadir').toLowerCase();
       const hasScan = !!(r.timestamp || r.created_at || r.date || r.scan_time);
       if ((s.includes('alpa') || s.includes('absen')) && hasScan) {
@@ -3011,15 +3044,16 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else if (s.includes('alpa')) statuses.Alpa++;
       else statuses.Hadir++;
     });
-    const totalKaryawan = baseTotalKaryawan + unknownCount;
-    if (isPastOrCutoff('karyawan')) {
-      const recorded = Object.keys(mergedLogs).filter(k => validStaffs.has(k)).length;
-      statuses.Alpa += Math.max(0, baseTotalKaryawan - recorded);
-    }
+
+    const totalKaryawan = baseTotalKaryawan;
     const totalMasuk = statuses.Hadir + statuses.Terlambat;
-    const belumAbsen = Math.max(0, totalKaryawan - Object.keys(mergedLogs).length);
+    if (isPastOrCutoff('karyawan')) {
+      const accounted = totalMasuk + statuses.Izin + statuses.Sakit + statuses['Dinas Luar'] + statuses.Alpa;
+      statuses.Alpa += Math.max(0, totalKaryawan - accounted);
+    }
+    const belumAbsen = Math.max(0, totalKaryawan - (totalMasuk + statuses.Izin + statuses.Sakit + statuses['Dinas Luar'] + statuses.Alpa));
     return { ...statuses, belumAbsen, totalMasuk, totalKaryawan };
-  }, [todayStr, staffs, storeStaffs, dashLogs, isWeekendOrHoliday]);
+  }, [todayStr, staffs, storeStaffs, dashLogs, teachers, isWeekendOrHoliday, isPastOrCutoff]);
 
   // ── Statistik Siswa dari dashLogs.hikvisionStudentToday & dashLogs.recentLogs ──
   const siswaStats = useMemo(() => {
@@ -3149,7 +3183,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     }
 
     return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
-  }, [dashLogs, storeStudents, isWeekendOrHoliday, todayStr]);
+  }, [dashLogs, storeStudents, isWeekendOrHoliday, todayStr, isPastOrCutoff]);
 
   const guruPercent = guruStats.totalGuru > 0 
     ? Math.min(100, Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100))
