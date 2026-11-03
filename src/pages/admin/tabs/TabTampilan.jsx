@@ -656,7 +656,7 @@ export default function TabTampilan(props) {
                         <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                           <div>
                             <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest">Kustomisasi Menu Layanan Publik</p>
-                            <p className="text-[10px] font-bold text-slate-500 mt-0.5">Ubah nama teks, warna tema, dan upload file icon kustom Anda untuk 7 menu utama di halaman beranda.</p>
+                            <p className="text-[10px] font-bold text-slate-500 mt-0.5">Ubah nama teks, warna tema, dan upload file icon kustom Anda untuk 8 menu utama di halaman beranda.</p>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
@@ -668,6 +668,7 @@ export default function TabTampilan(props) {
                               { id: 5, defaultName:"Tempat PKL", defaultColor:"#DB2777" },
                               { id: 6, defaultName:"Struktur Organisasi", defaultColor:"#E11D48" },
                               { id: 7, defaultName:"Peraturan Sekolah", defaultColor:"#E11D48" },
+                              { id: 8, defaultName:"Prestasi Siswa", defaultColor:"#EAB308" },
                             ].map((menu) => {
                               const labelKey = `serviceLabel${menu.id}`;
                               const colorKey = `serviceColor${menu.id}`;

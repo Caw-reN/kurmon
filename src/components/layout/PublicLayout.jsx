@@ -129,6 +129,7 @@ export default function PublicLayout() {
             case '/lokasi-pkl': return t('Data Tempat PKL', 'Internship Locations');
             case '/struktur': return t('Struktur Organisasi', 'Organization Structure');
             case '/validasi-siswa': return t('Validasi Data Siswa', 'Student Data Validation');
+            case '/prestasi': return t('Prestasi Siswa', 'Student Achievements');
             default: return t('Layanan Publik', 'Public Service');
           }
         };

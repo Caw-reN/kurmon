@@ -133,6 +133,10 @@ export default function PublicFooter({
                 <span>{t("Lokasi PKL", "Internship Locations")}</span>
                 <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
               </Link>
+              <Link to="/prestasi" className="hover:text-[var(--ui-primary)] transition-colors flex items-center gap-1.5 no-underline text-slate-600">
+                <span>{t("Prestasi Siswa", "Student Achievements")}</span>
+                <ArrowUpRight size={12} strokeWidth={2.4} className="text-slate-400" />
+              </Link>
             </div>
           </div>
 

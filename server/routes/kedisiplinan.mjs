@@ -46,7 +46,8 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
       const isPublicGet = req.method === "GET" && (
         url.pathname === "/api/kedisiplinan/rules.pdf" ||
         url.pathname === "/api/kedisiplinan/master" ||
-        url.pathname === "/api/kedisiplinan/jadwal"
+        url.pathname === "/api/kedisiplinan/jadwal" ||
+        url.pathname === "/api/kesiswaan/prestasi/public"
       );
       if (!isPublicGet && !requireAuthenticated(req, res)) return;
       
@@ -717,7 +718,29 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
 
-        if (req.method === "GET" && url.pathname === "/api/kesiswaan/prestasi") {
+        if (req.method === "GET" && (url.pathname === "/api/kesiswaan/prestasi" || url.pathname === "/api/kesiswaan/prestasi/public")) {
+          // Public endpoint access (no private fields, joined with student name/class)
+          if (url.pathname === "/api/kesiswaan/prestasi/public") {
+            const pubRes = await dbPool.query(`
+              SELECT 
+                p.id,
+                p.nama_prestasi,
+                p.peringkat,
+                p.tingkat,
+                p.penyelenggara,
+                TO_CHAR(p.tanggal_prestasi, 'YYYY-MM-DD') as tanggal_prestasi,
+                p.keterangan,
+                COALESCE(ms.payload->>'name', ms.payload->>'nama', 'Siswa Berprestasi') as nama_siswa,
+                COALESCE(ms.payload->>'kelas', ms.payload->>'class_name', '-') as kelas,
+                COALESCE(ms.payload->>'jurusan', '-') as jurusan
+              FROM kesiswaan_prestasi p
+              LEFT JOIN mst_students ms ON (ms.payload->>'nis' = p.siswa_nis OR ms.id = p.siswa_nis OR ms.payload->>'code' = p.siswa_nis)
+              ORDER BY p.tanggal_prestasi DESC, p.id DESC
+            `);
+            send(req, res, 200, { ok: true, data: pubRes.rows });
+            return;
+          }
+
           // SECURITY-FIX K-03: Endpoint prestasi harus memerlukan autentikasi
           // (requireAuthenticated sudah dipanggil di atas untuk seluruh blok non-public)
           // Tambahan: siswa hanya bisa lihat prestasi miliknya sendiri

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun } from 'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun, Trophy } from 'lucide-react';
 import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info, ArrowDown, KeyRound } from 'lucide-react';
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
@@ -875,7 +875,20 @@ export default function LandingPage() {
       customIcon: appSettings.serviceIconImage7,
       isPdfRules: true,
     },
-  ], [appSettings, activeLang]);
+    { 
+      id: 'prestasi',
+      title: appSettings.serviceLabel8 !== undefined && appSettings.serviceLabel8 !== ""
+        ? cleanText(appSettings.serviceLabel8) 
+        : t("Prestasi Siswa", "Achievements"), 
+      desc: appSettings.serviceDesc8 || t("Galeri apresiasi dan rekam jejak juara siswa.", "Showcase celebrating verified student achievements."), 
+      svgIcon: "014-award.svg",
+      icon: Trophy, 
+      defaultColor: "#EAB308",
+      customColor: appSettings.serviceColor8,
+      customIcon: appSettings.serviceIconImage8,
+      path: "/prestasi",
+    },
+  ], [appSettings, activeLang, t]);
 
   const filteredAcademicServices = useMemo(() => {
     if (!academicServiceQuery.trim()) return academicServices;
@@ -917,6 +930,7 @@ export default function LandingPage() {
     { label: cleanText(appSettings.serviceLabel5 !== undefined ? appSettings.serviceLabel5 :"Tempat PKL"), subtitle:"Mitra Industri", svgIcon:"008-warehouse.svg", icon: Briefcase, defaultColor:"#DB2777", customColor: appSettings.serviceColor5, customIcon: appSettings.serviceIconImage5, path:"/pkl-locations" },
     { label: cleanText(appSettings.serviceLabel6 !== undefined ? appSettings.serviceLabel6 :"Struktur Organisasi"), subtitle:"Profil Pengurus", svgIcon:"045-account.svg", icon: Users, defaultColor:"#E11D48", customColor: appSettings.serviceColor6, customIcon: appSettings.serviceIconImage6, path:"/struktur" },
     { label: cleanText(appSettings.serviceLabel7 !== undefined ? appSettings.serviceLabel7 :"Peraturan Sekolah"), subtitle:"Tatib & Poin", svgIcon:"013-shield.svg", icon: ShieldCheck, defaultColor:"#E11D48", customColor: appSettings.serviceColor7, customIcon: appSettings.serviceIconImage7, isPdfRules: true },
+    { label: cleanText(appSettings.serviceLabel8 !== undefined ? appSettings.serviceLabel8 : t("Prestasi Siswa", "Student Achievements")), subtitle: t("Galeri Juara", "Hall of Fame"), svgIcon: "014-award.svg", icon: Trophy, defaultColor: "#EAB308", customColor: appSettings.serviceColor8, customIcon: appSettings.serviceIconImage8, path: "/prestasi" },
   ];
 
   const filteredServices = publicServices.filter(s =>
@@ -2050,10 +2064,10 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Kolom Kanan: 7 Kartu Layanan 1 Baris Minimalis Sesuai Mockup */}
+              {/* Kolom Kanan: Kartu Layanan Otomatis 1 Baris di Desktop */}
               <div className="flex-1 w-full min-w-0 flex flex-col justify-center">
-                {/* Grid 7 Layanan: Tepat 1 Baris di Layar Lebar (Ikon & Judul Bersih Tanpa Panah / Deskripsi) */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 xl:gap-3 w-full">
+                {/* Grid Layanan: Otomatis Tepat 1 Baris di Layar Lebar (Ikon & Judul Bersih Tanpa Panah / Deskripsi) */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-none lg:grid-flow-col lg:auto-cols-fr gap-2 sm:gap-2.5 xl:gap-3 w-full">
                   {filteredAcademicServices.map((service) => {
                     const IconComp = service.icon;
                     const activeColor = service.customColor || service.defaultColor;
@@ -2068,27 +2082,27 @@ export default function LandingPage() {
                             navigate(service.path);
                           }
                         }}
-                        className="group rounded-2xl p-3 sm:p-3.5 flex flex-col items-center justify-center text-center min-h-[92px] lg:min-h-[98px] transition-all duration-200 cursor-pointer border select-none bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5"
+                        className="group rounded-2xl p-2.5 sm:p-3 xl:p-3.5 flex flex-col items-center justify-center text-center min-h-[88px] sm:min-h-[92px] lg:min-h-[96px] xl:min-h-[98px] transition-all duration-200 cursor-pointer border select-none bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs hover:shadow-xs hover:-translate-y-0.5"
                       >
                         {/* Ikon Layanan Berwarna */}
                         <div 
-                          className="w-10 h-10 lg:w-11 lg:h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
+                          className="w-9 h-9 sm:w-10 sm:h-10 xl:w-11 xl:h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-all duration-300"
                           style={{ 
                             backgroundColor: hexToRgba(activeColor, 0.08),
                             border: `1.5px solid ${hexToRgba(activeColor, 0.16)}`
                           }}
                         >
                           {service.customIcon ? (
-                            <img src={service.customIcon} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
+                            <img src={service.customIcon} alt="" className="w-5 h-5 sm:w-5.5 sm:h-5.5 xl:w-6 xl:h-6 object-contain" />
                           ) : service.svgIcon ? (
-                            <img src={`/icons/${service.svgIcon}`} alt="" className="w-5.5 h-5.5 lg:w-6 lg:h-6 object-contain" />
+                            <img src={`/icons/${service.svgIcon}`} alt="" className="w-5 h-5 sm:w-5.5 sm:h-5.5 xl:w-6 xl:h-6 object-contain" />
                           ) : (
                             <IconComp size={20} strokeWidth={2.2} style={{ color: activeColor }} />
                           )}
                         </div>
 
                         {/* Judul Layanan Saja */}
-                        <h3 className="text-xs sm:text-[12.5px] font-black text-slate-800 tracking-tight leading-tight group-hover:text-[var(--ui-primary)] transition-colors mt-2 text-center truncate w-full">
+                        <h3 className="text-[11px] sm:text-xs xl:text-[12.5px] font-black text-slate-800 tracking-tight leading-tight group-hover:text-[var(--ui-primary)] transition-colors mt-2 text-center truncate w-full">
                           {service.title}
                         </h3>
                       </div>

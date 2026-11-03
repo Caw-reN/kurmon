@@ -80,6 +80,7 @@ const PublicLayout = lazy(() => import("./components/layout/PublicLayout.jsx"));
 // ── Public Monitoring page
 const PklLocationsPage = lazy(() => import("./pages/monitoring/public/PklLocationsPage.jsx"));
 const ValidasiSiswa = lazy(() => import("./pages/ValidasiSiswa.jsx"));
+const PrestasiPage = lazy(() => import("./pages/PrestasiPage.jsx"));
 
 // ── Monitoring — Admin
 const MonitoringAdminLayout = lazy(() => import("./components/monitoring/layout/AdminLayout.jsx"));
@@ -490,6 +491,7 @@ export default function App() {
             <Route path="/validasi-siswa" element={<ValidasiSiswa />} />
             <Route path="/pkl-locations" element={<PklLocationsPage />} />
             <Route path="/lokasi-pkl" element={<PklLocationsPage />} />
+            <Route path="/prestasi" element={<PrestasiPage />} />
           </Route>
 
           {/* ── Admin & Guru & Karyawan (Schedule App) ── */}
