@@ -159,6 +159,25 @@ export default function KepsekExecutiveDashboard({
   }, []);
   const greeting = currentHour < 11 ? 'Selamat Pagi' : currentHour < 15 ? 'Selamat Siang' : currentHour < 18 ? 'Selamat Sore' : 'Selamat Malam';
 
+  // Helper untuk menentukan batas jam masuk evaluasi Alpa
+  const getCutoffTime = (role = 'siswa') => {
+    const cfg = dashLogs?.attendanceConfig;
+    const roleCfg = cfg?.[role] || cfg;
+    const timeVal = roleCfg?.masuk_late || "07:01";
+    return timeVal.length === 5 ? `${timeVal}:00` : timeVal;
+  };
+
+  const isPastOrCutoff = (role) => {
+    const todayJkt = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    if (todayStr && todayStr < todayJkt) return true;
+    const d = new Date();
+    const day = d.getDay();
+    if (day === 0 || day === 6) return false;
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    const cutoff = getCutoffTime(role);
+    return currentTimeJkt >= cutoff;
+  };
+
   const guruStats = useMemo(() => {
     const baseTotalGuru = (teachers || []).length || 52;
     const validTeachers = new Set();
@@ -212,7 +231,7 @@ export default function KepsekExecutiveDashboard({
     Object.keys(merged).forEach(k => { if (!validTeachers.has(k)) unknownCount++; });
     const dynamicTotal = baseTotalGuru + unknownCount;
 
-    if (currentTimeJkt > '08:00:00') {
+    if (isPastOrCutoff('guru')) {
       const recorded = Object.keys(merged).filter(k => validTeachers.has(k)).length;
       s.Alpa += Math.max(0, baseTotalGuru - recorded);
     }
@@ -301,7 +320,7 @@ export default function KepsekExecutiveDashboard({
     const totalKaryawan = baseTotalKaryawan;
     const currentTimeJkt = new Date(Date.now() + 7 * 3600000).toISOString().slice(11, 19);
 
-    if (currentTimeJkt > '08:00:00') {
+    if (isPastOrCutoff('karyawan')) {
       s.Alpa = Math.max(0, totalKaryawan - (totalMasuk + s.Izin + s.Sakit));
     }
 
@@ -478,8 +497,7 @@ export default function KepsekExecutiveDashboard({
     const totalSiswaInSchool = (students || []).length || dashLogs?.totalStudents || 0;
     
     // Auto-calculate Alpa for each grade if past cutoff
-    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (currentTimeJkt > "08:00:00") {
+    if (isPastOrCutoff('siswa')) {
       ['X', 'XI', 'XII', 'Unknown'].forEach(g => {
         const recorded = gradeStats[g].hadir + gradeStats[g].telat + gradeStats[g].izin + gradeStats[g].sakit + gradeStats[g].alpa;
         const unrecorded = Math.max(0, gradeStats[g].total - recorded);

@@ -468,7 +468,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           devices: devicesRows,
           recentLogs: recentLogsRes.rows.map(mapLogStatus),
           staffLogs: staffLogsRes.rows.map(mapLogStatus),
-          teacherLogs: teacherLogsRes.rows.map(mapLogStatus)
+          teacherLogs: teacherLogsRes.rows.map(mapLogStatus),
+          attendanceConfig: hConfig
         };
         global._hikvDashCache = { date: todayJkt, time: Date.now(), data: responseData };
         send(req, res, 200, responseData);

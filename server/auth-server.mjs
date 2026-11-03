@@ -3638,6 +3638,7 @@ const server = createServer(async (req, res) => {
             backupErrors,
             hikvisionStudentToday,
             teacherLogs,
+            attendanceConfig: hConfig,
             totalStudents: students.length,
             totalTeachers: teachers.length
           }

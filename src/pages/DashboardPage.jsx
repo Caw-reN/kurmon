@@ -2824,6 +2824,23 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   const canSeeStudentAttendance = isSuperAdmin || isKepsek || isTU ||
     (isWaka && activeDivision === 'kesiswaan');
 
+  // Helper untuk menentukan batas jam masuk evaluasi Alpa
+  const getCutoffTime = (role = 'siswa') => {
+    const cfg = dashLogs?.attendanceConfig;
+    const roleCfg = cfg?.[role] || cfg;
+    const timeVal = roleCfg?.masuk_late || "07:01";
+    return timeVal.length === 5 ? `${timeVal}:00` : timeVal;
+  };
+
+  const isPastOrCutoff = (role) => {
+    const todayJkt = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    if (todayStr && todayStr < todayJkt) return true; // Hari kemarin sudah selesai
+    if (isWeekendOrHoliday) return false; // Libur / Akhir pekan bebas alpa
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    const cutoff = getCutoffTime(role);
+    return currentTimeJkt >= cutoff;
+  };
+
   // ── Statistik Guru dari attendanceRecords & dashLogs ──
   const guruStats = useMemo(() => {
     // 1. Buat Set daftar guru valid dari master data
@@ -2908,8 +2925,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else statuses.Hadir++;
     });
     const totalGuru = baseTotalGuru + unknownCount;
-    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (!isWeekendOrHoliday && currentTimeJkt > "08:00:00") {
+    if (isPastOrCutoff('guru')) {
       const recordedTeachers = Object.keys(mergedLogs).filter(k => validTeachers.has(k)).length;
       statuses.Alpa += Math.max(0, baseTotalGuru - recordedTeachers);
     }
@@ -2996,8 +3012,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       else statuses.Hadir++;
     });
     const totalKaryawan = baseTotalKaryawan + unknownCount;
-    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (!isWeekendOrHoliday && currentTimeJkt > "08:00:00") {
+    if (isPastOrCutoff('karyawan')) {
       const recorded = Object.keys(mergedLogs).filter(k => validStaffs.has(k)).length;
       statuses.Alpa += Math.max(0, baseTotalKaryawan - recorded);
     }
@@ -3127,9 +3142,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     });
     const totalSiswaInSchool = (storeStudents || []).length || dashLogs?.totalStudents || 0;
 
-    // Auto-calculate Alpa if current time is past cutoff limit (08:00)
-    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
-    if (!isWeekendOrHoliday && currentTimeJkt > "08:00:00" && totalSiswaInSchool > 0) {
+    // Auto-calculate Alpa jika sudah lewat batas jam masuk resmi
+    if (isPastOrCutoff('siswa') && totalSiswaInSchool > 0) {
       const unrecorded = Math.max(0, totalSiswaInSchool - (statuses.Hadir + statuses.Terlambat + statuses.Izin + statuses.Sakit + statuses.Alpa));
       statuses.Alpa += unrecorded;
     }
@@ -3258,6 +3272,12 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{karyawanStats.Terlambat}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin:</span> <b className="text-slate-800">{karyawanStats.Izin}</b>
+              </div>
+              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{karyawanStats.Sakit}</b>
               </div>
               <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
                 <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{karyawanStats.Alpa}</b>
