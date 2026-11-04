@@ -15,7 +15,7 @@ import {
   FileText, BookOpen, CheckCircle2, ClipboardList, MessageSquare,
   History, Users, GraduationCap, UserMinus, Trophy, ShieldAlert,
   Briefcase, PieChart, Settings, SlidersHorizontal, AppWindow,
-  DoorOpen, Phone, HardDrive, DatabaseBackup, Activity, UserCog,
+  DoorOpen, Phone, HardDrive, DatabaseBackup, Activity, UserCog, KeyRound,
   Shield, ShieldCheck, MonitorSmartphone, User, Wand2, Building2, FolderOpen, UserCheck
 } from 'lucide-react';
 
@@ -508,7 +508,17 @@ export const MENU_REGISTRY = [
     adminGroupIcon: Settings,
     adminGroupKey: 'sistem',
     adminOnly: true,
-    activeIds: ['hak_akses', 'pengaturanuser', 'audit_log'],
+    activeIds: ['hak_akses', 'pengaturanuser', 'status_password', 'audit_log'],
+  },
+  {
+    id: 'status_password',
+    icon: KeyRound,
+    label: 'Log Status Sandi',
+    section: 'Pengaturan',
+    adminGroup: 'Konfigurasi Sistem',
+    adminGroupIcon: Settings,
+    adminGroupKey: 'sistem',
+    adminOnly: true,
   },
   {
     id: 'fitur',

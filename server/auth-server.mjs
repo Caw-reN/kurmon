@@ -3450,9 +3450,9 @@ const server = createServer(async (req, res) => {
         let hikvisionStudentToday = [];
         let teacherLogs = [];
         let staffLogs = [];
+        let hConfig = {};
         // todayJktDate sudah dideklarasikan di awal handler /api/dashboard/logs
         try {
-          let hConfig = {};
           try {
             const configRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'hikvision_attendance_config' LIMIT 1");
             if (configRes.rowCount > 0 && configRes.rows[0].data) {
@@ -3869,7 +3869,7 @@ const server = createServer(async (req, res) => {
         const handled = await handleStaffRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }
-    if (url.pathname.startsWith("/api/auth")) {
+    if (url.pathname.startsWith("/api/auth") || url.pathname.startsWith("/api/admin")) {
         const handled = await handleAuthRoutes(req, res, url, ctx);
         if (handled !== false) return;
     }

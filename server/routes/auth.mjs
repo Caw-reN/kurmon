@@ -304,6 +304,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
               isDefaultPassword = false;
               try {
                 payload.adminUser.hasChangedPassword = true;
+          payload.adminUser.passwordChangedAt = new Date().toISOString();
                 await dbPool.query(`INSERT INTO app_data (store_key, data) VALUES ('main_store', $1) ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data`, [JSON.stringify(payload)]);
               } catch (e) {}
             }
@@ -1200,59 +1201,99 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         if (payload.adminUser) {
           payload.adminUser.password = nextPasswordHash;
           payload.adminUser.hasChangedPassword = true;
+          payload.adminUser.passwordChangedAt = new Date().toISOString();
           await dbPool.query(`
             INSERT INTO app_data (store_key, data) VALUES ('main_store', $1)
             ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP
           `, [JSON.stringify(payload)]);
           success = true;
+          try {
+            await logAudit(dbPool, { id: 'admin', name: payload.adminUser.name || 'Admin', role: 'admin' }, req, 'CHANGE_PASSWORD', 'admin', 'SuperAdmin berhasil memperbarui kata sandi akun');
+          } catch {}
         }
       }
 
       if (!success) {
         const tResult = await dbPool.query(`
-          SELECT id FROM mst_teachers 
+          SELECT id, payload FROM mst_teachers 
           WHERE payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
         `, [session.username]);
         if (tResult.rows.length > 0) {
           const rowId = tResult.rows[0].id;
+          const nowIso = new Date().toISOString();
           const uRes = await dbPool.query(`
             UPDATE mst_teachers 
-            SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
-            WHERE id = $2
-          `, [nextPasswordHash, rowId]);
-          if (uRes.rowCount > 0) success = true;
+            SET payload = jsonb_set(
+              jsonb_set(
+                jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), 
+                '{hasChangedPassword}', 'true'::jsonb
+              ),
+              '{passwordChangedAt}', to_jsonb($2::text)
+            )
+            WHERE id = $3
+          `, [nextPasswordHash, nowIso, rowId]);
+          if (uRes.rowCount > 0) {
+            success = true;
+            try {
+              await logAudit(dbPool, { id: session.username, name: session.name || session.username, role: 'guru' }, req, 'CHANGE_PASSWORD', 'teacher', `Guru (${session.name || session.username}) berhasil memperbarui kata sandi`);
+            } catch {}
+          }
         }
       }
 
       if (!success) {
         const stResult = await dbPool.query(`
-          SELECT id FROM mst_staffs 
+          SELECT id, payload FROM mst_staffs 
           WHERE payload->>'staff_code' = $1 OR payload->>'code' = $1 OR payload->>'nip' = $1 OR payload->>'id' = $1 OR id = $1
         `, [session.username]);
         if (stResult.rows.length > 0) {
           const rowId = stResult.rows[0].id;
+          const nowIso = new Date().toISOString();
           const uRes = await dbPool.query(`
             UPDATE mst_staffs 
-            SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
-            WHERE id = $2
-          `, [nextPasswordHash, rowId]);
-          if (uRes.rowCount > 0) success = true;
+            SET payload = jsonb_set(
+              jsonb_set(
+                jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), 
+                '{hasChangedPassword}', 'true'::jsonb
+              ),
+              '{passwordChangedAt}', to_jsonb($2::text)
+            )
+            WHERE id = $3
+          `, [nextPasswordHash, nowIso, rowId]);
+          if (uRes.rowCount > 0) {
+            success = true;
+            try {
+              await logAudit(dbPool, { id: session.username, name: session.name || session.username, role: 'karyawan' }, req, 'CHANGE_PASSWORD', 'staff', `Karyawan/Staf (${session.name || session.username}) berhasil memperbarui kata sandi`);
+            } catch {}
+          }
         }
       }
 
       if (!success) {
         const sResult = await dbPool.query(`
-          SELECT id FROM mst_students 
+          SELECT id, payload FROM mst_students 
           WHERE payload->>'nis' = $1 OR payload->>'code' = $1 OR payload->>'nisn' = $1 OR id = $1
         `, [session.username]);
         if (sResult.rows.length > 0) {
           const rowId = sResult.rows[0].id;
+          const nowIso = new Date().toISOString();
           const uRes = await dbPool.query(`
             UPDATE mst_students 
-            SET payload = jsonb_set(jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), '{hasChangedPassword}', 'true'::jsonb)
-            WHERE id = $2
-          `, [nextPasswordHash, rowId]);
-          if (uRes.rowCount > 0) success = true;
+            SET payload = jsonb_set(
+              jsonb_set(
+                jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)), 
+                '{hasChangedPassword}', 'true'::jsonb
+              ),
+              '{passwordChangedAt}', to_jsonb($2::text)
+            )
+            WHERE id = $3
+          `, [nextPasswordHash, nowIso, rowId]);
+          if (uRes.rowCount > 0) {
+            success = true;
+            try {
+              await logAudit(dbPool, { id: session.username, name: session.name || session.username, role: 'siswa' }, req, 'CHANGE_PASSWORD', 'student', `Siswa NIS ${session.username} berhasil memperbarui kata sandi`);
+            } catch {}
+          }
         }
       }
 
@@ -1272,6 +1313,321 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       }
     } catch (err) {
       console.error("Change password route error:", err);
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
+  // ── ADMIN PASSWORD STATUS LOGS (HANYA ADMIN) ──
+  if (req.method === "GET" && (url.pathname === "/api/admin/password-status-logs" || url.pathname === "/api/auth/password-status-logs")) {
+    try {
+      const session = requireAuthenticated(req, res);
+      if (!session) return true;
+      const role = String(session.role || '').toLowerCase();
+      if (role !== 'admin' && role !== 'superadmin') {
+        send(req, res, 403, { ok: false, error: "Akses ditolak. Fitur ini hanya dapat diakses oleh Administrator." });
+        return true;
+      }
+      if (!dbPool) throw createDatabaseUnavailableError();
+
+      const [teachersRes, staffsRes, studentsRes, storeRes] = await Promise.all([
+        dbPool.query("SELECT id, payload FROM mst_teachers ORDER BY id ASC"),
+        dbPool.query("SELECT id, payload FROM mst_staffs ORDER BY id ASC"),
+        dbPool.query("SELECT id, payload FROM mst_students ORDER BY id ASC"),
+        dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1")
+      ]);
+
+      const mainData = storeRes.rows[0]?.data ? (typeof storeRes.rows[0].data === 'string' ? JSON.parse(storeRes.rows[0].data) : storeRes.rows[0].data) : {};
+      const adminUser = mainData.adminUser || {};
+
+      const parsePayload = (p) => (typeof p === 'string' ? JSON.parse(p) : (p || {}));
+
+      const allUsers = [];
+
+      // 1. Admin Account
+      allUsers.push({
+        id: 'admin',
+        code: adminUser.username || 'admin',
+        name: adminUser.name || 'Super Administrator',
+        category: 'Admin',
+        role: 'superadmin',
+        subrole: '',
+        division: '',
+        extraInfo: 'Super Administrator',
+        hasChangedPassword: adminUser.hasChangedPassword === true,
+        passwordChangedAt: adminUser.passwordChangedAt || null,
+        phone: adminUser.phone || adminUser.hp || ''
+      });
+
+      // 2. Teachers
+      teachersRes.rows.forEach(r => {
+        const p = parsePayload(r.payload);
+        allUsers.push({
+          id: r.id,
+          code: String(p.code || p.id || '').trim(),
+          name: p.name || p.nama || 'Tanpa Nama',
+          category: 'Guru',
+          role: p.role || 'guru',
+          subrole: p.subrole || '',
+          division: p.division || '',
+          extraInfo: p.subject || p.mapel || p.division || 'Guru Pengajar',
+          hasChangedPassword: p.hasChangedPassword === true,
+          passwordChangedAt: p.passwordChangedAt || null,
+          phone: p.phone || p.hp || ''
+        });
+      });
+
+      // 3. Staffs
+      staffsRes.rows.forEach(r => {
+        const p = parsePayload(r.payload);
+        allUsers.push({
+          id: r.id,
+          code: String(p.staff_code || p.code || p.id || '').trim(),
+          name: p.name || p.nama || 'Tanpa Nama',
+          category: 'Karyawan',
+          role: p.role || 'karyawan',
+          subrole: p.subrole || '',
+          division: p.division || p.divisi || '',
+          extraInfo: p.division || p.divisi || 'Tenaga Kependidikan',
+          hasChangedPassword: p.hasChangedPassword === true,
+          passwordChangedAt: p.passwordChangedAt || null,
+          phone: p.phone || p.hp || ''
+        });
+      });
+
+      // 4. Students
+      studentsRes.rows.forEach(r => {
+        const p = parsePayload(r.payload);
+        allUsers.push({
+          id: r.id,
+          code: String(p.nis || p.code || '').trim(),
+          name: p.name || p.nama || 'Tanpa Nama',
+          category: 'Siswa',
+          role: 'siswa',
+          subrole: '',
+          division: '',
+          extraInfo: p.kelas || p.class_name || '-',
+          hasChangedPassword: p.hasChangedPassword === true,
+          passwordChangedAt: p.passwordChangedAt || null,
+          phone: p.phone || p.hp || ''
+        });
+      });
+
+      // KPI Summary
+      const summary = {
+        totalAll: allUsers.length,
+        totalChanged: allUsers.filter(u => u.hasChangedPassword).length,
+        totalDefault: allUsers.filter(u => !u.hasChangedPassword).length,
+        breakdown: {
+          admin: {
+            total: allUsers.filter(u => u.category === 'Admin').length,
+            changed: allUsers.filter(u => u.category === 'Admin' && u.hasChangedPassword).length,
+            default: allUsers.filter(u => u.category === 'Admin' && !u.hasChangedPassword).length
+          },
+          guru: {
+            total: allUsers.filter(u => u.category === 'Guru').length,
+            changed: allUsers.filter(u => u.category === 'Guru' && u.hasChangedPassword).length,
+            default: allUsers.filter(u => u.category === 'Guru' && !u.hasChangedPassword).length
+          },
+          karyawan: {
+            total: allUsers.filter(u => u.category === 'Karyawan').length,
+            changed: allUsers.filter(u => u.category === 'Karyawan' && u.hasChangedPassword).length,
+            default: allUsers.filter(u => u.category === 'Karyawan' && !u.hasChangedPassword).length
+          },
+          siswa: {
+            total: allUsers.filter(u => u.category === 'Siswa').length,
+            changed: allUsers.filter(u => u.category === 'Siswa' && u.hasChangedPassword).length,
+            default: allUsers.filter(u => u.category === 'Siswa' && !u.hasChangedPassword).length
+          }
+        }
+      };
+      summary.adoptionPct = summary.totalAll > 0 ? Math.round((summary.totalChanged / summary.totalAll) * 100) : 0;
+
+      // Filter
+      const categoryParam = String(url.searchParams.get("category") || "all").toLowerCase();
+      const statusParam = String(url.searchParams.get("status") || "all").toLowerCase();
+      const searchParam = String(url.searchParams.get("search") || "").trim().toLowerCase();
+
+      let filtered = allUsers;
+      if (categoryParam !== "all") {
+        filtered = filtered.filter(u => u.category.toLowerCase() === categoryParam);
+      }
+      if (statusParam === "changed") {
+        filtered = filtered.filter(u => u.hasChangedPassword);
+      } else if (statusParam === "default") {
+        filtered = filtered.filter(u => !u.hasChangedPassword);
+      }
+
+      if (searchParam) {
+        filtered = filtered.filter(u => 
+          u.name.toLowerCase().includes(searchParam) ||
+          u.code.toLowerCase().includes(searchParam) ||
+          u.extraInfo.toLowerCase().includes(searchParam) ||
+          u.role.toLowerCase().includes(searchParam)
+        );
+      }
+
+      // Pagination
+      const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+      const limit = Math.max(1, Math.min(200, parseInt(url.searchParams.get("limit") || "50", 10)));
+      const totalFiltered = filtered.length;
+      const totalPages = Math.ceil(totalFiltered / limit) || 1;
+      const offset = (page - 1) * limit;
+      const pagedData = filtered.slice(offset, offset + limit);
+
+      send(req, res, 200, {
+        ok: true,
+        summary,
+        data: pagedData,
+        pagination: {
+          page,
+          limit,
+          total: totalFiltered,
+          totalPages
+        }
+      });
+    } catch (err) {
+      console.error("Password status logs route error:", err);
+      sendDatabaseError(req, res, err);
+    }
+    return true;
+  }
+
+  // ── ADMIN DIRECT RESET USER PASSWORD (HANYA ADMIN) ──
+  if (req.method === "POST" && (url.pathname === "/api/admin/reset-user-password" || url.pathname === "/api/auth/reset-user-password")) {
+    try {
+      const session = requireAuthenticated(req, res);
+      if (!session) return true;
+      const role = String(session.role || '').toLowerCase();
+      if (role !== 'admin' && role !== 'superadmin') {
+        send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Administrator yang dapat mereset kata sandi pengguna." });
+        return true;
+      }
+      if (!dbPool) throw createDatabaseUnavailableError();
+
+      const body = await readJsonBody(req);
+      const { userId, category, newPassword, resetToDefault } = body;
+      if (!userId || !category) {
+        send(req, res, 400, { ok: false, error: "Parameter userId dan category wajib diisi." });
+        return true;
+      }
+
+      let passwordToSet = String(newPassword || '').trim();
+      let hasChanged = true;
+      const nowIso = new Date().toISOString();
+
+      const cat = String(category).toLowerCase();
+      let targetName = '';
+
+      if (cat === 'guru') {
+        const tRes = await dbPool.query("SELECT id, payload FROM mst_teachers WHERE id = $1 OR payload->>'code' = $1", [String(userId)]);
+        if (tRes.rows.length === 0) {
+          send(req, res, 404, { ok: false, error: "Guru tidak ditemukan." });
+          return true;
+        }
+        const row = tRes.rows[0];
+        const p = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+        targetName = p.name || p.nama || p.code;
+        if (resetToDefault) {
+          passwordToSet = String(p.code || '123456');
+          hasChanged = false;
+        }
+        const hash = await hashPassword(passwordToSet);
+        await dbPool.query(`
+          UPDATE mst_teachers 
+          SET payload = jsonb_set(
+            jsonb_set(
+              jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)),
+              '{hasChangedPassword}', $2::jsonb
+            ),
+            '{passwordChangedAt}', to_jsonb($3::text)
+          )
+          WHERE id = $4
+        `, [hash, JSON.stringify(hasChanged), nowIso, row.id]);
+        await logAudit(dbPool, { id: 'admin', name: session.name || 'Admin', role: 'admin' }, req, 'RESET_PASSWORD', 'teacher', `Admin mereset kata sandi Guru ${targetName} (${row.id})`);
+      } else if (cat === 'karyawan') {
+        const stRes = await dbPool.query("SELECT id, payload FROM mst_staffs WHERE id = $1 OR payload->>'code' = $1 OR payload->>'staff_code' = $1", [String(userId)]);
+        if (stRes.rows.length === 0) {
+          send(req, res, 404, { ok: false, error: "Karyawan tidak ditemukan." });
+          return true;
+        }
+        const row = stRes.rows[0];
+        const p = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+        targetName = p.name || p.nama || p.code;
+        if (resetToDefault) {
+          passwordToSet = String(p.staff_code || p.code || '123456');
+          hasChanged = false;
+        }
+        const hash = await hashPassword(passwordToSet);
+        await dbPool.query(`
+          UPDATE mst_staffs 
+          SET payload = jsonb_set(
+            jsonb_set(
+              jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)),
+              '{hasChangedPassword}', $2::jsonb
+            ),
+            '{passwordChangedAt}', to_jsonb($3::text)
+          )
+          WHERE id = $4
+        `, [hash, JSON.stringify(hasChanged), nowIso, row.id]);
+        await logAudit(dbPool, { id: 'admin', name: session.name || 'Admin', role: 'admin' }, req, 'RESET_PASSWORD', 'staff', `Admin mereset kata sandi Karyawan/Staf ${targetName} (${row.id})`);
+      } else if (cat === 'siswa') {
+        const sRes = await dbPool.query("SELECT id, payload FROM mst_students WHERE id = $1 OR payload->>'nis' = $1", [String(userId)]);
+        if (sRes.rows.length === 0) {
+          send(req, res, 404, { ok: false, error: "Siswa tidak ditemukan." });
+          return true;
+        }
+        const row = sRes.rows[0];
+        const p = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+        targetName = p.name || p.nama || p.nis;
+        if (resetToDefault) {
+          passwordToSet = String(p.nis || '123456');
+          hasChanged = false;
+        }
+        const hash = await hashPassword(passwordToSet);
+        await dbPool.query(`
+          UPDATE mst_students 
+          SET payload = jsonb_set(
+            jsonb_set(
+              jsonb_set(payload::jsonb, '{password}', to_jsonb($1::text)),
+              '{hasChangedPassword}', $2::jsonb
+            ),
+            '{passwordChangedAt}', to_jsonb($3::text)
+          )
+          WHERE id = $4
+        `, [hash, JSON.stringify(hasChanged), nowIso, row.id]);
+        await logAudit(dbPool, { id: 'admin', name: session.name || 'Admin', role: 'admin' }, req, 'RESET_PASSWORD', 'student', `Admin mereset kata sandi Siswa ${targetName} (NIS: ${p.nis})`);
+      } else if (cat === 'admin') {
+        const storeRes = await dbPool.query("SELECT data FROM app_data WHERE store_key = 'main_store' LIMIT 1");
+        const payload = storeRes.rows[0]?.data ? (typeof storeRes.rows[0].data === 'string' ? JSON.parse(storeRes.rows[0].data) : storeRes.rows[0].data) : {};
+        if (!payload.adminUser) {
+          send(req, res, 404, { ok: false, error: "Data admin tidak ditemukan." });
+          return true;
+        }
+        targetName = payload.adminUser.name || 'Administrator';
+        if (resetToDefault) {
+          passwordToSet = 'admin123';
+          hasChanged = false;
+        }
+        const hash = await hashPassword(passwordToSet);
+        payload.adminUser.password = hash;
+        payload.adminUser.hasChangedPassword = hasChanged;
+        payload.adminUser.passwordChangedAt = nowIso;
+        await dbPool.query(`
+          INSERT INTO app_data (store_key, data) VALUES ('main_store', $1)
+          ON CONFLICT (store_key) DO UPDATE SET data = EXCLUDED.data, updated_at = CURRENT_TIMESTAMP
+        `, [JSON.stringify(payload)]);
+        await logAudit(dbPool, { id: 'admin', name: session.name || 'Admin', role: 'admin' }, req, 'RESET_PASSWORD', 'admin', `Admin mereset kata sandi SuperAdmin`);
+      }
+
+      send(req, res, 200, {
+        ok: true,
+        message: `Kata sandi untuk ${targetName} berhasil ${resetToDefault ? 'direset ke default' : 'diperbarui'}.`,
+        hasChangedPassword: hasChanged,
+        newPassword: passwordToSet
+      });
+    } catch (err) {
+      console.error("Admin reset password error:", err);
       sendDatabaseError(req, res, err);
     }
     return true;

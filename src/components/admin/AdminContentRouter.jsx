@@ -59,6 +59,7 @@ const FiturManagement = lazy(() => import("../../pages/admin/pengaturan/FiturMan
 const TabHakAkses = lazy(() => import("../../pages/admin/tabs/TabHakAkses.jsx"));
 const TabPesan = lazy(() => import("../../pages/admin/tabs/TabPesan.jsx"));
 const TabPengaturanUser = lazy(() => import("../../pages/admin/tabs/TabPengaturanUser.jsx"));
+const TabLogPassword = lazy(() => import("../../pages/admin/tabs/TabLogPassword.jsx"));
 const TabAkademik = lazy(() => import("../../pages/admin/tabs/TabAkademik.jsx"));
 const TabPengaturan = lazy(() => import("../../pages/admin/tabs/TabPengaturan.jsx"));
 const TabAdvancedRules = lazy(() => import("../../pages/admin/tabs/TabAdvancedRules.jsx"));
@@ -382,6 +383,13 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <TabPesan {...tabProps} />;
       case"pengaturanuser":
         return <TabPengaturanUser {...tabProps} />;
+      case "status_password":
+      case "log_password":
+        return (
+          <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">Memuat Log Status Password...</div>}>
+            <TabLogPassword {...tabProps} />
+          </Suspense>
+        );
       case"akademik":
       case"kalender":
       case"kalender_akademik":

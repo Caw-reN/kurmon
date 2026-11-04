@@ -6,7 +6,7 @@ import {
   Users, ShieldCheck, Key, History, Shield, Edit2, Search, 
   Plus, Activity, Trash2, Lock, Sparkles, CheckCircle2, 
   AlertCircle, RefreshCw, Smartphone, UserPlus, Building2, 
-  BookOpen, Briefcase, GraduationCap, Copy, Check
+  BookOpen, Briefcase, GraduationCap, Copy, Check, KeyRound, AlertTriangle
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { hashPassword } from '../../../utils/auth.js';
@@ -38,6 +38,7 @@ export default function TabPengaturanUser(props) {
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('semua');
   const [filterSource, setFilterSource] = useState('semua'); // 'semua' | 'guru' | 'karyawan'
+  const [filterPasswordStatus, setFilterPasswordStatus] = useState('semua'); // 'semua' | 'changed' | 'default'
 
   // Admin Direct Reset Password Modal
   const [resetModalUser, setResetModalUser] = useState(null);
@@ -64,7 +65,9 @@ export default function TabPengaturanUser(props) {
         role: role,
         division: t.division || '',
         subrole: t.subrole || '',
-        mapel: t.subject || t.mapel || t.type || '-'
+        mapel: t.subject || t.mapel || t.type || '-',
+        hasChangedPassword: Boolean(t.hasChangedPassword),
+        passwordChangedAt: t.passwordChangedAt || null
       };
     });
 
@@ -87,7 +90,9 @@ export default function TabPengaturanUser(props) {
         role: role,
         division: s.division || s.divisi || '',
         subrole: s.subrole || '',
-        mapel: s.division || s.divisi || 'Staf Umum'
+        mapel: s.division || s.divisi || 'Staf Umum',
+        hasChangedPassword: Boolean(s.hasChangedPassword),
+        passwordChangedAt: s.passwordChangedAt || null
       };
     });
 
@@ -124,9 +129,14 @@ export default function TabPengaturanUser(props) {
       if (filterSource === 'guru') matchSource = user._source === 'teachers';
       if (filterSource === 'karyawan') matchSource = user._source === 'staffs';
 
-      return matchSearch && matchRole && matchSource;
+      // Password status filter
+      let matchPass = true;
+      if (filterPasswordStatus === 'changed') matchPass = Boolean(user.hasChangedPassword);
+      if (filterPasswordStatus === 'default') matchPass = !user.hasChangedPassword;
+
+      return matchSearch && matchRole && matchSource && matchPass;
     }).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'id', { sensitivity: 'base' }));
-  }, [allUsers, search, filterRole, filterSource]);
+  }, [allUsers, search, filterRole, filterSource, filterPasswordStatus]);
 
   // Statistics counts
   const stats = useMemo(() => {
@@ -259,14 +269,14 @@ export default function TabPengaturanUser(props) {
 
       if (isTeacher) {
         const nextTeachers = (teachers || []).map(t => 
-          sameText(t.code || t.id, resetModalUser.code) ? { ...t, password: nextHash } : t
+          sameText(t.code || t.id, resetModalUser.code) ? { ...t, password: nextHash, hasChangedPassword: true, passwordChangedAt: new Date().toISOString() } : t
         );
         if (setTeachers) setTeachers(nextTeachers);
         await saveDatabaseNow({ teachers: nextTeachers }, 'admin ganti password guru');
         if (syncAuthSnapshotNow) await syncAuthSnapshotNow(adminUser, nextTeachers, staffs, 'sync password change guru');
       } else {
         const nextStaffs = (staffs || []).map(s => 
-          sameText(s.code || s.staff_code || s.id, resetModalUser.code) ? { ...s, password: nextHash } : s
+          sameText(s.code || s.staff_code || s.id, resetModalUser.code) ? { ...s, password: nextHash, hasChangedPassword: true, passwordChangedAt: new Date().toISOString() } : s
         );
         if (setStaffs) setStaffs(nextStaffs);
         await saveDatabaseNow({ staffs: nextStaffs }, 'admin ganti password staff');
@@ -304,6 +314,7 @@ export default function TabPengaturanUser(props) {
           { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
           { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
           { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
           { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
         ]}
         activeTab={activeTab}
@@ -540,7 +551,7 @@ export default function TabPengaturanUser(props) {
             <UISelect
               value={filterRole}
               onChange={e => setFilterRole(e.target.value)}
-              className="text-xs w-44"
+              className="text-xs w-40"
             >
               <option value="semua">Semua Role</option>
               <option value="kepsek">Kepala Sekolah</option>
@@ -550,6 +561,17 @@ export default function TabPengaturanUser(props) {
               <option value="pembina_osis">Pembina OSIS</option>
               <option value="guru">Guru Pengajar</option>
               <option value="karyawan">Staf / Karyawan</option>
+            </UISelect>
+
+            {/* Filter Password Status */}
+            <UISelect
+              value={filterPasswordStatus}
+              onChange={e => setFilterPasswordStatus(e.target.value)}
+              className="text-xs w-40"
+            >
+              <option value="semua">Semua Status Sandi</option>
+              <option value="changed">Sudah Ganti Sandi</option>
+              <option value="default">Belum Ganti (Default)</option>
             </UISelect>
           </div>
         </div>
@@ -564,14 +586,15 @@ export default function TabPengaturanUser(props) {
                 <th className="px-4 py-2.5">Nama Pengguna</th>
                 <th className="px-3 py-2.5 text-center">Kategori</th>
                 <th className="px-4 py-2.5">Role / Hak Akses</th>
-                <th className="px-3 py-2.5 text-center">Status</th>
+                <th className="px-3 py-2.5 text-center">Status Sandi</th>
+                <th className="px-3 py-2.5 text-center">Status Akun</th>
                 <th className="px-4 py-2.5 text-right w-36">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 bg-slate-50/30">
+                  <td colSpan={8} className="py-12 text-center text-slate-400 bg-slate-50/30">
                     <Search size={32} className="mx-auto mb-2 opacity-30" />
                     <p className="font-bold">Tidak ada pengguna yang cocok</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">Coba sesuaikan kata kunci pencarian atau filter.</p>
@@ -631,6 +654,19 @@ export default function TabPengaturanUser(props) {
                           <Shield size={10} />
                           <span>{roleLabel.label || user.role}</span>
                         </span>
+                      </td>
+
+                      {/* Status Sandi Badge */}
+                      <td className="px-3 py-2.5 text-center">
+                        {user.hasChangedPassword ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                            <CheckCircle2 size={11} className="text-emerald-500" /> Sudah Ganti
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs">
+                            <AlertTriangle size={11} className="text-amber-500" /> Default
+                          </span>
+                        )}
                       </td>
 
                       {/* Status */}

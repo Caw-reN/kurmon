@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { 
-  UserCog, ShieldCheck, Key, History, Shield, Save, RotateCcw, 
+  UserCog, KeyRound, ShieldCheck, Key, History, Shield, Save, RotateCcw, 
   Search, Sparkles, AlertCircle, Plus, Trash2, CheckCircle2, 
   Eye, Edit3, XCircle, Info, Layers, Lock, Unlock, Check
 } from 'lucide-react';
@@ -426,6 +426,7 @@ export default function TabHakAkses(props) {
           { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
           { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
           { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
           { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
         ]}
         activeTab={activeTab}

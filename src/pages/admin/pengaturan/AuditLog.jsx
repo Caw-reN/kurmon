@@ -2,7 +2,7 @@ import { Button, TablePagination } from "../../../components/ui.jsx";
 import { useState, useEffect, useMemo } from "react";
 import {
   Activity, Trash2, User, Database, CheckCircle2, Edit2, LogOut, Send,
-  ShieldCheck, Key, History, Monitor, Smartphone, X, Clock, MapPin, Info
+  ShieldCheck, KeyRound, Key, History, Monitor, Smartphone, X, Clock, MapPin, Info
 } from "lucide-react";
 import useAuthStore from "../../../store/monitoring/authStore.js";
 import { Search, RefreshCw, AlertCircle } from "lucide-react";
@@ -192,7 +192,7 @@ export default function AuditLog({ activeTab, setActiveTab }) {
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
       <PageHeader title="Log Aktivitas (Audit Trail)" description="Rekam jejak semua perubahan data penting beserta IP address dan perangkat yang digunakan." icon={Activity}
-        tabs={[{ id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck }, { id: "pengaturanuser", label: "Akun Pengguna", icon: Key }, { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }]}
+        tabs={[{ id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck }, { id: "pengaturanuser", label: "Akun Pengguna", icon: Key }, { id: "status_password", label: "Log Ganti Password", icon: KeyRound }, { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }]}
         activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-[var(--ui-radius-small)] text-sm text-indigo-700">

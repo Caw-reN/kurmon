@@ -4,7 +4,7 @@ import { Clock, MessageSquare,
   LayoutDashboard, SlidersHorizontal, Users, GraduationCap,
   BookOpen, DoorOpen, Calendar, FileSpreadsheet, CalendarDays,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
-  MonitorSmartphone, UserCog, User, HardDrive,
+  MonitorSmartphone, UserCog, User, HardDrive, KeyRound,
   HelpCircle, Bell, LogOut, Wrench
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
@@ -68,6 +68,7 @@ const getTabLabel = (tabId) => {
     tampilan:"Kustomisasi Tampilan Web",
     hak_akses:"Hak Akses & Keamanan",
     pengaturanuser:"Pengaturan Pengguna",
+    status_password:"Log Status Ganti Password",
     api_keys:"Manajemen API Key",
     whatsapp:"Integrasi WhatsApp Gateway",
     gdrive_backup:"Backup Google Drive",
@@ -119,6 +120,7 @@ const getParentGroupLabel = (tabId) => {
     tampilan:"Pengaturan Sistem",
     hak_akses:"Pengaturan Sistem",
     pengaturanuser:"Pengaturan Sistem",
+    status_password:"Pengaturan Sistem",
     api_keys:"Pengaturan Sistem",
     whatsapp:"Pengaturan Sistem",
     gdrive_backup:"Pengaturan Sistem",
@@ -163,6 +165,7 @@ const getTabIcon = (tabId) => {
     tampilan: MonitorSmartphone,
     hak_akses: UserCog,
     pengaturanuser: User,
+    status_password: KeyRound,
     whatsapp: MessageSquare,
     gdrive_backup: HardDrive,
     audit_log: FileText

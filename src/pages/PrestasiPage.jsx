@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { 
-  Trophy, Award, Medal, Calendar, Building2, Search, Share2, 
-  X, CheckCircle2, GraduationCap, Crown, Globe, ChevronRight
+  Trophy, Award, Medal, Calendar, Search, Share2, 
+  X, CheckCircle2, Crown, ChevronRight
 } from 'lucide-react';
 
 export default function PrestasiPage() {
@@ -14,7 +14,7 @@ export default function PrestasiPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTingkat, setFilterTingkat] = useState("all");
   const [filterTahun, setFilterTahun] = useState("all");
-  const [sortBy, setSortBy] = useState("terbaru"); // 'terbaru' | 'terlama' | 'juara'
+  const [sortBy, setSortBy] = useState("terbaru"); // 'terbaru' | 'juara' | 'terlama'
   const [selectedPrestasi, setSelectedPrestasi] = useState(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
@@ -76,21 +76,22 @@ export default function PrestasiPage() {
     return Array.from(years).sort((a, b) => Number(b) - Number(a));
   }, [prestasiList]);
 
-  // KPI Mini Stats
+  // KPI Mini Stats (Jelas, Transparan, & Akurat)
   const stats = useMemo(() => {
     const total = prestasiList.length;
-    const nasionalIntl = prestasiList.filter(p => {
-      const tLower = String(p.tingkat || '').toLowerCase();
-      return tLower.includes('nasional') || tLower.includes('internasional');
-    }).length;
     const juaraSatu = prestasiList.filter(p => {
       const rLower = String(p.peringkat || '').toLowerCase();
       return rLower.includes('juara 1') || rLower.includes('emas') || rLower.includes('gold') || rLower.includes('pertama');
     }).length;
+    const juaraLain = Math.max(0, total - juaraSatu);
+    const nasionalIntl = prestasiList.filter(p => {
+      const tLower = String(p.tingkat || '').toLowerCase();
+      return tLower.includes('nasional') || tLower.includes('internasional');
+    }).length;
     const currentYear = new Date().getFullYear().toString();
     const tahunIni = prestasiList.filter(p => String(p.tanggal_prestasi || '').startsWith(currentYear)).length;
 
-    return { total, nasionalIntl, juaraSatu, tahunIni };
+    return { total, juaraSatu, juaraLain, nasionalIntl, tahunIni, currentYear };
   }, [prestasiList]);
 
   // Filter & Sort
@@ -107,9 +108,14 @@ export default function PrestasiPage() {
         (item.keterangan && item.keterangan.toLowerCase().includes(q))
       );
 
-      // Tingkat match
-      const matchTingkat = filterTingkat === 'all' || 
-        String(item.tingkat || '').toLowerCase() === filterTingkat.toLowerCase();
+      // Tingkat / Filter match
+      let matchTingkat = true;
+      if (filterTingkat === 'juara_1') {
+        const rLower = String(item.peringkat || '').toLowerCase();
+        matchTingkat = rLower.includes('juara 1') || rLower.includes('emas') || rLower.includes('gold') || rLower.includes('pertama');
+      } else if (filterTingkat !== 'all') {
+        matchTingkat = String(item.tingkat || '').toLowerCase() === filterTingkat.toLowerCase();
+      }
 
       // Tahun match
       const itemYear = item.tanggal_prestasi ? String(item.tanggal_prestasi).slice(0, 4) : '';
@@ -128,6 +134,7 @@ export default function PrestasiPage() {
           if (r.includes('juara 3') || r.includes('perunggu') || r.includes('bronze')) return 3;
           if (r.includes('harapan 1')) return 4;
           if (r.includes('harapan 2')) return 5;
+          if (r.includes('harapan 3')) return 6;
           return 9;
         };
         return getScore(a) - getScore(b);
@@ -137,32 +144,39 @@ export default function PrestasiPage() {
     });
   }, [prestasiList, searchQuery, filterTingkat, filterTahun, sortBy]);
 
-  // Helper for rank badge styling
+  // Helper for rank badge styling with high championship prestige ("Nilai Jual Juara")
   const getRankBadgeProps = (peringkat = '') => {
-    const p = peringkat.toLowerCase();
+    const p = String(peringkat || '').toLowerCase();
     if (p.includes('juara 1') || p.includes('emas') || p.includes('gold') || p.includes('pertama')) {
       return {
-        bg: 'bg-amber-500 text-white shadow-2xs',
+        bg: 'bg-amber-50 text-amber-800 border border-amber-200/80',
         icon: Crown,
         label: peringkat || 'Juara 1'
       };
     }
     if (p.includes('juara 2') || p.includes('perak') || p.includes('silver') || p.includes('kedua')) {
       return {
-        bg: 'bg-slate-600 text-white shadow-2xs',
+        bg: 'bg-slate-100 text-slate-700 border border-slate-200',
         icon: Medal,
         label: peringkat || 'Juara 2'
       };
     }
     if (p.includes('juara 3') || p.includes('perunggu') || p.includes('bronze') || p.includes('ketiga')) {
       return {
-        bg: 'bg-amber-700 text-white shadow-2xs',
+        bg: 'bg-orange-50 text-orange-800 border border-orange-200',
         icon: Medal,
         label: peringkat || 'Juara 3'
       };
     }
+    if (p.includes('harapan')) {
+      return {
+        bg: 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+        icon: Award,
+        label: peringkat || 'Juara Harapan'
+      };
+    }
     return {
-      bg: 'bg-slate-100 text-slate-700 border border-slate-200/80',
+      bg: 'bg-emerald-50 text-emerald-800 border border-emerald-200',
       icon: Award,
       label: peringkat || 'Penghargaan'
     };
@@ -170,20 +184,20 @@ export default function PrestasiPage() {
 
   // Helper for tingkat badge styling
   const getTingkatBadgeProps = (tingkat = '') => {
-    const tLower = tingkat.toLowerCase();
+    const tLower = String(tingkat || '').toLowerCase();
     if (tLower.includes('internasional')) {
-      return 'bg-purple-50 text-purple-700 border-purple-200/70';
+      return 'bg-purple-50 text-purple-700 border-purple-200/80';
     }
     if (tLower.includes('nasional')) {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
     }
     if (tLower.includes('provinsi')) {
-      return 'bg-sky-50 text-sky-700 border-sky-200/70';
+      return 'bg-sky-50 text-sky-700 border-sky-200/80';
     }
     if (tLower.includes('kota') || tLower.includes('kabupaten')) {
-      return 'bg-amber-50 text-amber-700 border-amber-200/70';
+      return 'bg-amber-50 text-amber-700 border-amber-200/80';
     }
-    return 'bg-slate-50 text-slate-700 border-slate-200/70';
+    return 'bg-slate-50 text-slate-700 border-slate-200/80';
   };
 
   // Format date helper
@@ -194,7 +208,7 @@ export default function PrestasiPage() {
       if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString(activeLang === 'EN' ? 'en-US' : 'id-ID', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: 'numeric'
       });
     } catch {
@@ -213,88 +227,43 @@ export default function PrestasiPage() {
     }
   };
 
-  const tingkatOptions = [
-    { value: 'all', label: t('Semua Tingkat', 'All Levels') },
-    { value: 'Internasional', label: t('Internasional', 'International') },
-    { value: 'Nasional', label: t('Nasional', 'National') },
-    { value: 'Provinsi', label: t('Provinsi', 'Provincial') },
-    { value: 'Kabupaten/Kota', label: t('Kota / Kab', 'City / District') },
-    { value: 'Sekolah', label: t('Sekolah', 'School Level') }
-  ];
-
   return (
     <div className="w-full flex flex-col gap-6 select-none animate-in fade-in duration-300 pb-16">
       
-      {/* ── HERO HEADER CARD (SEJAJAR PERSIS DENGAN NAVBAR & BEBAS DARI BOX PILL BERLEBIHAN) ── */}
-      <div className="relative overflow-hidden bg-white rounded-[var(--ui-radius-card,24px)] p-6 sm:p-8 border border-slate-200/90 shadow-2xs">
+      {/* ── HERO HEADER CARD (BERSIH, MINIMALIS, LAPANG & TIDAK PENUH) ── */}
+      <div className="relative overflow-hidden bg-white rounded-[var(--ui-radius-card,24px)] p-6 sm:p-7 border border-slate-200/90 shadow-2xs">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           
-          {/* Header Title & Subtitle (Desktop only, mobile title is in top bar) */}
-          <div className="hidden md:block max-w-2xl">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+          {/* Header Title & Subtitle */}
+          <div className="hidden md:block max-w-xl">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
               {t("Prestasi Siswa", "Student Achievements")}
             </h1>
-            
-            <p className="text-sm sm:text-base text-slate-600 font-medium mt-2 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed">
               {t(
-                `Galeri apresiasi rekam jejak capaian kejuaraan siswa-siswi ${appSettings.appName || 'Sekolah'} di tingkat kota, provinsi, nasional, hingga internasional.`,
-                `Showcase and hall of fame celebrating verified student championships and honors from city to international competitions.`
+                `Galeri apresiasi dan rekam jejak capaian kejuaraan siswa-siswi ${appSettings.appName || 'Sekolah'}.`,
+                `Showcase celebrating verified student championships and honors.`
               )}
             </p>
           </div>
 
-          {/* KPI Mini Stat Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 shrink-0">
-            {/* Stat 1: Total Prestasi */}
-            <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 mb-1" style={{ color: 'var(--ui-primary, #059669)' }}>
-                <Trophy size={16} strokeWidth={2.5} />
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                  {t("Total Prestasi", "Total Awards")}
-                </span>
-              </div>
-              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-                {stats.total} <span className="text-xs font-bold text-slate-500">{t("Kejuaraan", "Awards")}</span>
-              </span>
+          {/* KPI Stats - Bersih, Ringan, Tanpa Box Bersarang / Label Bertumpuk */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-7 pt-4 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-100 lg:pl-8 shrink-0">
+            <div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-800 leading-none">{stats.total}</div>
+              <div className="text-xs font-semibold text-slate-400 mt-1">{t("Total Prestasi", "Total Awards")}</div>
             </div>
-
-            {/* Stat 2: Juara 1 / Emas */}
-            <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 text-amber-600 mb-1">
-                <Crown size={16} strokeWidth={2.5} />
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                  {t("Juara 1 / Emas", "1st Place")}
-                </span>
-              </div>
-              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-                {stats.juaraSatu} <span className="text-xs font-bold text-slate-500">{t("Gelar", "Titles")}</span>
-              </span>
+            <div>
+              <div className="text-2xl sm:text-3xl font-black text-amber-500 leading-none">{stats.juaraSatu}</div>
+              <div className="text-xs font-semibold text-slate-400 mt-1">{t("Juara 1 (Emas)", "1st Place")}</div>
             </div>
-
-            {/* Stat 3: Nasional & Internasional */}
-            <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 text-sky-600 mb-1">
-                <Globe size={16} strokeWidth={2.5} />
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                  {t("Nasional & Intl", "National & Intl")}
-                </span>
-              </div>
-              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-                {stats.nasionalIntl} <span className="text-xs font-bold text-slate-500">{t("Ajang", "Events")}</span>
-              </span>
+            <div>
+              <div className="text-2xl sm:text-3xl font-black text-indigo-500 leading-none">{stats.juaraLain}</div>
+              <div className="text-xs font-semibold text-slate-400 mt-1">{t("Podium Lain", "Other Podiums")}</div>
             </div>
-
-            {/* Stat 4: Prestasi Tahun Ini */}
-            <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
-              <div className="flex items-center gap-1.5 text-indigo-600 mb-1">
-                <Calendar size={16} strokeWidth={2.5} />
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                  {t("Tahun Berjalan", "This Year")}
-                </span>
-              </div>
-              <span className="text-xl sm:text-2xl font-black text-slate-900 leading-none">
-                {stats.tahunIni} <span className="text-xs font-bold text-slate-500">{t("Tercatat", "Recorded")}</span>
-              </span>
+            <div>
+              <div className="text-2xl sm:text-3xl font-black text-slate-700 leading-none">{stats.tahunIni}</div>
+              <div className="text-xs font-semibold text-slate-400 mt-1">{t(`Tahun ${stats.currentYear}`, `Year ${stats.currentYear}`)}</div>
             </div>
           </div>
 
@@ -306,7 +275,6 @@ export default function PrestasiPage() {
         
         {/* Top: Search & Select Dropdowns */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 justify-between">
-          
           {/* Search Box */}
           <div className="relative flex-1">
             <Search 
@@ -337,7 +305,6 @@ export default function PrestasiPage() {
 
           {/* Dropdown Filters (Tahun & Urutan) */}
           <div className="flex items-center gap-2.5 shrink-0">
-            {/* Filter Tahun */}
             {availableYears.length > 0 && (
               <select
                 value={filterTahun}
@@ -352,7 +319,6 @@ export default function PrestasiPage() {
               </select>
             )}
 
-            {/* Sorting */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -360,15 +326,23 @@ export default function PrestasiPage() {
               title="Urutkan"
             >
               <option value="terbaru">{t("Terbaru", "Newest")}</option>
-              <option value="terlama">{t("Terlama", "Oldest")}</option>
               <option value="juara">{t("Juara Tertinggi", "Top Ranks")}</option>
+              <option value="terlama">{t("Terlama", "Oldest")}</option>
             </select>
           </div>
         </div>
 
         {/* Bottom: Tingkat Filter Segmented Control Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-1 no-scrollbar border-t border-slate-100">
-          {tingkatOptions.map(opt => {
+          {[
+            { value: 'all', label: t('Semua Tingkat', 'All Levels') },
+            { value: 'juara_1', label: t('Juara 1 (Emas)', '1st Place (Gold)'), isHighlight: true },
+            { value: 'Internasional', label: t('Internasional', 'International') },
+            { value: 'Nasional', label: t('Nasional', 'National') },
+            { value: 'Provinsi', label: t('Provinsi', 'Provincial') },
+            { value: 'Kabupaten/Kota', label: t('Kota / Kab', 'City / District') },
+            { value: 'Sekolah', label: t('Sekolah', 'School Level') }
+          ].map(opt => {
             const isActive = filterTingkat === opt.value;
             return (
               <button
@@ -379,13 +353,16 @@ export default function PrestasiPage() {
                   backgroundColor: isActive ? 'var(--ui-primary, #059669)' : undefined,
                   color: isActive ? '#ffffff' : undefined
                 }}
-                className={`h-8 px-3.5 rounded-lg text-xs font-bold shrink-0 transition-all cursor-pointer border-none ${
+                className={`h-8 px-3.5 rounded-lg text-xs font-bold shrink-0 transition-all cursor-pointer border-none flex items-center gap-1.5 ${
                   isActive
                     ? 'shadow-xs font-extrabold'
-                    : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600'
+                    : opt.isHighlight
+                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/60'
+                      : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600'
                 }`}
               >
-                {opt.label}
+                {opt.isHighlight && <Crown size={12} strokeWidth={2.5} />}
+                <span>{opt.label}</span>
               </button>
             );
           })}
@@ -393,20 +370,18 @@ export default function PrestasiPage() {
 
       </div>
 
-      {/* ── CARD GRID GALLERY OF ACHIEVEMENTS ── */}
+      {/* ── CARD GRID GALLERY: CLEAN, SIMPLE, TIDAK PENUH, DATA JUARA & NAMA JELAS TERLIHAT ── */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="bg-white rounded-[var(--ui-radius-card,24px)] p-6 border border-slate-200/80 shadow-2xs animate-pulse flex flex-col gap-4">
+            <div key={i} className="bg-white rounded-[var(--ui-radius-card,20px)] p-6 border border-slate-200/80 shadow-2xs animate-pulse flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <div className="h-5 w-24 bg-slate-100 rounded-md" />
-                <div className="h-6 w-20 bg-slate-100 rounded-md" />
+                <div className="h-6 w-24 bg-slate-100 rounded-md" />
+                <div className="h-5 w-20 bg-slate-100 rounded-md" />
               </div>
-              <div className="h-6 w-3/4 bg-slate-100 rounded-md" />
-              <div className="space-y-2 mt-2">
-                <div className="h-4 w-full bg-slate-100 rounded" />
-                <div className="h-4 w-2/3 bg-slate-100 rounded" />
-              </div>
+              <div className="h-5 w-1/2 bg-slate-100 rounded-md mt-2" />
+              <div className="h-4 w-3/4 bg-slate-100 rounded-md mt-1" />
+              <div className="h-3 w-1/3 bg-slate-100 rounded mt-3" />
             </div>
           ))}
         </div>
@@ -443,103 +418,76 @@ export default function PrestasiPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredPrestasi.map((item) => {
             const rankProps = getRankBadgeProps(item.peringkat);
-            const tingkatClass = getTingkatBadgeProps(item.tingkat);
             const RankIcon = rankProps.icon;
 
             return (
               <div 
                 key={item.id}
-                className="bg-white rounded-[var(--ui-radius-card,24px)] p-5 sm:p-6 border border-slate-200/90 shadow-2xs hover:shadow-sm hover:border-slate-300 transition-all duration-200 flex flex-col justify-between group"
+                className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all duration-200 flex flex-col justify-between group"
               >
                 <div>
-                  {/* Top Badges Row: Tingkat & Juara */}
-                  <div className="flex items-center justify-between gap-2 mb-3.5">
-                    {/* Tingkat Badge Pill */}
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-black uppercase tracking-wider border ${tingkatClass}`}>
-                      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
-                      {item.tingkat || 'Sekolah'}
-                    </span>
-
-                    {/* Juara Badge Pill */}
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black tracking-tight ${rankProps.bg}`}>
-                      <RankIcon size={13} strokeWidth={2.5} />
-                      <span>{rankProps.label}</span>
-                    </span>
-                  </div>
-
-                  {/* Competition Title */}
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-[var(--ui-primary,#059669)] transition-colors leading-snug line-clamp-2">
-                    {item.nama_prestasi}
-                  </h3>
-
-                  {/* Student Info Cardlet */}
-                  <div className="mt-4 p-3 rounded-2xl bg-slate-50/80 border border-slate-100 flex items-center gap-3">
-                    <div 
-                      className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-white shrink-0 shadow-2xs"
-                      style={{ 
-                        backgroundColor: appSettings.primaryColor || '#059669'
-                      }}
-                    >
-                      {item.nama_siswa ? item.nama_siswa.charAt(0).toUpperCase() : 'S'}
-                    </div>
-
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-xs sm:text-[13px] font-black text-slate-800 truncate">
-                        {item.nama_siswa || t("Siswa Berprestasi", "Achiever Student")}
+                  {/* 1. JUARA BADGE (Clean, Pastel, Fokus Tunggal) */}
+                  <div className="mb-3">
+                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black ${rankProps.bg}`}>
+                      <RankIcon size={13} strokeWidth={2.3} />
+                      <span className="truncate max-w-[220px]" title={rankProps.label}>
+                        {rankProps.label}
                       </span>
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 mt-0.5">
-                        <GraduationCap size={13} className="shrink-0 text-slate-400" />
-                        <span className="truncate">{item.kelas || '-'}</span>
-                        {item.jurusan && item.jurusan !== '-' && (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <span className="truncate text-slate-600">{item.jurusan}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                    </span>
                   </div>
 
-                  {/* Metadata: Penyelenggara & Tanggal */}
-                  <div className="mt-4 flex flex-col gap-2 text-xs font-medium text-slate-600">
+                  {/* 2. NAMA SISWA JUARA & KELAS */}
+                  <h3 className="text-base sm:text-lg font-black text-slate-900 group-hover:text-[var(--ui-primary,#059669)] transition-colors leading-snug truncate" title={item.nama_siswa}>
+                    {item.nama_siswa || t("Siswa Berprestasi", "Achiever Student")}
+                  </h3>
+                  {item.kelas && item.kelas !== '-' && (
+                    <p className="text-xs font-bold text-slate-400 mt-0.5">
+                      {item.kelas}{item.jurusan && item.jurusan !== '-' && !item.kelas.includes(item.jurusan) ? ` · ${item.jurusan}` : ''}
+                    </p>
+                  )}
+
+                  {/* 3. NAMA KEJUARAAN (Langsung, Tanpa Label Huruf Kapital Berlebih) */}
+                  <h4 className="text-xs sm:text-[13px] font-bold text-slate-700 mt-3 leading-snug line-clamp-2">
+                    {item.nama_prestasi}
+                  </h4>
+
+                  {/* 4. METADATA: PENYELENGGARA & TANGGAL (1 Baris Ringkas Bersih) */}
+                  <div className="mt-2.5 flex items-center gap-2 text-xs font-medium text-slate-400">
                     {item.penyelenggara && (
-                      <div className="flex items-center gap-2">
-                        <Building2 size={14} className="shrink-0 text-slate-400" />
-                        <span className="truncate font-semibold text-slate-700">{item.penyelenggara}</span>
-                      </div>
+                      <span className="truncate max-w-[180px]" title={item.penyelenggara}>{item.penyelenggara}</span>
                     )}
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} className="shrink-0 text-slate-400" />
-                      <span className="font-semibold text-slate-600">{formatDate(item.tanggal_prestasi)}</span>
-                    </div>
+                    {item.penyelenggara && item.tanggal_prestasi && <span>·</span>}
+                    {item.tanggal_prestasi && (
+                      <span className="shrink-0">{formatDate(item.tanggal_prestasi)}</span>
+                    )}
                   </div>
 
-                  {/* Keterangan Tambahan jika ada */}
+                  {/* 5. KETERANGAN (JIKA ADA) */}
                   {item.keterangan && (
-                    <p className="mt-3 text-xs text-slate-500 font-medium italic line-clamp-2 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <p className="mt-2 text-[11px] text-slate-500 font-medium italic line-clamp-2 leading-relaxed">
                       "{item.keterangan}"
                     </p>
                   )}
                 </div>
 
-                {/* Card Action Footer */}
-                <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                {/* 6. CARD ACTION FOOTER */}
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedPrestasi(item)}
                     className="flex items-center gap-1 text-xs font-bold text-[var(--ui-primary,#059669)] hover:opacity-80 transition-all cursor-pointer bg-transparent border-none p-0"
                   >
-                    <span>{t("Lihat Rincian", "View Details")}</span>
+                    <span>{t("Lihat Rincian & Piagam", "View Details & Certificate")}</span>
                     <ChevronRight size={14} strokeWidth={2.5} />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleShare(item)}
-                    className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center transition-all cursor-pointer border-none shadow-2xs"
+                    className="w-7 h-7 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-all cursor-pointer border-none"
                     title={t("Salin tautan prestasi ini", "Copy share link")}
                   >
-                    <Share2 size={13} strokeWidth={2.4} />
+                    <Share2 size={13} strokeWidth={2.2} />
                   </button>
                 </div>
 
@@ -549,71 +497,76 @@ export default function PrestasiPage() {
         </div>
       )}
 
-      {/* ── DETAIL MODAL POPUP ── */}
-      {selectedPrestasi && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card,24px)] max-w-lg w-full p-6 sm:p-7 border border-slate-200/90 shadow-xl relative animate-in zoom-in-95 duration-200 flex flex-col gap-5">
-            
-            {/* Modal Header */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div 
-                  className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-2xs shrink-0"
-                  style={{ backgroundColor: appSettings.primaryColor || '#059669' }}
-                >
-                  <Trophy size={20} strokeWidth={2.4} />
+      {/* ── DETAIL MODAL: OFFICIAL SCHOOL HONOR CERTIFICATE ── */}
+      {selectedPrestasi && (() => {
+        const modalRankProps = getRankBadgeProps(selectedPrestasi.peringkat);
+        const modalTingkatClass = getTingkatBadgeProps(selectedPrestasi.tingkat);
+        const ModalRankIcon = modalRankProps.icon;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="bg-white rounded-[var(--ui-radius-card,24px)] max-w-lg w-full p-6 sm:p-7 border border-slate-200/90 shadow-xl relative animate-in zoom-in-95 duration-200 flex flex-col gap-4">
+              
+              {/* Modal Header */}
+              <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-11 h-11 rounded-2xl flex items-center justify-center text-white shadow-2xs shrink-0"
+                    style={{ backgroundColor: appSettings.primaryColor || '#059669' }}
+                  >
+                    <Trophy size={20} strokeWidth={2.4} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 inline-flex items-center gap-1">
+                        <CheckCircle2 size={10} strokeWidth={2.5} />
+                        {t("Prestasi Terverifikasi", "Verified Champion")}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-slate-900 leading-tight mt-1">
+                      {t("Piagam Kejuaraan Siswa", "Student Honor Certificate")}
+                    </h3>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 leading-tight">
-                    {t("Rincian Prestasi", "Achievement Details")}
-                  </h3>
-                  <span className="text-[11px] font-bold text-slate-500">
-                    ID #{selectedPrestasi.id} • {t("Terverifikasi Sekolah", "School Verified")}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedPrestasi(null)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all cursor-pointer border-none shrink-0"
+                  title="Tutup"
+                >
+                  <X size={15} strokeWidth={2.5} />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="space-y-3.5 text-left">
+                {/* Badges Row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-tight ${modalRankProps.bg}`}>
+                    <ModalRankIcon size={13} strokeWidth={2.5} />
+                    <span>{modalRankProps.label}</span>
+                  </span>
+
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${modalTingkatClass}`}>
+                    <span>Tingkat {selectedPrestasi.tingkat || 'Sekolah'}</span>
                   </span>
                 </div>
-              </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedPrestasi(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all cursor-pointer border-none shrink-0"
-                title="Tutup"
-              >
-                <X size={16} strokeWidth={2.5} />
-              </button>
-            </div>
+                {/* Champion Title */}
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    {t("Nama Kejuaraan / Kompetisi", "Competition Title")}
+                  </span>
+                  <h4 className="text-base sm:text-lg font-black text-slate-900 mt-0.5 leading-snug">
+                    {selectedPrestasi.nama_prestasi}
+                  </h4>
+                </div>
 
-            {/* Modal Content */}
-            <div className="space-y-4 text-left">
-              {/* Badges */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${getTingkatBadgeProps(selectedPrestasi.tingkat)}`}>
-                  {selectedPrestasi.tingkat || 'Sekolah'}
-                </span>
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black ${getRankBadgeProps(selectedPrestasi.peringkat).bg}`}>
-                  <Award size={13} strokeWidth={2.5} />
-                  <span>{selectedPrestasi.peringkat || 'Penghargaan'}</span>
-                </span>
-              </div>
-
-              {/* Title */}
-              <div>
-                <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                  {t("Nama Kejuaraan / Kompetisi", "Competition Title")}
-                </span>
-                <h4 className="text-base sm:text-lg font-black text-slate-900 mt-0.5 leading-snug">
-                  {selectedPrestasi.nama_prestasi}
-                </h4>
-              </div>
-
-              {/* Student Profile */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  {t("Siswa Peraih Prestasi", "Honored Student")}
-                </span>
-                <div className="mt-1 flex items-center gap-3">
+                {/* Student Profile */}
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center gap-3">
                   <div 
-                    className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white shrink-0 shadow-2xs"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shrink-0 shadow-2xs"
                     style={{ backgroundColor: appSettings.primaryColor || '#059669' }}
                   >
                     {selectedPrestasi.nama_siswa ? selectedPrestasi.nama_siswa.charAt(0).toUpperCase() : 'S'}
@@ -623,70 +576,70 @@ export default function PrestasiPage() {
                       {selectedPrestasi.nama_siswa}
                     </span>
                     <span className="text-xs font-bold text-slate-500">
-                      {selectedPrestasi.kelas} {selectedPrestasi.jurusan && selectedPrestasi.jurusan !== '-' ? `• ${selectedPrestasi.jurusan}` : ''}
+                      Kelas {selectedPrestasi.kelas} {selectedPrestasi.jurusan && selectedPrestasi.jurusan !== '-' ? `• ${selectedPrestasi.jurusan}` : ''}
                     </span>
                   </div>
                 </div>
+
+                {/* Details grid */}
+                <div className="grid grid-cols-2 gap-2.5 text-xs">
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      {t("Penyelenggara", "Organizer")}
+                    </span>
+                    <span className="font-bold text-slate-800 mt-1 truncate">
+                      {selectedPrestasi.penyelenggara || '-'}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      {t("Tanggal", "Date")}
+                    </span>
+                    <span className="font-bold text-slate-800 mt-1">
+                      {formatDate(selectedPrestasi.tanggal_prestasi)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Keterangan */}
+                {selectedPrestasi.keterangan && (
+                  <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      {t("Catatan Prestasi", "Achievement Notes")}
+                    </span>
+                    <p className="text-xs font-medium text-slate-700 mt-0.5 leading-relaxed">
+                      {selectedPrestasi.keterangan}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Details grid */}
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    {t("Penyelenggara", "Organizer")}
-                  </span>
-                  <span className="font-bold text-slate-800 mt-1">
-                    {selectedPrestasi.penyelenggara || '-'}
-                  </span>
-                </div>
+              {/* Modal Actions */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleShare(selectedPrestasi)}
+                  className="h-9 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold flex items-center gap-1.5 transition-all cursor-pointer border-none shadow-2xs"
+                >
+                  <Share2 size={13} strokeWidth={2.4} />
+                  <span>{copySuccess ? t("Tautan Disalin!", "Link Copied!") : t("Bagikan", "Share")}</span>
+                </button>
 
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    {t("Tanggal", "Date")}
-                  </span>
-                  <span className="font-bold text-slate-800 mt-1">
-                    {formatDate(selectedPrestasi.tanggal_prestasi)}
-                  </span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPrestasi(null)}
+                  style={{ backgroundColor: appSettings.primaryColor || '#059669' }}
+                  className="h-9 px-5 rounded-xl text-white text-xs font-extrabold shadow-xs hover:opacity-90 transition-all cursor-pointer border-none"
+                >
+                  {t("Tutup", "Close")}
+                </button>
               </div>
 
-              {/* Keterangan */}
-              {selectedPrestasi.keterangan && (
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    {t("Keterangan Tambahan", "Notes")}
-                  </span>
-                  <p className="text-xs font-medium text-slate-700 mt-1 leading-relaxed">
-                    {selectedPrestasi.keterangan}
-                  </p>
-                </div>
-              )}
             </div>
-
-            {/* Modal Actions */}
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => handleShare(selectedPrestasi)}
-                className="h-10 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer border-none shadow-2xs"
-              >
-                <Share2 size={14} strokeWidth={2.4} />
-                <span>{copySuccess ? t("Tautan Disalin!", "Link Copied!") : t("Bagikan", "Share")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedPrestasi(null)}
-                style={{ backgroundColor: appSettings.primaryColor || '#059669' }}
-                className="h-10 px-5 rounded-xl text-white text-xs font-extrabold shadow-xs hover:opacity-90 transition-all cursor-pointer border-none"
-              >
-                {t("Tutup", "Close")}
-              </button>
-            </div>
-
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Copy Toast Alert */}
       {copySuccess && (
@@ -699,4 +652,3 @@ export default function PrestasiPage() {
     </div>
   );
 }
-
