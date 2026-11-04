@@ -1,6 +1,6 @@
 import { Button, UISelect } from '../../../components/ui.jsx';
 import React from'react';
-import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup } from'lucide-react';
+import { MonitorSmartphone, LayoutTemplate, Palette, GraduationCap, Building2, Grid, Settings, LayoutDashboard, MessageSquare, KeyRound, DatabaseBackup, Navigation, Plus, Link2, ExternalLink, Globe, HelpCircle, Eye, EyeOff, Layers, Check } from'lucide-react';
 import { compressImage } from'../../../utils/imageUtils.js';
 import { applyDocumentBranding } from '../../../utils/branding.js';
 import { Save, RotateCcw, ImageIcon, Send, Trash2, CheckCircle2, ShieldCheck, AlertTriangle } from'lucide-react';
@@ -216,6 +216,77 @@ export default function TabTampilan(props) {
     reader.readAsText(file);
   };
 
+  const [navbarPreviewLang, setNavbarPreviewLang] = React.useState('ID');
+
+  const resetNavbarDefaults = () => {
+    if (!window.confirm("Kembalikan pengaturan menu navbar ke konfigurasi standar?")) return;
+    setAppSettings(prev => ({
+      ...prev,
+      navbarShowLayanan: true,
+      navbarLabelLayanan: "Layanan",
+      navbarLabelLayananEn: "Services",
+      navbarTypeLayanan: "scroll",
+      navbarTargetLayanan: "#layanan-akademik",
+
+      navbarShowAksesAkun: true,
+      navbarLabelAksesAkun: "Akses Akun",
+      navbarLabelAksesAkunEn: "Account Access",
+      navbarTypeAksesAkun: "scroll",
+      navbarTargetAksesAkun: "#akses-akun",
+
+      navbarShowBantuan: true,
+      navbarLabelBantuan: "Bantuan",
+      navbarLabelBantuanEn: "Help",
+      navbarTypeBantuan: "modal_bantuan",
+      navbarTargetBantuan: "modal_bantuan",
+
+      navbarCustomMenus: [],
+      navbarShowLoginButton: true,
+      navbarLoginButtonText: "Masuk Akun",
+      navbarLoginButtonTextEn: "Sign In",
+      navbarShowLanguageSwitch: true,
+    }));
+    showNotification("Pengaturan menu navbar berhasil direset ke standar. Klik 'Simpan Perubahan' untuk menyimpan.", "success");
+  };
+
+  const handleAddCustomMenu = (preset = null) => {
+    const newId = `menu_${Date.now()}`;
+    const newItem = preset || {
+      id: newId,
+      label: "Menu Baru",
+      labelEn: "New Menu",
+      type: "route",
+      target: "/prestasi",
+      isVisible: true,
+      openInNewTab: false
+    };
+    const current = Array.isArray(appSettings.navbarCustomMenus) ? [...appSettings.navbarCustomMenus] : [];
+    setAppSettings(prev => ({
+      ...prev,
+      navbarCustomMenus: [...current, { ...newItem, id: newId }]
+    }));
+    showNotification("Menu kustom berhasil ditambahkan. Silakan lengkapi label dan tujuannya.", "info");
+  };
+
+  const handleUpdateCustomMenu = (id, key, value) => {
+    const current = Array.isArray(appSettings.navbarCustomMenus) ? [...appSettings.navbarCustomMenus] : [];
+    const updated = current.map(item => item.id === id ? { ...item, [key]: value } : item);
+    setAppSettings(prev => ({
+      ...prev,
+      navbarCustomMenus: updated
+    }));
+  };
+
+  const handleDeleteCustomMenu = (id) => {
+    const current = Array.isArray(appSettings.navbarCustomMenus) ? [...appSettings.navbarCustomMenus] : [];
+    const updated = current.filter(item => item.id !== id);
+    setAppSettings(prev => ({
+      ...prev,
+      navbarCustomMenus: updated
+    }));
+    showNotification("Menu kustom telah dihapus.", "info");
+  };
+
   return (
     <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300 relative z-10">
             <PageHeader 
@@ -239,6 +310,7 @@ export default function TabTampilan(props) {
                   <div className="flex flex-wrap gap-2 p-1.5 bg-slate-50 border-none rounded-[var(--ui-radius-small)] w-fit">
                     {[
                       { id:"umum", label:"Identitas Utama", icon: LayoutTemplate },
+                      { id:"navbar", label:"Menu Navbar", icon: Navigation },
                       { id:"layanan", label:"Menu Layanan", icon: Grid },
                       { id:"footer", label:"Informasi Jurusan", icon: GraduationCap },
                       { id:"mitra", label:"Mitra Kerjasama", icon: Building2 },
@@ -405,6 +477,27 @@ export default function TabTampilan(props) {
                                 <span className="text-xs font-mono font-bold text-slate-600 uppercase">{appSettings.topRibbonColor || appSettings.primaryColor || "#153f32"}</span>
                               </div>
                             </div>
+                          </div>
+
+                          {/* Quick Shortcut to Menu Navbar Tab */}
+                          <div className="p-3.5 rounded-[var(--ui-radius-card)] bg-emerald-50/70 border border-emerald-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                                <Navigation size={15} />
+                              </div>
+                              <div>
+                                <h5 className="text-xs font-bold text-slate-800">Menu Navigasi Publik (Layanan, Akses Akun, Bantuan)</h5>
+                                <p className="text-[11px] text-slate-500 font-medium">Kini dapat dikustomisasi secara terpisah: ubah nama, aksi tautan, atau sembunyikan menu.</p>
+                              </div>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              type="button" 
+                              onClick={() => setTampilanTab("navbar")}
+                              className="text-xs font-bold text-emerald-800 bg-white hover:bg-emerald-100 border-emerald-300 shrink-0 self-start sm:self-auto cursor-pointer"
+                            >
+                              Buka Tab Menu Navbar
+                            </Button>
                           </div>
 
                           <div>
@@ -646,6 +739,707 @@ export default function TabTampilan(props) {
                               })}
                             </div>
                           </div>                          
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Menu Navbar */}
+                    {tampilanTab === "navbar" && (
+                      <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                        {/* Header Box */}
+                        <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <p className="text-[11px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <Navigation size={14} className="text-[var(--ui-primary)]" />
+                                Kustomisasi Menu Navigasi Header (Navbar)
+                              </p>
+                              <p className="text-[10px] font-bold text-slate-500 mt-0.5">
+                                Atur visibilitas, teks label bilingual (ID / EN), dan tipe aksi/tautan untuk menu publik di navbar atas.
+                              </p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              type="button"
+                              onClick={resetNavbarDefaults}
+                              className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                              title="Kembalikan semua menu navbar ke setelan bawaan"
+                            >
+                              <RotateCcw size={13} />
+                              Reset Standar
+                            </Button>
+                          </div>
+
+                          {/* Live Interactive Preview Box */}
+                          <div className="rounded-[var(--ui-radius-card)] bg-white border border-slate-200/90 shadow-xs overflow-hidden">
+                            <div className="px-4 py-2.5 bg-slate-100/70 border-b border-slate-200/80 flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono flex items-center gap-1.5">
+                                <Eye size={12} className="text-emerald-600" />
+                                Pratinjau Bilah Navigasi Langsung (Live Preview)
+                              </span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-slate-400 mr-1">Bahasa Pratinjau:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setNavbarPreviewLang('ID')}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold border-none cursor-pointer transition-all ${
+                                    navbarPreviewLang === 'ID' ? 'bg-emerald-600 text-white shadow-2xs font-black' : 'bg-slate-200 text-slate-600'
+                                  }`}
+                                >
+                                  ID
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setNavbarPreviewLang('EN')}
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold border-none cursor-pointer transition-all ${
+                                    navbarPreviewLang === 'EN' ? 'bg-emerald-600 text-white shadow-2xs font-black' : 'bg-slate-200 text-slate-600'
+                                  }`}
+                                >
+                                  EN
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Simulated Top Ribbon */}
+                            <div 
+                              className="w-full text-white text-[10px] font-bold py-1.5 px-4 flex items-center justify-between transition-colors"
+                              style={{ backgroundColor: appSettings.topRibbonColor || appSettings.primaryColor || '#153f32' }}
+                            >
+                              <span className="tracking-wider uppercase font-mono font-bold truncate">
+                                {appSettings.topRibbonLeftText || (appSettings.schoolName || "SMK KARYA GUNA 2 BEKASI").toUpperCase()}
+                              </span>
+                              <span className="text-emerald-100/80 font-medium hidden sm:inline text-[10px] truncate ml-2">
+                                {appSettings.topRibbonRightText || `${navbarPreviewLang === 'EN' ? 'Academic service portal - ' : 'Portal layanan akademik - '}${appSettings.schoolName || 'SMK Karya Guna 2'}`}
+                              </span>
+                            </div>
+
+                            {/* Simulated Main Navbar */}
+                            <div className="w-full bg-white px-4 py-3 flex items-center justify-between border-b border-slate-150">
+                              {/* Logo & Brand */}
+                              <div className="flex items-center gap-2.5">
+                                <div 
+                                  className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-2xs shrink-0"
+                                  style={{ backgroundColor: appSettings.primaryColor || '#153f32' }}
+                                >
+                                  {appSettings.logoWebUrl || appSettings.logoUrl ? (
+                                    <img src={appSettings.logoWebUrl || appSettings.logoUrl} alt="Logo" className="w-5 h-5 object-contain" />
+                                  ) : (
+                                    <span>{appSettings.logoText || "2"}</span>
+                                  )}
+                                </div>
+                                <div className="flex flex-col text-left">
+                                  <div className="flex items-baseline">
+                                    <span className="text-sm font-black tracking-tight leading-none text-slate-800">
+                                      {appSettings.appName || "KG2 School"}
+                                    </span>
+                                    <span className="font-black text-sm leading-none ml-0.5 text-emerald-600">.</span>
+                                  </div>
+                                  <span className="text-[8px] font-black uppercase tracking-wider text-slate-400 leading-none font-mono mt-0.5">
+                                    {appSettings.logoSmallText || (navbarPreviewLang === 'EN' ? "ACADEMIC PORTAL" : "SISTEM INFORMASI AKADEMIK")}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Nav Menus Preview */}
+                              <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-end">
+                                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                  {/* Layanan */}
+                                  {appSettings.navbarShowLayanan !== false && (
+                                    <span className="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100/80 border border-slate-200/60 shadow-2xs">
+                                      {navbarPreviewLang === 'EN' 
+                                        ? (appSettings.navbarLabelLayananEn || 'Services')
+                                        : (appSettings.navbarLabelLayanan || 'Layanan')}
+                                    </span>
+                                  )}
+                                  {/* Akses Akun */}
+                                  {appSettings.navbarShowAksesAkun !== false && (
+                                    <span className="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100/80 border border-slate-200/60 shadow-2xs">
+                                      {navbarPreviewLang === 'EN' 
+                                        ? (appSettings.navbarLabelAksesAkunEn || 'Account Access')
+                                        : (appSettings.navbarLabelAksesAkun || 'Akses Akun')}
+                                    </span>
+                                  )}
+                                  {/* Bantuan */}
+                                  {appSettings.navbarShowBantuan !== false && (
+                                    <span className="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-700 bg-slate-100/80 border border-slate-200/60 shadow-2xs">
+                                      {navbarPreviewLang === 'EN' 
+                                        ? (appSettings.navbarLabelBantuanEn || 'Help')
+                                        : (appSettings.navbarLabelBantuan || 'Bantuan')}
+                                    </span>
+                                  )}
+                                  {/* Custom Menus */}
+                                  {Array.isArray(appSettings.navbarCustomMenus) && appSettings.navbarCustomMenus
+                                    .filter(item => item && item.isVisible !== false)
+                                    .map((item, idx) => (
+                                      <span key={item.id || idx} className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/70 shadow-2xs flex items-center gap-1">
+                                        <span>{navbarPreviewLang === 'EN' ? (item.labelEn || item.label) : (item.label || item.labelEn)}</span>
+                                        {item.type === 'external' && <ExternalLink size={10} className="text-emerald-600" />}
+                                      </span>
+                                    ))}
+                                </div>
+
+                                {/* Language Switcher Pill */}
+                                {appSettings.navbarShowLanguageSwitch !== false && (
+                                  <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-600">
+                                    <span className="px-1.5 py-0.5 rounded bg-white text-slate-800 shadow-2xs font-extrabold">ID</span>
+                                    <span className="px-1.5 py-0.5 text-slate-400">EN</span>
+                                  </div>
+                                )}
+
+                                {/* Sign In Button */}
+                                {appSettings.navbarShowLoginButton !== false && (
+                                  <button
+                                    type="button"
+                                    className="px-3.5 py-1.5 rounded-xl text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs border-none"
+                                    style={{ backgroundColor: appSettings.primaryButtonColor || appSettings.primaryColor || '#059669' }}
+                                  >
+                                    <span>
+                                      {navbarPreviewLang === 'EN' 
+                                        ? (appSettings.navbarLoginButtonTextEn || 'Sign In')
+                                        : (appSettings.navbarLoginButtonText || 'Masuk Akun')}
+                                    </span>
+                                    <ExternalLink size={11} strokeWidth={2.5} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="p-2.5 bg-slate-50/60 border-t border-slate-150 text-[10.5px] text-slate-400 flex items-center gap-1.5 font-medium">
+                              <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+                              <span>Menu yang dimatikan/disembunyikan tidak akan tampil di navbar desktop maupun menu mobile.</span>
+                            </div>
+                          </div>
+
+                          {/* Section 1: Standard Menus (Layanan, Akses Akun, Bantuan) */}
+                          <div className="space-y-3 pt-2">
+                            <div>
+                              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <Layers size={14} className="text-emerald-600" />
+                                1. Pengaturan Tiga Menu Bawaan (Default Menus)
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                Kustomisasi teks nama, visibilitas tampil/sembunyi, dan tipe tindakan saat menu diklik oleh pengguna.
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                              {/* Menu 1: Layanan */}
+                              <div className={`p-4 rounded-[var(--ui-radius-card)] border transition-all ${
+                                appSettings.navbarShowLayanan !== false ? 'bg-white border-slate-200/90 shadow-2xs' : 'bg-slate-100/60 border-dashed border-slate-300 opacity-75'
+                              }`}>
+                                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-black flex items-center justify-center">1</span>
+                                    <span className="text-xs font-black text-slate-800">Menu Layanan</span>
+                                  </div>
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={appSettings.navbarShowLayanan !== false}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarShowLayanan: e.target.checked })}
+                                      className="sr-only peer"
+                                    />
+                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                  </label>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Label Teks (Indonesia)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Layanan"
+                                      value={appSettings.navbarLabelLayanan || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLabelLayanan: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Label Teks (English)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Services"
+                                      value={appSettings.navbarLabelLayananEn || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLabelLayananEn: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Tipe Aksi Saat Diklik
+                                    </label>
+                                    <UISelect
+                                      value={appSettings.navbarTypeLayanan || "scroll"}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarTypeLayanan: e.target.value })}
+                                      className="w-full text-xs"
+                                    >
+                                      <option value="scroll">Scroll ke Bagian Halaman (Anchor #)</option>
+                                      <option value="route">Buka Halaman Internal (Router /...)</option>
+                                      <option value="external">Buka Tautan Eksternal (URL)</option>
+                                    </UISelect>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Target / Anchor / Path
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="#layanan-akademik"
+                                      value={appSettings.navbarTargetLayanan || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarTargetLayanan: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-mono font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                    <span className="text-[9.5px] text-slate-400 mt-1 block">Default: #layanan-akademik</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Menu 2: Akses Akun */}
+                              <div className={`p-4 rounded-[var(--ui-radius-card)] border transition-all ${
+                                appSettings.navbarShowAksesAkun !== false ? 'bg-white border-slate-200/90 shadow-2xs' : 'bg-slate-100/60 border-dashed border-slate-300 opacity-75'
+                              }`}>
+                                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-black flex items-center justify-center">2</span>
+                                    <span className="text-xs font-black text-slate-800">Menu Akses Akun</span>
+                                  </div>
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={appSettings.navbarShowAksesAkun !== false}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarShowAksesAkun: e.target.checked })}
+                                      className="sr-only peer"
+                                    />
+                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                  </label>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Label Teks (Indonesia)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Akses Akun"
+                                      value={appSettings.navbarLabelAksesAkun || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLabelAksesAkun: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Label Teks (English)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Account Access"
+                                      value={appSettings.navbarLabelAksesAkunEn || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLabelAksesAkunEn: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Tipe Aksi Saat Diklik
+                                    </label>
+                                    <UISelect
+                                      value={appSettings.navbarTypeAksesAkun || "scroll"}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarTypeAksesAkun: e.target.value })}
+                                      className="w-full text-xs"
+                                    >
+                                      <option value="scroll">Scroll ke Bagian Akses Akun (#akses-akun)</option>
+                                      <option value="modal_login">Buka Pop-up Dialog Masuk Akun</option>
+                                      <option value="route">Buka Halaman Internal (Router /...)</option>
+                                      <option value="external">Buka Tautan Eksternal (URL)</option>
+                                    </UISelect>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Target / Anchor / Path
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="#akses-akun"
+                                      disabled={appSettings.navbarTypeAksesAkun === 'modal_login'}
+                                      value={appSettings.navbarTypeAksesAkun === 'modal_login' ? 'Buka Dialog Masuk' : (appSettings.navbarTargetAksesAkun || "")}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarTargetAksesAkun: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-mono font-bold focus:outline-[var(--ui-primary)] shadow-xs disabled:bg-slate-100 disabled:text-slate-400"
+                                    />
+                                    <span className="text-[9.5px] text-slate-400 mt-1 block">Default: #akses-akun</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Menu 3: Bantuan */}
+                              <div className={`p-4 rounded-[var(--ui-radius-card)] border transition-all ${
+                                appSettings.navbarShowBantuan !== false ? 'bg-white border-slate-200/90 shadow-2xs' : 'bg-slate-100/60 border-dashed border-slate-300 opacity-75'
+                              }`}>
+                                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 text-[11px] font-black flex items-center justify-center">3</span>
+                                    <span className="text-xs font-black text-slate-800">Menu Bantuan</span>
+                                  </div>
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={appSettings.navbarShowBantuan !== false}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarShowBantuan: e.target.checked })}
+                                      className="sr-only peer"
+                                    />
+                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                  </label>
+                                </div>
+
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Label Teks (Indonesia)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Bantuan"
+                                      value={appSettings.navbarLabelBantuan || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLabelBantuan: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Label Teks (English)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Help"
+                                      value={appSettings.navbarLabelBantuanEn || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLabelBantuanEn: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Tipe Aksi Saat Diklik
+                                    </label>
+                                    <UISelect
+                                      value={appSettings.navbarTypeBantuan || "modal_bantuan"}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarTypeBantuan: e.target.value })}
+                                      className="w-full text-xs"
+                                    >
+                                      <option value="modal_bantuan">Buka Dialog Pop-up Pusat Bantuan</option>
+                                      <option value="wa_direct">Chat WhatsApp Admin Langsung</option>
+                                      <option value="scroll">Scroll ke Bagian Halaman (Anchor #)</option>
+                                      <option value="route">Buka Halaman Internal (Router /...)</option>
+                                      <option value="external">Buka Tautan Eksternal (URL)</option>
+                                    </UISelect>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Target / Anchor / Path
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="modal_bantuan"
+                                      disabled={appSettings.navbarTypeBantuan === 'modal_bantuan' || appSettings.navbarTypeBantuan === 'wa_direct'}
+                                      value={
+                                        appSettings.navbarTypeBantuan === 'modal_bantuan' 
+                                          ? 'Buka Pop-up Pusat Bantuan' 
+                                          : appSettings.navbarTypeBantuan === 'wa_direct'
+                                            ? 'Buka WhatsApp Otomatis'
+                                            : (appSettings.navbarTargetBantuan || "")
+                                      }
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarTargetBantuan: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-mono font-bold focus:outline-[var(--ui-primary)] shadow-xs disabled:bg-slate-100 disabled:text-slate-400"
+                                    />
+                                    <span className="text-[9.5px] text-slate-400 mt-1 block">Default: Dialog Pusat Bantuan</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Section 2: Custom Extra Menus */}
+                          <div className="space-y-3 pt-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div>
+                                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                  <Plus size={14} className="text-emerald-600" />
+                                  2. Menu Navigasi Tambahan (Kustom)
+                                </h4>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                  Tambahkan link menu baru di navbar seperti Prestasi Siswa, Jadwal, Kalender, PPDB, atau web eksternal.
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Button
+                                  variant="outline"
+                                  type="button"
+                                  onClick={() => handleAddCustomMenu({
+                                    label: "Prestasi",
+                                    labelEn: "Achievements",
+                                    type: "route",
+                                    target: "/prestasi",
+                                    isVisible: true,
+                                    openInNewTab: false
+                                  })}
+                                  className="text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 border-slate-200 shadow-2xs cursor-pointer py-1 px-2.5"
+                                >
+                                  + Prestasi Siswa
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  type="button"
+                                  onClick={() => handleAddCustomMenu({
+                                    label: "Jadwal",
+                                    labelEn: "Schedule",
+                                    type: "route",
+                                    target: "/jadwal",
+                                    isVisible: true,
+                                    openInNewTab: false
+                                  })}
+                                  className="text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 border-slate-200 shadow-2xs cursor-pointer py-1 px-2.5"
+                                >
+                                  + Jadwal
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  type="button"
+                                  onClick={() => handleAddCustomMenu({
+                                    label: "Kalender",
+                                    labelEn: "Calendar",
+                                    type: "route",
+                                    target: "/kalender",
+                                    isVisible: true,
+                                    openInNewTab: false
+                                  })}
+                                  className="text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-50 border-slate-200 shadow-2xs cursor-pointer py-1 px-2.5"
+                                >
+                                  + Kalender
+                                </Button>
+                                <Button
+                                  type="button"
+                                  onClick={() => handleAddCustomMenu()}
+                                  className="text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs cursor-pointer py-1 px-3 border-none flex items-center gap-1 rounded-[var(--ui-radius-control)]"
+                                >
+                                  <Plus size={13} strokeWidth={2.5} />
+                                  Tambah Menu
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* List of Custom Menus */}
+                            {(!Array.isArray(appSettings.navbarCustomMenus) || appSettings.navbarCustomMenus.length === 0) ? (
+                              <div className="p-6 rounded-[var(--ui-radius-card)] border border-dashed border-slate-200 bg-white text-center flex flex-col items-center justify-center">
+                                <Link2 size={24} className="text-slate-300 mb-1.5" />
+                                <p className="text-xs font-bold text-slate-600">Belum ada menu kustom tambahan</p>
+                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                  Gunakan tombol pintas di atas untuk menambahkan menu halaman internal atau link eksternal.
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {appSettings.navbarCustomMenus.map((item, idx) => (
+                                  <div 
+                                    key={item.id || idx}
+                                    className={`p-4 rounded-[var(--ui-radius-card)] border transition-all ${
+                                      item.isVisible !== false ? 'bg-white border-slate-200/90 shadow-2xs' : 'bg-slate-100/60 border-dashed border-slate-300 opacity-75'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+                                      <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-black flex items-center justify-center font-mono">
+                                          {idx + 1}
+                                        </span>
+                                        <span className="text-xs font-black text-slate-800">
+                                          {item.label || `Menu Kustom #${idx + 1}`}
+                                        </span>
+                                      </div>
+
+                                      <div className="flex items-center gap-3">
+                                        <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 select-none">
+                                          <input
+                                            type="checkbox"
+                                            checked={item.isVisible !== false}
+                                            onChange={(e) => handleUpdateCustomMenu(item.id, 'isVisible', e.target.checked)}
+                                            className="rounded text-emerald-600 focus:ring-emerald-500"
+                                          />
+                                          <span className="text-[11px] font-bold">Aktif</span>
+                                        </label>
+
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteCustomMenu(item.id)}
+                                          className="text-slate-400 hover:text-red-500 p-1 rounded hover:bg-red-50 border-none bg-transparent cursor-pointer transition-colors"
+                                          title="Hapus Menu Ini"
+                                        >
+                                          <Trash2 size={15} />
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                      <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                          Label (Indonesia)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          placeholder="Contoh: Prestasi"
+                                          value={item.label || ""}
+                                          onChange={(e) => handleUpdateCustomMenu(item.id, 'label', e.target.value)}
+                                          className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                          Label (English)
+                                        </label>
+                                        <input
+                                          type="text"
+                                          placeholder="Contoh: Achievements"
+                                          value={item.labelEn || ""}
+                                          onChange={(e) => handleUpdateCustomMenu(item.id, 'labelEn', e.target.value)}
+                                          className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                        />
+                                      </div>
+
+                                      <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                          Tipe Aksi
+                                        </label>
+                                        <UISelect
+                                          value={item.type || "route"}
+                                          onChange={(e) => handleUpdateCustomMenu(item.id, 'type', e.target.value)}
+                                          className="w-full text-xs"
+                                        >
+                                          <option value="route">Halaman Internal (Router /...)</option>
+                                          <option value="scroll">Scroll ke Bagian (Anchor #...)</option>
+                                          <option value="external">Tautan Eksternal (URL Website)</option>
+                                        </UISelect>
+                                      </div>
+
+                                      <div>
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                          Target Path / URL
+                                        </label>
+                                        <input
+                                          type="text"
+                                          placeholder={item.type === 'external' ? 'https://...' : item.type === 'scroll' ? '#section-id' : '/path'}
+                                          value={item.target || ""}
+                                          onChange={(e) => handleUpdateCustomMenu(item.id, 'target', e.target.value)}
+                                          className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-mono font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    {item.type === 'external' && (
+                                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center gap-2">
+                                        <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-slate-600 select-none">
+                                          <input
+                                            type="checkbox"
+                                            checked={item.openInNewTab !== false}
+                                            onChange={(e) => handleUpdateCustomMenu(item.id, 'openInNewTab', e.target.checked)}
+                                            className="rounded text-emerald-600 focus:ring-emerald-500"
+                                          />
+                                          <span className="text-[11px] text-slate-500 font-medium">Buka tautan di tab browser baru (target="_blank")</span>
+                                        </label>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Section 3: Right-Side Controls (Sign In Button & Language Switcher) */}
+                          <div className="space-y-3 pt-3">
+                            <div>
+                              <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                <Globe size={14} className="text-emerald-600" />
+                                3. Tombol Masuk Akun & Pengalih Bahasa
+                              </h4>
+                              <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                Atur tampilan tombol aksi portal kanan dan pengalih bahasa ID / EN.
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Tombol Masuk Akun */}
+                              <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/90 shadow-2xs space-y-3">
+                                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                  <span className="text-xs font-black text-slate-800">Tombol Masuk Akun</span>
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={appSettings.navbarShowLoginButton !== false}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarShowLoginButton: e.target.checked })}
+                                      className="sr-only peer"
+                                    />
+                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                  </label>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Teks Tombol (ID)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Masuk Akun"
+                                      value={appSettings.navbarLoginButtonText || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLoginButtonText: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                      Teks Tombol (EN)
+                                    </label>
+                                    <input
+                                      type="text"
+                                      placeholder="Sign In"
+                                      value={appSettings.navbarLoginButtonTextEn || ""}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarLoginButtonTextEn: e.target.value })}
+                                      className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Pengalih Bahasa */}
+                              <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/90 shadow-2xs space-y-3">
+                                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                  <span className="text-xs font-black text-slate-800">Pengalih Bahasa (ID / EN)</span>
+                                  <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={appSettings.navbarShowLanguageSwitch !== false}
+                                      onChange={(e) => setAppSettings({ ...appSettings, navbarShowLanguageSwitch: e.target.checked })}
+                                      className="sr-only peer"
+                                    />
+                                    <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                  </label>
+                                </div>
+                                <p className="text-[11px] text-slate-500 font-medium">
+                                  Aktifkan tombol kontrol segmented untuk beralih antara Bahasa Indonesia dan English secara instan pada header navbar.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

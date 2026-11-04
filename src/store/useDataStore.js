@@ -17,6 +17,30 @@ const defaultAppSettings = {
   syncInterval: 300000,
   academicYear: "2023/2024",
   semester: "Ganjil",
+  // Navbar Menus Configuration
+  navbarShowLayanan: true,
+  navbarLabelLayanan: "Layanan",
+  navbarLabelLayananEn: "Services",
+  navbarTypeLayanan: "scroll",
+  navbarTargetLayanan: "#layanan-akademik",
+
+  navbarShowAksesAkun: true,
+  navbarLabelAksesAkun: "Akses Akun",
+  navbarLabelAksesAkunEn: "Account Access",
+  navbarTypeAksesAkun: "scroll",
+  navbarTargetAksesAkun: "#akses-akun",
+
+  navbarShowBantuan: true,
+  navbarLabelBantuan: "Bantuan",
+  navbarLabelBantuanEn: "Help",
+  navbarTypeBantuan: "modal_bantuan",
+  navbarTargetBantuan: "modal_bantuan",
+
+  navbarCustomMenus: [],
+  navbarShowLoginButton: true,
+  navbarLoginButtonText: "Masuk Akun",
+  navbarLoginButtonTextEn: "Sign In",
+  navbarShowLanguageSwitch: true,
   maintenance: {
     isActive: false,
     title: "Sistem Sedang Dalam Pemeliharaan",

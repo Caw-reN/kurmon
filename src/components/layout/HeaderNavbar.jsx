@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen, ArrowUpRight } from 'lucide-react';
+import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen, ArrowUpRight, ExternalLink } from 'lucide-react';
 
 
 export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolProfile, onPanduanClick }) {
@@ -161,6 +161,127 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
     setMobileMenuOpen(false);
   };
 
+  // Dynamic Navbar Menus Configuration from appSettings
+  const showLayanan = appSettings?.navbarShowLayanan !== false;
+  const labelLayanan = (activeLang === 'EN' && appSettings?.navbarLabelLayananEn)
+    ? appSettings.navbarLabelLayananEn
+    : (appSettings?.navbarLabelLayanan || t('Layanan', 'Services'));
+  const typeLayanan = appSettings?.navbarTypeLayanan || 'scroll';
+  const targetLayanan = appSettings?.navbarTargetLayanan || '#layanan-akademik';
+
+  const showAksesAkun = appSettings?.navbarShowAksesAkun !== false;
+  const labelAksesAkun = (activeLang === 'EN' && appSettings?.navbarLabelAksesAkunEn)
+    ? appSettings.navbarLabelAksesAkunEn
+    : (appSettings?.navbarLabelAksesAkun || t('Akses Akun', 'Account Access'));
+  const typeAksesAkun = appSettings?.navbarTypeAksesAkun || 'scroll';
+  const targetAksesAkun = appSettings?.navbarTargetAksesAkun || '#akses-akun';
+
+  const showBantuan = appSettings?.navbarShowBantuan !== false;
+  const labelBantuan = (activeLang === 'EN' && appSettings?.navbarLabelBantuanEn)
+    ? appSettings.navbarLabelBantuanEn
+    : (appSettings?.navbarLabelBantuan || t('Bantuan', 'Help'));
+  const typeBantuan = appSettings?.navbarTypeBantuan || 'modal_bantuan';
+  const targetBantuan = appSettings?.navbarTargetBantuan || 'modal_bantuan';
+
+  const customMenus = Array.isArray(appSettings?.navbarCustomMenus) ? appSettings.navbarCustomMenus : [];
+
+  const showLoginBtn = appSettings?.navbarShowLoginButton !== false;
+  const loginBtnText = (activeLang === 'EN' && appSettings?.navbarLoginButtonTextEn)
+    ? appSettings.navbarLoginButtonTextEn
+    : (appSettings?.navbarLoginButtonText || t('Masuk Akun', 'Sign In'));
+
+  const showLangSwitch = appSettings?.navbarShowLanguageSwitch !== false;
+
+  // Unified list of active navigation menu items
+  const navMenus = [
+    showLayanan && {
+      id: 'default_layanan',
+      label: labelLayanan,
+      type: typeLayanan,
+      target: targetLayanan,
+    },
+    showAksesAkun && {
+      id: 'default_akses_akun',
+      label: labelAksesAkun,
+      type: typeAksesAkun,
+      target: targetAksesAkun,
+    },
+    showBantuan && {
+      id: 'default_bantuan',
+      label: labelBantuan,
+      type: typeBantuan,
+      target: targetBantuan,
+    },
+    ...customMenus
+      .filter((item) => item && item.isVisible !== false && (item.label || item.labelEn))
+      .map((item, idx) => ({
+        id: item.id || `custom_nav_${idx}`,
+        label: (activeLang === 'EN' && item.labelEn) ? item.labelEn : (item.label || 'Menu'),
+        type: item.type || (item.target?.startsWith('http') ? 'external' : item.target?.startsWith('/') ? 'route' : 'scroll'),
+        target: item.target || '#',
+        openInNewTab: item.openInNewTab,
+      }))
+  ].filter(Boolean);
+
+  const handleMenuItemClick = (menuItem, e) => {
+    e?.preventDefault?.();
+    setMobileMenuOpen(false);
+    if (!menuItem) return;
+
+    const { type, target, openInNewTab } = menuItem;
+
+    if (type === 'modal_bantuan') {
+      setIsBantuanOpen(true);
+      return;
+    }
+    if (type === 'modal_login') {
+      if (setIsLoginModalOpen) setIsLoginModalOpen(true);
+      return;
+    }
+    if (type === 'wa_direct') {
+      window.open(getWaLink(), '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (type === 'external' || /^https?:\/\//i.test(target)) {
+      const url = getAbsoluteUrl(target);
+      if (openInNewTab !== false) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        window.location.href = url;
+      }
+      return;
+    }
+    if (type === 'route' || (target && target.startsWith('/'))) {
+      navigate(target);
+      return;
+    }
+    if (type === 'scroll' || (target && target.startsWith('#'))) {
+      const elementId = (target || '').replace(/^#/, '');
+      if (location.pathname !== '/') {
+        navigate(`/#${elementId}`);
+        setTimeout(() => {
+          document.getElementById(elementId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+      } else {
+        const el = document.getElementById(elementId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (elementId === 'akses-akun' && setIsLoginModalOpen) {
+          setIsLoginModalOpen(true);
+        }
+      }
+      return;
+    }
+
+    // Generic fallback
+    if (target?.startsWith('#')) {
+      const elId = target.replace(/^#/, '');
+      document.getElementById(elId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (target) {
+      navigate(target);
+    }
+  };
+
   return (
     <>
       <header role="banner" className="landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col shadow-xs select-none">
@@ -221,115 +342,111 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
 
             {/* Kanan: Navigasi Menu, Ganti Bahasa, dan Tombol Masuk Akun (Desktop) */}
             <div className="hidden md:flex items-center gap-7 lg:gap-8">
-              <nav className="flex items-center gap-6 lg:gap-7 font-sans">
-                <button
-                  type="button"
-                  onClick={scrollToLayanan}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)]"
-                  style={{ color: '#334155' }}
-                >
-                  {t('Layanan', 'Services')}
-                </button>
-                <button
-                  type="button"
-                  onClick={scrollToAksesAkun}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)]"
-                  style={{ color: '#334155' }}
-                >
-                  {t('Akses Akun', 'Account Access')}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleOpenBantuan}
-                  className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)]"
-                  style={{ color: '#334155' }}
-                >
-                  {t('Bantuan', 'Help')}
-                </button>
-              </nav>
+              {navMenus.length > 0 && (
+                <nav className="flex items-center gap-6 lg:gap-7 font-sans">
+                  {navMenus.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={(e) => handleMenuItemClick(item, e)}
+                      className="text-xs lg:text-[13.5px] font-bold transition-colors cursor-pointer bg-transparent border-none p-0 hover:text-[var(--ui-primary)] flex items-center gap-1.5"
+                      style={{ color: '#334155' }}
+                    >
+                      <span>{item.label}</span>
+                      {item.type === 'external' && <ExternalLink size={12} className="text-slate-400" />}
+                    </button>
+                  ))}
+                </nav>
+              )}
 
               {/* Improved Language Switcher (Segmented Control dengan Radius Serasi) */}
-              <div 
-                className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs"
-                style={{ borderRadius: '12px' }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActiveLang('ID')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border-none ${
-                    activeLang === 'ID'
-                      ? 'bg-white shadow-2xs font-extrabold'
-                      : 'bg-transparent hover:text-slate-900 font-semibold'
-                  }`}
-                  style={{
-                    borderRadius: '8px',
-                    color: activeLang === 'ID' ? '#0f172a' : '#64748b'
-                  }}
-                  title="Bahasa Indonesia"
+              {showLangSwitch && (
+                <div 
+                  className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs"
+                  style={{ borderRadius: '12px' }}
                 >
-                  <IndoFlagMini />
-                  <span>ID</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveLang('EN')}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border-none ${
-                    activeLang === 'EN'
-                      ? 'bg-white shadow-2xs font-extrabold'
-                      : 'bg-transparent hover:text-slate-900 font-semibold'
-                  }`}
-                  style={{
-                    borderRadius: '8px',
-                    color: activeLang === 'EN' ? '#0f172a' : '#64748b'
-                  }}
-                  title="English"
-                >
-                  <UKFlagMini />
-                  <span>EN</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveLang('ID')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border-none ${
+                      activeLang === 'ID'
+                        ? 'bg-white shadow-2xs font-extrabold'
+                        : 'bg-transparent hover:text-slate-900 font-semibold'
+                    }`}
+                    style={{
+                      borderRadius: '8px',
+                      color: activeLang === 'ID' ? '#0f172a' : '#64748b'
+                    }}
+                    title="Bahasa Indonesia"
+                  >
+                    <IndoFlagMini />
+                    <span>ID</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveLang('EN')}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border-none ${
+                      activeLang === 'EN'
+                        ? 'bg-white shadow-2xs font-extrabold'
+                        : 'bg-transparent hover:text-slate-900 font-semibold'
+                    }`}
+                    style={{
+                      borderRadius: '8px',
+                      color: activeLang === 'EN' ? '#0f172a' : '#64748b'
+                    }}
+                    title="English"
+                  >
+                    <UKFlagMini />
+                    <span>EN</span>
+                  </button>
+                </div>
+              )}
 
               {/* Tombol Masuk Akun */}
-              <button
-                type="button"
-                onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
-                className="rounded-xl text-white text-xs lg:text-sm font-bold flex items-center gap-2 px-5 py-2.5 shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer border-none"
-                style={{ backgroundColor: primaryButtonColor, color: '#ffffff' }}
-                title={t("Buka Portal & Masuk Akun", "Open Portal & Sign In")}
-              >
-                <span>{t("Masuk Akun", "Sign In")}</span>
-                <ArrowUpRight size={15} strokeWidth={2.6} />
-              </button>
+              {showLoginBtn && (
+                <button
+                  type="button"
+                  onClick={() => setIsLoginModalOpen && setIsLoginModalOpen(true)}
+                  className="rounded-xl text-white text-xs lg:text-sm font-bold flex items-center gap-2 px-5 py-2.5 shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-95 transition-all cursor-pointer border-none"
+                  style={{ backgroundColor: primaryButtonColor, color: '#ffffff' }}
+                  title={t("Buka Portal & Masuk Akun", "Open Portal & Sign In")}
+                >
+                  <span>{loginBtnText}</span>
+                  <ArrowUpRight size={15} strokeWidth={2.6} />
+                </button>
+              )}
             </div>
 
             {/* Hamburger Menu Button (Mobile) */}
             <div className="flex items-center gap-2.5 md:hidden">
               {/* Quick Language Toggle */}
-              <div 
-                className="inline-flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200/80"
-                style={{ borderRadius: '10px' }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActiveLang('ID')}
-                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border-none cursor-pointer ${
-                    activeLang === 'ID' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
-                  }`}
-                  style={{ borderRadius: '7px' }}
+              {showLangSwitch && (
+                <div 
+                  className="inline-flex items-center p-0.5 rounded-xl bg-slate-100 border border-slate-200/80"
+                  style={{ borderRadius: '10px' }}
                 >
-                  ID
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveLang('EN')}
-                  className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border-none cursor-pointer ${
-                    activeLang === 'EN' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
-                  }`}
-                  style={{ borderRadius: '7px' }}
-                >
-                  EN
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveLang('ID')}
+                    className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border-none cursor-pointer ${
+                      activeLang === 'ID' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
+                    }`}
+                    style={{ borderRadius: '7px' }}
+                  >
+                    ID
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveLang('EN')}
+                    className={`px-2 py-0.5 rounded-lg text-[10.5px] font-bold border-none cursor-pointer ${
+                      activeLang === 'EN' ? 'bg-white text-slate-900 shadow-2xs font-black' : 'bg-transparent text-slate-400'
+                    }`}
+                    style={{ borderRadius: '7px' }}
+                  >
+                    EN
+                  </button>
+                </div>
+              )}
               
               <button
                 type="button"
@@ -349,46 +466,38 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
           className="md:hidden fixed top-[110px] left-4 right-4 bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl z-40 flex flex-col p-5 gap-4 animate-in slide-in-from-top-2 duration-200 shadow-lg text-left"
         >
           <nav className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={scrollToLayanan}
-              className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
-            >
-              {t('Layanan', 'Services')}
-            </button>
-            <button
-              type="button"
-              onClick={scrollToAksesAkun}
-              className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
-            >
-              {t('Akses Akun', 'Account Access')}
-            </button>
-            <button
-              type="button"
-              onClick={handleOpenBantuan}
-              className="text-sm font-bold text-slate-800 hover:text-emerald-800 p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent"
-            >
-              {t('Bantuan', 'Help')}
-            </button>
+            {navMenus.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={(e) => handleMenuItemClick(item, e)}
+                className="text-sm font-bold text-slate-800 hover:text-[var(--ui-primary)] p-2.5 rounded-xl hover:bg-slate-50 text-left cursor-pointer border-none bg-transparent flex items-center justify-between"
+              >
+                <span>{item.label}</span>
+                {item.type === 'external' && <ExternalLink size={14} className="text-slate-400" />}
+              </button>
+            ))}
           </nav>
           
-          <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 font-mono">
-              {t('Portal & Akses', 'Portal & Access')}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (setIsLoginModalOpen) setIsLoginModalOpen(true);
-              }}
-              className="flex items-center gap-2 rounded-xl text-xs font-bold text-white px-4 py-2.5 cursor-pointer border-none shadow-xs"
-              style={{ backgroundColor: primaryButtonColor }}
-            >
-              <span>{t('Masuk Akun', 'Sign In')}</span>
-              <ArrowUpRight size={14} strokeWidth={2.6} />
-            </button>
-          </div>
+          {showLoginBtn && (
+            <div className="border-t border-slate-100 pt-3 flex items-center justify-between">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 font-mono">
+                {t('Portal & Akses', 'Portal & Access')}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (setIsLoginModalOpen) setIsLoginModalOpen(true);
+                }}
+                className="flex items-center gap-2 rounded-xl text-xs font-bold text-white px-4 py-2.5 cursor-pointer border-none shadow-xs"
+                style={{ backgroundColor: primaryButtonColor }}
+              >
+                <span>{loginBtnText}</span>
+                <ArrowUpRight size={14} strokeWidth={2.6} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
