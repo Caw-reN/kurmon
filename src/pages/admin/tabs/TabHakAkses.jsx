@@ -49,6 +49,7 @@ const ALL_TABS_METADATA = {
   absensi: { label: 'Jadwal & Sesi Absensi', desc: 'Pengaturan sesi jadwal absensi' },
   absensiguru: { label: 'Absen Mandiri Guru (KBM)', desc: 'Absensi mandiri guru di lokasi sekolah' },
   kedisiplinan_absensi: { label: 'Izin & Sakit Siswa', desc: 'Pengajuan & persetujuan surat izin, sakit, dan dispensasi siswa' },
+  keterangan_massal: { label: 'Keterangan Massal Siswa', desc: 'Input keterangan izin, sakit, atau dispensasi serentak per rombel' },
   hikvision_report_siswa: { label: 'Presensi Siswa', desc: 'Rekap matriks presensi harian per kelas' },
   hikvision_report_guru: { label: 'Presensi Guru & Staf', desc: 'Matriks kehadiran mesin/GPS guru dan karyawan' },
   laporan_absensi: { label: 'Rekap Laporan Kehadiran', desc: 'Laporan kehadiran guru dan karyawan per bulan/semester' },
@@ -77,7 +78,7 @@ const PERMISSION_GROUPS = [
   { key: 'kedisiplinan', label: 'Kedisiplinan & Piket', color: 'bg-rose-500', tabs: ['kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report'] },
   { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate', 'ketersediaan', 'beban'] },
   { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian'] },
-  { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'hikvision_report_siswa', 'hikvision_report_guru', 'laporan_absensi'] },
+  { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'hikvision_report_guru', 'laporan_absensi'] },
   { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'esurat', 'kartu_pelajar'] },
   { key: 'pkl', label: 'Prakerin (PKL / Hubin)', color: 'bg-purple-500', tabs: ['pkl_dashboard', 'pkl_data_siswa', 'pkl_data_perusahaan', 'pkl_penugasan', 'pkl_administrasi', 'pkl_jurnal', 'pkl_laporan', 'pkl_absensi_setting'] }
 ];
@@ -315,7 +316,7 @@ export default function TabHakAkses(props) {
       const editList = [
         'dashboard', 'pesan', 'siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk',
         'kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report',
-        'absensi', 'absensiguru', 'kedisiplinan_absensi'
+        'absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'laporan_absensi'
       ];
       editList.forEach(t => { next[t] = 'edit'; });
       showNotification('Preset Waka Kesiswaan (Akses Full Kesiswaan) diterapkan.', 'info');

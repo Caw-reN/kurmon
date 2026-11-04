@@ -58,10 +58,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_absensi: "otomatis", jurnal_harian: "otomatis",
     ketersediaan: "otomatis", absensi: "nonaktif", modul_ajar: "otomatis",
     beban: "otomatis", pesan: "otomatis",
-    // [AUDIT-FIX] walikelas perlu akses rekap jurnal kelasnya sendiri
     rekap_jurnal_kelas: "otomatis",
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
-    hikvision_report_siswa: "otomatis"
+    hikvision_report_siswa: "otomatis",
+    keterangan_massal: "otomatis",
+    riwayat_prestasi: "view",
+    siswa: "view",
+    laporan_absensi: "view"
   },
 
   // ─── KARYAWAN & TU ──────────────────────────────────────────────────────────
@@ -129,8 +132,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
     riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
-    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view",
-    // [AUDIT-FIX] waka_kesiswaan perlu akses keterangan massal absensi
+    siswa: "otomatis", laporan_absensi: "otomatis", hikvision_report_siswa: "otomatis",
     keterangan_massal: "otomatis",
   },
   waka_sarpras: {
@@ -155,13 +157,13 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
     catatan_walikelas: "view", walas_report: "view", hikvision_report_siswa: "otomatis",
-    // [AUDIT-FIX] BK/BPBK perlu akses keterangan massal absensi + tatib_skor untuk monitoring
-    keterangan_massal: "view", tatib_skor: "view",
+    keterangan_massal: "otomatis", tatib_skor: "view", siswa_keluar: "view", kedisiplinan_piket: "view",
   },
   pembina_osis: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", riwayat_prestasi: "otomatis",
     akademik: "view", siswa: "view", absensiguru: "otomatis",
-    jurnal_harian: "otomatis", modul_ajar: "otomatis", pesan: "view"
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", pesan: "view",
+    tatib_skor: "view", hikvision_report_siswa: "view", keterangan_massal: "view",
   },
   sekretaris_osis: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", riwayat_prestasi: "view", akademik: "view",
@@ -169,17 +171,20 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   },
   sekretaris_kesiswaan: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis",
-    // [AUDIT-FIX] sekretaris_kesiswaan: 'absensi' (PKL siswa) tidak sesuai peran → ubah ke nonaktif
     absensi: "nonaktif", kedisiplinan_piket: "otomatis",
     kedisiplinan_absensi: "otomatis", catatan_walikelas: "view",
-    riwayat_prestasi: "otomatis", siswa: "view", absensiguru: "otomatis",
+    riwayat_prestasi: "otomatis", siswa: "otomatis", absensiguru: "otomatis",
     jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
-    keterangan_massal: "view",
+    keterangan_massal: "otomatis", tatib_skor: "otomatis", siswa_keluar: "view",
+    hikvision_report_siswa: "otomatis", laporan_absensi: "view", walas_report: "view",
   },
   anggota_kesiswaan: { ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", kedisiplinan_piket: "otomatis", kedisiplinan_absensi: "otomatis",
     riwayat_prestasi: "view", absensiguru: "otomatis",
-    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view"
+    jurnal_harian: "otomatis", modul_ajar: "otomatis", akademik: "view", pesan: "view",
+    tatib_skor: "otomatis", keterangan_massal: "otomatis", hikvision_report_siswa: "otomatis",
+    siswa: "view", siswa_keluar: "view", catatan_walikelas: "view", walas_report: "view",
+    laporan_absensi: "view",
   },
 
   // ─── TIM KURIKULUM ──────────────────────────────────────────────────────────
@@ -235,8 +240,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_piket: "otomatis", kedisiplinan_bpbk: "otomatis",
     riwayat_prestasi: "otomatis", walas_report: "otomatis", catatan_walikelas: "otomatis",
     siswa_keluar: "otomatis", tatib_skor: "otomatis", kedisiplinan_absensi: "otomatis",
-    siswa: "otomatis", laporan_absensi: "nonaktif", hikvision_report_siswa: "view",
-    // [AUDIT-FIX] kesiswaan alias - sama dengan waka_kesiswaan, tambah keterangan massal
+    siswa: "otomatis", laporan_absensi: "otomatis", hikvision_report_siswa: "otomatis",
     keterangan_massal: "otomatis",
   },
   kurikulum: {

@@ -148,7 +148,14 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
         "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
       ];
-      if ((roleKey === "waka" && division === "kesiswaan") || roleKey === "kesiswaan" || roleKey === "waka_kesiswaan" || currentUser?.subrole === "waka_kesiswaan") {
+      const isKesiswaanLeaderOrTeam = (
+        (roleKey === "waka" && division === "kesiswaan") ||
+        roleKey === "kesiswaan" ||
+        roleKey === "waka_kesiswaan" ||
+        ["waka_kesiswaan", "sekretaris_kesiswaan", "anggota_kesiswaan", "pembina_osis"].includes(currentUser?.subrole) ||
+        (roleKey === "guru" && division === "kesiswaan")
+      );
+      if (isKesiswaanLeaderOrTeam) {
         if (kesiswaanTabs.includes(tabKey)) return false;
       }
 
@@ -172,7 +179,14 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         const subrole = (currentUser?.subrole || "").toLowerCase().trim();
         const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
           div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
-        const isKesiswaan = (role === 'waka' && div === 'kesiswaan') || role === 'kesiswaan' || role === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' || subrole === 'sekretaris_kesiswaan';
+        const isKesiswaan = (
+          (role === 'waka' && div === 'kesiswaan') ||
+          role === 'kesiswaan' ||
+          role === 'waka_kesiswaan' ||
+          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis'].includes(subrole) ||
+          (role === 'guru' && div === 'kesiswaan') ||
+          div === 'kesiswaan'
+        );
         if (isBK || isKesiswaan || role === "admin" || role === "superadmin" || role === "kepsek") return true;
         return false;
       }
@@ -264,8 +278,8 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           }
           return false;
         }
-        if (roleKey ==="waka_kesiswaan" || roleKey ==="kesiswaan") {
-          const defaultKesiswaanTabs = ["catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","hikvision_report_siswa","siswa"];
+        if (roleKey === "waka_kesiswaan" || roleKey === "kesiswaan" || ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis'].includes(currentUser?.subrole) || (roleKey === 'guru' && division === 'kesiswaan')) {
+          const defaultKesiswaanTabs = ["catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","keterangan_massal","riwayat_prestasi","kedisiplinan_bpbk","kedisiplinan_piket","hikvision_report_siswa","siswa"];
           if (defaultKesiswaanTabs.includes(activeTab) && (level === undefined || level ==="otomatis" || level ==="edit" || level ==="view")) return true;
         }
         if (roleKey ==="waka_kurikulum" || roleKey ==="kurikulum") {

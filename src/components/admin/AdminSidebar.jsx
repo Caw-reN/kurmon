@@ -2,7 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
-  LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText
+  LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
+  CheckCircle2, FileSpreadsheet
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
@@ -197,6 +198,8 @@ export default function AdminSidebar({
         <SidebarSection label="LAPORAN" />
         {renderNavItem({ id: 'hikvision_report_guru', icon: FileText, label: 'Absensi Guru' })}
         {renderNavItem({ id: 'hikvision_report_siswa', icon: FileText, label: 'Absensi Siswa' })}
+        {renderNavItem({ id: 'kedisiplinan_absensi', icon: CheckCircle2, label: 'Izin & Sakit Siswa' })}
+        {renderNavItem({ id: 'keterangan_massal', icon: FileSpreadsheet, label: 'Keterangan Massal' })}
 
         {/* LOG AKTIVITAS */}
         <SidebarSection label="AKTIVITAS" />
