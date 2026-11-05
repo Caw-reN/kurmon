@@ -13,6 +13,7 @@ import { DEFAULT_ROLE_PERMISSIONS } from '../../../store/useAppStore.js';
 const ALL_TABS_METADATA = {
   // Utama & Dashboard
   dashboard: { label: 'Dashboard Utama', desc: 'Ringkasan data, statistik kehadiran, dan grafik sekolah' },
+  akademik: { label: 'Kalender Pendidikan', desc: 'Kalender akademik, agenda kegiatan, dan hari libur sekolah' },
   pesan: { label: 'Pusat Pesan & Pengumuman', desc: 'Membuat dan membaca pengumuman sekolah' },
   tampilan: { label: 'Tampilan Web & Landing Page', desc: 'Pengaturan tema, logo, sambutan kepsek, dan landing page' },
 
@@ -42,8 +43,9 @@ const ALL_TABS_METADATA = {
 
   // Silabus & Mengajar
   silabus: { label: 'Silabus Akademik (Waka Kurikulum)', desc: 'Monitoring capaian silabus seluruh mata pelajaran' },
-  silabusguru: { label: 'Silabus & Perangkat Guru', desc: 'Upload RPP & silabus mengajar oleh masing-masing guru' },
-  modul_ajar: { label: 'Modul Ajar (RPP)', desc: 'Pengaturan modul ajar terintegrasi' },
+  silabusguru: { label: 'Modul Saya (Upload Guru)', desc: 'Upload mandiri modul ajar dan silabus oleh masing-masing guru' },
+  rpp_guru: { label: 'Silabus & Perangkat Guru', desc: 'Arsip terintegrasi silabus dan perangkat ajar KBM guru' },
+  modul_ajar: { label: 'Perangkat Ajar (RPP)', desc: 'Pengaturan modul ajar terintegrasi' },
   jurnal_harian: { label: 'Jurnal Harian KBM', desc: 'Pengisian absensi kelas dan materi ajar per jam tatap muka' },
   rekap_jurnal_kelas: { label: 'Rekap Jurnal Kelas', desc: 'Rekap agenda mengajar harian guru per kelas' },
 
@@ -76,11 +78,11 @@ const ALL_TABS_METADATA = {
 
 // ─── KELOMPOK PERMISSION ──────────────────────────────────────────────────────
 const PERMISSION_GROUPS = [
-  { key: 'utama', label: 'Utama & Dashboard', color: 'bg-indigo-500', tabs: ['dashboard', 'pesan', 'tampilan'] },
+  { key: 'utama', label: 'Utama & Dashboard', color: 'bg-indigo-500', tabs: ['dashboard', 'akademik', 'pesan', 'tampilan'] },
   { key: 'siswa', label: 'Siswa & Bimbingan', color: 'bg-emerald-500', tabs: ['siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk', 'kedisiplinan_hub'] },
   { key: 'kedisiplinan', label: 'Kedisiplinan & Piket', color: 'bg-rose-500', tabs: ['kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report'] },
   { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate', 'ketersediaan', 'beban'] },
-  { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian', 'rekap_jurnal_kelas'] },
+  { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'rpp_guru', 'modul_ajar', 'jurnal_harian', 'rekap_jurnal_kelas'] },
   { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'hikvision_report_guru', 'laporan_absensi'] },
   { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'fasilitas', 'esurat', 'kartu_pelajar'] },
   { key: 'pkl', label: 'Prakerin (PKL / Hubin)', color: 'bg-purple-500', tabs: ['pkl_dashboard', 'pkl_data_siswa', 'pkl_data_perusahaan', 'pkl_penugasan', 'pkl_administrasi', 'pkl_jurnal', 'pkl_laporan', 'pkl_absensi_setting'] }
@@ -104,6 +106,7 @@ const ROLE_GROUPS = [
       { key: 'waka_kesiswaan', label: 'Waka Kesiswaan', desc: 'Tatib, absensi siswa, & BK' },
       { key: 'waka_hubin', label: 'Waka Hubin (PKL)', desc: 'Mitra industri & prakerin' },
       { key: 'waka_sarpras', label: 'Waka Sarpras', desc: 'Ruangan, lab, & inventaris' },
+      { key: 'waka_humas', label: 'Waka Humas', desc: 'Publikasi, landing page, & kemitraan masyarakat' },
     ]
   },
   {

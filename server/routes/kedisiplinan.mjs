@@ -335,7 +335,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         if (req.method === "POST" && url.pathname === "/api/kedisiplinan/riwayat") {
           const body = await readJsonBody(req);
           if (body.action === 'delete') {
-             if (!isAdminStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan yang dapat menghapus riwayat poin." });
+             if (!isAdminStaff && !isBkStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Admin/Kesiswaan/BK yang dapat menghapus riwayat poin." });
              const deleteId = parseInt(body.id, 10);
              if (isNaN(deleteId) || deleteId <= 0) return send(req, res, 400, { ok: false, error: "ID tidak valid." });
              await dbPool.query("DELETE FROM kedisiplinan_riwayat_poin WHERE id = $1", [deleteId]);

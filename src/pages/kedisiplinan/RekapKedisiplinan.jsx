@@ -60,7 +60,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     ...appStoreAppSettings
   }), [dataStoreAppSettings, appStoreAppSettings]);
 
-  const showToast = (message, type ='success') => {
+  const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
@@ -136,7 +136,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     if (!filterBulan) return 0;
     const [year, month] = filterBulan.split('-');
     const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0); 
+    const endDate = new Date(year, month, 0);
     const today = new Date();
     const isCurrentMonth = today.getFullYear() === parseInt(year) && today.getMonth() === parseInt(month) - 1;
     const finalEndDate = isCurrentMonth ? today : endDate;
@@ -186,12 +186,12 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       const className = s.class_name || s.kelas;
       const mKelas = filterKelas === "all" || className === filterKelas;
       const nameVal = s.name || s.nama || s.namaSiswa || "";
-      const mSearch = !searchSiswa.trim() || 
-        nameVal.toLowerCase().includes(searchSiswa.toLowerCase()) || 
+      const mSearch = !searchSiswa.trim() ||
+        nameVal.toLowerCase().includes(searchSiswa.toLowerCase()) ||
         String(s.nis).includes(searchSiswa);
       return mKelas && mSearch;
     });
-    
+
     // Sort alphabetically by name
     return list.sort((a, b) => {
       const nameA = a.name || a.nama || a.namaSiswa || "";
@@ -291,7 +291,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
   const exportExcel = () => {
     const wb = new ExcelJS.Workbook();
-    
+
     // Prepare Students Recap sheet
     const studentsRecapData = filteredStudentsList.map((s, idx) => {
       const name = s.name || s.nama || s.namaSiswa || "";
@@ -310,14 +310,14 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
         "Skor Kredit": score
       };
     });
-    
+
     const wsStudents = wb.addWorksheet("Rekap_Siswa");
     if (studentsRecapData.length > 0) {
-       const keys = Object.keys(studentsRecapData[0]);
-       wsStudents.addRow(keys);
-       studentsRecapData.forEach(item => wsStudents.addRow(keys.map(k => item[k])));
+      const keys = Object.keys(studentsRecapData[0]);
+      wsStudents.addRow(keys);
+      studentsRecapData.forEach(item => wsStudents.addRow(keys.map(k => item[k])));
     }
-    
+
     const classStatsData = classStats.map(cs => ({
       "Kelas": cs.class_name,
       "Total Poin Pelanggaran": cs.poin,
@@ -327,16 +327,16 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
       "Total Sakit": cs.sakit,
       "Total Izin": cs.izin
     }));
-    
+
     const wsClassStats = wb.addWorksheet("Rekap_Kelas");
     if (classStatsData.length > 0) {
-       const keys2 = Object.keys(classStatsData[0]);
-       wsClassStats.addRow(keys2);
-       classStatsData.forEach(item => wsClassStats.addRow(keys2.map(k => item[k])));
+      const keys2 = Object.keys(classStatsData[0]);
+      wsClassStats.addRow(keys2);
+      classStatsData.forEach(item => wsClassStats.addRow(keys2.map(k => item[k])));
     }
-    
+
     wb.xlsx.writeBuffer().then(buf => {
-       saveAs(new Blob([buf]), `Rekap_Kehadiran_Skor_Kredit_Siswa_${filterBulan ||'Semua'}.xlsx`);
+      saveAs(new Blob([buf]), `Rekap_Kehadiran_Skor_Kredit_Siswa_${filterBulan || 'Semua'}.xlsx`);
     });
     showToast('Rekap Excel berhasil diunduh!');
   };
@@ -393,7 +393,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     if (!appSettings.kopSuratLogo && !appSettings.useKopSuratGambar) {
       doc.line(15, yPos + 8, pageWidth - 15, yPos + 8);
     }
-    
+
     yPos += 16;
 
     // Student Info Block
@@ -411,14 +411,14 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     const studentPoinRecords = riwayat.filter(p => String(p.siswa_nis) === String(nis));
     const totalPoin = studentPoinRecords.reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
     const finalScore = Math.max(0, 100 - totalPoin);
-    
+
     doc.text(`Skor Awal: 100`, 110, yPos + 6);
     doc.text(`Total Poin Pelanggaran: ${totalPoin}`, 110, yPos + 11);
-    
+
     doc.setFont("Helvetica", "bold");
     doc.text(`Total Skor Akhir: ${finalScore}`, 110, yPos + 16);
     doc.setFont("Helvetica", "normal");
-    
+
     yPos += 26;
 
     // 1. Kehadiran Section
@@ -454,21 +454,21 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     doc.text(`${sAbs} hari`, 15 + colWidth * 2.5, yPos + 17, { align: "center" });
     doc.text(`${iAbs} hari`, 15 + colWidth * 3.5, yPos + 17, { align: "center" });
     doc.text(`${aAbs} hari`, 15 + colWidth * 4.5, yPos + 17, { align: "center" });
-    
+
     yPos += 26;
 
     // 2. SKOR KREDIT
     doc.setFont("Helvetica", "bold");
     doc.text("II. SKOR KREDIT & DETAIL KASUS KEDISIPLINAN", 15, yPos);
-    
+
     const pointBody = studentPoinRecords.length > 0
       ? studentPoinRecords.map((p, idx) => [
-          idx + 1,
-          p.tanggal_kejadian ? new Date(p.tanggal_kejadian).toLocaleDateString('id-ID') : "-",
-          p.tindakan_nama,
-          `+${p.poin}`,
-          p.pelapor_nama || "Sistem"
-        ])
+        idx + 1,
+        p.tanggal_kejadian ? new Date(p.tanggal_kejadian).toLocaleDateString('id-ID') : "-",
+        p.tindakan_nama,
+        `+${p.poin}`,
+        p.pelapor_nama || "Sistem"
+      ])
       : [["-", "-", "Tidak ada riwayat pelanggaran", "0", "-"]];
 
     autoTable(doc, {
@@ -515,13 +515,13 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
     const notesBody = combinedNotes.length > 0
       ? combinedNotes.map((c, idx) => [
-          idx + 1,
-          c.tanggal ? new Date(c.tanggal).toLocaleDateString('id-ID') : '-',
-          `${c.tipe}\n(${c.oleh})`,
-          c.kategori,
-          c.isi,
-          c.tindakLanjut
-        ])
+        idx + 1,
+        c.tanggal ? new Date(c.tanggal).toLocaleDateString('id-ID') : '-',
+        `${c.tipe}\n(${c.oleh})`,
+        c.kategori,
+        c.isi,
+        c.tindakLanjut
+      ])
       : [["-", "-", "-", "-", "Tidak ada catatan pembinaan atau sesi konseling.", "-"]];
 
     autoTable(doc, {
@@ -574,7 +574,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
-      
+
       {/* 🚀 Unified Header Toolbar (Pills + Controls in 1 Container) */}
       <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
         {/* Row 1: Quick Filter Sub-Tab Pills + Student Counter */}
@@ -626,10 +626,10 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                 className="px-3.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white transition-all"
               />
               {filterBulan !== "" && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setFilterBulan("")} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFilterBulan("")}
                   className="shrink-0 text-xs rounded-[var(--ui-radius-small)] text-rose-600 hover:bg-rose-50 px-2 py-1"
                 >
                   Clear
@@ -637,7 +637,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
               )}
               <div className="w-36 sm:w-44 shrink-0">
                 <CustomSelect
-                  options={[{ value:'all', label:'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
+                  options={[{ value: 'all', label: 'Semua Kelas' }, ...classes.map(c => ({ value: c.name, label: c.name }))]}
                   value={filterKelas}
                   onChange={setFilterKelas}
                 />
@@ -646,9 +646,9 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           </div>
 
           <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
-            <button 
+            <button
               type="button"
-              onClick={exportExcel} 
+              onClick={exportExcel}
               className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer border-none"
             >
               <Download size={14} /> <span>Ekspor Excel</span>
@@ -713,20 +713,19 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                           <td className="px-3 py-3 text-center font-black text-amber-600">{att.sakit}</td>
                           <td className="px-3 py-3 text-center font-black text-rose-500">{att.alpa}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] font-black text-xs border ${
-                              score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
-                            }`}>
+                            <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] font-black text-xs border ${score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
+                              }`}>
                               {score} Poin
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setSelectedStudentForRapor(s)} 
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedStudentForRapor(s)}
                               className="text-xs px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)] border-slate-200 text-slate-700 hover:bg-slate-50"
                             >
-                              <FileText size={13} className="mr-1"/> Rapor PDF
+                              <FileText size={13} className="mr-1" /> Rapor PDF
                             </Button>
                           </td>
                         </tr>
@@ -755,9 +754,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
                           <div className="font-extrabold text-xs text-slate-800">{name}</div>
                           <div className="text-[10px] font-bold text-slate-400">{s.nis} • Kelas {s.class_name}</div>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black shrink-0 border ${
-                          score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-black shrink-0 border ${score >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : score >= 70 ? 'bg-amber-50 text-amber-700 border-amber-200/80' : 'bg-rose-50 text-rose-700 border-rose-200/80'
+                          }`}>
                           Skor: {score} Poin
                         </span>
                       </div>
@@ -772,7 +770,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
 
                       <div className="flex justify-end pt-1">
                         <Button variant="outline" size="sm" onClick={() => setSelectedStudentForRapor(s)} className="text-[11px] px-2.5 py-1 cursor-pointer rounded-[var(--ui-radius-small)]">
-                          <FileText size={13} className="mr-1"/> Rapor PDF
+                          <FileText size={13} className="mr-1" /> Rapor PDF
                         </Button>
                       </div>
                     </div>
@@ -782,7 +780,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
           </div>
 
           <div className="p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80">
-            <PaginationControls 
+            <PaginationControls
               currentPage={siswaPage}
               totalItems={filteredStudentsList.length}
               itemsPerPage={siswaPerPage}
@@ -929,18 +927,18 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
             </div>
             <div className="pt-2 flex flex-col justify-end gap-2">
               <div className="flex gap-2 w-full">
-                <Button 
+                <Button
                   variant="outline"
                   onClick={() => printRaporPDF(selectedStudentForRapor, raporPaperSize, 'download')}
                   className="flex-1"
                 >
-                  <Download size={14} className="mr-1.5"/> Unduh PDF
+                  <Download size={14} className="mr-1.5" /> Unduh PDF
                 </Button>
-                <Button 
+                <Button
                   onClick={() => printRaporPDF(selectedStudentForRapor, raporPaperSize, 'print')}
                   className="flex-1"
                 >
-                  <Printer size={14} className="mr-1.5"/> Cetak
+                  <Printer size={14} className="mr-1.5" /> Cetak
                 </Button>
               </div>
               <Button variant="ghost" onClick={() => setSelectedStudentForRapor(null)} className="w-full mt-1">

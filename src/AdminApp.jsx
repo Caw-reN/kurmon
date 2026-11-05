@@ -129,6 +129,202 @@ const getMajorColorHex = className => {
   return "var(--ui-primary)"; // fallback
 };
 
+export const GLOBAL_ROLE_DEFAULTS = {
+  guru: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "kedisiplinan_absensi", "silabusguru", "ketersediaan", "beban", "pesan",
+    "modul_ajar", "rpp_guru", "hikvision_report_siswa"
+  ],
+  walikelas: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "catatan_walikelas", "walas_report", "rekap_jurnal_kelas", "kedisiplinan_absensi",
+    "keterangan_massal", "silabusguru", "ketersediaan", "beban", "pesan",
+    "modul_ajar", "rpp_guru", "hikvision_report_siswa", "laporan_absensi",
+    "riwayat_prestasi", "siswa"
+  ],
+  bpbk: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
+    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "kedisiplinan_bpbk", "kedisiplinan_hub", "riwayat_prestasi", "tatib_skor",
+    "siswa_keluar", "siswa", "hikvision_report_siswa", "modul_ajar", "rpp_guru",
+    "rekap_jurnal_kelas", "kelas", "jurusan", "laporan_absensi"
+  ],
+  pembina_osis: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
+    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor", "riwayat_prestasi",
+    "siswa", "siswa_keluar", "hikvision_report_siswa", "modul_ajar", "rpp_guru",
+    "rekap_jurnal_kelas", "laporan_absensi", "kelas", "jurusan"
+  ],
+  sekretaris_osis: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "silabusguru",
+    "ketersediaan", "beban", "pesan", "riwayat_prestasi", "siswa",
+    "hikvision_report_siswa", "tatib_skor", "kedisiplinan_piket", "keterangan_massal",
+    "laporan_absensi", "kelas", "jurusan", "kedisiplinan_bpbk", "kedisiplinan_hub",
+    "siswa_keluar", "rekap_jurnal_kelas", "rpp_guru", "modul_ajar"
+  ],
+  sekretaris_kesiswaan: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
+    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor", "siswa_keluar",
+    "riwayat_prestasi", "siswa", "hikvision_report_siswa", "laporan_absensi",
+    "modul_ajar", "rpp_guru", "rekap_jurnal_kelas", "kelas", "jurusan"
+  ],
+  anggota_kesiswaan: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
+    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor", "siswa_keluar",
+    "riwayat_prestasi", "siswa", "hikvision_report_siswa", "laporan_absensi",
+    "modul_ajar", "rpp_guru", "rekap_jurnal_kelas", "kelas", "jurusan"
+  ],
+  sekretaris_kurikulum: [
+    "dashboard", "generate", "akademik", "silabus", "modul_ajar", "rpp_guru",
+    "silabusguru", "absensiguru", "jurnal_harian", "ketersediaan", "beban",
+    "kelas", "pesan", "rekap_jurnal_kelas", "mapel", "jurusan", "data_pegawai",
+    "guru", "siswa", "laporan_absensi", "kedisiplinan_absensi"
+  ],
+  anggota_kurikulum: [
+    "dashboard", "generate", "akademik", "silabus", "jurnal_harian",
+    "absensiguru", "modul_ajar", "rpp_guru", "silabusguru", "pesan",
+    "rekap_jurnal_kelas", "ketersediaan", "beban", "kelas", "mapel",
+    "jurusan", "kedisiplinan_absensi"
+  ],
+  sekretaris_hubin: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "siswa", "kelas", "jurusan", "pkl_dashboard", "pkl_data_siswa",
+    "pkl_data_perusahaan", "pkl_jurnal", "pkl_laporan", "pkl_administrasi",
+    "pkl_absensi_setting", "hikvision_report_siswa", "laporan_absensi", "kedisiplinan_absensi"
+  ],
+  anggota_hubin: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "siswa", "kelas", "jurusan", "pkl_dashboard", "pkl_data_siswa",
+    "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal",
+    "pkl_laporan", "hikvision_report_siswa", "kedisiplinan_absensi"
+  ],
+  sekretaris_sarpras: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "kelas", "jurusan", "ruangan", "denah", "fasilitas", "kedisiplinan_absensi"
+  ],
+  anggota_sarpras: [
+    "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
+    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "kelas", "jurusan", "ruangan", "denah", "fasilitas", "kedisiplinan_absensi"
+  ],
+  waka_kesiswaan: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "kedisiplinan_piket", "kedisiplinan_bpbk", "kedisiplinan_hub", "riwayat_prestasi",
+    "catatan_walikelas", "walas_report", "siswa_keluar", "tatib_skor",
+    "kedisiplinan_absensi", "keterangan_massal", "hikvision_report_siswa",
+    "siswa", "laporan_absensi", "rekap_jurnal_kelas", "kelas", "jurusan"
+  ],
+  kesiswaan: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "kedisiplinan_piket", "kedisiplinan_bpbk", "kedisiplinan_hub", "riwayat_prestasi",
+    "catatan_walikelas", "walas_report", "siswa_keluar", "tatib_skor",
+    "kedisiplinan_absensi", "keterangan_massal", "hikvision_report_siswa",
+    "siswa", "laporan_absensi", "rekap_jurnal_kelas", "kelas", "jurusan"
+  ],
+  kepsek: [
+    "dashboard", "generate", "akademik", "absensi",
+    "absensiguru", "ketersediaan", "beban", "jurnal_harian", "catatan_walikelas",
+    "modul_ajar", "rpp_guru", "silabusguru", "walas_report", "pesan",
+    "kedisiplinan_piket", "siswa", "guru", "karyawan", "data_pegawai", "dataguru",
+    "datasiswa", "dataperusahaan", "pkl_dashboard", "pkl_data_siswa",
+    "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal",
+    "pkl_laporan", "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_bpbk",
+    "kedisiplinan_hub", "riwayat_prestasi", "tatib_skor", "laporan_absensi",
+    "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
+    "ruangan", "denah", "fasilitas", "silabus", "keamanan", "audit_log",
+    "activity_logs", "pengumuman", "rekap_jurnal_kelas", "kelas", "jurusan"
+  ],
+  tu: [
+    "dashboard", "siswa", "data_pegawai", "guru", "karyawan", "kelas", "jurusan",
+    "absensi", "absensiguru", "riwayat_prestasi", "siswa_keluar", "laporan_absensi",
+    "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
+    "kedisiplinan_absensi", "keterangan_massal", "kartu_pelajar", "esurat",
+    "generate", "pesan", "akademik", "ruangan", "denah"
+  ],
+  sekretaris_tu: [
+    "dashboard", "siswa", "data_pegawai", "guru", "karyawan", "kelas", "jurusan",
+    "esurat", "kartu_pelajar", "laporan_absensi", "kedisiplinan_absensi",
+    "akademik", "absensiguru", "pesan", "siswa_keluar", "keterangan_massal",
+    "riwayat_prestasi"
+  ],
+  bendahara: [
+    "dashboard", "siswa", "guru", "karyawan", "absensiguru", "akademik",
+    "pesan", "data_pegawai", "kelas", "jurusan", "laporan_absensi"
+  ],
+  tata_usaha: [
+    "dashboard", "siswa", "data_pegawai", "guru", "karyawan", "kelas", "jurusan",
+    "absensi", "absensiguru", "riwayat_prestasi", "siswa_keluar", "laporan_absensi",
+    "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
+    "kedisiplinan_absensi", "keterangan_massal", "kartu_pelajar", "esurat",
+    "generate", "pesan", "akademik", "ruangan", "denah"
+  ],
+  karyawan: [
+    "dashboard", "absensiguru", "akademik", "pesan"
+  ],
+  waka_kurikulum: [
+    "dashboard", "generate", "akademik", "silabus", "modul_ajar", "rpp_guru",
+    "silabusguru", "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa",
+    "data_pegawai", "guru", "mapel", "walas_report", "catatan_walikelas", "pesan",
+    "pengaturan", "advanced_rules", "absensiguru", "laporan_absensi",
+    "kedisiplinan_absensi", "hikvision_report_guru", "hikvision_report_siswa",
+    "rekap_jurnal_kelas", "jurusan"
+  ],
+  kurikulum: [
+    "dashboard", "generate", "akademik", "silabus", "modul_ajar", "rpp_guru",
+    "silabusguru", "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa",
+    "data_pegawai", "guru", "mapel", "walas_report", "catatan_walikelas", "pesan",
+    "pengaturan", "advanced_rules", "absensiguru", "laporan_absensi",
+    "kedisiplinan_absensi", "hikvision_report_guru", "hikvision_report_siswa",
+    "rekap_jurnal_kelas", "jurusan"
+  ],
+  waka_sarpras: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "ruangan", "denah", "fasilitas", "kelas", "jurusan", "data_pegawai",
+    "walas_report", "catatan_walikelas", "siswa", "kedisiplinan_absensi"
+  ],
+  sarpras: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "ruangan", "denah", "fasilitas", "kelas", "jurusan", "data_pegawai",
+    "walas_report", "catatan_walikelas", "siswa", "kedisiplinan_absensi"
+  ],
+  waka_humas: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "tampilan", "walas_report", "catatan_walikelas", "kedisiplinan_absensi"
+  ],
+  waka_hubin: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan",
+    "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pkl_absensi_setting",
+    "walas_report", "catatan_walikelas", "hikvision_report_siswa", "laporan_absensi",
+    "siswa", "kelas", "jurusan", "kedisiplinan_absensi"
+  ],
+  hubin: [
+    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
+    "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan",
+    "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pkl_absensi_setting",
+    "walas_report", "catatan_walikelas", "hikvision_report_siswa", "laporan_absensi",
+    "siswa", "kelas", "jurusan", "kedisiplinan_absensi"
+  ],
+};
+
 export default function App() {
   /* --- States --- */
   const [rememberMe, setRememberMe] = useState(() => loadInitialState("rememberMe", true));
@@ -1629,33 +1825,7 @@ export default function App() {
         div === 'kurikulum'
       );
 
-      const DEFAULTS = {
-        guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","modul_ajar","rpp_guru","hikvision_report_siswa"],
-        walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","rekap_jurnal_kelas","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","modul_ajar","rpp_guru","hikvision_report_siswa","laporan_absensi","riwayat_prestasi","siswa"],
-        bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","tatib_skor","siswa_keluar","siswa","hikvision_report_siswa","modul_ajar","rpp_guru","rekap_jurnal_kelas","kelas","jurusan","laporan_absensi"],
-        pembina_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","tatib_skor","riwayat_prestasi","siswa","siswa_keluar","hikvision_report_siswa","modul_ajar","rpp_guru","rekap_jurnal_kelas","laporan_absensi","kelas","jurusan"],
-        sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi","siswa","hikvision_report_siswa","tatib_skor","kedisiplinan_piket","keterangan_massal","laporan_absensi","kelas","jurusan","kedisiplinan_bpbk","kedisiplinan_hub","siswa_keluar","rekap_jurnal_kelas","rpp_guru","modul_ajar"],
-        sekretaris_kesiswaan: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","tatib_skor","siswa_keluar","riwayat_prestasi","siswa","hikvision_report_siswa","laporan_absensi","modul_ajar","rpp_guru","rekap_jurnal_kelas","kelas","jurusan"],
-        anggota_kesiswaan: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","tatib_skor","siswa_keluar","riwayat_prestasi","siswa","hikvision_report_siswa","laporan_absensi","modul_ajar","rpp_guru","rekap_jurnal_kelas","kelas","jurusan"],
-        sekretaris_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","rpp_guru","silabusguru","absensiguru","jurnal_harian","ketersediaan","beban","kelas","pesan","rekap_jurnal_kelas","mapel","jurusan","data_pegawai","guru"],
-        anggota_kurikulum: ["dashboard","generate","akademik","silabus","jurnal_harian","absensiguru","modul_ajar","rpp_guru","silabusguru","pesan","rekap_jurnal_kelas","ketersediaan","beban","kelas","mapel","jurusan"],
-        sekretaris_hubin: ["dashboard","generate","akademik","absensiguru","jurnal_harian","modul_ajar","rpp_guru","silabusguru","ketersediaan","beban","pesan","siswa","kelas","jurusan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_jurnal","pkl_laporan","pkl_administrasi","pkl_absensi_setting","hikvision_report_siswa","laporan_absensi"],
-        anggota_hubin: ["dashboard","generate","akademik","absensiguru","jurnal_harian","modul_ajar","rpp_guru","silabusguru","ketersediaan","beban","pesan","siswa","kelas","jurusan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","hikvision_report_siswa"],
-        sekretaris_sarpras: ["dashboard","generate","akademik","absensiguru","jurnal_harian","modul_ajar","rpp_guru","silabusguru","ketersediaan","beban","pesan","kelas","jurusan","ruangan","denah","fasilitas"],
-        anggota_sarpras: ["dashboard","generate","akademik","absensiguru","jurnal_harian","modul_ajar","rpp_guru","silabusguru","ketersediaan","beban","pesan","kelas","jurusan","ruangan","denah","fasilitas"],
-        waka_kesiswaan: ["dashboard","generate","ketersediaan","beban","rpp_guru","silabusguru","modul_ajar","jurnal_harian","absensiguru","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","keterangan_massal","hikvision_report_siswa","siswa","laporan_absensi","rekap_jurnal_kelas","kelas","jurusan"],
-        kesiswaan: ["dashboard","generate","ketersediaan","beban","rpp_guru","silabusguru","modul_ajar","jurnal_harian","absensiguru","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","keterangan_massal","hikvision_report_siswa","siswa","laporan_absensi","rekap_jurnal_kelas","kelas","jurusan"],
-        kepsek: ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","absensiguru","beban","jurnal_harian","catatan_walikelas","modul_ajar","rpp_guru","silabusguru","walas_report","pesan","kedisiplinan_piket","siswa","guru","karyawan","data_pegawai","dataguru","datasiswa","dataperusahaan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","kedisiplinan_absensi","keterangan_massal","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","tatib_skor","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","ruangan","fasilitas","silabus","keamanan","audit_log","activity_logs","pengumuman","rekap_jurnal_kelas"],
-        tu: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","keterangan_massal","kartu_pelajar","esurat","generate","pesan","akademik","guru","karyawan","ruangan","denah"],
-        sekretaris_tu: ["dashboard","siswa","data_pegawai","guru","karyawan","esurat","kartu_pelajar","laporan_absensi","kedisiplinan_absensi","akademik","absensiguru","pesan","siswa_keluar","keterangan_massal","kelas","jurusan","riwayat_prestasi"],
-        bendahara: ["dashboard","siswa","guru","karyawan","absensiguru","akademik","pesan","data_pegawai","kelas","jurusan","laporan_absensi"],
-        tata_usaha: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","keterangan_massal","kartu_pelajar","esurat","generate","pesan","akademik","guru","karyawan","ruangan","denah"],
-        karyawan: ["dashboard","absensiguru","akademik","pesan"],
-        waka_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","rpp_guru","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","data_pegawai","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi","hikvision_report_guru","rekap_jurnal_kelas","jurusan"],
-        waka_sarpras: ["dashboard","generate","ketersediaan","beban","rpp_guru","silabusguru","modul_ajar","jurnal_harian","absensiguru","akademik","pesan","ruangan","denah","fasilitas","kelas","jurusan","data_pegawai","walas_report","catatan_walikelas","siswa"],
-        waka_humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","rpp_guru","silabusguru","walas_report","catatan_walikelas","absensiguru","jurnal_harian"],
-        waka_hubin: ["dashboard","generate","ketersediaan","beban","rpp_guru","silabusguru","modul_ajar","jurnal_harian","absensiguru","akademik","pesan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","walas_report","catatan_walikelas","hikvision_report_siswa","laporan_absensi","siswa","kelas","jurusan"],
-      };
+      const DEFAULTS = GLOBAL_ROLE_DEFAULTS;
 
       const getRoleLevel = (rKey) => {
         const p = rolePermissions?.[rKey];
@@ -3059,33 +3229,7 @@ export default function App() {
       return p[id] ?? null;
     };
 
-    const DEFAULTS = {
-      guru: ["dashboard","generate","akademik","absensiguru","jurnal_harian","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","modul_ajar","rpp_guru","hikvision_report_siswa"],
-      walikelas: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","rekap_jurnal_kelas","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","modul_ajar","hikvision_report_siswa","laporan_absensi","riwayat_prestasi","siswa"],
-      bpbk: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","tatib_skor","siswa_keluar","siswa","hikvision_report_siswa","modul_ajar","rekap_jurnal_kelas","kelas","jurusan","laporan_absensi"],
-      pembina_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","tatib_skor","riwayat_prestasi","siswa","siswa_keluar","hikvision_report_siswa","modul_ajar","rekap_jurnal_kelas","laporan_absensi","kelas"],
-      sekretaris_osis: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","silabusguru","ketersediaan","beban","pesan","riwayat_prestasi","siswa","hikvision_report_siswa","tatib_skor","kedisiplinan_piket","keterangan_massal","laporan_absensi","kelas"],
-      sekretaris_kesiswaan: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","tatib_skor","siswa_keluar","riwayat_prestasi","siswa","hikvision_report_siswa","laporan_absensi","modul_ajar","rekap_jurnal_kelas","kelas","jurusan"],
-      anggota_kesiswaan: ["dashboard","generate","akademik","absensiguru","jurnal_harian","catatan_walikelas","walas_report","kedisiplinan_absensi","keterangan_massal","silabusguru","ketersediaan","beban","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","tatib_skor","siswa_keluar","riwayat_prestasi","siswa","hikvision_report_siswa","laporan_absensi","modul_ajar","rekap_jurnal_kelas","kelas","jurusan"],
-      sekretaris_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","absensiguru","jurnal_harian","ketersediaan","beban","kelas","pesan","rekap_jurnal_kelas","mapel","jurusan","data_pegawai","guru"],
-      anggota_kurikulum: ["dashboard","generate","akademik","silabus","jurnal_harian","absensiguru","modul_ajar","pesan","rekap_jurnal_kelas","ketersediaan","beban","kelas","mapel"],
-      sekretaris_hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_jurnal","pkl_laporan","pkl_administrasi","absensiguru","jurnal_harian","modul_ajar","akademik","pesan","siswa","pkl_absensi_setting","hikvision_report_siswa","laporan_absensi"],
-      anggota_hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_jurnal","absensiguru","jurnal_harian","modul_ajar","akademik","pesan","siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_laporan","hikvision_report_siswa"],
-      sekretaris_sarpras: ["dashboard","ruangan","denah","absensiguru","jurnal_harian","modul_ajar","akademik","pesan","kelas","generate","fasilitas"],
-      anggota_sarpras: ["dashboard","ruangan","denah","absensiguru","jurnal_harian","modul_ajar","akademik","pesan","kelas","generate","fasilitas"],
-      waka_kesiswaan: ["dashboard","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","keterangan_massal","hikvision_report_siswa","siswa","laporan_absensi","absensiguru","jurnal_harian","silabusguru","modul_ajar","rekap_jurnal_kelas","kelas","jurusan"],
-      kesiswaan: ["dashboard","akademik","pesan","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","kedisiplinan_absensi","keterangan_massal","hikvision_report_siswa","siswa","laporan_absensi","absensiguru","jurnal_harian","silabusguru","modul_ajar","rekap_jurnal_kelas","kelas","jurusan"],
-      kepsek: ["dashboard","generate","akademik","kalender","kalender_akademik","absensi","absensiguru","beban","jurnal_harian","catatan_walikelas","modul_ajar","walas_report","pesan","kedisiplinan_piket","siswa","guru","karyawan","data_pegawai","dataguru","datasiswa","dataperusahaan","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","kedisiplinan_absensi","keterangan_massal","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","tatib_skor","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","ruangan","fasilitas","silabus","keamanan","audit_log","activity_logs","pengumuman","rekap_jurnal_kelas"],
-      tu: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","keterangan_massal","kartu_pelajar","esurat","generate","pesan","akademik","guru","karyawan","ruangan","denah"],
-      sekretaris_tu: ["dashboard","siswa","data_pegawai","guru","karyawan","esurat","kartu_pelajar","laporan_absensi","kedisiplinan_absensi","akademik","absensiguru","pesan","siswa_keluar","keterangan_massal","kelas","jurusan","riwayat_prestasi"],
-      bendahara: ["dashboard","siswa","guru","karyawan","absensiguru","akademik","pesan","data_pegawai","kelas","jurusan","laporan_absensi"],
-      tata_usaha: ["dashboard","siswa","data_pegawai","kelas","jurusan","absensi","absensiguru","riwayat_prestasi","siswa_keluar","laporan_absensi","hikvision_report_guru","hikvision_report_karyawan","hikvision_report_siswa","kedisiplinan_absensi","keterangan_massal","kartu_pelajar","esurat","generate","pesan","akademik","guru","karyawan","ruangan","denah"],
-      karyawan: ["dashboard","absensiguru","akademik","pesan"],
-      waka_kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","data_pegawai","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","absensiguru","laporan_absensi","kedisiplinan_absensi","hikvision_report_guru","rekap_jurnal_kelas","jurusan"],
-      waka_sarpras: ["dashboard","ruangan","denah","kelas","generate","walas_report","catatan_walikelas","siswa","akademik","pesan","absensiguru","jurnal_harian","silabusguru","modul_ajar","fasilitas","jurusan","data_pegawai"],
-      waka_humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas","absensiguru","jurnal_harian"],
-      waka_hubin: ["dashboard","pkl_dashboard","pkl_data_siswa","pkl_data_perusahaan","pkl_penugasan","pkl_administrasi","pkl_jurnal","pkl_laporan","pkl_absensi_setting","pesan","walas_report","catatan_walikelas","absensiguru","jurnal_harian","silabusguru","modul_ajar","akademik","hikvision_report_siswa","laporan_absensi","siswa","kelas","jurusan"],
-    };
+      const DEFAULTS = GLOBAL_ROLE_DEFAULTS;
 
     const spLevel = (effectiveKey && effectiveKey !== 'guru' && effectiveKey !== 'walikelas') ? getRoleLevel(effectiveKey) : null;
     const rLevel = (activeRole && activeRole !== effectiveKey && activeRole !== 'guru' && activeRole !== 'walikelas') ? getRoleLevel(activeRole) : null;

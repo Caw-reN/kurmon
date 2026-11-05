@@ -38,6 +38,7 @@ const BASE_GURU_PERMISSIONS = {
   walas_report: "nonaktif", kedisiplinan_absensi: "otomatis",
   jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "nonaktif",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
+  rpp_guru: "otomatis",
   kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif"
 };
 
@@ -52,6 +53,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     rpp_guru: "otomatis",
+    hikvision_report_siswa: "view",
   },
   walikelas: {
     ...BASE_GURU_PERMISSIONS,
@@ -87,17 +89,19 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   sekretaris_tu: {
     dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
     esurat: "otomatis", kartu_pelajar: "view", laporan_absensi: "view",
-    kedisiplinan_absensi: "view", akademik: "view", absensiguru: "otomatis", pesan: "view"
+    kedisiplinan_absensi: "view", akademik: "view", absensiguru: "otomatis", pesan: "view",
+    data_pegawai: "view", kelas: "view", jurusan: "view", siswa_keluar: "view",
+    keterangan_massal: "view", riwayat_prestasi: "view"
   },
   bendahara: {
     dashboard: "otomatis", siswa: "view", guru: "view", karyawan: "view",
-    absensiguru: "otomatis", akademik: "view", pesan: "view"
+    absensiguru: "otomatis", akademik: "view", pesan: "view",
+    data_pegawai: "view", kelas: "view", jurusan: "view", laporan_absensi: "view"
   },
 
   // ─── KEPALA SEKOLAH ─────────────────────────────────────────────────────────
   kepsek: {
     dashboard: "otomatis", generate: "view", absensi: "view", pesan: "otomatis",
-    // [AUDIT-FIX] kepsek: key 'akademik' (bukan 'kalender'/'kalender_akademik') sesuai MENU_REGISTRY
     akademik: "view",
     pkl_dashboard: "otomatis", pkl_data_siswa: "view", pkl_data_perusahaan: "view",
     pkl_penugasan: "view", pkl_administrasi: "view", pkl_jurnal: "view",
@@ -108,10 +112,11 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     hikvision_report_karyawan: "view", hikvision_report_siswa: "view",
     dataguru: "view", datasiswa: "view", dataperusahaan: "view",
     guru: "view", siswa: "view", karyawan: "view", data_pegawai: "view",
-    absensiguru: "view", jurnal_harian: "view", beban: "view",
-    ruangan: "view", fasilitas: "view", silabus: "view", modul_ajar: "view",
+    absensiguru: "view", jurnal_harian: "view", beban: "view", ketersediaan: "view",
+    ruangan: "view", denah: "view", fasilitas: "view", silabus: "view", silabusguru: "view",
+    rpp_guru: "view", modul_ajar: "view", kelas: "view", jurusan: "view",
     keamanan: "view", audit_log: "view", activity_logs: "view", pengumuman: "view",
-    // [AUDIT-FIX] tambah rekap jurnal dan keterangan massal untuk kepsek
+    kedisiplinan_hub: "view", tatib_skor: "view",
     rekap_jurnal_kelas: "view", keterangan_massal: "view",
   },
 
@@ -123,7 +128,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
     modul_ajar: "otomatis", walas_report: "otomatis", catatan_walikelas: "view",
     pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis",
-    hikvision_report_guru: "view", data_pegawai: "view", jurusan: "otomatis",
+    hikvision_report_guru: "view", hikvision_report_siswa: "view", data_pegawai: "view", jurusan: "otomatis",
     laporan_absensi: "view", kedisiplinan_absensi: "view", rekap_jurnal_kelas: "otomatis",
   },
   waka_kesiswaan: {
@@ -152,6 +157,11 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     walas_report: "view", catatan_walikelas: "view", akademik: "view",
     hikvision_report_siswa: "otomatis", laporan_absensi: "view",
     siswa: "view", kelas: "view", jurusan: "view",
+  },
+  waka_humas: {
+    ...BASE_GURU_PERMISSIONS,
+    dashboard: "otomatis", pesan: "otomatis", tampilan: "otomatis", akademik: "view",
+    walas_report: "view", catatan_walikelas: "view",
   },
 
   // ─── TIM KESISWAAN ──────────────────────────────────────────────────────────
@@ -214,14 +224,14 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     silabus: "otomatis", akademik: "otomatis", kelas: "view", jurnal_harian: "view",
     modul_ajar: "otomatis", absensiguru: "otomatis", pesan: "view",
     rekap_jurnal_kelas: "otomatis", mapel: "view", jurusan: "view",
-    data_pegawai: "view", guru: "view",
+    data_pegawai: "view", guru: "view", siswa: "view", laporan_absensi: "view",
   },
   anggota_kurikulum: {
     ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", generate: "view", akademik: "view", silabus: "view",
     jurnal_harian: "view", absensiguru: "otomatis", modul_ajar: "view", pesan: "view",
     rekap_jurnal_kelas: "view", ketersediaan: "view", beban: "view",
-    kelas: "view", mapel: "view",
+    kelas: "view", mapel: "view", jurusan: "view",
   },
 
   // ─── TIM HUBIN & SARPRAS ────────────────────────────────────────────────────
@@ -284,7 +294,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     siswa: "view", guru: "view", mapel: "otomatis", jurnal_harian: "otomatis",
     modul_ajar: "otomatis", walas_report: "otomatis", catatan_walikelas: "view",
     pengaturan: "otomatis", advanced_rules: "otomatis", pesan: "otomatis",
-    hikvision_report_guru: "view", data_pegawai: "view", jurusan: "otomatis",
+    hikvision_report_guru: "view", hikvision_report_siswa: "view", data_pegawai: "view", jurusan: "otomatis",
     laporan_absensi: "view", kedisiplinan_absensi: "view", rekap_jurnal_kelas: "otomatis",
   },
   sarpras: {

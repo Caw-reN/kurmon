@@ -2280,6 +2280,7 @@ export default function LandingPage() {
       <PublicHelpModal
         isOpen={showPublicHelp}
         onClose={() => setShowPublicHelp(false)}
+        appSettings={appSettings}
         primaryColor={primaryColor}
         contactPhone={appSettings?.contactPhone ||'+62 123-456-789'}
         contactEmail={appSettings?.contactEmail ||'admin@school.sch.id'}

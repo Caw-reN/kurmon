@@ -272,6 +272,7 @@ export default function PublicLayout() {
       <PublicHelpModal
         isOpen={showPublicHelp}
         onClose={() => setShowPublicHelp(false)}
+        appSettings={appSettings}
         contactPhone={contactPhone}
         contactEmail={contactEmail}
         appName={appSettings.appName}

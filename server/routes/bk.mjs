@@ -86,7 +86,12 @@ export async function handleBkRoutes(req, res, url, ctx) {
   const BK_ALLOWED_ROLES = [
     'bk', 'bpbk', 'guru', 'walikelas', 'walas', 
     'admin', 'superadmin', 'waka', 'waka_kesiswaan', 
-    'waka_kurikulum', 'kesiswaan', 'kurikulum', 'kepsek', 'tu', 'tata_usaha', 'karyawan'
+    'waka_kurikulum', 'waka_hubin', 'waka_sarpras', 'waka_humas',
+    'kesiswaan', 'kurikulum', 'hubin', 'sarpras',
+    'pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan',
+    'sekretaris_kurikulum', 'anggota_kurikulum', 'sekretaris_hubin', 'anggota_hubin',
+    'sekretaris_sarpras', 'anggota_sarpras', 'sekretaris_tu', 'bendahara',
+    'kepsek', 'tu', 'tata_usaha', 'karyawan', 'staff'
   ];
   const requireBkAccess = (req, res) => {
     const session = getSession(req);
@@ -96,7 +101,22 @@ export async function handleBkRoutes(req, res, url, ctx) {
     }
     const role = (session.role || '').toLowerCase();
     const subrole = (session.subrole || '').toLowerCase();
-    if (!BK_ALLOWED_ROLES.includes(role) && !BK_ALLOWED_ROLES.includes(subrole)) {
+    const division = (session.division || '').toLowerCase();
+    const isAllowed = BK_ALLOWED_ROLES.includes(role) ||
+      BK_ALLOWED_ROLES.includes(subrole) ||
+      role.startsWith('waka_') ||
+      role.includes('kesiswaan') ||
+      role.includes('bk') ||
+      subrole.includes('kesiswaan') ||
+      subrole.includes('bk') ||
+      subrole.includes('osis') ||
+      division === 'bk' ||
+      division === 'kesiswaan' ||
+      division === 'bpbk' ||
+      division === 'bp/bk' ||
+      Boolean(session.isBK) ||
+      Boolean(session.isKesiswaan);
+    if (!isAllowed) {
       send(req, res, 403, { ok: false, error: 'Akses ditolak. Anda tidak memiliki izin untuk mengelola data BK.' });
       return null;
     }

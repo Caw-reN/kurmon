@@ -1,10 +1,40 @@
 import React, { useState } from 'react';
 import { ChevronLeft, X, Info, MessageSquare, Mail, Check, ArrowRight, ArrowUpRight, HelpCircle, Clock } from 'lucide-react';
 
-export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactEmail, appName, getWaLink, lang }) => {
+const InstagramIcon = ({ size = 14, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+  </svg>
+);
+
+const FacebookIcon = ({ size = 14, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+  </svg>
+);
+
+const YoutubeIcon = ({ size = 14, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path>
+    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="white"></polygon>
+  </svg>
+);
+
+export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, contactEmail, appName, getWaLink, lang, appSettings }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState(0);
 
   if (!isOpen) return null;
+
+  const getAbsoluteUrl = (url) => {
+    if (!url) return '';
+    const trimmed = String(url).trim();
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
+    }
+    return `https://${trimmed}`;
+  };
 
   const currentLang = lang || (() => {
     try {
@@ -57,7 +87,7 @@ export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, c
             </div>
             <div className="flex flex-col text-left">
               <span className="font-black text-slate-800 text-[15px] tracking-tight leading-snug">
-                {t("Hubungi & Bantuan", "Contact & Support")}
+                {t("Pusat Bantuan & Layanan", "Help Center & Services")}
               </span>
               <p className="text-[11px] font-medium text-slate-400 leading-tight">
                 {t('Informasi akses akun, FAQ & kontak resmi sekolah', 'Account access info, FAQ & official school contacts')}
@@ -169,6 +199,61 @@ export const PublicHelpModal = ({ isOpen, onClose, primaryColor, contactPhone, c
               )}
             </div>
           </div>
+
+          {/* Official Social Media */}
+          {(appSettings?.socialInstagram || appSettings?.socialFacebook || appSettings?.socialYoutube) && (
+            <div className="space-y-2 pt-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">
+                {t('Media Sosial Resmi', 'Official Social Media')}
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {appSettings?.socialInstagram && (
+                  <a 
+                    href={getAbsoluteUrl(appSettings.socialInstagram)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200/80 bg-white hover:border-pink-300 hover:bg-pink-50/40 text-slate-700 hover:text-pink-600 transition-all text-xs font-bold no-underline shadow-2xs group"
+                    title="Instagram Resmi"
+                  >
+                    <div className="text-pink-500 group-hover:scale-110 transition-transform">
+                      <InstagramIcon size={14} />
+                    </div>
+                    <span className="truncate text-[11px]">Instagram</span>
+                  </a>
+                )}
+
+                {appSettings?.socialFacebook && (
+                  <a 
+                    href={getAbsoluteUrl(appSettings.socialFacebook)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200/80 bg-white hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 hover:text-blue-600 transition-all text-xs font-bold no-underline shadow-2xs group"
+                    title="Facebook Resmi"
+                  >
+                    <div className="text-blue-600 group-hover:scale-110 transition-transform">
+                      <FacebookIcon size={14} />
+                    </div>
+                    <span className="truncate text-[11px]">Facebook</span>
+                  </a>
+                )}
+
+                {appSettings?.socialYoutube && (
+                  <a 
+                    href={getAbsoluteUrl(appSettings.socialYoutube)} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200/80 bg-white hover:border-red-300 hover:bg-red-50/40 text-slate-700 hover:text-red-600 transition-all text-xs font-bold no-underline shadow-2xs group"
+                    title="YouTube Resmi"
+                  >
+                    <div className="text-red-600 group-hover:scale-110 transition-transform">
+                      <YoutubeIcon size={14} />
+                    </div>
+                    <span className="truncate text-[11px]">YouTube</span>
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom Sheet Footer */}
