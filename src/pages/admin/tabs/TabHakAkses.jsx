@@ -21,6 +21,7 @@ const ALL_TABS_METADATA = {
   riwayat_prestasi: { label: 'Riwayat Prestasi Siswa', desc: 'Pencatatan prestasi, piagam kejuaraan, dan lomba' },
   siswa_keluar: { label: 'Mutasi & Alumni Siswa', desc: 'Daftar mutasi keluar dan arsip alumni' },
   kedisiplinan_bpbk: { label: 'Bimbingan Konseling (BK)', desc: 'Konseling siswa, pemanggilan ortu, dan catatan khusus BK' },
+  kedisiplinan_hub: { label: 'Layanan Terpadu BK & Tatib', desc: 'Monitoring rekap poin dan konseling terpadu' },
 
   // Kedisiplinan & Piket
   kedisiplinan_piket: { label: 'Piket & Pelanggaran', desc: 'Input poin pelanggaran harian oleh guru piket' },
@@ -44,6 +45,7 @@ const ALL_TABS_METADATA = {
   silabusguru: { label: 'Silabus & Perangkat Guru', desc: 'Upload RPP & silabus mengajar oleh masing-masing guru' },
   modul_ajar: { label: 'Modul Ajar (RPP)', desc: 'Pengaturan modul ajar terintegrasi' },
   jurnal_harian: { label: 'Jurnal Harian KBM', desc: 'Pengisian absensi kelas dan materi ajar per jam tatap muka' },
+  rekap_jurnal_kelas: { label: 'Rekap Jurnal Kelas', desc: 'Rekap agenda mengajar harian guru per kelas' },
 
   // Kehadiran & Absensi
   absensi: { label: 'Jadwal & Sesi Absensi', desc: 'Pengaturan sesi jadwal absensi' },
@@ -57,6 +59,7 @@ const ALL_TABS_METADATA = {
   // Sarpras & Administrasi
   ruangan: { label: 'Data Ruangan & Lab', desc: 'Manajemen ruang teori, bengkel praktikum, dan lab' },
   denah: { label: 'Denah Bangunan Sekolah', desc: 'Visualisasi plot lokasi kelas pada denah sekolah' },
+  fasilitas: { label: 'Data Fasilitas & Sarana', desc: 'Inventaris sarana dan prasarana sekolah' },
   esurat: { label: 'Administrasi Surat TU (e-Surat)', desc: 'Pembuatan surat keputusan, izin dinas, dan undangan' },
   kartu_pelajar: { label: 'Cetak Kartu Pelajar', desc: 'Desain dan cetak kartu tanda siswa' },
 
@@ -74,12 +77,12 @@ const ALL_TABS_METADATA = {
 // ─── KELOMPOK PERMISSION ──────────────────────────────────────────────────────
 const PERMISSION_GROUPS = [
   { key: 'utama', label: 'Utama & Dashboard', color: 'bg-indigo-500', tabs: ['dashboard', 'pesan', 'tampilan'] },
-  { key: 'siswa', label: 'Siswa & Bimbingan', color: 'bg-emerald-500', tabs: ['siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk'] },
+  { key: 'siswa', label: 'Siswa & Bimbingan', color: 'bg-emerald-500', tabs: ['siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk', 'kedisiplinan_hub'] },
   { key: 'kedisiplinan', label: 'Kedisiplinan & Piket', color: 'bg-rose-500', tabs: ['kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report'] },
   { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate', 'ketersediaan', 'beban'] },
-  { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian'] },
+  { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian', 'rekap_jurnal_kelas'] },
   { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'hikvision_report_guru', 'laporan_absensi'] },
-  { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'esurat', 'kartu_pelajar'] },
+  { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'fasilitas', 'esurat', 'kartu_pelajar'] },
   { key: 'pkl', label: 'Prakerin (PKL / Hubin)', color: 'bg-purple-500', tabs: ['pkl_dashboard', 'pkl_data_siswa', 'pkl_data_perusahaan', 'pkl_penugasan', 'pkl_administrasi', 'pkl_jurnal', 'pkl_laporan', 'pkl_absensi_setting'] }
 ];
 
@@ -314,16 +317,17 @@ export default function TabHakAkses(props) {
       showNotification('Preset Kepala Sekolah (Lihat Semua Laporan) diterapkan.', 'info');
     } else if (presetKey === 'kesiswaan') {
       const editList = [
-        'dashboard', 'pesan', 'siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk',
+        'dashboard', 'pesan', 'siswa', 'riwayat_prestasi', 'siswa_keluar', 'kedisiplinan_bpbk', 'kedisiplinan_hub',
         'kedisiplinan_piket', 'tatib_skor', 'catatan_walikelas', 'walas_report',
-        'absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'laporan_absensi'
+        'absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'laporan_absensi',
+        'rekap_jurnal_kelas', 'kelas', 'jurusan'
       ];
       editList.forEach(t => { next[t] = 'edit'; });
       showNotification('Preset Waka Kesiswaan (Akses Full Kesiswaan) diterapkan.', 'info');
     } else if (presetKey === 'kurikulum') {
       const editList = [
         'dashboard', 'guru', 'data_pegawai', 'kelas', 'jurusan', 'mapel', 'generate',
-        'silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian', 'absensiguru'
+        'silabus', 'silabusguru', 'modul_ajar', 'jurnal_harian', 'absensiguru', 'rekap_jurnal_kelas'
       ];
       editList.forEach(t => { next[t] = 'edit'; });
       showNotification('Preset Waka Kurikulum (Akses Full Kurikulum) diterapkan.', 'info');

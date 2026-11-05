@@ -9,7 +9,11 @@ import {
   Briefcase,
   Users,
   CheckCircle2,
-  Calendar
+  Calendar,
+  Shield,
+  MessageSquare,
+  DoorOpen,
+  School
 } from 'lucide-react';
 import { isSuperAdminRole } from '../../utils/constants.js';
 
@@ -70,6 +74,35 @@ export default function AdminMobileNav({
   const getRoleTabs = () => {
     const role = (activeUserRole || currentUser?.role || '').toLowerCase();
     const div = (activeUserDivision || currentUser?.division || '').toLowerCase();
+    const subrole = (currentUser?.subrole || '').toLowerCase();
+    const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || subrole === 'walikelas');
+
+    const isBKTeam = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+      div === 'bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
+    const isKesiswaanTeam = Boolean(currentUser?.isKesiswaan) || (
+      (role === 'waka' && div === 'kesiswaan') ||
+      role === 'kesiswaan' ||
+      role === 'waka_kesiswaan' ||
+      ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+      subrole.includes('kesiswaan') ||
+      subrole.includes('osis') ||
+      (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
+      div === 'kesiswaan' ||
+      div === 'osis'
+    );
+    const isKurikulumTeam = Boolean(currentUser?.isKurikulum) || (
+      (role === 'waka' && (div === 'kurikulum' || !div)) ||
+      role === 'kurikulum' ||
+      role === 'waka_kurikulum' ||
+      ['waka_kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(subrole) ||
+      subrole.includes('kurikulum') ||
+      (role === 'guru' && div === 'kurikulum') ||
+      div === 'kurikulum'
+    );
+    const isHubinTeam = (role === 'waka' && div === 'hubin') || role === 'hubin' || role === 'waka_hubin' ||
+      ['waka_hubin', 'sekretaris_hubin', 'anggota_hubin'].includes(subrole) || div === 'hubin';
+    const isSarprasTeam = (role === 'waka' && div === 'sarpras') || role === 'sarpras' || role === 'waka_sarpras' ||
+      ['waka_sarpras', 'sekretaris_sarpras', 'anggota_sarpras'].includes(subrole) || div === 'sarpras';
 
     // Default 3 menu utama (Jurnal, Laporan, Piket/Jadwal)
     const canAccessPiket = typeof checkIsAllowed === 'function' ? checkIsAllowed('kedisiplinan_piket') : false;
@@ -81,18 +114,7 @@ export default function AdminMobileNav({
         : { id: 'generate', icon: Calendar, label: 'Jadwal' },
     ];
 
-    if (role === 'guru') {
-      return [
-        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
-        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-        canAccessPiket
-          ? { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' }
-          : { id: 'walas_report', icon: PieChart, label: 'Laporan' },
-      ];
-    }
-
     if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') {
-      // Jika admin sedang berada di absensiguru, sertakan absensiguru agar tabbar aktif
       if (activeTab === 'absensiguru') {
         return [
           { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
@@ -101,6 +123,46 @@ export default function AdminMobileNav({
         ];
       }
       return defaultGuruAdminTabs;
+    }
+
+    if (isBKTeam) {
+      return [
+        { id: 'kedisiplinan_bpbk', icon: Shield, label: 'Layanan BK' },
+        { id: 'kedisiplinan_absensi', icon: CheckCircle2, label: 'Izin Siswa' },
+        { id: 'hikvision_report_siswa', icon: ClipboardList, label: 'Presensi' },
+      ];
+    }
+
+    if (isKesiswaanTeam) {
+      return [
+        { id: 'hikvision_report_siswa', icon: ClipboardList, label: 'Presensi' },
+        { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' },
+        { id: 'kedisiplinan_absensi', icon: CheckCircle2, label: 'Izin Siswa' },
+      ];
+    }
+
+    if (isHubinTeam) {
+      return [
+        { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
+        { id: 'pkl_data_perusahaan', icon: Briefcase, label: 'DUDI' },
+        { id: 'pkl_jurnal', icon: BookOpen, label: 'Jurnal' },
+      ];
+    }
+
+    if (isSarprasTeam) {
+      return [
+        { id: 'ruangan', icon: DoorOpen, label: 'Ruangan' },
+        { id: 'denah', icon: School, label: 'Denah' },
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+      ];
+    }
+
+    if (isKurikulumTeam) {
+      return [
+        { id: 'generate', icon: Calendar, label: 'Jadwal' },
+        { id: 'rekap_jurnal_kelas', icon: BookOpen, label: 'Rekap Jurnal' },
+        { id: 'hikvision_report_guru', icon: FileText, label: 'Absen Guru' },
+      ];
     }
 
     if (role === 'tu' || role === 'tata_usaha') {
@@ -111,29 +173,29 @@ export default function AdminMobileNav({
       ];
     }
 
-    if (role === 'waka') {
-      if (div === 'hubin') {
-        return [
-          { id: 'pkl_dashboard', icon: PieChart, label: 'PKL' },
-          { id: 'pkl_data_perusahaan', icon: Briefcase, label: 'DUDI' },
-          { id: 'pkl_jurnal', icon: BookOpen, label: 'Jurnal' },
-        ];
-      }
-      if (activeTab === 'absensiguru') {
-        return [
-          { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
-          { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
-          { id: 'walas_report', icon: PieChart, label: 'Laporan' },
-        ];
-      }
-      return defaultGuruAdminTabs;
-    }
-
     if (role === 'karyawan') {
       return [
         { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
         { id: 'laporan_absensi', icon: PieChart, label: 'Laporan' },
         { id: 'akademik', icon: Calendar, label: 'Kalender' },
+      ];
+    }
+
+    if (isWalas) {
+      return [
+        { id: 'catatan_walikelas', icon: MessageSquare, label: 'Catatan' },
+        { id: 'walas_report', icon: PieChart, label: 'Laporan' },
+        { id: 'kedisiplinan_absensi', icon: CheckCircle2, label: 'Izin Siswa' },
+      ];
+    }
+
+    if (role === 'guru') {
+      return [
+        { id: 'absensiguru', icon: CheckCircle2, label: 'Absensi' },
+        { id: 'jurnal_harian', icon: BookOpen, label: 'Jurnal' },
+        canAccessPiket
+          ? { id: 'kedisiplinan_piket', icon: ClipboardList, label: 'Piket' }
+          : { id: 'walas_report', icon: PieChart, label: 'Laporan' },
       ];
     }
 

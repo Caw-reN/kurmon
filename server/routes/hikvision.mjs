@@ -2038,7 +2038,12 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const roleStr = String(session?.role || '').toLowerCase();
-      const isAllowed = isAdminRole(session?.role) || ['tu', 'tata_usaha', 'waka', 'waka_kesiswaan', 'kesiswaan'].includes(roleStr);
+      const subrole = String(session?.subrole || '').toLowerCase();
+      const division = String(session?.division || '').toLowerCase();
+      const isKesiswaanStaff = Boolean(session?.isKesiswaan) ||
+        ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+        subrole.includes('kesiswaan') || division === 'kesiswaan';
+      const isAllowed = isAdminRole(session?.role) || ['tu', 'tata_usaha', 'waka', 'waka_kesiswaan', 'kesiswaan'].includes(roleStr) || isKesiswaanStaff;
       if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan hak akses admin atau tata usaha." });
       try {
         const nis = url.pathname.split("/").pop();

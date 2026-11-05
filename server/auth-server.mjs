@@ -3369,9 +3369,18 @@ const server = createServer(async (req, res) => {
             
           // --- ROW-LEVEL FILTERING: Kesiswaan/Kepsek/Admin sees all, Guru sees only their class ---
           const role = normalizeServerRole(session.role);
-          const isKesiswaanOrAdmin = ['admin', 'superadmin', 'kepsek'].includes(role) || 
-                                     (role === 'waka' && (session.division || "").toLowerCase() === 'kesiswaan') || 
-                                     (role || "").includes('kesiswaan');
+          const subrole = String(session.subrole || "").toLowerCase();
+          const division = String(session.division || "").toLowerCase();
+          const isKesiswaanTeam = Boolean(session.isKesiswaan) ||
+            ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+            subrole.includes('kesiswaan') || subrole.includes('osis') ||
+            division === 'kesiswaan' || division === 'osis' ||
+            ['kesiswaan', 'waka_kesiswaan'].includes(role) ||
+            (role === 'waka' && division === 'kesiswaan');
+          const isBKTeam = Boolean(session.isBK || session.isBPBK) ||
+            ['bk', 'bpbk'].includes(role) || ['bk', 'bpbk'].includes(subrole) ||
+            division === 'bk' || division === 'bpbk';
+          const isKesiswaanOrAdmin = ['admin', 'superadmin', 'kepsek'].includes(role) || isKesiswaanTeam || isBKTeam;
                                      
           if (!isKesiswaanOrAdmin) {
             if (role === 'guru') {
@@ -4972,7 +4981,13 @@ const server = createServer(async (req, res) => {
         const session = requireAuthenticated(req, res);
         if (!session) return;
         const roleStr = normalizeServerRole(session?.role);
-        const isAllowed = isAdminRole(session?.role) || ["tu", "tata_usaha", "waka", "waka_kesiswaan", "kesiswaan"].includes(roleStr);
+        const subrole = String(session?.subrole || "").toLowerCase();
+        const division = String(session?.division || "").toLowerCase();
+        const isKesiswaanStaff = Boolean(session?.isKesiswaan) ||
+          ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+          subrole.includes('kesiswaan') || subrole.includes('osis') ||
+          division === 'kesiswaan' || division === 'osis';
+        const isAllowed = isAdminRole(session?.role) || ["tu", "tata_usaha", "waka", "waka_kesiswaan", "kesiswaan"].includes(roleStr) || isKesiswaanStaff;
         if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan sesi admin atau tata usaha." });
         try {
           const body = await readJsonBody(req);

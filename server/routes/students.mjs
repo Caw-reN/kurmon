@@ -74,7 +74,12 @@ export async function handleStudentRoutes(req, res, url, ctx) {
     const sRole = normalizeServerRole(session.role);
     const isWaka = sRole === 'waka' || String(session.role || '').toLowerCase().startsWith('waka');
     const isCustom = sRole.startsWith('custom_') || String(session.role || '').toLowerCase().startsWith('custom_');
-    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom) {
+    const subrole = String(session?.subrole || "").toLowerCase();
+    const division = String(session?.division || "").toLowerCase();
+    const isKesiswaan = Boolean(session?.isKesiswaan) ||
+      ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis', 'bpbk'].includes(subrole) ||
+      subrole.includes('kesiswaan') || division === 'kesiswaan';
+    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom && !isKesiswaan) {
       send(req, res, 403, { ok: false, error: 'Hanya admin, waka, atau TU yang dapat menyimpan data siswa' });
       return true;
     }

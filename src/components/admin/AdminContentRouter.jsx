@@ -138,9 +138,10 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       const kurikulumTabs = [
         "generate", "akademik", "silabus", "silabusguru", "modul_ajar",
         "ketersediaan", "beban", "kelas", "guru", "mapel", "jurnal_harian",
-        "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules"
+        "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules",
+        "rekap_jurnal_kelas"
       ];
-      const isKurikulumLeaderOrTeam = (
+      const isKurikulumLeaderOrTeam = Boolean(currentUser?.isKurikulum) || (
         (roleKey === "waka" && (division === "kurikulum" || !division)) ||
         roleKey === "kurikulum" ||
         roleKey === "waka_kurikulum" ||
@@ -154,17 +155,19 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
 
       const kesiswaanTabs = [
         "siswa", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report",
-        "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor",
-        "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan"
+        "riwayat_prestasi", "kedisiplinan_bpbk", "kedisiplinan_hub", "kedisiplinan_piket", "tatib_skor",
+        "siswa_keluar", "laporan_absensi", "hikvision_report_siswa", "pesan", "rekap_jurnal_kelas", "kelas", "jurusan"
       ];
-      const isKesiswaanLeaderOrTeam = (
+      const isKesiswaanLeaderOrTeam = Boolean(currentUser?.isKesiswaan) || (
         (roleKey === "waka" && division === "kesiswaan") ||
         roleKey === "kesiswaan" ||
         roleKey === "waka_kesiswaan" ||
         ["waka_kesiswaan", "sekretaris_kesiswaan", "anggota_kesiswaan", "pembina_osis", "sekretaris_osis"].includes(subrole) ||
         subrole.includes("kesiswaan") ||
         subrole.includes("osis") ||
-        (roleKey === "guru" && division === "kesiswaan")
+        (roleKey === "guru" && (division === "kesiswaan" || division === "osis")) ||
+        division === "kesiswaan" ||
+        division === "osis"
       );
       if (isKesiswaanLeaderOrTeam) {
         if (kesiswaanTabs.includes(tabKey)) return false;
@@ -178,7 +181,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         Boolean(currentUser?.isBK || currentUser?.isBPBK)
       );
       if (isBKLeaderOrTeam) {
-        const bkTabs = ["kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor", "riwayat_prestasi", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report"];
+        const bkTabs = ["kedisiplinan_bpbk", "kedisiplinan_hub", "kedisiplinan_piket", "tatib_skor", "riwayat_prestasi", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report", "siswa"];
         if (bkTabs.includes(tabKey)) return false;
       }
 
@@ -188,10 +191,11 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         roleKey === "waka_sarpras" ||
         ["waka_sarpras", "sekretaris_sarpras", "anggota_sarpras"].includes(subrole) ||
         subrole.includes("sarpras") ||
-        (roleKey === "guru" && division === "sarpras")
+        (roleKey === "guru" && division === "sarpras") ||
+        division === "sarpras"
       );
       if (isSarprasLeaderOrTeam) {
-        const sarprasTabs = ["ruangan", "denah", "kelas"];
+        const sarprasTabs = ["ruangan", "denah", "kelas", "fasilitas"];
         if (sarprasTabs.includes(tabKey)) return false;
       }
 
@@ -201,7 +205,8 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         roleKey === "waka_hubin" ||
         ["waka_hubin", "sekretaris_hubin", "anggota_hubin"].includes(subrole) ||
         subrole.includes("hubin") ||
-        (roleKey === "guru" && division === "hubin")
+        (roleKey === "guru" && division === "hubin") ||
+        division === "hubin"
       );
       if (isHubinLeaderOrTeam) {
         if (tabKey.startsWith("pkl_")) return false;
@@ -227,13 +232,16 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         const subrole = (currentUser?.subrole || "").toLowerCase().trim();
         const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
           div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
-        const isKesiswaan = (
+        const isKesiswaan = Boolean(currentUser?.isKesiswaan) || (
           (role === 'waka' && div === 'kesiswaan') ||
           role === 'kesiswaan' ||
           role === 'waka_kesiswaan' ||
-          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis'].includes(subrole) ||
-          (role === 'guru' && div === 'kesiswaan') ||
-          div === 'kesiswaan'
+          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+          subrole.includes('kesiswaan') ||
+          subrole.includes('osis') ||
+          (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
+          div === 'kesiswaan' ||
+          div === 'osis'
         );
         if (isBK || isKesiswaan || role === "admin" || role === "superadmin" || role === "kepsek") return true;
         return false;
@@ -242,7 +250,22 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(activeTab) : null;
         if (piketLevel === "nonaktif" || piketLevel === "none" || piketLevel === "off") return false;
         if (role === "admin" || role === "superadmin" || role === "kepsek") return true;
-        if (hasPiket) return true;
+        const div = (currentUser?.division || "").toLowerCase().trim();
+        const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+        const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+          div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
+        const isKesiswaan = Boolean(currentUser?.isKesiswaan) || (
+          (role === 'waka' && div === 'kesiswaan') ||
+          role === 'kesiswaan' ||
+          role === 'waka_kesiswaan' ||
+          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+          subrole.includes('kesiswaan') ||
+          subrole.includes('osis') ||
+          (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
+          div === 'kesiswaan' ||
+          div === 'osis'
+        );
+        if (isBK || isKesiswaan || hasPiket) return true;
         return piketLevel === "edit" || piketLevel === "view" || piketLevel === "otomatis";
       }
       if (activeTab ==="jurnal_harian" && role ==="guru") return true;

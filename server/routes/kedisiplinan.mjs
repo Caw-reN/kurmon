@@ -53,9 +53,19 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
       
       const session = getSession(req);
       const role = (session?.role || '').toLowerCase();
-      const isAdminStaff = ['admin', 'superadmin', 'kesiswaan', 'waka_kesiswaan', 'waka', 'kepsek'].includes(role);
-      const isSchoolStaff = ['admin', 'superadmin', 'kesiswaan', 'waka_kesiswaan', 'waka', 'guru', 'bk', 'bpbk', 'piket', 'tu', 'kepsek'].includes(role);
-      const isBkStaff = ['admin', 'superadmin', 'bk', 'bpbk', 'kesiswaan', 'waka_kesiswaan', 'waka', 'kepsek'].includes(role);
+      const subrole = (session?.subrole || '').toLowerCase();
+      const division = (session?.division || '').toLowerCase();
+      const isKesiswaanStaff = Boolean(session?.isKesiswaan) ||
+        division.includes('kesiswaan') || division.includes('osis') ||
+        subrole.includes('kesiswaan') || subrole.includes('osis') ||
+        role.includes('kesiswaan') || ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole);
+      const isBkStaffRole = Boolean(session?.isBK || session?.isBPBK) ||
+        division.includes('bk') || division.includes('bpbk') ||
+        subrole.includes('bk') || subrole.includes('bpbk') ||
+        role.includes('bk') || role.includes('bpbk');
+      const isAdminStaff = ['admin', 'superadmin', 'kepsek'].includes(role) || isKesiswaanStaff;
+      const isSchoolStaff = ['admin', 'superadmin', 'guru', 'tu', 'kepsek', 'karyawan'].includes(role) || isKesiswaanStaff || isBkStaffRole;
+      const isBkStaff = ['admin', 'superadmin', 'kepsek'].includes(role) || isBkStaffRole || isKesiswaanStaff;
 
       try {
         if (req.method === "GET" && url.pathname === "/api/kedisiplinan/rules.pdf") {
@@ -500,13 +510,16 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             subroleStr.includes('kesiswaan') || 
             subroleStr.includes('bk') || 
             subroleStr.includes('bpbk') ||
+            subroleStr.includes('osis') ||
             divisionStr.includes('kesiswaan') || 
             divisionStr.includes('bk') || 
             divisionStr.includes('bpbk') ||
+            divisionStr.includes('osis') ||
             jabatanStr.includes('kesiswaan') || 
             jabatanStr.includes('bk') || 
             jabatanStr.includes('bpbk') ||
-            ['admin', 'superadmin'].includes(roleStr) ||
+            ['admin', 'superadmin', 'kepsek'].includes(roleStr) ||
+            ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subroleStr) ||
             Boolean(session?.isBK || session?.isBPBK || session?.isKesiswaan);
 
           if (body.action === 'bulk_delete') {

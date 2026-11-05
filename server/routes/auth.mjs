@@ -582,8 +582,32 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         const isKesiswaanAccount = Boolean(
           teacher.isKesiswaan || 
           division === 'kesiswaan' || 
+          division === 'osis' ||
           effectiveSubrole.includes('kesiswaan') || 
+          effectiveSubrole.includes('osis') ||
+          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis', 'kesiswaan'].includes(effectiveSubrole) ||
           role.includes('kesiswaan')
+        );
+        const isKurikulumAccount = Boolean(
+          teacher.isKurikulum ||
+          division === 'kurikulum' ||
+          effectiveSubrole.includes('kurikulum') ||
+          ['waka_kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum', 'kurikulum'].includes(effectiveSubrole) ||
+          role.includes('kurikulum')
+        );
+        const isHubinAccount = Boolean(
+          teacher.isHubin ||
+          division === 'hubin' ||
+          effectiveSubrole.includes('hubin') ||
+          ['waka_hubin', 'sekretaris_hubin', 'anggota_hubin', 'hubin'].includes(effectiveSubrole) ||
+          role.includes('hubin')
+        );
+        const isSarprasAccount = Boolean(
+          teacher.isSarpras ||
+          division === 'sarpras' ||
+          effectiveSubrole.includes('sarpras') ||
+          ['waka_sarpras', 'sekretaris_sarpras', 'anggota_sarpras', 'sarpras'].includes(effectiveSubrole) ||
+          role.includes('sarpras')
         );
 
         send(req, res, 200, {
@@ -599,6 +623,9 @@ export async function handleAuthRoutes(req, res, url, ctx) {
             isBK: isBKAccount,
             isBPBK: isBPBKAccount,
             isKesiswaan: isKesiswaanAccount,
+            isKurikulum: isKurikulumAccount,
+            isHubin: isHubinAccount,
+            isSarpras: isSarprasAccount,
             isDefaultPassword,
             hasChangedPassword,
             authToken: createSession(role, { 
@@ -611,7 +638,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
               walasClass,
               isBK: isBKAccount,
               isBPBK: isBPBKAccount,
-              isKesiswaan: isKesiswaanAccount
+              isKesiswaan: isKesiswaanAccount,
+              isKurikulum: isKurikulumAccount,
+              isHubin: isHubinAccount,
+              isSarpras: isSarprasAccount
             })
           }
         });

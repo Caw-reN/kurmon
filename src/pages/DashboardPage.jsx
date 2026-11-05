@@ -720,8 +720,8 @@ export default function DashboardPage({
     const teacherDiv = (currentUser?.division || '').toLowerCase().trim();
     const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || teacherSubrole === 'walikelas');
     const canPiket = typeof checkIsAllowed === 'function' ? checkIsAllowed('kedisiplinan_piket', null) : true;
-    const isBKRole = isBK || teacherSubrole === 'bpbk' || teacherSubrole === 'bk' || teacherDiv === 'bk' || teacherDiv === 'bpbk';
-    const isKesiswaanSubrole = ['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'kesiswaan', 'waka_kesiswaan'].includes(teacherSubrole) || teacherDiv === 'kesiswaan' || isWakaKesiswaan;
+    const isBKRole = isBK || teacherSubrole === 'bpbk' || teacherSubrole === 'bk' || teacherDiv === 'bk' || teacherDiv === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
+    const isKesiswaanSubrole = Boolean(currentUser?.isKesiswaan) || ['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'kesiswaan', 'waka_kesiswaan'].includes(teacherSubrole) || teacherDiv === 'kesiswaan' || teacherDiv === 'osis' || isWakaKesiswaan;
 
     let shortcuts = [];
     if (isBKRole) {
@@ -741,6 +741,9 @@ export default function DashboardPage({
         { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "hikvision_report_siswa" },
         { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-600", tab: "kedisiplinan_absensi" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
+        { label: "Layanan BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
+        { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-purple-50 text-purple-600", tab: "siswa" },
+        { label: "Rekap Jurnal", icon: "/icons/092-file.svg", color: "bg-cyan-50 text-cyan-600", tab: "rekap_jurnal_kelas" },
         { label: "Aturan Tatib", icon: "/icons/013-shield.svg", color: "bg-amber-50 text-amber-600", tab: "tatib_skor" },
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
@@ -1590,6 +1593,7 @@ export default function DashboardPage({
 
   // Define role-specific cards to ensure different content per role
   const allStatCards = {
+    siswa: { label:"Total Siswa", value: students.length, icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-500", sub: "Siswa Aktif", subIcon: Users, tab:"siswa" },
     kelas: { label:"Total Kelas", value: classes.length, icon:"/icons/008-warehouse.svg", color:"bg-[var(--ui-primary)]/10 text-indigo-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab:"kelas" },
     guru: { label:"Total Guru", value: teachers.length, icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-500", sub: `${productiveTeachers} Produktif`, subIcon: TrendingUp, tab:"guru" },
     mapel: { label:"Total Mapel", value: subjects.length, icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-500", sub: `${practiceSubjects} Praktik`, subIcon: Activity, tab:"mapel" },
@@ -1606,7 +1610,7 @@ export default function DashboardPage({
                     activeDivision ==="kurikulum" ? [allStatCards.jadwal, allStatCards.beban, allStatCards.mapel, allStatCards.guru]
                     : activeDivision ==="sarpras" ? [allStatCards.ruangan, allStatCards.kelas, allStatCards.jadwal, allStatCards.guru]
                     : activeDivision ==="hubin" ? [allStatCards.pklSiswa, allStatCards.pklMitra, allStatCards.pklJurnal, allStatCards.guru]
-                    : [allStatCards.kelas, allStatCards.guru, allStatCards.absen, allStatCards.jadwal]
+                    : [allStatCards.siswa, allStatCards.absen, allStatCards.kelas, allStatCards.jadwal]
                  )
                  : isTU ? [allStatCards.absen, allStatCards.kelas, allStatCards.guru, allStatCards.jadwal]
                  : [allStatCards.jadwal, allStatCards.pklSiswa, allStatCards.ruangan, allStatCards.guru];
@@ -2892,10 +2896,18 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
 
   // ── Role-guard ──
   const isKaryawan = currentUser?.role === 'karyawan' || currentUser?.role === 'staf';
+  const userSubrole = (currentUser?.subrole || '').toLowerCase().trim();
+  const userDiv = (currentUser?.division || '').toLowerCase().trim();
+  const isKesiswaanStaff = Boolean(currentUser?.isKesiswaan) || (isWaka && activeDivision === 'kesiswaan') ||
+    ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(userSubrole) ||
+    userDiv === 'kesiswaan' || userDiv === 'osis';
+  const isBKMember = Boolean(currentUser?.isBK || currentUser?.isBPBK) || userSubrole === 'bpbk' || userSubrole === 'bk' || userDiv === 'bk' || userDiv === 'bpbk';
+  const isWalasMember = Boolean(currentUser?.isWalas || currentUser?.walasClass || userSubrole === 'walikelas');
+
   const canSeeTeacherAttendance = isSuperAdmin || isKepsek || isTU ||
     (isWaka && (activeDivision === 'kurikulum' || activeDivision === 'kesiswaan'));
   const canSeeStudentAttendance = isSuperAdmin || isKepsek || isTU ||
-    (isWaka && activeDivision === 'kesiswaan');
+    (isWaka && activeDivision === 'kesiswaan') || isKesiswaanStaff || isBKMember || isWalasMember;
 
   // Helper untuk menentukan batas jam masuk evaluasi Alpa
   const getCutoffTime = useCallback((role = 'siswa') => {
