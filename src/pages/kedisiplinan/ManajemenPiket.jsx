@@ -57,9 +57,10 @@ export default function ManajemenPiket({
   const isExplicitlyDenied = permLevel === 'nonaktif' || permLevel === 'none' || permLevel === 'off';
   const isSuperAdmin = rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'kepsek' || (typeof isSuperAdminRole === 'function' && isSuperAdminRole(rawRole));
 
-  const isKesiswaanTeam = (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' ||
-    ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
-    rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
+  const isKesiswaanTeam = (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' || rawRole === 'waka_kesiswaan' ||
+    subrole === 'waka_kesiswaan' || subrole.includes('kesiswaan') || subrole.includes('osis') ||
+    ['bpbk', 'bk', 'pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
+    rawRole === 'bpbk' || rawRole === 'bk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
 
   // Evaluasi apakah user memiliki hak input pelanggaran di PanelPiket
   // Guru umum, guru piket, wali kelas, tim kesiswaan, atau admin BERHAK menginput pelanggaran siswa selama tidak dinonaktifkan eksplisit

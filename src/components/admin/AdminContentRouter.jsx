@@ -123,6 +123,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
     const isTabReadOnly = tabKey => {
       const roleKey = normalizeUserRole(currentUser?.role);
       const division = (currentUser?.division || "").toLowerCase();
+      const subrole = (currentUser?.subrole || "").toLowerCase();
 
       // Kepsek hanya bisa melihat, tidak bisa mengedit atau menghapus (Strict Read-Only)
       if (roleKey === "kepsek") return true;
@@ -139,7 +140,15 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         "ketersediaan", "beban", "kelas", "guru", "mapel", "jurnal_harian",
         "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules"
       ];
-      if ((roleKey === "waka" && division === "kurikulum") || roleKey === "kurikulum" || roleKey === "waka_kurikulum" || currentUser?.subrole === "waka_kurikulum") {
+      const isKurikulumLeaderOrTeam = (
+        (roleKey === "waka" && (division === "kurikulum" || !division)) ||
+        roleKey === "kurikulum" ||
+        roleKey === "waka_kurikulum" ||
+        ["waka_kurikulum", "sekretaris_kurikulum", "anggota_kurikulum"].includes(subrole) ||
+        subrole.includes("kurikulum") ||
+        (roleKey === "guru" && division === "kurikulum")
+      );
+      if (isKurikulumLeaderOrTeam) {
         if (kurikulumTabs.includes(tabKey)) return false;
       }
 
@@ -152,11 +161,50 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         (roleKey === "waka" && division === "kesiswaan") ||
         roleKey === "kesiswaan" ||
         roleKey === "waka_kesiswaan" ||
-        ["waka_kesiswaan", "sekretaris_kesiswaan", "anggota_kesiswaan", "pembina_osis"].includes(currentUser?.subrole) ||
+        ["waka_kesiswaan", "sekretaris_kesiswaan", "anggota_kesiswaan", "pembina_osis", "sekretaris_osis"].includes(subrole) ||
+        subrole.includes("kesiswaan") ||
+        subrole.includes("osis") ||
         (roleKey === "guru" && division === "kesiswaan")
       );
       if (isKesiswaanLeaderOrTeam) {
         if (kesiswaanTabs.includes(tabKey)) return false;
+      }
+
+      const isBKLeaderOrTeam = (
+        roleKey === "bpbk" || roleKey === "bk" ||
+        subrole === "bpbk" || subrole === "bk" ||
+        subrole.includes("bk") || subrole.includes("bpbk") ||
+        division === "bk" || division === "bpbk" ||
+        Boolean(currentUser?.isBK || currentUser?.isBPBK)
+      );
+      if (isBKLeaderOrTeam) {
+        const bkTabs = ["kedisiplinan_bpbk", "kedisiplinan_piket", "tatib_skor", "riwayat_prestasi", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report"];
+        if (bkTabs.includes(tabKey)) return false;
+      }
+
+      const isSarprasLeaderOrTeam = (
+        (roleKey === "waka" && division === "sarpras") ||
+        roleKey === "sarpras" ||
+        roleKey === "waka_sarpras" ||
+        ["waka_sarpras", "sekretaris_sarpras", "anggota_sarpras"].includes(subrole) ||
+        subrole.includes("sarpras") ||
+        (roleKey === "guru" && division === "sarpras")
+      );
+      if (isSarprasLeaderOrTeam) {
+        const sarprasTabs = ["ruangan", "denah", "kelas"];
+        if (sarprasTabs.includes(tabKey)) return false;
+      }
+
+      const isHubinLeaderOrTeam = (
+        (roleKey === "waka" && division === "hubin") ||
+        roleKey === "hubin" ||
+        roleKey === "waka_hubin" ||
+        ["waka_hubin", "sekretaris_hubin", "anggota_hubin"].includes(subrole) ||
+        subrole.includes("hubin") ||
+        (roleKey === "guru" && division === "hubin")
+      );
+      if (isHubinLeaderOrTeam) {
+        if (tabKey.startsWith("pkl_")) return false;
       }
 
       const level = getTabPermissionLevel(tabKey);

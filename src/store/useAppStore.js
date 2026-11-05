@@ -357,10 +357,17 @@ export const useAppStore = create((set) => ({
     ...DEFAULT_FEATURE_SETTINGS,
     ...(initialState.featureSettings || {}),
   },
-  rolePermissions: {
-    ...DEFAULT_ROLE_PERMISSIONS,
-    ...(initialState.rolePermissions || {}),
-  },
+  rolePermissions: (() => {
+    const initial = initialState.rolePermissions || {};
+    const merged = { ...DEFAULT_ROLE_PERMISSIONS };
+    for (const [rk, val] of Object.entries(initial)) {
+      merged[rk] = {
+        ...(DEFAULT_ROLE_PERMISSIONS[rk] || {}),
+        ...(val || {})
+      };
+    }
+    return merged;
+  })(),
   updateFeatureSettings: (newSettings) =>
     set((state) => ({
       featureSettings: {
@@ -677,10 +684,14 @@ const syncPersistedSlicesFromDatabase = () => {
         }
       }
 
-      nextState.rolePermissions = {
-        ...DEFAULT_ROLE_PERMISSIONS,
-        ...sanitized,
-      };
+      const mergedPermissions = { ...DEFAULT_ROLE_PERMISSIONS };
+      for (const [rk, val] of Object.entries(sanitized)) {
+        mergedPermissions[rk] = {
+          ...(DEFAULT_ROLE_PERMISSIONS[rk] || {}),
+          ...(val || {})
+        };
+      }
+      nextState.rolePermissions = mergedPermissions;
     }
     if (latest.kedisiplinanSettings && typeof latest.kedisiplinanSettings === "object") {
       nextState.kedisiplinanSettings = {

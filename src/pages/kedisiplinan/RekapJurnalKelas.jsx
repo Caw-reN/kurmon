@@ -8,6 +8,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore.js';
+import { useAuthToken } from '../../hooks/useAuthToken.js';
 import { useDataStore } from '../../store/useDataStore.js';
 import { useAppStore } from '../../store/useAppStore.js';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
@@ -23,10 +24,16 @@ import autoTable from 'jspdf-autotable';
 const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 export default function RekapJurnalKelas({ classes = [], teachers = [], schedule = [], onBack }) {
-  const user = useAuthStore(state => state.user);
-  const authToken = user?.authToken;
-  const role = user?.role || '';
-  const isKurikulum = ['admin', 'superadmin'].includes(role) || (role === 'waka' && (user?.division || '').toLowerCase() === 'kurikulum');
+  const { authToken, user: tokenUser } = useAuthToken();
+  const authStoreUser = useAuthStore(state => state.user);
+  const user = tokenUser || authStoreUser;
+  const role = (user?.role || '').toLowerCase();
+  const subrole = (user?.subrole || '').toLowerCase();
+  const division = (user?.division || '').toLowerCase();
+  const isKurikulum = ['admin', 'superadmin', 'kepsek'].includes(role) || 
+    role === 'kurikulum' || role === 'waka_kurikulum' ||
+    (role === 'waka' && (division === 'kurikulum' || !division)) ||
+    subrole.includes('kurikulum');
   
   // Deteksi wali kelas
   const isWalas = Boolean(user?.isWalas || user?.walasClass || user?.subrole === 'walikelas');

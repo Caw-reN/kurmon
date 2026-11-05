@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
+import { useAuthToken } from '../../hooks/useAuthToken.js';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { 
@@ -42,7 +43,7 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
     keterangan: ""
   });
 
-  const authToken = useAuthStore(state => state.user?.authToken);
+  const { authToken } = useAuthToken();
 
   const fetchPrestasi = useCallback(async () => {
     if (!authToken) return;

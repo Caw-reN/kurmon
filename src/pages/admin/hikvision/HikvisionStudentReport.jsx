@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
+import { useAuthToken } from '../../../hooks/useAuthToken.js';
 import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info } from 'lucide-react';
 import { useAppStore } from'../../../store/useAppStore';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
@@ -16,8 +17,9 @@ import { logWalasAttendanceCheck } from '../../../utils/auditLogger.js';
 const KeteranganMasalAbsensi = React.lazy(() => import('../../KeteranganMasalAbsensi.jsx'));
 
 export default function HikvisionStudentReport({ classes = [], students = [], isNested = false, activeTab: routeTab = "" }) {
-  const user = useAuthStore(state => state.user);
-  const authToken = user?.authToken;
+  const { authToken, user: tokenUser } = useAuthToken();
+  const authStoreUser = useAuthStore(state => state.user);
+  const user = tokenUser || authStoreUser;
   const [activeTab, setActiveTab] = useState(() => routeTab === "keterangan_massal" ? "keterangan" : "matriks"); // "matriks" | "surat" | "keterangan"
   const [exportMode, setExportMode] = useState("summary");
 
@@ -78,8 +80,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek'].includes(roleStr) ||
     roleStr.startsWith('waka') ||
     roleStr.includes('kesiswaan') || roleStr.includes('bk') || roleStr.includes('bpbk') ||
-    subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') ||
-    divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') ||
+    subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') || subroleStr.includes('osis') ||
+    divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') || divisionStr.includes('osis') ||
     Boolean(user?.isBK || user?.isBPBK || user?.isKesiswaan);
 
   const canManageBulkRemarks = 

@@ -12,6 +12,7 @@ import { Button, Modal, UISelect, TablePagination } from '../../components/ui.js
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
 import useAuthStore from "../../store/monitoring/authStore.js";
+import { useAuthToken } from "../../hooks/useAuthToken.js";
 import { useAppStore } from "../../store/useAppStore.js";
 import { useDataStore } from "../../store/useDataStore.js";
 import ExcelJS from 'exceljs';
@@ -23,8 +24,9 @@ const getStudentNis  = (s) => s?.nis || s?.NIS || s?.code || s?.id || '';
 const getStudentClass = (s) => s?.class_name || s?.kelas || s?.className || '';
 
 export default function DashboardBPBK({ students = [], classes = [], teachers = [], tab = 'ringkasan', onTabChange }) {
-  const authToken = useAuthStore(state => state.user?.authToken);
-  const user = useAuthStore(state => state.user);
+  const { authToken, user: tokenUser } = useAuthToken();
+  const authStoreUser = useAuthStore(state => state.user);
+  const user = tokenUser || authStoreUser;
   const dataStoreAppSettings = useDataStore(state => state.appSettings) || {};
   const appStoreAppSettings = useAppStore(state => state.appSettings) || {};
   const storeTeachers = useDataStore(state => state.teachers) || [];

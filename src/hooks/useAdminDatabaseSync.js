@@ -106,10 +106,14 @@ export function useAdminDatabaseSync({
           }
         }
       }
-      nextStoreState.rolePermissions = {
-        ...DEFAULT_ROLE_PERMISSIONS,
-        ...sanitized
-      };
+      const mergedPermissions = { ...DEFAULT_ROLE_PERMISSIONS };
+      for (const [rk, val] of Object.entries(sanitized)) {
+        mergedPermissions[rk] = {
+          ...(DEFAULT_ROLE_PERMISSIONS[rk] || {}),
+          ...(val || {})
+        };
+      }
+      nextStoreState.rolePermissions = mergedPermissions;
     }
     if (payload.kedisiplinanSettings && typeof payload.kedisiplinanSettings === 'object') {
       nextStoreState.kedisiplinanSettings = payload.kedisiplinanSettings;

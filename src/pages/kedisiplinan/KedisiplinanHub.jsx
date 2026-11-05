@@ -73,10 +73,13 @@ export default function KedisiplinanHub({
 
   const isKesiswaanTeam = (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' ||
     rawRole === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' ||
-    ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
-    rawRole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
+    subrole.includes('kesiswaan') || subrole.includes('osis') ||
+    ['bpbk', 'bk', 'pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) ||
+    rawRole === 'bpbk' || rawRole === 'bk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
 
-  const isBKRole = rawRole === 'bpbk' || subrole === 'bpbk' || division === 'bk' || division === 'bp/bk' || division === 'bpbk';
+  const isBKRole = rawRole === 'bpbk' || rawRole === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+    subrole.includes('bk') || subrole.includes('bpbk') ||
+    division === 'bk' || division === 'bp/bk' || division === 'bpbk' || Boolean(user.isBK);
 
   const permsPiket = typeof getTabPermissionLevel === 'function' ? getTabPermissionLevel('kedisiplinan_piket') : null;
   const isExplicitlyDeniedPiket = permsPiket === 'nonaktif' || permsPiket === 'none' || permsPiket === 'off';
@@ -104,7 +107,7 @@ export default function KedisiplinanHub({
   const canAccessBK = useMemo(() => {
     if (isSuperAdmin || isBKRole) return true;
     if (isExplicitlyDeniedBK) return false;
-    if (rawRole === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' || (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' || subrole === 'sekretaris_kesiswaan') return true;
+    if (rawRole === 'waka_kesiswaan' || subrole === 'waka_kesiswaan' || (rawRole === 'waka' && division === 'kesiswaan') || rawRole === 'kesiswaan' || subrole.includes('kesiswaan')) return true;
     if (rawRole === 'guru' || rawRole === 'walikelas' || isWalas) return false;
     return permsBK === 'edit' || permsBK === 'full' || permsBK === 'view' || permsBK === 'otomatis';
   }, [isSuperAdmin, isBKRole, isExplicitlyDeniedBK, rawRole, subrole, division, isWalas, permsBK]);

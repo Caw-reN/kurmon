@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
+import { useAuthToken } from '../../hooks/useAuthToken.js';
 import { useAppStore } from '../../store/useAppStore.js';
 import { useDataStore } from '../../store/useDataStore.js';
 import { CheckCircle2, AlertTriangle, Printer, CalendarIcon, Edit2, Users, Trash2, Search, X } from 'lucide-react';
@@ -39,13 +40,14 @@ export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canE
   const [schedules, setSchedules] = useState([]);
   const [filterKampus, setFilterKampus] = useState("Kampus A");
   
-  const user = useAuthStore(state => state.user);
-  const authToken = user?.authToken;
+  const { authToken, user: tokenUser } = useAuthToken();
+  const authStoreUser = useAuthStore(state => state.user);
+  const user = tokenUser || authStoreUser;
   const rawRole = String(user?.role || '').toLowerCase().trim();
   const subrole = String(user?.subrole || '').toLowerCase().trim();
   const division = String(user?.division || '').toLowerCase().trim();
 
-  const isPrivileged = rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'waka' || rawRole === 'kesiswaan' || rawRole === 'bpbk' || subrole === 'bpbk' || subrole === 'pembina_osis' || subrole === 'sekretaris_kesiswaan' || division === 'bk' || division === 'kesiswaan';
+  const isPrivileged = rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'waka' || rawRole === 'kesiswaan' || rawRole === 'waka_kesiswaan' || rawRole === 'bpbk' || rawRole === 'bk' || subrole === 'bpbk' || subrole === 'bk' || subrole.includes('kesiswaan') || subrole.includes('osis') || division === 'bk' || division === 'kesiswaan';
   const canEdit = typeof canEditProp === 'boolean' ? canEditProp : !!(authToken && (rawRole !== 'guru' || isPrivileged));
   
   const [showFormModal, setShowFormModal] = useState(false);

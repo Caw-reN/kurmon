@@ -308,8 +308,15 @@ export default function CatatanWaliKelas({
   const isKesiswaan = isSuperAdmin ||
     role === 'waka_kesiswaan' ||
     role === 'kesiswaan' ||
+    role === 'bpbk' ||
+    role === 'bk' ||
     subrole === 'waka_kesiswaan' ||
+    subrole.includes('kesiswaan') ||
+    subrole.includes('bk') ||
+    subrole.includes('bpbk') ||
     (role === 'waka' && division === 'kesiswaan') ||
+    division === 'kesiswaan' ||
+    division === 'bk' ||
     hasPermEdit;
 
   const canAdd = isWalas || isKesiswaan;

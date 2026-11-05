@@ -22,7 +22,9 @@ import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   LogIn,
   UserX,
   Clock3,
+  Shield,
   ShieldAlert,
+  FileSpreadsheet,
   Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, BellRing, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
@@ -376,15 +378,34 @@ export default function DashboardPage({
       scheduleSlots: (schedule || []).length };
   }, [classes, teachers, subjects, schedule, rooms]);
 
-  const activeRole = currentUser?.role ==="superadmin" ?"admin" : currentUser?.role;
-  const activeDivision = String(activeRole || "").startsWith("waka_")
-    ? activeRole.replace("waka_", "")
-    : (activeRole === "waka" ? (currentUser?.division || "kurikulum") : "");
-  const isTeacher = activeRole ==="guru";
-  const isKepsek = activeRole ==="kepsek";
-  const isWaka = activeRole ==="waka" || String(activeRole || "").startsWith("waka_");
-  const isTU = activeRole ==="tu" || activeRole ==="tata_usaha";
-  const isSuperAdmin = activeRole === "admin";
+  const rawRole = (currentUser?.role || "").toLowerCase().trim();
+  const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+  const division = (currentUser?.division || "").toLowerCase().trim();
+
+  const isSuperAdmin = rawRole === "superadmin" || rawRole === "admin";
+  const isKepsek = rawRole === "kepsek";
+  const isTU = rawRole === "tu" || rawRole === "tata_usaha" || subrole === "sekretaris_tu" || subrole === "bendahara";
+  const isKaryawan = rawRole === "karyawan";
+
+  // Waka & Bidang Tim
+  const isWakaKesiswaan = rawRole === "waka_kesiswaan" || rawRole === "kesiswaan" || (rawRole === "waka" && division === "kesiswaan") || subrole === "waka_kesiswaan";
+  const isWakaKurikulum = rawRole === "waka_kurikulum" || rawRole === "kurikulum" || (rawRole === "waka" && (division === "kurikulum" || !division)) || subrole === "waka_kurikulum";
+  const isWakaSarpras = rawRole === "waka_sarpras" || rawRole === "sarpras" || (rawRole === "waka" && division === "sarpras") || subrole === "waka_sarpras";
+  const isWakaHubin = rawRole === "waka_hubin" || rawRole === "hubin" || (rawRole === "waka" && division === "hubin") || subrole === "waka_hubin";
+  const isWakaHumas = rawRole === "waka_humas" || rawRole === "humas" || (rawRole === "waka" && division === "humas") || subrole === "waka_humas";
+
+  const isWaka = isWakaKurikulum || isWakaKesiswaan || isWakaSarpras || isWakaHubin || isWakaHumas || rawRole === "waka" || rawRole.startsWith("waka_");
+  
+  const activeDivision = isWakaKesiswaan ? "kesiswaan"
+    : isWakaHubin ? "hubin"
+    : isWakaSarpras ? "sarpras"
+    : isWakaHumas ? "humas"
+    : (rawRole === "waka" ? (division || "kurikulum") : (rawRole.startsWith("waka_") ? rawRole.replace("waka_", "") : "kurikulum"));
+
+  const isBK = rawRole === "bpbk" || rawRole === "bk" || subrole === "bpbk" || subrole === "bk" || division === "bk" || division === "bpbk" || Boolean(currentUser?.isBK);
+  const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || rawRole === 'walikelas' || subrole === 'walikelas');
+  const isTeacher = rawRole === "guru" || (!isSuperAdmin && !isKepsek && !isTU && !isKaryawan && !isWaka);
+  const activeRole = isSuperAdmin ? "admin" : (rawRole || "guru");
 
   const userRolesDisplay = useMemo(() => {
     if (!currentUser) return 'Guru / Pengajar';
@@ -392,7 +413,7 @@ export default function DashboardPage({
     const r = (currentUser.role || '').toLowerCase();
     if (r === 'superadmin' || r === 'admin') parts.push('Super Admin');
     else if (r === 'kepsek') parts.push('Kepala Sekolah');
-    else if (r === 'waka' || r.startsWith('waka_')) {
+    else if (r === 'waka' || r.startsWith('waka_') || ['kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'humas'].includes(r)) {
       const divRaw = currentUser.division || r.replace('waka_', '');
       const div = divRaw ? `Waka ${divRaw.charAt(0).toUpperCase() + divRaw.slice(1)}` : 'Waka';
       parts.push(div);
@@ -420,29 +441,29 @@ export default function DashboardPage({
       actions: [
         { label:"Pantau Jadwal", tab:"generate", icon: Calendar, tone:"primary" },
         { label:"Beban Mengajar", tab:"beban", icon: Activity, tone:"white" },
-        { label:"Silabus", tab:"silabus", icon: BookOpen, tone:"white" },
+        { label:"Silabus & Modul", tab:"silabus", icon: BookOpen, tone:"white" },
       ] },
     kesiswaan: {
       label:"Waka Kesiswaan",
-      subtitle:"Fokus pada rekap absensi, kegiatan sekolah, dan pesan dashboard.",
+      subtitle:"Fokus pada presensi siswa, surat izin & sakit, kedisiplinan, dan prestasi.",
       actions: [
-        { label:"Rekap Absensi", tab:"absensi", icon: CheckCircle2, tone:"primary" },
-        { label:"Kalender", tab:"akademik", icon: Calendar, tone:"white" },
-        { label:"Pesan", tab:"pesan", icon: Activity, tone:"white" },
+        { label:"Presensi Siswa", tab:"hikvision_report_siswa", icon: CheckCircle2, tone:"primary" },
+        { label:"Izin & Sakit", tab:"kedisiplinan_absensi", icon: FileSpreadsheet, tone:"white" },
+        { label:"Piket & Tatib", tab:"kedisiplinan_piket", icon: Shield, tone:"white" },
       ] },
     sarpras: {
       label:"Waka Sarpras",
       subtitle:"Fokus pada ruangan, denah, fasilitas, dan pemakaian ruang.",
       actions: [
         { label:"Data Ruangan", tab:"ruangan", icon: DoorOpen, tone:"primary" },
-        { label:"Denah", tab:"denah", icon: School, tone:"white" },
+        { label:"Denah Bangunan", tab:"denah", icon: School, tone:"white" },
         { label:"Pantau Jadwal", tab:"generate", icon: Calendar, tone:"white" },
       ] },
     humas: {
       label:"Waka Humas",
       subtitle:"Fokus pada informasi publik, pesan dashboard, dan tampilan web.",
       actions: [
-        { label:"Pesan", tab:"pesan", icon: Activity, tone:"primary" },
+        { label:"Pesan & Info", tab:"pesan", icon: Activity, tone:"primary" },
         { label:"Tampilan Web", tab:"tampilan", icon: TrendingUp, tone:"white" },
         { label:"Kalender", tab:"akademik", icon: Calendar, tone:"white" },
       ] },
@@ -452,7 +473,7 @@ export default function DashboardPage({
       actions: [
         { label:"Data Siswa PKL", tab:"pkl_data_siswa", icon: Users, tone:"primary" },
         { label:"Jurnal & Logbook", tab:"pkl_jurnal", icon: BookOpen, tone:"white" },
-        { label:"Approval Lokasi", tab:"pkl_lokasi", icon: CheckCircle2, tone:"white" },
+        { label:"Mitra DUDI", tab:"pkl_data_perusahaan", icon: Building2, tone:"white" },
       ] } };
   const wakaProfile = wakaProfiles[activeDivision] || wakaProfiles.kurikulum;
 
@@ -472,7 +493,7 @@ export default function DashboardPage({
       badge:"Level 2 · Monitoring",
       actions: [
         { label:"Pantau Jadwal", tab:"generate", icon: Calendar },
-        { label:"Rekap Absensi", tab:"absensi", icon: CheckCircle2 },
+        { label:"Rekap Kehadiran", tab:"laporan_absensi", icon: CheckCircle2 },
         { label:"Pesan Dashboard", tab:"pesan", icon: Activity },
       ] };
     if (isWaka) return {
@@ -480,6 +501,15 @@ export default function DashboardPage({
       subtitle: wakaProfile.subtitle,
       badge:"Level 3 · Bidang",
       actions: wakaProfile.actions };
+    if (isBK) return {
+      label:"Dashboard Bimbingan Konseling (BK)",
+      subtitle:"Monitoring kedisiplinan siswa, konseling, buku pembinaan, dan rekap prestasi.",
+      badge:"Layanan Siswa",
+      actions: [
+        { label:"Layanan BK", tab:"kedisiplinan_bpbk", icon: Shield },
+        { label:"Izin & Sakit", tab:"kedisiplinan_absensi", icon: CheckCircle2 },
+        { label:"Prestasi Siswa", tab:"riwayat_prestasi", icon: Activity },
+      ] };
     if (isSuperAdmin) return {
       label:"Dashboard Admin (Terpadu)",
       subtitle:"Ringkasan sistem terpadu (Kurikulum, Kesiswaan, Sarpras, & Humas). Kelola jadwal, fasilitas, SDM, dan konfigurasi utama.",
@@ -687,31 +717,34 @@ export default function DashboardPage({
   const teacherShortcuts = useMemo(() => {
     if (!isTeacher) return [];
     const teacherSubrole = (currentUser?.subrole || '').toLowerCase().trim();
+    const teacherDiv = (currentUser?.division || '').toLowerCase().trim();
     const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || teacherSubrole === 'walikelas');
     const canPiket = typeof checkIsAllowed === 'function' ? checkIsAllowed('kedisiplinan_piket', null) : true;
+    const isBKRole = isBK || teacherSubrole === 'bpbk' || teacherSubrole === 'bk' || teacherDiv === 'bk' || teacherDiv === 'bpbk';
+    const isKesiswaanSubrole = ['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'kesiswaan', 'waka_kesiswaan'].includes(teacherSubrole) || teacherDiv === 'kesiswaan' || isWakaKesiswaan;
 
     let shortcuts = [];
-    if (teacherSubrole === 'bpbk') {
+    if (isBKRole) {
       shortcuts = [
         { label: "BK & Piket", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_bpbk" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
-        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-amber-50 text-amber-600", tab: "kedisiplinan_absensi" },
-        { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-emerald-50 text-emerald-600", tab: "siswa" },
+        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-amber-50 text-amber-600", tab: "hikvision_report_siswa" },
+        { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", color: "bg-emerald-50 text-emerald-600", tab: "kedisiplinan_absensi" },
+        { label: "Data Siswa", icon: "/icons/045-account.svg", color: "bg-purple-50 text-purple-600", tab: "siswa" },
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-sky-50 text-sky-600", tab: "akademik" },
-        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
-    } else if (['pembina_osis', 'sekretaris_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(teacherSubrole)) {
+    } else if (isKesiswaanSubrole) {
       shortcuts = [
         ...(canPiket ? [{ label: "Piket & BK", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
+        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "hikvision_report_siswa" },
+        { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-600", tab: "kedisiplinan_absensi" },
         { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "riwayat_prestasi" },
         { label: "Aturan Tatib", icon: "/icons/013-shield.svg", color: "bg-amber-50 text-amber-600", tab: "tatib_skor" },
-        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
         { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
-        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
     } else if (['sekretaris_kurikulum', 'anggota_kurikulum'].includes(teacherSubrole)) {
       shortcuts = [
@@ -1787,8 +1820,8 @@ export default function DashboardPage({
                     ];
                   } else if (activeDivision === 'kesiswaan') {
                     dynamicShortcuts = [
-                      { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                      { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                      { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
                       { label: "Piket & Tatib", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
                       { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
                       { label: "Poin Tatib", icon: "/icons/013-shield.svg", tab: "tatib_skor" },
@@ -1798,29 +1831,28 @@ export default function DashboardPage({
                     ];
                   } else if (activeDivision === 'hubin') {
                     dynamicShortcuts = [
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
                       { label: "Mitra DUDI", icon: "/icons/008-warehouse.svg", tab: "pkl_data_perusahaan" },
                       { label: "Penugasan", icon: "/icons/066-education.svg", tab: "pkl_penugasan" },
                       { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
                       { label: "Administrasi", icon: "/icons/092-file.svg", tab: "pkl_administrasi" },
                       { label: "Laporan PKL", icon: "/icons/063-follow.svg", tab: "pkl_laporan" },
+                      { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                     ];
                   } else if (activeDivision === 'sarpras') {
                     dynamicShortcuts = [
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Data Ruangan", icon: "/icons/016-map pin.svg", tab: "ruangan" },
                       { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
                       { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
                       { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
                       { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                      { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                      { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
                       { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                     ];
                   } else if (activeDivision === 'humas') {
                     dynamicShortcuts = [
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                       { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                       { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
                       { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
@@ -1828,16 +1860,37 @@ export default function DashboardPage({
                       { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
                       { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
                       { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                     ];
                   }
+                } else if (isBK) {
+                  dynamicShortcuts = [
+                    { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
+                    { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                    { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                    { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                    { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
+                    { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                    { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                  ];
+                } else if (isWalas) {
+                  dynamicShortcuts = [
+                    { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                    { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                    { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                    { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                    { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                    { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
+                    { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                  ];
                 } else if (activeRole === 'karyawan') {
                   dynamicShortcuts = [
                     { label: "Absen Pegawai", icon: "/icons/045-account.svg", tab: "absensiguru" },
-                    { label: "Rekap Absensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
-                    { label: "E-Surat", icon: "/icons/092-file.svg", tab: "esurat" },
-                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                    { label: "Rekap Kehadiran", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
                     { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                    { label: "Jadwal KBM", icon: "/icons/011-schedule.svg", tab: "generate" }
+                    { label: "Pengumuman", icon: "/icons/087-chat.svg", tab: "pesan" },
                   ];
                 } else {
                   dynamicShortcuts = [
@@ -2107,13 +2160,13 @@ export default function DashboardPage({
                   { label:"Data Pegawai", icon:"/icons/066-education.svg", color:"bg-rose-50 text-rose-600", tab:"data_pegawai" },
                 ];
                 if (activeDivision === 'kesiswaan') return [
-                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
-                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
+                  { label:"Presensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
+                  { label:"Izin & Sakit", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
                   { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
                   { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
                   { label:"Poin Tatib", icon:"/icons/013-shield.svg", color:"bg-amber-50 text-amber-600", tab:"tatib_skor" },
                   { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"riwayat_prestasi" },
-                  { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
+                  { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-sky-50 text-sky-600", tab:"catatan_walikelas" },
                   { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
                 ];
                 if (activeDivision === 'hubin') return [
@@ -2147,6 +2200,26 @@ export default function DashboardPage({
                   { label:"Silabus", icon:"/icons/092-file.svg", color:"bg-rose-50 text-rose-600", tab:"silabus" },
                 ];
               }
+              if (isBK) return [
+                { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
+                { label:"Izin & Sakit", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
+                { label:"Presensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
+                { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
+                { label:"Prestasi Siswa", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"riwayat_prestasi" },
+                { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
+                { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa" },
+                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
+              ];
+              if (isWalas) return [
+                { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
+                { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"walas_report" },
+                { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
+                { label:"Izin & Sakit", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
+                { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
+                { label:"Modul Ajar", icon:"/icons/066-education.svg", color:"bg-purple-50 text-purple-600", tab:"silabusguru" },
+                { label:"Jadwal KBM", icon:"/icons/086-calendar.svg", color:"bg-sky-50 text-sky-600", tab:"generate" },
+                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
+              ];
               if (activeRole === 'karyawan') return [
                 { label:"Absen Pegawai", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"absensiguru" },
                 { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },

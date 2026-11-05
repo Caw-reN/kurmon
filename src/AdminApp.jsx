@@ -1542,7 +1542,8 @@ export default function App() {
         'sekretaris_hubin', 'anggota_hubin',
         'sekretaris_sarpras', 'anggota_sarpras',
         'sekretaris_tu', 'bendahara',
-        'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras'
+        'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras',
+        'kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'osis'
       ];
       if (role.startsWith("custom_")) {
         effectiveKey = role;
@@ -1552,17 +1553,17 @@ export default function App() {
         const divRaw = (currentUser?.division || role.replace("waka_", "")).toLowerCase().trim();
         const divClean = (divRaw === "waka" || divRaw === "") ? "kurikulum" : divRaw;
         effectiveKey = `waka_${divClean}`;
-      } else if (role === "kesiswaan") {
+      } else if (role === "kesiswaan" || subrole === "kesiswaan") {
         effectiveKey = "waka_kesiswaan";
-      } else if (role === "kurikulum") {
+      } else if (role === "kurikulum" || subrole === "kurikulum") {
         effectiveKey = "waka_kurikulum";
-      } else if (role === "hubin") {
+      } else if (role === "hubin" || subrole === "hubin") {
         effectiveKey = "waka_hubin";
-      } else if (role === "sarpras") {
+      } else if (role === "sarpras" || subrole === "sarpras") {
         effectiveKey = "waka_sarpras";
       } else if (role === "tata_usaha") {
         effectiveKey = "tu";
-      } else if (role === "bpbk" || role === "bk") {
+      } else if (role === "bpbk" || role === "bk" || subrole === "bpbk" || subrole === "bk") {
         effectiveKey = "bpbk";
       } else if (subrole.startsWith("waka_")) {
         effectiveKey = subrole;
@@ -1592,6 +1593,7 @@ export default function App() {
       }
 
       const isBKTeam = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+        subrole.includes('bk') || subrole.includes('bpbk') ||
         div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
       const isKesiswaanTeam = (
         (role === 'waka' && div === 'kesiswaan') ||
@@ -1600,12 +1602,31 @@ export default function App() {
         effectiveKey === 'waka_kesiswaan' ||
         effectiveKey === 'sekretaris_kesiswaan' ||
         effectiveKey === 'anggota_kesiswaan' ||
+        effectiveKey === 'pembina_osis' ||
+        effectiveKey === 'sekretaris_osis' ||
         subrole === 'waka_kesiswaan' ||
         subrole === 'sekretaris_kesiswaan' ||
         subrole === 'anggota_kesiswaan' ||
         subrole === 'pembina_osis' ||
+        subrole === 'sekretaris_osis' ||
+        subrole.includes('kesiswaan') ||
+        subrole.includes('osis') ||
         (role === 'guru' && div === 'kesiswaan') ||
-        div === 'kesiswaan'
+        div === 'kesiswaan' ||
+        div === 'osis'
+      );
+      const isKurikulumTeam = (
+        (role === 'waka' && (div === 'kurikulum' || !div)) ||
+        role === 'kurikulum' ||
+        role === 'waka_kurikulum' ||
+        effectiveKey === 'waka_kurikulum' ||
+        effectiveKey === 'sekretaris_kurikulum' ||
+        effectiveKey === 'anggota_kurikulum' ||
+        subrole === 'waka_kurikulum' ||
+        subrole === 'sekretaris_kurikulum' ||
+        subrole === 'anggota_kurikulum' ||
+        subrole.includes('kurikulum') ||
+        div === 'kurikulum'
       );
 
       const getRoleLevel = (rKey) => {
@@ -1671,11 +1692,10 @@ export default function App() {
       // Khusus catatan_walikelas & walas_report & rekap_jurnal_kelas
       if (["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(tabId)) {
         if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') return true;
-        if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
-          if (isWalasUser || isKesiswaanTeam || isBKTeam) return true;
-          return false;
-        }
         if (isWalasUser) return true;
+        if (tabId === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser)) return true;
+        if (["catatan_walikelas", "walas_report"].includes(tabId) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam)) return true;
+        if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
         return false;
       }
 
@@ -2828,6 +2848,42 @@ export default function App() {
       if (bpbkTabs.includes(tab)) return "edit";
     }
 
+    if (["pembina_osis", "sekretaris_osis"].includes(effectiveRoleKey) || ["pembina_osis", "sekretaris_osis"].includes(subrole)) {
+      const osisTabs = ["kedisiplinan_piket", "tatib_skor", "riwayat_prestasi", "kedisiplinan_absensi", "keterangan_massal", "hikvision_report_siswa", "pesan", "jurnal_harian", "silabusguru", "modul_ajar", "absensiguru", "siswa"];
+      if (osisTabs.includes(tab)) return effectiveRoleKey === "sekretaris_osis" ? "view" : "edit";
+    }
+
+    const isSarprasTeam = (role === "waka" && division === "sarpras") || role === "sarpras" || role === "waka_sarpras" || ["waka_sarpras", "sekretaris_sarpras", "anggota_sarpras"].includes(subrole) || ["waka_sarpras", "sekretaris_sarpras", "anggota_sarpras"].includes(effectiveRoleKey);
+    if (isSarprasTeam) {
+      const sarprasTabs = ["ruangan", "denah", "kelas", "absensiguru", "jurnal_harian", "modul_ajar", "silabusguru", "akademik", "pesan"];
+      if (sarprasTabs.includes(tab)) return "edit";
+    }
+
+    const isHubinTeam = (role === "waka" && division === "hubin") || role === "hubin" || role === "waka_hubin" || ["waka_hubin", "sekretaris_hubin", "anggota_hubin"].includes(subrole) || ["waka_hubin", "sekretaris_hubin", "anggota_hubin"].includes(effectiveRoleKey);
+    if (isHubinTeam) {
+      if (tab.startsWith("pkl_") || ["absensiguru", "jurnal_harian", "modul_ajar", "silabusguru", "akademik", "pesan", "hikvision_report_siswa"].includes(tab)) return "edit";
+    }
+
+    if (["sekretaris_kurikulum", "anggota_kurikulum"].includes(effectiveRoleKey) || ["sekretaris_kurikulum", "anggota_kurikulum"].includes(subrole)) {
+      const sekKurTabs = ["generate", "akademik", "silabus", "modul_ajar", "absensiguru", "jurnal_harian", "ketersediaan", "beban", "kelas", "pesan"];
+      if (sekKurTabs.includes(tab)) return "edit";
+    }
+
+    if (role === "tu" || role === "tata_usaha" || effectiveRoleKey === "tu" || ["sekretaris_tu", "bendahara"].includes(subrole)) {
+      const tuTabs = ["siswa", "data_pegawai", "kelas", "jurusan", "absensi", "absensiguru", "riwayat_prestasi", "siswa_keluar", "laporan_absensi", "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa", "kedisiplinan_absensi", "keterangan_massal", "kartu_pelajar", "esurat", "generate", "pesan", "akademik", "guru", "karyawan"];
+      if (tuTabs.includes(tab)) return (subrole === "bendahara" || subrole === "sekretaris_tu") && ["siswa", "guru", "karyawan"].includes(tab) ? "view" : "edit";
+    }
+
+    if (isWalasUser) {
+      const walasTabs = ["catatan_walikelas", "walas_report", "rekap_jurnal_kelas", "kedisiplinan_absensi", "keterangan_massal", "hikvision_report_siswa", "jurnal_harian", "absensiguru", "silabusguru", "modul_ajar", "generate", "akademik", "pesan"];
+      if (walasTabs.includes(tab)) return "edit";
+    }
+
+    if (role === "guru" || effectiveRoleKey === "guru") {
+      const guruTabs = ["generate", "akademik", "absensiguru", "jurnal_harian", "kedisiplinan_absensi", "silabusguru", "ketersediaan", "beban", "pesan", "modul_ajar", "rpp_guru", "hikvision_report_siswa"];
+      if (guruTabs.includes(tab)) return "edit";
+    }
+
     if (role === "kepsek") return "view";
     return "none";
   };
@@ -2894,7 +2950,8 @@ export default function App() {
       'sekretaris_hubin', 'anggota_hubin',
       'sekretaris_sarpras', 'anggota_sarpras',
       'sekretaris_tu', 'bendahara',
-      'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras'
+      'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras',
+      'kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'osis'
     ];
     if (activeRole.startsWith("custom_")) {
       effectiveKey = activeRole;
@@ -2904,17 +2961,17 @@ export default function App() {
       const divRaw = (currentUser?.division || activeRole.replace("waka_", "")).toLowerCase().trim();
       const divClean = (divRaw === "waka" || divRaw === "") ? "kurikulum" : divRaw;
       effectiveKey = `waka_${divClean}`;
-    } else if (activeRole === "kesiswaan") {
+    } else if (activeRole === "kesiswaan" || subrole === "kesiswaan") {
       effectiveKey = "waka_kesiswaan";
-    } else if (activeRole === "kurikulum") {
+    } else if (activeRole === "kurikulum" || subrole === "kurikulum") {
       effectiveKey = "waka_kurikulum";
-    } else if (activeRole === "hubin") {
+    } else if (activeRole === "hubin" || subrole === "hubin") {
       effectiveKey = "waka_hubin";
-    } else if (activeRole === "sarpras") {
+    } else if (activeRole === "sarpras" || subrole === "sarpras") {
       effectiveKey = "waka_sarpras";
     } else if (activeRole === "tata_usaha") {
       effectiveKey = "tu";
-    } else if (activeRole === "bpbk" || activeRole === "bk") {
+    } else if (activeRole === "bpbk" || activeRole === "bk" || subrole === "bpbk" || subrole === "bk") {
       effectiveKey = "bpbk";
     } else if (subrole.startsWith("waka_")) {
       effectiveKey = subrole;
@@ -2944,6 +3001,7 @@ export default function App() {
     }
 
     const isBKTeam = activeRole === 'bpbk' || activeRole === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+      subrole.includes('bk') || subrole.includes('bpbk') ||
       div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
     const isKesiswaanTeam = (
       (activeRole === 'waka' && div === 'kesiswaan') ||
@@ -2952,12 +3010,31 @@ export default function App() {
       effectiveKey === 'waka_kesiswaan' ||
       effectiveKey === 'sekretaris_kesiswaan' ||
       effectiveKey === 'anggota_kesiswaan' ||
+      effectiveKey === 'pembina_osis' ||
+      effectiveKey === 'sekretaris_osis' ||
       subrole === 'waka_kesiswaan' ||
       subrole === 'sekretaris_kesiswaan' ||
       subrole === 'anggota_kesiswaan' ||
       subrole === 'pembina_osis' ||
+      subrole === 'sekretaris_osis' ||
+      subrole.includes('kesiswaan') ||
+      subrole.includes('osis') ||
       (activeRole === 'guru' && div === 'kesiswaan') ||
-      div === 'kesiswaan'
+      div === 'kesiswaan' ||
+      div === 'osis'
+    );
+    const isKurikulumTeam = (
+      (activeRole === 'waka' && (div === 'kurikulum' || !div)) ||
+      activeRole === 'kurikulum' ||
+      activeRole === 'waka_kurikulum' ||
+      effectiveKey === 'waka_kurikulum' ||
+      effectiveKey === 'sekretaris_kurikulum' ||
+      effectiveKey === 'anggota_kurikulum' ||
+      subrole === 'waka_kurikulum' ||
+      subrole === 'sekretaris_kurikulum' ||
+      subrole === 'anggota_kurikulum' ||
+      subrole.includes('kurikulum') ||
+      div === 'kurikulum'
     );
 
     const getRoleLevel = (rKey) => {
@@ -3033,11 +3110,10 @@ export default function App() {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
-      if (level === "edit" || level === "view" || level === "otomatis" || level === "full") {
-        if (isWalasUser || isKesiswaanTeam || isBKTeam) return true;
-        return false;
-      }
       if (isWalasUser) return true;
+      if (id === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser)) return true;
+      if (["catatan_walikelas", "walas_report"].includes(id) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam)) return true;
+      if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
       return false;
     }
 

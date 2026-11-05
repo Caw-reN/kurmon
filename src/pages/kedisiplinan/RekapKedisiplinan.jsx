@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
+import { useAuthToken } from '../../hooks/useAuthToken.js';
 import { useAppStore } from '../../store/useAppStore.js';
 import { useDataStore } from '../../store/useDataStore.js';
 import ExcelJS from 'exceljs';
@@ -30,7 +31,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   const [catatanList, setCatatanList] = useState([]);
   const [konselingList, setKonselingList] = useState([]);
   const [toast, setToast] = useState(null);
-  const authToken = useAuthStore(state => state.user?.authToken);
+  const { authToken } = useAuthToken();
   const [isLoading, setIsLoading] = useState(false);
   const [filterBulan, setFilterBulan] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
   const [filterKelas, setFilterKelas] = useState("all");

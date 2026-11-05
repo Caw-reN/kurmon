@@ -93,18 +93,24 @@ export function useAuthToken() {
       isSchoolStaff: STAFF_ROLES.includes(role) || role !== 'siswa',
       /** true jika tim kesiswaan / waka kesiswaan */
       isKesiswaan: KESISWAAN_ROLES.includes(role) || 
+        role.includes('kesiswaan') || role.includes('osis') ||
         Boolean(authUser?.isKesiswaan || sessionUser?.isKesiswaan || rawSession?.isKesiswaan) ||
         String(authUser?.subrole || sessionUser?.subrole || rawSession?.subrole || '').toLowerCase().includes('kesiswaan') ||
-        String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase().includes('kesiswaan'),
+        String(authUser?.subrole || sessionUser?.subrole || rawSession?.subrole || '').toLowerCase().includes('osis') ||
+        String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase().includes('kesiswaan') ||
+        String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase().includes('osis'),
       /** true jika guru BK/BPBK */
       isBK: BK_ROLES.includes(role) ||
+        role.includes('bk') || role.includes('bpbk') ||
         Boolean(authUser?.isBK || authUser?.isBPBK || sessionUser?.isBK || sessionUser?.isBPBK || rawSession?.isBK || rawSession?.isBPBK) ||
-        ['bk', 'bpbk'].includes(String(authUser?.subrole || sessionUser?.subrole || rawSession?.subrole || '').toLowerCase()) ||
-        ['bk', 'bpbk'].includes(String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase()),
+        ['bk', 'bpbk'].some(k => String(authUser?.subrole || sessionUser?.subrole || rawSession?.subrole || '').toLowerCase().includes(k)) ||
+        ['bk', 'bpbk'].some(k => String(authUser?.division || sessionUser?.division || rawSession?.division || '').toLowerCase().includes(k)),
       /** true jika role adalah siswa */
       isStudent: role === 'siswa',
       /** true jika role adalah guru */
       isTeacher: role === 'guru',
+      /** Object sesi terpadu dari authStore / sessionUser / rawSession */
+      user: authUser || sessionUser || (Object.keys(rawSession).length > 0 ? rawSession : null),
       /** Object sesi mentah dari authStore (bisa null) */
       rawAuthUser: authUser,
     };
@@ -115,8 +121,10 @@ export function useAuthToken() {
  * Versi non-hook untuk digunakan di luar React (event handler, helper, dsb)
  */
 export function getAuthTokenSync() {
+  const authStoreUser = useAuthStore.getState()?.user;
+  const dataStoreUser = useDataStore.getState()?.currentUser;
   const rawSession = readRawSession();
-  return rawSession?.authToken || '';
+  return authStoreUser?.authToken || dataStoreUser?.authToken || rawSession?.authToken || '';
 }
 
 export default useAuthToken;
