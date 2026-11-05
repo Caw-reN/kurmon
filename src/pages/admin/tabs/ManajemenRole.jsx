@@ -142,7 +142,15 @@ function getRoleCategory(person, classes = []) {
   }
 
   if (role === 'karyawan') return subrole || 'karyawan';
-  if (role === 'guru') return subrole || 'guru';
+  if (role === 'guru') {
+    if (subrole) return subrole;
+    if (division === 'kesiswaan') return 'anggota_kesiswaan';
+    if (division === 'bk' || division === 'bpbk') return 'bpbk';
+    if (division === 'kurikulum') return 'anggota_kurikulum';
+    if (division === 'hubin') return 'anggota_hubin';
+    if (division === 'sarpras') return 'anggota_sarpras';
+    return 'guru';
+  }
 
   if (person._source === 'staff') {
     if (division.includes('tata usaha') || division.includes('tu') || division.includes('bendahara') || division.includes('administrasi')) {
@@ -179,7 +187,15 @@ function getCurrentPositionValue(person, classes = []) {
     if (isWali && role !== 'waka' && role !== 'kepsek') return 'walikelas';
   }
 
-  if (role === 'guru') return subrole || 'guru';
+  if (role === 'guru') {
+    if (subrole) return subrole;
+    if (division === 'kesiswaan') return 'anggota_kesiswaan';
+    if (division === 'bk' || division === 'bpbk') return 'bpbk';
+    if (division === 'kurikulum') return 'anggota_kurikulum';
+    if (division === 'hubin') return 'anggota_hubin';
+    if (division === 'sarpras') return 'anggota_sarpras';
+    return 'guru';
+  }
   if (role === 'karyawan') return subrole || 'karyawan';
   if (person._source === 'staff') {
     if (division.includes('tata usaha') || division.includes('tu') || division.includes('bendahara')) {

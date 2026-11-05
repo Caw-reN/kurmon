@@ -235,7 +235,7 @@ export default function PrestasiPage() {
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           
           {/* Header Title & Subtitle */}
-          <div className="hidden md:block max-w-xl">
+          <div className="max-w-xl">
             <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
               {t("Prestasi Siswa", "Student Achievements")}
             </h1>

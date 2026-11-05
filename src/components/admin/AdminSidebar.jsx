@@ -228,15 +228,39 @@ export default function AdminSidebar({
 
     // For non-admin users: group MENU_REGISTRY by section and render dynamically
     const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass);
+    const div = (currentUser?.division || "").toLowerCase().trim();
+    const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+    const role = (currentUser?.role || activeUserRole || "").toLowerCase().trim();
+    const isKesiswaanTeam = Boolean(currentUser?.isKesiswaan) || (
+      (role === 'waka' && div === 'kesiswaan') ||
+      role === 'kesiswaan' ||
+      role === 'waka_kesiswaan' ||
+      ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+      subrole.includes('kesiswaan') ||
+      subrole.includes('osis') ||
+      (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
+      div === 'kesiswaan' ||
+      div === 'osis'
+    );
+    const isKurikulumTeam = Boolean(currentUser?.isKurikulum) || (
+      (role === 'waka' && (div === 'kurikulum' || !div)) ||
+      role === 'kurikulum' ||
+      role === 'waka_kurikulum' ||
+      ['waka_kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(subrole) ||
+      subrole.includes('kurikulum') ||
+      (role === 'guru' && div === 'kurikulum') ||
+      div === 'kurikulum'
+    );
+
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       // Skip admin-only items for non-admins
       if (item.adminOnly) continue;
       // Handle items with specialCondition === 'walas_only':
-      // If user is walas, skip from regular sections because they're shown in the dedicated Walas section below.
-      // If user is NOT walas, but has explicit permission (e.g. Waka Kesiswaan, BK), let it render in its section!
+      // If user is a pure walas, show them in dedicated Walas section below.
+      // If user is in Kesiswaan or Kurikulum team, ALWAYS render in their main section even if also walas!
       if (item.specialCondition === 'walas_only') {
-        if (isWalasUser) continue;
+        if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
           continue;
         }
@@ -271,26 +295,29 @@ export default function AdminSidebar({
       );
     }
 
-    // Special: Wali Kelas section (only if user is walas)
+    // Special: Wali Kelas section (only for pure walas teachers)
     if (currentUser?.isWalas || currentUser?.walasClass) {
-      const walasItems = MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only');
-      const renderedWalas = walasItems.map(item =>
-        renderNavItem({
-          id: item.id,
-          icon: item.icon,
-          label: item.label,
-          featureKey: item.featureKey,
-          activeIds: item.activeIds,
-        })
-      ).filter(Boolean);
+      if (!isKesiswaanTeam && !isKurikulumTeam) {
+        const walasItems = MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only');
+        const renderedWalas = walasItems.map(item =>
+          renderNavItem({
+            id: item.id,
+            icon: item.icon,
+            label: item.label,
+            featureKey: item.featureKey,
+            activeIds: item.activeIds,
+          })
+        ).filter(Boolean);
 
-      if (renderedWalas.length > 0) {
-        renderedSections.splice(3, 0,
-          <React.Fragment key="walas">
-            <SidebarSection label={`Wali Kelas (${currentUser.walasClass || 'Kelas Ampuan'})`} />
-            {renderedWalas}
-          </React.Fragment>
-        );
+        if (renderedWalas.length > 0) {
+          const insertIdx = Math.min(3, renderedSections.length);
+          renderedSections.splice(insertIdx, 0,
+            <React.Fragment key="walas">
+              <SidebarSection label={`Wali Kelas (${currentUser.walasClass || 'Kelas Ampuan'})`} />
+              {renderedWalas}
+            </React.Fragment>
+          );
+        }
       }
     }
 
