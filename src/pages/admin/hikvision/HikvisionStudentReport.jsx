@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { useAuthToken } from '../../../hooks/useAuthToken.js';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield } from 'lucide-react';
 import { useAppStore } from'../../../store/useAppStore';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
@@ -13,6 +13,7 @@ import { isSuperAdminRole } from '../../../utils/constants.js';
 import { fetchAttendancePresets, DEFAULT_STUDENT_ATTENDANCE_NOTES } from '../../../utils/attendancePresets.js';
 import ManageAttendanceNotesModal from '../../../components/admin/attendance/ManageAttendanceNotesModal.jsx';
 import { logWalasAttendanceCheck } from '../../../utils/auditLogger.js';
+import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
 
 const KeteranganMasalAbsensi = React.lazy(() => import('../../KeteranganMasalAbsensi.jsx'));
 
@@ -22,6 +23,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const user = tokenUser || authStoreUser;
   const [activeTab, setActiveTab] = useState(() => routeTab === "keterangan_massal" ? "keterangan" : "matriks"); // "matriks" | "surat" | "keterangan"
   const [exportMode, setExportMode] = useState("summary");
+  const [isSuperAdminModalOpen, setIsSuperAdminModalOpen] = useState(false);
 
   
   const [data, setData] = useState([]);
@@ -2424,6 +2426,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
 
           <div className="flex items-center gap-2 shrink-0 justify-end">
+            {isSuperAdmin && (
+              <Button 
+                variant="outline"
+                type="button"
+                onClick={() => setIsSuperAdminModalOpen(true)}
+                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs"
+                title="Koreksi Jam Absensi Siswa (Khusus Super Admin)"
+              >
+                <Shield size={14} className="shrink-0 text-amber-400" />
+                <span>Koreksi Jam</span>
+              </Button>
+            )}
+
             <Button 
               variant="outline"
               type="button"
@@ -3308,7 +3323,20 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           {toast.message}
         </div>
       )}
-          {isSuperAdmin && (
+          {/* Super Admin Exclusive Attendance Override Modal */}
+      {isSuperAdmin && isSuperAdminModalOpen && (
+        <SuperAdminAttendanceOverrideModal
+          isOpen={isSuperAdminModalOpen}
+          onClose={() => setIsSuperAdminModalOpen(false)}
+          onSuccess={(msg) => {
+            showToast(msg || "Koreksi jam berhasil disimpan!");
+            fetchData(true);
+          }}
+          currentUser={user}
+        />
+      )}
+
+      {isSuperAdmin && (
         <ManageAttendanceNotesModal
           isOpen={isManageNotesOpen}
           onClose={() => setIsManageNotesOpen(false)}

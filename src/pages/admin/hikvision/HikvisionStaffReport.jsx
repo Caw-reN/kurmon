@@ -1,13 +1,14 @@
 import { Button, TablePagination, UISelect, Modal } from '../../../components/ui.jsx';
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
-import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2, RefreshCw, Sparkles, Info } from 'lucide-react';
+import { AlertTriangle, FileText, Filter, Search, Printer, ArrowUpDown, FileSpreadsheet, Briefcase, Calendar, X, UserX, UserCheck, Clock, Users, Eye, CheckCircle2, RefreshCw, Sparkles, Info, Shield } from 'lucide-react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { compareTableValues, formatAttendanceTime, getHolidayInfoForDate } from '../../../utils/adminHelpers.js';
 import AbsensiGuruStaff from './AbsensiGuruStaff.jsx';
+import SuperAdminAttendanceOverrideModal from '../../../components/admin/SuperAdminAttendanceOverrideModal.jsx';
 
 export default function HikvisionStaffReport({ classes = [], isNested = false }) {
   const academicCalendar = useAppStore(state => state.academicCalendar) || [];
@@ -21,6 +22,7 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   const [data, setData] = useState([]);
   const [toast, setToast] = useState(null);
   const [subTab, setSubTab] = useState('matriks'); // 'matriks' | 'surat'
+  const [isSuperAdminModalOpen, setIsSuperAdminModalOpen] = useState(false);
 
   const showToast = (message, type ='success') => {
     setToast({ message, type });
@@ -1446,6 +1448,18 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
 
         {/* Bottom Action Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          {isSuperAdmin && (
+            <Button 
+              variant="outline"
+              type="button"
+              onClick={() => setIsSuperAdminModalOpen(true)}
+              className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs"
+              title="Koreksi Jam Absensi (Khusus Super Admin)"
+            >
+              <Shield size={14} className="shrink-0 text-amber-400" />
+              <span>Koreksi Jam</span>
+            </Button>
+          )}
           <Button 
             variant="outline"
             type="button"
@@ -2316,6 +2330,19 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
           )}
         </div>
       </Modal>
+
+      {/* Super Admin Exclusive Attendance Override Modal */}
+      {isSuperAdmin && isSuperAdminModalOpen && (
+        <SuperAdminAttendanceOverrideModal
+          isOpen={isSuperAdminModalOpen}
+          onClose={() => setIsSuperAdminModalOpen(false)}
+          onSuccess={(msg) => {
+            showToast(msg || "Koreksi jam berhasil disimpan!");
+            fetchData(true);
+          }}
+          currentUser={user}
+        />
+      )}
 
       {toast && (
         <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-sm font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
