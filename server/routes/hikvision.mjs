@@ -1393,7 +1393,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const userDivision = String(session.division || '').toLowerCase().trim();
         const userJabatan = String(session.jabatan || '').toLowerCase().trim();
 
-        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || session.username === 'admin';
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || session.username === 'admin' || Boolean(session.isSuperAdmin);
 
         // Wewenang persetujuan (ACC):
         // Guru -> Wewenang Bagian Kurikulum
@@ -1617,7 +1617,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       
       const userRole = String(session.role || '').toLowerCase().trim();
       const userName = String(session.username || '').toLowerCase().trim();
-      const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(userRole) || userName === 'admin';
+      const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(userRole) || userName === 'admin' || Boolean(session.isSuperAdmin);
 
       if (!isSuperAdmin) {
         send(req, res, 403, { ok: false, error: "Akses ditolak: Fitur ini khusus Admin / Super Admin" });

@@ -134,7 +134,10 @@ export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canE
   };
 
   const handleRemoveTeacher = async (jadwal, teacherIdToRemove) => {
-    if (!await window.confirmAsync("Hapus guru piket ini dari jadwal?")) return;
+    const confirmed = typeof window.confirmAsync === 'function' 
+      ? await window.confirmAsync("Hapus guru piket ini dari jadwal?")
+      : window.confirm("Hapus guru piket ini dari jadwal?");
+    if (!confirmed) return;
     try {
       const updatedIds = jadwal.guru_ids.filter(id => id !== teacherIdToRemove);
       let payload = {
