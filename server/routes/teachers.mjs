@@ -85,7 +85,8 @@ export async function handleTeacherRoutes(req, res, url, ctx) {
     const sRole = normalizeServerRole(session.role);
     const isWaka = sRole === 'waka' || String(session.role || '').toLowerCase().startsWith('waka');
     const isCustom = sRole.startsWith('custom_') || String(session.role || '').toLowerCase().startsWith('custom_');
-    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom) {
+    const isSuperOrAdmin = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin);
+    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom && !isSuperOrAdmin) {
       send(req, res, 403, { ok: false, error: 'Hanya admin, waka, atau TU yang dapat menyimpan data guru' });
       return true;
     }

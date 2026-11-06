@@ -79,7 +79,8 @@ export async function handleStudentRoutes(req, res, url, ctx) {
     const isKesiswaan = Boolean(session?.isKesiswaan) ||
       ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis', 'bpbk'].includes(subrole) ||
       subrole.includes('kesiswaan') || division === 'kesiswaan';
-    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom && !isKesiswaan) {
+    const isSuperOrAdmin = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin);
+    if (!['admin', 'superadmin', 'tu', 'kepsek'].includes(sRole) && !isWaka && !isCustom && !isKesiswaan && !isSuperOrAdmin) {
       send(req, res, 403, { ok: false, error: 'Hanya admin, waka, atau TU yang dapat menyimpan data siswa' });
       return true;
     }
@@ -236,7 +237,7 @@ export async function handleStudentRoutes(req, res, url, ctx) {
 
     // BUG-D FIX: Cek role — hanya admin/tu yang boleh upload foto massal
     const sessionRole = normalizeServerRole(session.role);
-    if (!['admin', 'superadmin', 'tu'].includes(sessionRole)) {
+    if (!['admin', 'superadmin', 'tu'].includes(sessionRole) && !Boolean(session?.isSuperAdmin) && !Boolean(session?.isAdmin)) {
       send(req, res, 403, { ok: false, error: 'Hanya Admin dan Tata Usaha yang dapat mengupload foto siswa secara massal.' });
       return true;
     }
@@ -300,7 +301,7 @@ export async function handleStudentRoutes(req, res, url, ctx) {
       // Siswa hanya boleh akses profilnya sendiri, admin/guru/tu boleh akses student manapun lewat ?nis=
       const sessionRole = normalizeServerRole(session.role);
       let targetNis = '';
-      if (paramNis && ['admin', 'superadmin', 'guru', 'tu', 'bk'].includes(sessionRole)) {
+      if (paramNis && (['admin', 'superadmin', 'guru', 'tu', 'bk'].includes(sessionRole) || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin))) {
         targetNis = String(paramNis).trim();
       } else {
         targetNis = String(session.username || session.id || '').trim();

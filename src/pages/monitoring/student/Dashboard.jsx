@@ -132,7 +132,7 @@ const StudentDashboard = () => {
 
       {/* ── 2. SECTION HEADING & COMPACT HERO CARD (DYNAMICALY MATCHED TO WEB APPEARANCE SETTINGS) ── */}
       <div className="space-y-3">
-        {/* Section Heading: "Kartu Pelajar ✔" */}
+        {/* Section Heading: "Kartu Pelajar" */}
         <div className="flex items-center gap-2">
           <h2 className="font-black text-slate-900 text-base sm:text-lg">Kartu Pelajar</h2>
           <CheckCircle2 size={18} style={{ color: themeColorCSS }} />

@@ -407,7 +407,7 @@ export default function SiswaKeluar() {
         description="Pencatatan mutasi pindah sekolah, pengunduran diri, serta manajemen pemulihan data (Sistem Restore) siswa."
       />
 
-      {/* 📊 Statistik KPI Cards Row */}
+      {/* Statistik KPI Cards Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: 'Pindah Sekolah', count: reasonStats['Pindah Sekolah'], dot: 'bg-indigo-500' },
@@ -425,7 +425,7 @@ export default function SiswaKeluar() {
         ))}
       </div>
 
-      {/* 📑 TOOLBAR NAVIGASI & AKSI UTAMA */}
+      {/* TOOLBAR NAVIGASI & AKSI UTAMA */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
         
         {/* Segmented Switch: Riwayat vs Sistem Restore */}
@@ -492,7 +492,7 @@ export default function SiswaKeluar() {
       </div>
 
       {/* ========================================================================= */}
-      {/* 📂 TAB 1: ARSIP RIWAYAT SISWA KELUAR */}
+      {/* TAB 1: ARSIP RIWAYAT SISWA KELUAR */}
       {/* ========================================================================= */}
       {activeNavTab === 'riwayat' && (
         <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-4 animate-in fade-in duration-200">
@@ -559,7 +559,7 @@ export default function SiswaKeluar() {
             ))}
           </div>
 
-          {/* 💻 Desktop Table View */}
+          {/* Desktop Table View */}
           <div className="hidden md:block overflow-hidden border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -665,7 +665,7 @@ export default function SiswaKeluar() {
             </table>
           </div>
 
-          {/* 📱 Mobile Card List View */}
+          {/* Mobile Card List View */}
           <div className="md:hidden space-y-3">
             {isLoading ? (
               <div className="py-10 text-center text-slate-400 font-bold flex flex-col items-center gap-2">
@@ -741,7 +741,7 @@ export default function SiswaKeluar() {
       )}
 
       {/* ========================================================================= */}
-      {/* 🗑️ TAB 2: SISTEM RESTORE (KOTAK SAMPAH & PEMULIHAN ANTI-SALAH HAPUS) */}
+      {/* TAB 2: SISTEM RESTORE (KOTAK SAMPAH & PEMULIHAN ANTI-SALAH HAPUS) */}
       {/* ========================================================================= */}
       {activeNavTab === 'trash' && (
         <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-5 animate-in fade-in duration-200">
@@ -918,7 +918,7 @@ export default function SiswaKeluar() {
       )}
 
       {/* ========================================================================= */}
-      {/* 📋 FORMULIR MUTASI KELUAR: DESKTOP MODAL vs MOBILE BOTTOM SHEET */}
+      {/* FORMULIR MUTASI KELUAR: DESKTOP MODAL vs MOBILE BOTTOM SHEET */}
       {/* DI-RENDER VIA createPortal(..., document.body) AGAR SELALU DI ATAS SEMUA ELEMEN */}
       {/* ========================================================================= */}
       {isFormOpen && typeof document !== 'undefined' && createPortal(
@@ -932,7 +932,7 @@ export default function SiswaKeluar() {
           {/* Container: Bottom Sheet on Mobile (< sm), Centered Modal on Desktop (sm:) */}
           <div className="relative w-full sm:max-w-xl bg-white rounded-t-[28px] sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden z-10 animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-250">
             
-            {/* 📱 Mobile Drag Handle Bar */}
+            {/* Mobile Drag Handle Bar */}
             <div className="pt-2.5 pb-1 flex justify-center sm:hidden shrink-0 bg-white">
               <div className="w-12 h-1.5 bg-slate-300 rounded-full" />
             </div>
@@ -1154,7 +1154,7 @@ export default function SiswaKeluar() {
 
               </div>
 
-              {/* 🛑 STICKY FOOTER ACTION BUTTON (Selalu terlihat di atas nav bar di Mobile & Desktop) */}
+              {/* STICKY FOOTER ACTION BUTTON (Selalu terlihat di atas nav bar di Mobile & Desktop) */}
               <div className="p-4 bg-white border-t border-slate-100 shrink-0 sticky bottom-0 z-20 shadow-[0_-4px_16px_rgba(0,0,0,0.04)] pb-[max(1.25rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))]">
                 <button 
                   type="submit" 
@@ -1183,7 +1183,7 @@ export default function SiswaKeluar() {
       )}
 
       {/* ========================================================================= */}
-      {/* ⚠️ MODAL KONFIRMASI HANYA UNTUK TINDAKAN BERISIKO TINGGI (PERMANENT DELETE) */}
+      {/* MODAL KONFIRMASI HANYA UNTUK TINDAKAN BERISIKO TINGGI (PERMANENT DELETE) */}
       {/* ========================================================================= */}
 
       {/* Modal: Hapus Permanen (Dengan Pengaman Ketik HAPUS) */}
@@ -1342,7 +1342,7 @@ export default function SiswaKeluar() {
         document.body
       )}
 
-      {/* 🔔 Floating Toast Notification */}
+      {/* Floating Toast Notification */}
       {toast && (
         <div 
           className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-card)] shadow-md font-bold text-xs flex items-center gap-2.5 animate-in slide-in-from-bottom-5 text-white ${toast.type === 'error' ? 'bg-rose-600 shadow-rose-900/20' : 'bg-emerald-600 shadow-emerald-900/20'}`}

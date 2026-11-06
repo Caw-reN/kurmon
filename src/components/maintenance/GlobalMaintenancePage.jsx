@@ -43,13 +43,15 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
         })
       });
       const data = await res.json();
-      if (data.ok && data.token) {
+      const token = data.token || data.user?.authToken || data.authToken;
+      if (data.ok && token) {
+        const userObj = data.user || {};
         const sessionPayload = {
-          authToken: data.token,
-          role: data.role || 'admin',
-          username: data.username || adminUsername,
-          name: data.name || 'Administrator',
-          userId: data.userId || 'admin',
+          authToken: token,
+          role: userObj.role || data.role || 'admin',
+          username: userObj.username || data.username || adminUsername,
+          name: userObj.name || data.name || 'Administrator',
+          userId: userObj.id || data.userId || 'admin',
           extraData: data.extraData || {}
         };
         const SESSION_KEY = "school_schedule_session_v1";

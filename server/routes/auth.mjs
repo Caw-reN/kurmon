@@ -309,7 +309,8 @@ export async function handleAuthRoutes(req, res, url, ctx) {
               } catch (e) {}
             }
           }
-          send(req, res, 200, { ok: true, user: { role: "admin", name: payload.adminUser.name, isDefaultPassword, hasChangedPassword, authToken: createSession("admin", { id: payload.adminUser.username || "admin", username: payload.adminUser.username || "admin", name: payload.adminUser.name }) } });
+          const authToken = createSession("admin", { id: payload.adminUser.username || "admin", username: payload.adminUser.username || "admin", name: payload.adminUser.name });
+          send(req, res, 200, { ok: true, token: authToken, authToken, user: { role: "admin", name: payload.adminUser.name, isDefaultPassword, hasChangedPassword, authToken } });
           return true;
         }
       }

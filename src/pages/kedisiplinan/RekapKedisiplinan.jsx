@@ -575,7 +575,7 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
 
-      {/* 🚀 Unified Header Toolbar (Pills + Controls in 1 Container) */}
+      {/* Unified Header Toolbar (Pills + Controls in 1 Container) */}
       <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
         {/* Row 1: Quick Filter Sub-Tab Pills + Student Counter */}
         <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">

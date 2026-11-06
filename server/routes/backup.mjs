@@ -39,7 +39,7 @@ function formatBytes(bytes) {
 export async function handleBackupRoutes(req, res, url, ctx) {
   const { send, requireAuthenticated, readJsonBody, sendDatabaseError, dbPool, normalizeServerRole, logAudit } = ctx;
 
-  const isAdmin = (session) => ['admin', 'superadmin'].includes(normalizeServerRole(session?.role));
+  const isAdmin = (session) => ['admin', 'superadmin'].includes(normalizeServerRole(session?.role)) || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin);
 
   // ── GET /api/backup/list ─────────────────────────────────
   if (req.method === 'GET' && url.pathname === '/api/backup/list') {
