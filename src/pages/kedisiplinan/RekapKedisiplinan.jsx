@@ -137,9 +137,13 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     const [year, month] = filterBulan.split('-');
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
-    const today = new Date();
-    const isCurrentMonth = today.getFullYear() === parseInt(year) && today.getMonth() === parseInt(month) - 1;
-    const finalEndDate = isCurrentMonth ? today : endDate;
+    const now = new Date();
+    const isCurrentMonth = now.getFullYear() === parseInt(year, 10) && now.getMonth() === parseInt(month, 10) - 1;
+    // Status Alpa tidak boleh dievaluasi atau ditetapkan sebelum jam masuk presensi resmi berakhir (08:00)
+    const isPastEntrance = now.getHours() >= 8;
+    const finalEndDate = isCurrentMonth 
+      ? (isPastEntrance ? now : new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))
+      : endDate;
 
     let weekdays = 0;
     for (let d = new Date(startDate); d <= finalEndDate; d.setDate(d.getDate() + 1)) {

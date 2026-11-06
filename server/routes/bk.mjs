@@ -234,6 +234,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
         const body = await readJsonBody(req);
         const { student_nis, category, session_date, problem, solution, follow_up_date, status, privacy_level } = body;
         const cleanNis = student_nis && String(student_nis).trim() ? String(student_nis).trim() : null;
+        const followUpParam = follow_up_date !== undefined ? (follow_up_date ? String(follow_up_date).trim() : '') : null;
         const result = await dbPool.query(`
           UPDATE bk_sessions 
           SET student_nis = COALESCE($1, student_nis),
@@ -241,7 +242,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
               session_date = COALESCE($3, session_date),
               problem = COALESCE($4, problem),
               solution = COALESCE($5, solution),
-              follow_up_date = $6,
+              follow_up_date = CASE WHEN $6 = '' THEN NULL WHEN $6 IS NOT NULL THEN $6::date ELSE follow_up_date END,
               status = COALESCE($7, status),
               privacy_level = COALESCE($8, privacy_level)
           WHERE id = $9
@@ -252,7 +253,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
           session_date && String(session_date).trim() ? String(session_date).trim() : null,
           problem !== undefined ? problem : null,
           solution !== undefined ? solution : null,
-          follow_up_date && String(follow_up_date).trim() ? String(follow_up_date).trim() : null,
+          followUpParam,
           status || null,
           privacy_level || null,
           id
@@ -484,6 +485,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
           appointment_date, appointment_time, appointment_place, appointed_person 
         } = body;
         const cleanNis = student_nis && String(student_nis).trim() ? String(student_nis).trim() : null;
+        const apptDateParam = appointment_date !== undefined ? (appointment_date ? String(appointment_date).trim() : '') : null;
         const currentUserName = session?.name || session?.username || 'Guru BK';
         const currentUserId = session?.id || session?.nip || session?.username || '';
 
@@ -494,7 +496,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
               letter_no = COALESCE($3, letter_no),
               issue_date = COALESCE($4, issue_date),
               reason = COALESCE($5, reason),
-              appointment_date = $6,
+              appointment_date = CASE WHEN $6 = '' THEN NULL WHEN $6 IS NOT NULL THEN $6::date ELSE appointment_date END,
               appointment_time = COALESCE($7, appointment_time),
               appointment_place = COALESCE($8, appointment_place),
               appointed_person = COALESCE($9, appointed_person),
@@ -509,7 +511,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
           letter_no || null,
           issue_date && String(issue_date).trim() ? String(issue_date).trim() : null,
           reason !== undefined ? reason : null,
-          appointment_date && String(appointment_date).trim() ? String(appointment_date).trim() : null,
+          apptDateParam,
           appointment_time || null,
           appointment_place || null,
           appointed_person || null,

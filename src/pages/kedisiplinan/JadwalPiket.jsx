@@ -100,7 +100,7 @@ export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canE
       return;
     }
 
-    if (!ids.includes(form.pj_code)) {
+    if (!ids.some(id => String(id).toLowerCase() === String(form.pj_code).toLowerCase())) {
       setErrorMsg("Penanggung jawab harus termasuk dalam daftar guru piket terpilih!");
       return;
     }
@@ -193,10 +193,11 @@ export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canE
         const ids = prev.guru_ids || [];
         let nextIds;
         let nextPj = prev.pj_code;
-        if (ids.includes(teacherCode)) {
-           nextIds = ids.filter(code => code !== teacherCode);
-           if (nextPj === teacherCode) {
-              nextPj ='';
+        const exists = ids.some(code => String(code).toLowerCase() === String(teacherCode).toLowerCase());
+        if (exists) {
+           nextIds = ids.filter(code => String(code).toLowerCase() !== String(teacherCode).toLowerCase());
+           if (String(nextPj).toLowerCase() === String(teacherCode).toLowerCase()) {
+              nextPj = '';
            }
         } else {
            nextIds = [...ids, teacherCode];
@@ -384,7 +385,7 @@ export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canE
                     }
 
                     return filtered.map(t => {
-                       const isSelected = (form.guru_ids || []).includes(t.code);
+                       const isSelected = (form.guru_ids || []).some(id => String(id).toLowerCase() === String(t.code).toLowerCase());
                        return (
                            <Button variant="outline"
                               type="button"
