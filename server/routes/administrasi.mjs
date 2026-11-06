@@ -1,6 +1,18 @@
 export async function handleAdministrasiRoutes(req, res, url, ctx) {
   const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, logAudit } = ctx;
 
+  const isCurriculumOrAdmin = (session) => {
+    const role = String(session?.role || '').toLowerCase();
+    const subrole = String(session?.subrole || '').toLowerCase();
+    const division = String(session?.division || '').toLowerCase();
+    return ['admin', 'superadmin', 'super_admin', 'kepsek', 'waka', 'waka_kurikulum', 'kurikulum'].includes(role) ||
+      role.includes('admin') ||
+      subrole.includes('kurikulum') ||
+      division.includes('kurikulum') ||
+      Boolean(session?.isSuperAdmin) ||
+      Boolean(session?.isAdmin);
+  };
+
   // === KATEGORI ADMINISTRASI ===
   if (url.pathname.startsWith('/api/administrasi-kategori')) {
     if (!requireAuthenticated(req, res)) return true;
@@ -28,9 +40,7 @@ export async function handleAdministrasiRoutes(req, res, url, ctx) {
 
       if (req.method === 'POST') {
         const session = getSession(req);
-        // Only admin or kurikulum (waka) can edit categories
-        const role = session?.role || '';
-        if (!['admin', 'superadmin', 'waka'].includes(role)) {
+        if (!isCurriculumOrAdmin(session)) {
            send(req, res, 403, { ok: false, error: 'Akses ditolak.' });
            return true;
         }
@@ -91,7 +101,7 @@ export async function handleAdministrasiRoutes(req, res, url, ctx) {
         const filterKategori = url.searchParams.get('kategori') || '';
         
         // Admin & Kurikulum can see all, Guru sees only theirs
-        const isKurikulum = ['admin', 'superadmin', 'waka'].includes(role);
+        const isKurikulum = isCurriculumOrAdmin(session);
 
         let query = `
           SELECT id, teacher_code, teacher_name, nama_dokumen, 'lazy' as file_url, tahun_ajaran, 
@@ -131,8 +141,7 @@ export async function handleAdministrasiRoutes(req, res, url, ctx) {
         const body = await readJsonBody(req);
         const teacherCode = session?.code || session?.id || session?.username || '';
         const teacherName = session?.name || '';
-        const role = session?.role || '';
-        const isAdmin = ['admin', 'superadmin', 'waka'].includes(role);
+        const isAdmin = isCurriculumOrAdmin(session);
 
         if (body.action === 'delete') {
           if (isAdmin) {

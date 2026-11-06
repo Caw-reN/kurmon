@@ -19,7 +19,15 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       // GET /api/jurnal/harian — daftar jurnal (guru: milik sendiri; kurikulum/admin: semua)
       if (req.method === 'GET' && url.pathname === '/api/jurnal/harian') {
         const role = session?.role || '';
-        const isKurikulum = ['admin', 'superadmin', 'waka'].includes(role);
+        const roleStr = String(role || '').toLowerCase();
+        const subrole = String(session?.subrole || '').toLowerCase();
+        const division = String(session?.division || '').toLowerCase();
+        const isKurikulum = ['admin', 'superadmin', 'super_admin', 'waka', 'waka_kurikulum', 'kurikulum', 'kepsek'].includes(roleStr) ||
+          roleStr.includes('admin') ||
+          subrole.includes('kurikulum') ||
+          division.includes('kurikulum') ||
+          Boolean(session?.isSuperAdmin) ||
+          Boolean(session?.isAdmin);
         const filterDate = url.searchParams.get('tanggal') || '';
         const filterTeacher = url.searchParams.get('teacher_code') || '';
         const filterKelas = url.searchParams.get('kelas') || '';
@@ -153,7 +161,11 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const teacherCode = session?.code || session?.id || '';
         const teacherName = session?.name || '';
         const role = session?.role || '';
-        const isAdmin = ['admin', 'superadmin'].includes(role);
+        const roleStr = String(role || '').toLowerCase();
+        const isAdmin = ['admin', 'superadmin', 'super_admin', 'waka', 'waka_kurikulum', 'kurikulum', 'kepsek'].includes(roleStr) ||
+          roleStr.includes('admin') ||
+          Boolean(session?.isSuperAdmin) ||
+          Boolean(session?.isAdmin);
 
         // NOTE: ALTER TABLE sudah dipindahkan ke startup migration di auth-server.mjs
         // Tidak perlu dijalankan lagi di sini.
@@ -237,6 +249,20 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
   }
 
   // === CATATAN WALI KELAS ===
+  const checkIsKesiswaanStaff = (session) => {
+    const role = String(session?.role || '').toLowerCase();
+    const subrole = String(session?.subrole || '').toLowerCase();
+    const division = String(session?.division || '').toLowerCase();
+    return ['admin', 'superadmin', 'super_admin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) ||
+      role.includes('admin') ||
+      role.includes('kesiswaan') ||
+      subrole.includes('kesiswaan') ||
+      subrole.includes('osis') ||
+      division.includes('kesiswaan') ||
+      Boolean(session?.isSuperAdmin) ||
+      Boolean(session?.isAdmin);
+  };
+
   if (url.pathname.startsWith('/api/kesiswaan/catatan-walikelas')) {
     if (!requireAuthenticated(req, res)) return;
     const session = getSession(req);
@@ -244,10 +270,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
     try {
       // GET — ambil catatan (filter by siswa, kelas, teacher)
       if (req.method === 'GET') {
-        const role = session?.role || '';
-        const isKesiswaan = ['admin', 'superadmin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) ||
-          (role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan') ||
-          (session?.subrole || '').toLowerCase() === 'waka_kesiswaan';
+        const isKesiswaan = checkIsKesiswaanStaff(session);
         const filterSiswa = url.searchParams.get('siswa_nis') || '';
         const filterKelas = url.searchParams.get('kelas') || '';
         const filterTeacher = url.searchParams.get('teacher_code') || '';
@@ -296,10 +319,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
         const teacherName = session?.name || '';
 
         if (body.action === 'delete') {
-          const role = session?.role || '';
-          const isAdmin = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) ||
-            (role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan') ||
-            (session?.subrole || '').toLowerCase() === 'waka_kesiswaan';
+          const isAdmin = checkIsKesiswaanStaff(session);
           if (isAdmin) {
             await dbPool.query('DELETE FROM catatan_walikelas WHERE id = $1', [body.id]);
           } else {
@@ -309,9 +329,7 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           // Update
           // BUG-A FIX: Tambahkan cek kepemilikan record (BOLA) — walikelas hanya bisa
           // edit catatan miliknya sendiri. Admin/Kesiswaan bisa edit semua.
-          const isAdminEdit = ['admin', 'superadmin', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(session?.role || '') ||
-            (session?.role === 'waka' && (session?.division || '').toLowerCase() === 'kesiswaan') ||
-            (session?.subrole || '').toLowerCase() === 'waka_kesiswaan';
+          const isAdminEdit = checkIsKesiswaanStaff(session);
           const updateResult = await dbPool.query(`
             UPDATE catatan_walikelas
             SET siswa_nis = $1, siswa_name = $2, tanggal = $3, jenis_catatan = $4,
