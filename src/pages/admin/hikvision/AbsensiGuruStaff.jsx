@@ -43,7 +43,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
   const userDivision = String(currentUser?.division || '').toLowerCase().trim();
   const userJabatan = String(currentUser?.jabatan || '').toLowerCase().trim();
 
-  const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || currentUser?.username === 'admin';
+  const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || currentUser?.username === 'admin' || Boolean(currentUser?.isSuperAdmin);
 
   // Wewenang persetujuan (ACC):
   // Guru -> Wewenang Bagian Kurikulum
@@ -444,7 +444,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
           nip: item.nip || item.teacher_code,
           kategori: item.person_type === 'karyawan' ? 'Karyawan' : 'Guru',
           status: item.status,
-          note: item.note || '-',
+          note: (!isSuperAdmin && (/koreksi|override|super\s*admin/i.test(item.note || '') || item.mode === 'override')) ? '' : (item.note || '-'),
           approval_status: item.approval_status === 'approved' ? 'DISETUJUI' : item.approval_status === 'rejected' ? 'DITOLAK' : 'MENUNGGU',
           approved_by: item.approved_by_name || '-',
           has_file: item.gdrive_url ? 'Ada Lampiran' : 'Tidak Ada',
@@ -920,7 +920,11 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col gap-1 items-start">
                           <span className="text-slate-700 font-medium leading-relaxed">
-                            {item.note || <span className="text-slate-400 italic">Tanpa catatan</span>}
+                            {(() => {
+                              const isCorrection = /koreksi|override|super\s*admin/i.test(item.note || '') || item.mode === 'override';
+                              const displayNote = (!isSuperAdmin && isCorrection) ? '' : (item.note || '');
+                              return displayNote || <span className="text-slate-400 italic">Tanpa catatan</span>;
+                            })()}
                           </span>
                           {hasFile && (
                             <button
@@ -1076,11 +1080,15 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                     <p className="text-[10px] text-slate-400 font-mono mt-0.5">NIP/Kode: {item.nip || item.teacher_code}</p>
                   </div>
 
-                  {item.note && (
-                    <p className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)] font-medium leading-relaxed">
-                      {item.note}
-                    </p>
-                  )}
+                  {(() => {
+                    const isCorrection = /koreksi|override|super\s*admin/i.test(item.note || '') || item.mode === 'override';
+                    const displayNote = (!isSuperAdmin && isCorrection) ? '' : (item.note || '');
+                    return displayNote ? (
+                      <p className="text-xs text-slate-700 bg-slate-50 p-2.5 rounded-[var(--ui-radius-small)] font-medium leading-relaxed">
+                        {displayNote}
+                      </p>
+                    ) : null;
+                  })()}
 
                   {/* Status & Actions Footer */}
                   <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">

@@ -198,7 +198,8 @@ export default function MyAttendancePage({ setActiveTab }) {
         if (dd) {
           if (dd.isManual) {
             statusStr = dd.status;
-            ketStr    = dd.note || '';
+            const isCorrection = /koreksi|override|super\s*admin/i.test(dd.note || '');
+            ketStr    = isCorrection ? '' : (dd.note || '');
             masukStr  = '-';
             pulangStr = '-';
           } else {
@@ -261,7 +262,8 @@ export default function MyAttendancePage({ setActiveTab }) {
     // Jika data berasal dari log fingerprint, dd.note berisi nama mesin (mis: "Mesin: Abensi...") sehingga TIDAK boleh dipakai!
     const isManual = Boolean(dd?.isManual);
     setFormStatus(isManual && ['Sakit', 'Izin', 'Dinas Luar'].includes(dd?.status) ? dd.status : 'Sakit');
-    setFormNote(isManual ? (dd?.note || '') : '');
+    const isCorrection = /koreksi|override|super\s*admin/i.test(dd?.note || '');
+    setFormNote(isManual && !isCorrection ? (dd?.note || '') : '');
     setFormFile(null);
     setFormFileName('');
     setFormPreview(null);
@@ -840,7 +842,7 @@ export default function MyAttendancePage({ setActiveTab }) {
                   <div className="sm:col-span-2 bg-white/70 rounded-[var(--ui-radius-small)] p-4">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Keterangan Dicatat</p>
                     <p className="font-black text-slate-700 text-base">{selectedDayData.status}</p>
-                    {selectedDayData.note && (
+                    {selectedDayData.note && !/koreksi|override|super\s*admin/i.test(selectedDayData.note) && (
                       <p className="text-xs text-slate-500 mt-1.5 font-medium leading-relaxed">{selectedDayData.note}</p>
                     )}
                   </div>

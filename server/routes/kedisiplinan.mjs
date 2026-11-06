@@ -63,7 +63,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         division.includes('bk') || division.includes('bpbk') ||
         subrole.includes('bk') || subrole.includes('bpbk') ||
         role.includes('bk') || role.includes('bpbk');
-      const isAdminStaff = ['admin', 'superadmin', 'kepsek'].includes(role) || isKesiswaanStaff;
+      const isAdminStaff = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(role) || isKesiswaanStaff || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || (typeof isAdminRole === 'function' && isAdminRole(role));
       const isSchoolStaff = ['admin', 'superadmin', 'guru', 'tu', 'kepsek', 'karyawan'].includes(role) || isKesiswaanStaff || isBkStaffRole;
       const isBkStaff = ['admin', 'superadmin', 'kepsek'].includes(role) || isBkStaffRole || isKesiswaanStaff;
 
