@@ -507,9 +507,13 @@ export async function handleAuthRoutes(req, res, url, ctx) {
         if (!await ensureDatabaseReadable(req, res)) return true;
 
         let rawRole = teacher.role;
-        if (!rawRole && isStaffAccount) {
+        if (isStaffAccount) {
           const div = String(teacher.division || "").toLowerCase();
-          rawRole = (div.includes("tu") || div.includes("tata usaha")) ? "tu" : "karyawan";
+          if (div.includes("tu") || div.includes("tata usaha") || String(teacher.name || "").toLowerCase().includes("tata usaha")) {
+            rawRole = "tu";
+          } else if (!rawRole) {
+            rawRole = "karyawan";
+          }
         }
 
         let division = teacher.division || "";

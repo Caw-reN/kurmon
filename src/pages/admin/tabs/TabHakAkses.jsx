@@ -64,6 +64,7 @@ const ALL_TABS_METADATA = {
   fasilitas: { label: 'Data Fasilitas & Sarana', desc: 'Inventaris sarana dan prasarana sekolah' },
   esurat: { label: 'Administrasi Surat TU (e-Surat)', desc: 'Pembuatan surat keputusan, izin dinas, dan undangan' },
   kartu_pelajar: { label: 'Cetak Kartu Pelajar', desc: 'Desain dan cetak kartu tanda siswa' },
+  struktur: { label: 'Struktur Organisasi', desc: 'Bagan dan struktur kepemimpinan organisasi sekolah' },
 
   // Praktek Kerja Lapangan (PKL)
   pkl_dashboard: { label: 'Dashboard PKL (Prakerin)', desc: 'Statistik penempatan dan monitoring PKL' },
@@ -84,7 +85,7 @@ const PERMISSION_GROUPS = [
   { key: 'guru', label: 'Guru & KBM', color: 'bg-amber-500', tabs: ['guru', 'data_pegawai', 'karyawan', 'kelas', 'jurusan', 'mapel', 'generate', 'ketersediaan', 'beban'] },
   { key: 'silabus', label: 'Silabus & Mengajar', color: 'bg-indigo-500', tabs: ['silabus', 'silabusguru', 'rpp_guru', 'modul_ajar', 'jurnal_harian', 'rekap_jurnal_kelas'] },
   { key: 'absensi', label: 'Absensi & Kehadiran', color: 'bg-teal-500', tabs: ['absensi', 'absensiguru', 'kedisiplinan_absensi', 'keterangan_massal', 'hikvision_report_siswa', 'hikvision_report_guru', 'laporan_absensi'] },
-  { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'fasilitas', 'esurat', 'kartu_pelajar'] },
+  { key: 'sarpras', label: 'Sarpras & Surat', color: 'bg-cyan-500', tabs: ['ruangan', 'denah', 'fasilitas', 'esurat', 'kartu_pelajar', 'struktur'] },
   { key: 'pkl', label: 'Prakerin (PKL / Hubin)', color: 'bg-purple-500', tabs: ['pkl_dashboard', 'pkl_data_siswa', 'pkl_data_perusahaan', 'pkl_penugasan', 'pkl_administrasi', 'pkl_jurnal', 'pkl_laporan', 'pkl_absensi_setting'] }
 ];
 

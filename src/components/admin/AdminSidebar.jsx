@@ -231,6 +231,9 @@ export default function AdminSidebar({
     const div = (currentUser?.division || "").toLowerCase().trim();
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
     const role = (currentUser?.role || activeUserRole || "").toLowerCase().trim();
+    const isBKTeam = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+      subrole.includes('bk') || subrole.includes('bpbk') ||
+      div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
     const isKesiswaanTeam = Boolean(currentUser?.isKesiswaan) || (
       (role === 'waka' && div === 'kesiswaan') ||
       role === 'kesiswaan' ||
@@ -258,9 +261,9 @@ export default function AdminSidebar({
       if (item.adminOnly) continue;
       // Handle items with specialCondition === 'walas_only':
       // If user is a pure walas, show them in dedicated Walas section below.
-      // If user is in Kesiswaan or Kurikulum team, ALWAYS render in their main section even if also walas!
+      // If user is in Kesiswaan, Kurikulum, or BK team, ALWAYS render in their main section even if also walas!
       if (item.specialCondition === 'walas_only') {
-        if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam) continue;
+        if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
           continue;
         }
@@ -297,7 +300,7 @@ export default function AdminSidebar({
 
     // Special: Wali Kelas section (only for pure walas teachers)
     if (currentUser?.isWalas || currentUser?.walasClass) {
-      if (!isKesiswaanTeam && !isKurikulumTeam) {
+      if (!isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) {
         const walasItems = MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only');
         const renderedWalas = walasItems.map(item =>
           renderNavItem({

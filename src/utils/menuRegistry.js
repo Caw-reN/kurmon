@@ -481,6 +481,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Mesin Absensi',
     adminGroupIcon: MonitorSmartphone,
     adminGroupKey: 'absensi',
+    adminOnly: true,
   },
   {
     id: 'hikvision_students',
@@ -490,6 +491,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Mesin Absensi',
     adminGroupIcon: MonitorSmartphone,
     adminGroupKey: 'absensi',
+    adminOnly: true,
   },
   {
     id: 'hikvision_devices',
@@ -499,6 +501,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Mesin Absensi',
     adminGroupIcon: MonitorSmartphone,
     adminGroupKey: 'absensi',
+    adminOnly: true,
   },
 
   // ─── TAMPILAN ────────────────────────────────────────────────────────────────
