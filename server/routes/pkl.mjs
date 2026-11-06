@@ -1,6 +1,22 @@
 export async function handlePklRoutes(req, res, url, ctx) {
   const { dbPool, send, sendDatabaseError, requireAuthenticated, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole } = ctx;
 
+  const isPklAdmin = (session) => {
+    if (!session) return false;
+    const role = String(session.role || '').toLowerCase();
+    const subrole = String(session.subrole || '').toLowerCase();
+    const division = String(session.division || '').toLowerCase();
+    return isAdminRole(session.role) ||
+      isMonitoringAdmin(session.role) ||
+      ['admin', 'superadmin', 'super_admin', 'waka', 'waka_hubin', 'hubin', 'kaprog', 'kepsek'].includes(role) ||
+      role.includes('admin') ||
+      role.includes('hubin') ||
+      subrole.includes('hubin') ||
+      division.includes('hubin') ||
+      Boolean(session.isSuperAdmin) ||
+      Boolean(session.isAdmin);
+  };
+
   // B5-SEC-C FIX: Inisialisasi tabel kunjungan guru sekali saat modul pertama kali aktif,
   // bukan di setiap request. CREATE TABLE per-request menyebabkan DDL overhead dan potensi
   // database lock pada high-traffic endpoint.
@@ -116,7 +132,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     }
     if (req.method === "POST" && url.pathname === "/api/pkl/locations") {
       const session = requireAuthenticated(req, res);
-      if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
+      if (!session || !isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
       try {
         const body = await readJsonBody(req);
         const { nama_perusahaan, alamat, jurusan, lat, lng, kuota, status, bidang, kota, telepon, kompetensi } = body;
@@ -135,7 +151,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     const verifyMatch = url.pathname.match(/^\/api\/pkl\/locations\/(\d+)\/verify$/);
     if (req.method === "PUT" && verifyMatch) {
       const session = requireAuthenticated(req, res);
-      if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
+      if (!session || !isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
       const id = parseInt(verifyMatch[1], 10);
       try {
         await dbPool.query("UPDATE pkl_locations SET verified = true WHERE id = $1", [id]);
@@ -145,7 +161,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     const locationIdMatch = url.pathname.match(/^\/api\/pkl\/locations\/(\d+)$/);
     if (req.method === "PUT" && locationIdMatch) {
       const session = requireAuthenticated(req, res);
-      if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
+      if (!session || !isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
       const id = parseInt(locationIdMatch[1], 10);
       try {
         const body = await readJsonBody(req);
@@ -166,7 +182,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     }
     if (req.method === "DELETE" && locationIdMatch) {
       const session = requireAuthenticated(req, res);
-      if (!session || !isAdminRole(session.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
+      if (!session || !isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Akses ditolak" });
       const id = parseInt(locationIdMatch[1], 10);
       try {
         await dbPool.query("UPDATE pkl_students SET location_id = NULL WHERE location_id = $1", [id]);
@@ -213,7 +229,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     }
     if (req.method === "PUT" && url.pathname.startsWith("/api/pkl/student/location/reset/")) {
       const session = getSession(req);
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Hanya admin" });
+      if (!isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Hanya admin" });
       const targetNis = url.pathname.split("/").pop();
       try {
         await dbPool.query("UPDATE pkl_students SET location_update_count = 0 WHERE nis = $1", [targetNis]);
@@ -417,7 +433,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     if (req.method === "PUT" && url.pathname.startsWith("/api/pkl/surat-pengantar/") && url.pathname.endsWith("/acc")) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!["admin", "hubin", "waka"].includes(session.role)) {
+      if (!isPklAdmin(session)) {
         return send(req, res, 403, { ok: false, error: "Hanya HUBIN yang bisa ACC" });
       }
       try {
@@ -434,7 +450,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     if (req.method === "PUT" && url.pathname.startsWith("/api/pkl/surat-pengantar/") && url.pathname.endsWith("/stempel")) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!["admin", "hubin", "waka"].includes(session.role)) {
+      if (!isPklAdmin(session)) {
         return send(req, res, 403, { ok: false, error: "Hanya HUBIN yang bisa Validasi Stempel" });
       }
       try {
@@ -547,7 +563,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
         let updateField = "";
         let isFinal = false;
 
-        if (["admin", "hubin", "waka"].includes(role)) {
+        if (isPklAdmin(session)) {
           updateField = "acc_hubin";
           isFinal = true; 
         } else if (role === "kaprog") {
@@ -587,7 +603,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     if (req.method === "DELETE" && url.pathname.startsWith("/api/pkl/surat-pengantar/")) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isMonitoringAdmin(session.role)) return send(req, res, 403, { ok: false, error: "Hanya admin/hubin" });
+      if (!isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Hanya admin/hubin" });
       // BUG-NEW: parseInt tanpa radix bisa menghasilkan octal pada beberapa engine
       const id = parseInt(url.pathname.split("/").pop(), 10);
       if (isNaN(id) || id <= 0) return send(req, res, 400, { ok: false, error: "ID tidak valid." });
@@ -602,7 +618,7 @@ export async function handlePklRoutes(req, res, url, ctx) {
     if (req.method === "DELETE" && url.pathname.startsWith("/api/pkl/mutasi/")) {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isMonitoringAdmin(session.role)) return send(req, res, 403, { ok: false, error: "Hanya admin/hubin" });
+      if (!isPklAdmin(session)) return send(req, res, 403, { ok: false, error: "Hanya admin/hubin" });
       // BUG-NEW: parseInt tanpa radix bisa menghasilkan octal pada beberapa engine
       const id = parseInt(url.pathname.split("/").pop(), 10);
       if (isNaN(id) || id <= 0) return send(req, res, 400, { ok: false, error: "ID tidak valid." });
