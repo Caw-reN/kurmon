@@ -838,12 +838,12 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           </div>
 
           {/* Super Admin Secret Override Button */}
-          {(['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) || String(user?.username || '').toLowerCase() === 'admin') && (
+          {((['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) || String(user?.username || '').toLowerCase() === 'admin' || Boolean(user?.isSuperAdmin))) && (
             <button
               type="button"
               onClick={() => setShowSuperAdminModal(true)}
               className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-[var(--ui-radius-control)] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 border border-slate-700"
-              title="Koreksi Jam Absensi (Khusus Admin / Super Admin)"
+              title="Koreksi Jam Absensi (Khusus Super Admin)"
             >
               <Shield size={13} className="text-amber-400 shrink-0" />
               <span className="hidden xl:inline font-bold">Koreksi Jam</span>

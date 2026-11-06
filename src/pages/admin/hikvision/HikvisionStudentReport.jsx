@@ -40,8 +40,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const divisionStr = String(user?.division || '').toLowerCase();
 
   const isSuperAdmin = React.useMemo(() => {
-    return isSuperAdminRole(roleStr) || isSuperAdminRole(subroleStr) || ['admin', 'superadmin', 'super_admin'].includes(roleStr);
-  }, [roleStr, subroleStr]);
+    return isSuperAdminRole(roleStr) || isSuperAdminRole(subroleStr) || ['admin', 'superadmin', 'super_admin'].includes(roleStr) || String(user?.username || '').toLowerCase() === 'admin' || Boolean(user?.isSuperAdmin);
+  }, [roleStr, subroleStr, user]);
 
   const [studentNotes, setStudentNotes] = useState(DEFAULT_STUDENT_ATTENDANCE_NOTES);
   const [isManageNotesOpen, setIsManageNotesOpen] = useState(false);
@@ -381,7 +381,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       rawNote.startsWith("Alpa Otomatis") || 
       rawNote.startsWith("Hadir (Hari Libur") ||
       rawNote === "-";
-    const cleanNote = !isInternalNote ? rawNote : '';
+    const isCorrection = /koreksi|override|super\s*admin/i.test(rawNote);
+    const cleanNote = (!isInternalNote && (isSuperAdmin || !isCorrection)) ? rawNote : '';
     const noteLower = cleanNote.toLowerCase();
 
     const holidayInfo = dateStr ? getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, studentClass) : null;

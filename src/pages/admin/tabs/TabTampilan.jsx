@@ -287,6 +287,113 @@ export default function TabTampilan(props) {
     showNotification("Menu kustom telah dihapus.", "info");
   };
 
+  const handleAddFaqItem = () => {
+    const defaultFaqs = [
+      {
+        q: "Bagaimana cara masuk ke sistem?",
+        qEn: "How do I sign in to the portal?",
+        a: "Klik tombol 'Masuk' di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.",
+        aEn: "Click the 'Sign In' button at the top right, then use your official credentials provided by the school."
+      },
+      {
+        q: "Lupa password atau tidak bisa login?",
+        qEn: "Forgot password or unable to log in?",
+        a: "Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.",
+        aEn: "Please contact the school administrator to reset your account password."
+      },
+      {
+        q: "Jadwal pelajaran atau presensi bermasalah?",
+        qEn: "Schedule or attendance issue?",
+        a: "Setiap pembaruan jadwal atau data kehadiran sinkron secara real-time. Hubungi waka kurikulum bila data kelas Anda membutuhkan penyesuaian.",
+        aEn: "All schedule and attendance updates sync in real-time. Contact the academic curriculum team if your class data requires adjustment."
+      }
+    ];
+
+    const currentFaqs = Array.isArray(appSettings.helpModalFaqs) && appSettings.helpModalFaqs.length > 0
+      ? [...appSettings.helpModalFaqs]
+      : [...defaultFaqs];
+
+    setAppSettings(prev => ({
+      ...prev,
+      helpModalFaqs: [
+        ...currentFaqs,
+        {
+          q: "Pertanyaan Baru",
+          qEn: "New Question",
+          a: "Tuliskan jawaban penjelasan di sini.",
+          aEn: "Write answer details here."
+        }
+      ]
+    }));
+    showNotification("Pertanyaan FAQ baru ditambahkan. Klik 'Simpan Perubahan' setelah selesai.", "info");
+  };
+
+  const handleUpdateFaqItem = (index, field, value) => {
+    const defaultFaqs = [
+      {
+        q: "Bagaimana cara masuk ke sistem?",
+        qEn: "How do I sign in to the portal?",
+        a: "Klik tombol 'Masuk' di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.",
+        aEn: "Click the 'Sign In' button at the top right, then use your official credentials provided by the school."
+      },
+      {
+        q: "Lupa password atau tidak bisa login?",
+        qEn: "Forgot password or unable to log in?",
+        a: "Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.",
+        aEn: "Please contact the school administrator to reset your account password."
+      },
+      {
+        q: "Jadwal pelajaran atau presensi bermasalah?",
+        qEn: "Schedule or attendance issue?",
+        a: "Setiap pembaruan jadwal atau data kehadiran sinkron secara real-time. Hubungi waka kurikulum bila data kelas Anda membutuhkan penyesuaian.",
+        aEn: "All schedule and attendance updates sync in real-time. Contact the academic curriculum team if your class data requires adjustment."
+      }
+    ];
+    const currentFaqs = Array.isArray(appSettings.helpModalFaqs) && appSettings.helpModalFaqs.length > 0
+      ? [...appSettings.helpModalFaqs]
+      : [...defaultFaqs];
+
+    if (currentFaqs[index]) {
+      currentFaqs[index] = { ...currentFaqs[index], [field]: value };
+      setAppSettings(prev => ({ ...prev, helpModalFaqs: currentFaqs }));
+    }
+  };
+
+  const handleDeleteFaqItem = (index) => {
+    const currentFaqs = Array.isArray(appSettings.helpModalFaqs) ? [...appSettings.helpModalFaqs] : [];
+    currentFaqs.splice(index, 1);
+    setAppSettings(prev => ({ ...prev, helpModalFaqs: currentFaqs }));
+    showNotification("Pertanyaan FAQ telah dihapus.", "info");
+  };
+
+  const handleResetFaqsToDefault = () => {
+    if (!window.confirm("Kembalikan daftar pertanyaan & jawaban FAQ ke standar bawaan?")) return;
+    setAppSettings(prev => ({
+      ...prev,
+      helpModalFaqs: [
+        {
+          q: "Bagaimana cara masuk ke sistem?",
+          qEn: "How do I sign in to the portal?",
+          a: "Klik tombol 'Masuk' di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.",
+          aEn: "Click the 'Sign In' button at the top right, then use your official credentials provided by the school."
+        },
+        {
+          q: "Lupa password atau tidak bisa login?",
+          qEn: "Forgot password or unable to log in?",
+          a: "Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.",
+          aEn: "Please contact the school administrator to reset your account password."
+        },
+        {
+          q: "Jadwal pelajaran atau presensi bermasalah?",
+          qEn: "Schedule or attendance issue?",
+          a: "Setiap pembaruan jadwal atau data kehadiran sinkron secara real-time. Hubungi waka kurikulum bila data kelas Anda membutuhkan penyesuaian.",
+          aEn: "All schedule and attendance updates sync in real-time. Contact the academic curriculum team if your class data requires adjustment."
+        }
+      ]
+    }));
+    showNotification("FAQ berhasil dikembalikan ke standar bawaan.", "success");
+  };
+
   return (
     <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300 relative z-10">
             <PageHeader 
@@ -1167,6 +1274,216 @@ export default function TabTampilan(props) {
                                   </div>
                                 </div>
                               </div>
+                            </div>
+                          </div>
+
+                          {/* Sub-Section: Pengaturan Detail Dialog Pop-up Pusat Bantuan & FAQ */}
+                          <div className="p-4 rounded-[var(--ui-radius-card)] border border-emerald-200/90 bg-emerald-50/20 shadow-2xs space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-emerald-100">
+                              <div>
+                                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                                  <HelpCircle size={15} className="text-emerald-600" />
+                                  Pengaturan Konten Pop-up Pusat Bantuan & FAQ
+                                </h4>
+                                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                                  Sesuaikan judul, pesan bantuan, jam operasional, dan pertanyaan umum (FAQ) pada modal bantuan web.
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Button
+                                  variant="outline"
+                                  type="button"
+                                  onClick={handleResetFaqsToDefault}
+                                  className="text-[11px] font-bold text-slate-600 bg-white hover:bg-slate-50 border-slate-200 py-1 px-2.5 shadow-2xs cursor-pointer"
+                                >
+                                  Reset FAQ Standar
+                                </Button>
+                                <Button
+                                  variant="primary"
+                                  type="button"
+                                  onClick={handleAddFaqItem}
+                                  className="text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 py-1 px-2.5 shadow-xs cursor-pointer flex items-center gap-1"
+                                >
+                                  <Plus size={12} />
+                                  <span>Tambah FAQ</span>
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Grid 2 Kolom: Subtitle & Jam Operasional */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                  Sub-Judul Modal (Indonesia)
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Informasi akses akun, FAQ & kontak resmi sekolah"
+                                  value={appSettings.helpModalSubtitle || ""}
+                                  onChange={(e) => setAppSettings({ ...appSettings, helpModalSubtitle: e.target.value })}
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                  Sub-Judul Modal (English)
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Account access info, FAQ & official school contacts"
+                                  value={appSettings.helpModalSubtitleEn || ""}
+                                  onChange={(e) => setAppSettings({ ...appSettings, helpModalSubtitleEn: e.target.value })}
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                  Jam Operasional Layanan (Indonesia)
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Senin – Jumat (07.00 – 16.00 WIB)"
+                                  value={appSettings.helpModalHours || ""}
+                                  onChange={(e) => setAppSettings({ ...appSettings, helpModalHours: e.target.value })}
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                  Jam Operasional Layanan (English)
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Mon – Fri (07.00 – 16.00 WIB)"
+                                  value={appSettings.helpModalHoursEn || ""}
+                                  onChange={(e) => setAppSettings({ ...appSettings, helpModalHoursEn: e.target.value })}
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs"
+                                />
+                              </div>
+
+                              <div className="md:col-span-2">
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                                  Teks Banner Pemberitahuan (Indonesia)
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  placeholder="Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah."
+                                  value={appSettings.helpModalNotice || ""}
+                                  onChange={(e) => setAppSettings({ ...appSettings, helpModalNotice: e.target.value })}
+                                  className="w-full border border-slate-200 bg-white p-2 rounded-[var(--ui-radius-control)] text-xs font-medium focus:outline-[var(--ui-primary)] shadow-xs"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Daftar Pertanyaan FAQ */}
+                            <div className="space-y-2 pt-2">
+                              <span className="text-[11px] font-black text-slate-700 block uppercase tracking-wider">
+                                Daftar Pertanyaan & Jawaban FAQ
+                              </span>
+                              
+                              {(() => {
+                                const faqsList = Array.isArray(appSettings.helpModalFaqs) && appSettings.helpModalFaqs.length > 0
+                                  ? appSettings.helpModalFaqs
+                                  : [
+                                      {
+                                        q: "Bagaimana cara masuk ke sistem?",
+                                        qEn: "How do I sign in to the portal?",
+                                        a: "Klik tombol 'Masuk' di kanan atas halaman, lalu gunakan username dan password resmi yang diberikan sekolah.",
+                                        aEn: "Click the 'Sign In' button at the top right, then use your official credentials provided by the school."
+                                      },
+                                      {
+                                        q: "Lupa password atau tidak bisa login?",
+                                        qEn: "Forgot password or unable to log in?",
+                                        a: "Silakan hubungi administrator sekolah untuk melakukan reset password akun Anda.",
+                                        aEn: "Please contact the school administrator to reset your account password."
+                                      },
+                                      {
+                                        q: "Jadwal pelajaran atau presensi bermasalah?",
+                                        qEn: "Schedule or attendance issue?",
+                                        a: "Setiap pembaruan jadwal atau data kehadiran sinkron secara real-time. Hubungi waka kurikulum bila data kelas Anda membutuhkan penyesuaian.",
+                                        aEn: "All schedule and attendance updates sync in real-time. Contact the academic curriculum team if your class data requires adjustment."
+                                      }
+                                    ];
+
+                                return (
+                                  <div className="space-y-2.5">
+                                    {faqsList.map((item, idx) => (
+                                      <div key={idx} className="p-3 bg-white border border-slate-200 rounded-[var(--ui-radius-control)] shadow-2xs space-y-2">
+                                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                                          <div className="flex items-center gap-2">
+                                            <span className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black flex items-center justify-center">
+                                              {idx + 1}
+                                            </span>
+                                            <span className="text-xs font-extrabold text-slate-800">
+                                              FAQ #{idx + 1}
+                                            </span>
+                                          </div>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleDeleteFaqItem(idx)}
+                                            className="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-rose-50 transition-colors border-none bg-transparent cursor-pointer"
+                                            title="Hapus Pertanyaan FAQ"
+                                          >
+                                            <Trash2 size={13} />
+                                          </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                          <div>
+                                            <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                                              Pertanyaan (ID)
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder="Tulis pertanyaan..."
+                                              value={item.q || ""}
+                                              onChange={(e) => handleUpdateFaqItem(idx, 'q', e.target.value)}
+                                              className="w-full border border-slate-200 bg-slate-50/50 p-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-[var(--ui-primary)]"
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                                              Pertanyaan (EN)
+                                            </label>
+                                            <input
+                                              type="text"
+                                              placeholder="Question in English..."
+                                              value={item.qEn || ""}
+                                              onChange={(e) => handleUpdateFaqItem(idx, 'qEn', e.target.value)}
+                                              className="w-full border border-slate-200 bg-slate-50/50 p-1.5 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-[var(--ui-primary)]"
+                                            />
+                                          </div>
+                                          <div className="md:col-span-2">
+                                            <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                                              Jawaban (ID)
+                                            </label>
+                                            <textarea
+                                              rows={2}
+                                              placeholder="Tulis jawaban..."
+                                              value={item.a || ""}
+                                              onChange={(e) => handleUpdateFaqItem(idx, 'a', e.target.value)}
+                                              className="w-full border border-slate-200 bg-slate-50/50 p-1.5 rounded-[var(--ui-radius-small)] text-xs font-medium focus:outline-[var(--ui-primary)]"
+                                            />
+                                          </div>
+                                          <div className="md:col-span-2">
+                                            <label className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                                              Jawaban (EN)
+                                            </label>
+                                            <textarea
+                                              rows={2}
+                                              placeholder="Answer in English..."
+                                              value={item.aEn || ""}
+                                              onChange={(e) => handleUpdateFaqItem(idx, 'aEn', e.target.value)}
+                                              className="w-full border border-slate-200 bg-slate-50/50 p-1.5 rounded-[var(--ui-radius-small)] text-xs font-medium focus:outline-[var(--ui-primary)]"
+                                            />
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
 

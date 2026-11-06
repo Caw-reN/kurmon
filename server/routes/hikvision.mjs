@@ -1657,7 +1657,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           const recId = `override-${personId}-${date}`;
           await dbPool.query(
             "INSERT INTO guru_attendance_records (record_id, teacher_code, tanggal, waktu, session_name, status, mode, note) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT (record_id) DO UPDATE SET waktu = EXCLUDED.waktu, status = EXCLUDED.status, note = EXCLUDED.note",
-            [recId, personId, date, validTime.substring(0, 5), 'SuperAdminOverride', finalStatus, 'override', note || 'Koreksi jam oleh Super Admin']
+            [recId, personId, date, validTime.substring(0, 5), 'Reguler', finalStatus, 'override', (note && note.trim()) ? note.trim() : null]
           );
 
           if (deviceId) {
@@ -1709,7 +1709,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
             await dbPool.query(
               `INSERT INTO attendance_manual (user_type, user_id, date, status, reason, created_by) 
                VALUES ('siswa', $1, $2, $3, $4, $5)`,
-              [personId, date, finalStatus, note || `Koreksi jam ${validTime} oleh Super Admin`, session.username || 'super_admin']
+              [personId, date, finalStatus, (note && note.trim()) ? note.trim() : null, session.username || 'admin']
             );
           } catch(e) {}
 
@@ -1727,11 +1727,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                 approval_status = 'approved', 
                 approved_by_id = EXCLUDED.approved_by_id, 
                 approved_by_name = EXCLUDED.approved_by_name
-            `, [personId, date, finalStatus, note || `Koreksi absensi (${validTime.substring(0, 5)}) oleh Super Admin`, session.id || 'admin', session.name || session.username || 'Super Admin']);
+            `, [personId, date, finalStatus, (note && note.trim()) ? note.trim() : null, session.id || 'admin', session.name || session.username || 'Super Admin']);
           } catch(e) {
             console.error('[Override] Gagal sync ke kedisiplinan_absensi:', e.message);
           }
         }
+
+        // Invalidate matrix report cache immediately on override
+        global._matrixCache = {};
 
         global._dashLogsCache = { time: 0, data: null };
         global._matrixCache = {};
@@ -2075,6 +2078,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const divisionStr = String(session?.division || '').toLowerCase();
 
         // Semua peran staf sekolah berhak melihat matriks kehadiran siswa di Laporan Kehadiran
+        const isSuperAdminUser = ['admin', 'superadmin', 'super_admin'].includes(roleStr) || (session?.username && String(session.username).toLowerCase() === 'admin') || Boolean(session?.isSuperAdmin);
         const isFullAccess = 
           ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek', 'guru', 'teacher', 'karyawan', 'staff', 'piket', 'kurikulum', 'kaprog', 'hubin', 'sarpras'].includes(roleStr) ||
           roleStr.startsWith('waka') ||
@@ -2505,13 +2509,14 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
               };
             } else if (rec.approvalStatus !== 'rejected') {
               if (["Izin", "Sakit", "Dinas Luar", "Alpa"].includes(status)) {
+                const isCorrectionNote = rec.note && /koreksi|override|super\s*admin/i.test(rec.note);
                 matrix[matchedNis].days[day] = {
                   in: status,
                   out: status,
                   isLate: false,
                   isManual: true,
                   status: status,
-                  note: rec.note,
+                  note: (isSuperAdminUser || !isCorrectionNote) ? rec.note : null,
                   approval_status: rec.approvalStatus
                 };
               } else if (["Hadir", "Terlambat"].includes(status)) {
@@ -2530,7 +2535,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                   if (status === "Terlambat") matrix[matchedNis].days[day].isLate = true;
                 }
                 if (rec.note && !rec.note.startsWith("Dari mesin") && !rec.note.startsWith("Mesin")) {
-                  matrix[matchedNis].days[day].note = rec.note;
+                  const isCorrectionNote = /koreksi|override|super\s*admin/i.test(rec.note);
+                  if (isSuperAdminUser || !isCorrectionNote) {
+                    matrix[matchedNis].days[day].note = rec.note;
+                  }
                 }
               }
             }
@@ -2619,6 +2627,10 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                    }
                  }
 
+                 const rawKet = rec.keterangan || '';
+                 const isCorrectionKet = /koreksi|override|super\s*admin/i.test(rawKet);
+                 const cleanKet = (isCorrectionKet && !isSuperAdminUser) ? null : ((rawKet && !rawKet.toLowerCase().includes("mesin") && !rawKet.startsWith("Dari mesin") && !rawKet.startsWith("Alpa Otomatis")) ? rawKet : (finalStatus === "Libur" ? (prevDayData.note || "Libur") : null));
+
                  matrix[targetKey].days[day] = {
                    ...prevDayData,
                    in: actualIn,
@@ -2627,7 +2639,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
                    isManual: !isOtomatis,
                    status: finalStatus,
                    isHoliday: finalStatus === "Libur" || prevDayData.isHoliday,
-                   note: (rec.keterangan && !rec.keterangan.toLowerCase().includes("mesin") && !rec.keterangan.startsWith("Dari mesin") && !rec.keterangan.startsWith("Alpa Otomatis")) ? rec.keterangan : (finalStatus === "Libur" ? (prevDayData.note || "Libur") : null),
+                   note: cleanKet,
                    gdrive_url: rec.gdrive_url,
                    id: rec.id,
                    approval_status: rec.approval_status

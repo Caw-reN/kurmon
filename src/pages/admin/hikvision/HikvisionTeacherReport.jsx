@@ -19,6 +19,9 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const academicCalendar = useAppStore(state => state.academicCalendar) || [];
   const calendarCategories = useAppStore(state => state.calendarCategories) || [];
   const user = useAuthStore(state => state.user);
+  const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) ||
+    String(user?.username || '').toLowerCase() === 'admin' ||
+    Boolean(user?.isSuperAdmin);
   const authToken = user?.authToken;
   
   const storeTeachers = useDataStore(state => state.teachers) || [];
@@ -1421,7 +1424,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
       const inTime = formatAttendanceTime(dayData.in);
       const outTime = formatAttendanceTime(dayData.out);
       const rawNote = dayData.note || '';
-      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+      const isCorrection = /koreksi|override|super\s*admin/i.test(rawNote);
+      const noteText = (!isSuperAdmin && isCorrection) ? '' : ((!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '');
       const isMissingIn = !inTime && Boolean(outTime);
 
       const titleAttr = isMissingIn 
@@ -1668,13 +1672,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               )}
             </div>
 
-            {(['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) || String(user?.username || '').toLowerCase() === 'admin') && (
+            {isSuperAdmin && (
               <Button 
                 variant="outline"
                 type="button"
                 onClick={() => setIsSuperAdminModalOpen(true)}
                 className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs"
-                title="Koreksi Jam Absensi (Khusus Admin / Super Admin)"
+                title="Koreksi Jam Absensi (Khusus Super Admin)"
               >
                 <Shield size={14} className="shrink-0 text-amber-400" />
                 <span>Koreksi Jam</span>
@@ -2230,7 +2234,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                   const dayData = (t.days || {})[todayNum] || {};
                   const isLate = dayData.isLate || dayData.status === "Terlambat";
                   const status = dayData?.status || dayData?.in || "Belum Scan";
-                  const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") ? dayData.note : null;
+                  const isCorrection = /koreksi|override|super\s*admin/i.test(dayData?.note || '');
+                  const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") && (isSuperAdmin || !isCorrection) ? dayData.note : null;
 
                   let avatarColor = 'bg-emerald-100 text-emerald-700 border-emerald-200/60';
                   if (dailyDetailModal === 'late') avatarColor = 'bg-amber-100 text-amber-700 border-amber-200/60';

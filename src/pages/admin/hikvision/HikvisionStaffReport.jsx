@@ -13,6 +13,9 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   const academicCalendar = useAppStore(state => state.academicCalendar) || [];
   const calendarCategories = useAppStore(state => state.calendarCategories) || [];
   const user = useAuthStore(state => state.user);
+  const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) ||
+    String(user?.username || '').toLowerCase() === 'admin' ||
+    Boolean(user?.isSuperAdmin);
   const authToken = user?.authToken;
   
   const [data, setData] = useState([]);
@@ -1218,7 +1221,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
       const inTime = formatAttendanceTime(dayData.in);
       const outTime = formatAttendanceTime(dayData.out);
       const rawNote = dayData.note || '';
-      const noteText = (!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '';
+      const isCorrection = /koreksi|override|super\s*admin/i.test(rawNote);
+      const noteText = (!isSuperAdmin && isCorrection) ? '' : ((!rawNote.startsWith("Dari mesin") && !rawNote.startsWith("Mesin")) ? rawNote : '');
       const isMissingIn = !inTime && Boolean(outTime);
 
       const titleAttr = isMissingIn 
@@ -2108,7 +2112,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
                    const dayData = (s.days || {})[todayNum] || {};
                    const isLate = dayData.isLate || dayData.status === "Terlambat";
                    const status = dayData?.status || dayData?.in || "Belum Scan";
-                   const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") ? dayData.note : null;
+                   const isCorrection = /koreksi|override|super\s*admin/i.test(dayData?.note || '');
+                   const displayNote = dayData?.note && !dayData.note.includes("Alpa Otomatis") && (isSuperAdmin || !isCorrection) ? dayData.note : null;
 
                    let avatarColor = 'bg-emerald-100 text-emerald-700 border-emerald-200/60';
                    if (dailyDetailModal === 'late') avatarColor = 'bg-amber-100 text-amber-700 border-amber-200/60';

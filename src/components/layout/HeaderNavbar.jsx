@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { LogIn, X, Menu, HelpCircle, Info, MessageSquare, Mail, BookOpen, ArrowUpRight, ExternalLink, ChevronDown, Clock } from 'lucide-react';
+import { PublicHelpModal } from '../landing/LandingModals.jsx';
 
 const InstagramIcon = ({ size = 14, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -523,230 +524,17 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       )}
 
       {/* MODAL BANTUAN */}
-      {isBantuanOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg md:max-w-[540px] overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 border border-slate-100">
-            {/* Header */}
-            <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100/80 shadow-2xs">
-                  <HelpCircle size={19} strokeWidth={2.2} />
-                </div>
-                <div className="flex flex-col text-left">
-                  <h3 className="font-black text-slate-800 text-[14.5px] tracking-tight leading-snug">
-                    {t('Pusat Bantuan & Layanan', 'Help Center & Services')}
-                  </h3>
-                  <p className="text-[11px] font-medium text-slate-400 leading-tight">
-                    {t('Informasi akses akun, FAQ & kontak resmi sekolah', 'Account access info, FAQ & official school contacts')}
-                  </p>
-                </div>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsBantuanOpen(false)} 
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer border-none"
-                aria-label="Tutup Modal"
-              >
-                <X size={16} strokeWidth={2.4} />
-              </button>
-            </div>
-            
-            {/* Body */}
-            <div className="p-5 sm:p-6 space-y-4 text-xs font-semibold text-slate-600 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              {/* Notice Banner */}
-              <div className="bg-emerald-50/70 border border-emerald-200/60 rounded-xl p-3 text-emerald-950 flex items-start gap-2.5 shadow-2xs">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                  <Info size={13} strokeWidth={2.4} />
-                </div>
-                <p className="leading-relaxed font-semibold text-[11.5px] text-emerald-900">
-                  {t(
-                    'Butuh bantuan untuk masuk ke sistem atau memiliki pertanyaan seputar KBM? Silakan cek FAQ atau hubungi admin di bawah.',
-                    'Need assistance signing in to the system or have academic questions? Please check the FAQ or contact the school admin below.'
-                  )}
-                </p>
-              </div>
-
-              {/* FAQ Accordions */}
-              <div className="space-y-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">
-                  {t('Pertanyaan Umum (FAQ)', 'Frequently Asked Questions (FAQ)')}
-                </p>
-                <div className="space-y-1.5">
-                  {[
-                    {
-                      q: t('Bagaimana cara masuk ke sistem?', 'How do I sign in to the portal?'),
-                      a: t(
-                        'Klik tombol "Masuk Akun" di kanan atas (atau tombol Masuk di menu mobile), lalu login menggunakan username dan password resmi dari sekolah.',
-                        'Click the "Sign In" button at the top right, then log in using your official credentials provided by the school.'
-                      )
-                    },
-                    {
-                      q: t('Lupa password atau tidak bisa login?', 'Forgot password or unable to log in?'),
-                      a: t(
-                        'Silakan hubungi administrator sekolah atau guru piket/wali kelas untuk bantuan reset password akun Anda.',
-                        'Please contact the school administrator or homeroom teacher for account password reset assistance.'
-                      )
-                    },
-                    {
-                      q: t('Jadwal pelajaran atau presensi bermasalah?', 'Schedule or attendance issue?'),
-                      a: t(
-                        'Setiap pembaruan jadwal atau data kehadiran diperbarui secara real-time. Hubungi waka kurikulum bila data kelas Anda membutuhkan penyesuaian.',
-                        'All schedule and attendance updates sync in real-time. Contact the academic curriculum team if your class data requires adjustment.'
-                      )
-                    }
-                  ].map((faq, idx) => {
-                    const isOpen = bantuanFaqIndex === idx;
-                    return (
-                      <div 
-                        key={idx}
-                        className={`border rounded-xl transition-all overflow-hidden ${
-                          isOpen ? 'border-emerald-200/90 bg-emerald-50/20 shadow-2xs' : 'border-slate-200/80 bg-slate-50/40 hover:bg-slate-50 hover:border-slate-300'
-                        }`}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setBantuanFaqIndex(isOpen ? null : idx)}
-                          className="w-full px-3.5 py-2.5 flex items-center justify-between text-left bg-transparent border-none cursor-pointer"
-                        >
-                          <span className="text-[12px] font-bold text-slate-800 pr-2">
-                            {faq.q}
-                          </span>
-                          <ChevronDown 
-                            size={14} 
-                            className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-emerald-600' : ''}`} 
-                          />
-                        </button>
-                        {isOpen && (
-                          <div className="px-3.5 pb-3 pt-0 text-[11.5px] font-medium text-slate-600 leading-relaxed border-t border-emerald-100/60 bg-white">
-                            {faq.a}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Direct Contacts: WhatsApp & Email in 2 columns */}
-              <div className="space-y-2 pt-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">
-                  {t('Kontak Langsung Admin', 'Direct Admin Contact')}
-                </p>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {contactPhone && (
-                    <a 
-                      href={getWaLink()} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 p-3 rounded-xl border border-emerald-200/80 bg-emerald-50/30 hover:bg-emerald-50/80 hover:border-emerald-300 transition-all text-slate-800 no-underline shadow-2xs group"
-                    >
-                      <div className="w-8.5 h-8.5 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                        <MessageSquare size={16} />
-                      </div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-[12px] text-slate-800 leading-none">WhatsApp Admin</span>
-                          <ArrowUpRight size={12} className="text-emerald-600 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                        </div>
-                        <p className="text-[10.5px] font-mono font-bold text-emerald-700 truncate mt-1.5 leading-none">{contactPhone}</p>
-                      </div>
-                    </a>
-                  )}
-
-                  {contactEmail && (
-                    <a 
-                      href={`mailto:${contactEmail}`}
-                      className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all text-slate-800 no-underline shadow-2xs group"
-                    >
-                      <div className="w-8.5 h-8.5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                        <Mail size={16} />
-                      </div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <div className="flex items-center justify-between">
-                          <span className="font-extrabold text-[12px] text-slate-800 leading-none">Email Layanan</span>
-                          <ArrowUpRight size={12} className="text-slate-400 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                        </div>
-                        <p className="text-[10.5px] font-mono font-bold text-slate-500 truncate mt-1.5 leading-none">{contactEmail}</p>
-                      </div>
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Official Social Media: Compact row of 3 */}
-              {(appSettings?.socialInstagram || appSettings?.socialFacebook || appSettings?.socialYoutube) && (
-                <div className="space-y-2 pt-1">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-0.5">
-                    {t('Media Sosial Resmi', 'Official Social Media')}
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {appSettings?.socialInstagram && (
-                      <a 
-                        href={getAbsoluteUrl(appSettings.socialInstagram)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200/80 bg-white hover:border-pink-300 hover:bg-pink-50/40 text-slate-700 hover:text-pink-600 transition-all text-xs font-bold no-underline shadow-2xs group"
-                        title="Instagram Resmi"
-                      >
-                        <div className="text-pink-500 group-hover:scale-110 transition-transform">
-                          <InstagramIcon size={14} />
-                        </div>
-                        <span className="truncate text-[11px]">Instagram</span>
-                      </a>
-                    )}
-
-                    {appSettings?.socialFacebook && (
-                      <a 
-                        href={getAbsoluteUrl(appSettings.socialFacebook)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200/80 bg-white hover:border-blue-300 hover:bg-blue-50/40 text-slate-700 hover:text-blue-600 transition-all text-xs font-bold no-underline shadow-2xs group"
-                        title="Facebook Resmi"
-                      >
-                        <div className="text-blue-600 group-hover:scale-110 transition-transform">
-                          <FacebookIcon size={14} />
-                        </div>
-                        <span className="truncate text-[11px]">Facebook</span>
-                      </a>
-                    )}
-
-                    {appSettings?.socialYoutube && (
-                      <a 
-                        href={getAbsoluteUrl(appSettings.socialYoutube)} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-1.5 p-2 rounded-xl border border-slate-200/80 bg-white hover:border-red-300 hover:bg-red-50/40 text-slate-700 hover:text-red-600 transition-all text-xs font-bold no-underline shadow-2xs group"
-                        title="YouTube Resmi"
-                      >
-                        <div className="text-red-600 group-hover:scale-110 transition-transform">
-                          <YoutubeIcon size={14} />
-                        </div>
-                        <span className="truncate text-[11px]">YouTube</span>
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Footer */}
-            <div className="px-5 sm:px-6 py-3 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-                <Clock size={12} className="text-slate-400 shrink-0" />
-                <span>{t('Senin – Jumat (07.00 – 16.00 WIB)', 'Mon – Fri (07.00 – 16.00 WIB)')}</span>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsBantuanOpen(false)}
-                className="bg-slate-200/90 hover:bg-slate-300 text-slate-700 rounded-xl cursor-pointer border-none transition-all px-4 py-2 text-xs font-bold shadow-2xs"
-              >
-                {t('Tutup', 'Close')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PublicHelpModal
+        isOpen={isBantuanOpen}
+        onClose={() => setIsBantuanOpen(false)}
+        appSettings={appSettings}
+        primaryColor={primaryColor}
+        contactPhone={contactPhone}
+        contactEmail={contactEmail}
+        appName={appName}
+        getWaLink={getWaLink}
+        lang={activeLang}
+      />
 
       {/* MODAL PANDUAN (Fallback for subpages where PublicGuideModal is not mounted) */}
       {isPanduanOpen && (

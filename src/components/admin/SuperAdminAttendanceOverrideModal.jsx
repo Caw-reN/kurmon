@@ -69,7 +69,7 @@ export default function SuperAdminAttendanceOverrideModal({ isOpen, onClose, onS
         time,
         outTime,
         status,
-        note: note.trim() || 'Koreksi jam oleh Super Admin'
+        note: note.trim() || ''
       };
 
       const res = await fetch('/api/hikvision/super-admin-override', {
