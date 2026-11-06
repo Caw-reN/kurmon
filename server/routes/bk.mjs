@@ -232,20 +232,29 @@ export async function handleBkRoutes(req, res, url, ctx) {
     if (req.method === "PUT") {
       try {
         const body = await readJsonBody(req);
-        const { category, session_date, problem, solution, follow_up_date, status, privacy_level } = body;
+        const { student_nis, category, session_date, problem, solution, follow_up_date, status, privacy_level } = body;
+        const cleanNis = student_nis && String(student_nis).trim() ? String(student_nis).trim() : null;
         const result = await dbPool.query(`
           UPDATE bk_sessions 
-          SET category = $1, session_date = $2, problem = $3, solution = $4, follow_up_date = $5, status = $6, privacy_level = $7
-          WHERE id = $8
+          SET student_nis = COALESCE($1, student_nis),
+              category = COALESCE($2, category),
+              session_date = COALESCE($3, session_date),
+              problem = COALESCE($4, problem),
+              solution = COALESCE($5, solution),
+              follow_up_date = $6,
+              status = COALESCE($7, status),
+              privacy_level = COALESCE($8, privacy_level)
+          WHERE id = $9
           RETURNING *
         `, [
-          category || 'Umum',
-          session_date && String(session_date).trim() ? String(session_date).trim() : new Date().toISOString().slice(0, 10),
-          problem || '',
-          solution || '',
+          cleanNis,
+          category || null,
+          session_date && String(session_date).trim() ? String(session_date).trim() : null,
+          problem !== undefined ? problem : null,
+          solution !== undefined ? solution : null,
           follow_up_date && String(follow_up_date).trim() ? String(follow_up_date).trim() : null,
-          status || 'Berjalan',
-          privacy_level || 'Terbatas',
+          status || null,
+          privacy_level || null,
           id
         ]);
 
@@ -344,6 +353,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
       try {
         const body = await readJsonBody(req);
         const { student_nis, visit_date, result, photo_url } = body;
+        const cleanNis = student_nis && String(student_nis).trim() ? String(student_nis).trim() : null;
         const currentUserName = session?.name || session?.username || 'Guru BK';
         const currentUserId = session?.id || session?.nip || session?.username || '';
         const resQuery = await dbPool.query(`
@@ -351,17 +361,17 @@ export async function handleBkRoutes(req, res, url, ctx) {
           SET student_nis = COALESCE($1, student_nis),
               visit_date = COALESCE($2, visit_date),
               result = COALESCE($3, result),
-              photo_url = $4,
+              photo_url = COALESCE($4, photo_url),
               updated_by = $5,
               updated_by_name = $6,
               updated_at = CURRENT_TIMESTAMP
           WHERE id = $7
           RETURNING *
         `, [
-          student_nis,
-          visit_date && String(visit_date).trim() ? String(visit_date).trim() : new Date().toISOString().slice(0, 10),
-          result || '',
-          photo_url || null,
+          cleanNis,
+          visit_date && String(visit_date).trim() ? String(visit_date).trim() : null,
+          result !== undefined ? result : null,
+          photo_url !== undefined ? photo_url : null,
           currentUserId,
           currentUserName,
           id
@@ -473,35 +483,36 @@ export async function handleBkRoutes(req, res, url, ctx) {
           student_nis, letter_type, letter_no, issue_date, reason, 
           appointment_date, appointment_time, appointment_place, appointed_person 
         } = body;
+        const cleanNis = student_nis && String(student_nis).trim() ? String(student_nis).trim() : null;
         const currentUserName = session?.name || session?.username || 'Guru BK';
         const currentUserId = session?.id || session?.nip || session?.username || '';
 
         const resQuery = await dbPool.query(`
           UPDATE bk_letters 
           SET student_nis = COALESCE($1, student_nis),
-              letter_type = $2,
-              letter_no = $3,
-              issue_date = $4,
-              reason = $5,
+              letter_type = COALESCE($2, letter_type),
+              letter_no = COALESCE($3, letter_no),
+              issue_date = COALESCE($4, issue_date),
+              reason = COALESCE($5, reason),
               appointment_date = $6,
-              appointment_time = $7,
-              appointment_place = $8,
-              appointed_person = $9,
+              appointment_time = COALESCE($7, appointment_time),
+              appointment_place = COALESCE($8, appointment_place),
+              appointed_person = COALESCE($9, appointed_person),
               updated_by = $10,
               updated_by_name = $11,
               updated_at = CURRENT_TIMESTAMP
           WHERE id = $12
           RETURNING *
         `, [
-          student_nis,
-          letter_type || 'Panggilan Orang Tua',
-          letter_no,
-          issue_date && String(issue_date).trim() ? String(issue_date).trim() : new Date().toISOString().slice(0, 10),
-          reason || '',
+          cleanNis,
+          letter_type || null,
+          letter_no || null,
+          issue_date && String(issue_date).trim() ? String(issue_date).trim() : null,
+          reason !== undefined ? reason : null,
           appointment_date && String(appointment_date).trim() ? String(appointment_date).trim() : null,
-          appointment_time || '09.00 WIB s/d Selesai',
-          appointment_place || 'Ruang Bimbingan & Konseling (BK)',
-          appointed_person || 'Guru BK / Koordinator BK',
+          appointment_time || null,
+          appointment_place || null,
+          appointed_person || null,
           currentUserId,
           currentUserName,
           id
