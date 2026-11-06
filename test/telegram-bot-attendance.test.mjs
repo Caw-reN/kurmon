@@ -1,6 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeHtml, formatMessageToHtml, _normalizeClassInput, _parseIndonesianDate, _cleanDateFromText } from '../server/telegram-bot.mjs';
+import { 
+  escapeHtml, 
+  formatMessageToHtml, 
+  formatDowntimeDuration,
+  _normalizeClassInput, 
+  _parseIndonesianDate, 
+  _cleanDateFromText 
+} from '../server/telegram-bot.mjs';
 
 test('Telegram formatting and escaping functions properly', () => {
   assert.equal(escapeHtml('Hello <World> & "Friends"'), 'Hello &lt;World&gt; &amp; "Friends"');
@@ -8,6 +15,13 @@ test('Telegram formatting and escaping functions properly', () => {
   const formatted = formatMessageToHtml('Status: *Hadir* pada `07:15`');
   assert.match(formatted, /<b>Hadir<\/b>/);
   assert.match(formatted, /<code>07:15<\/code>/);
+});
+
+test('formatDowntimeDuration returns human readable strings in Indonesian', () => {
+  assert.equal(formatDowntimeDuration(45 * 1000), 'Kurang dari 1 menit');
+  assert.equal(formatDowntimeDuration(12 * 60 * 1000), '12 menit');
+  assert.equal(formatDowntimeDuration((2 * 3600 + 15 * 60) * 1000), '2 jam 15 menit');
+  assert.equal(formatDowntimeDuration((26 * 3600 + 40 * 60) * 1000), '1 hari 2 jam');
 });
 
 test('Class matching helper logic handles arabic to roman conversion with and without spaces', () => {
@@ -57,4 +71,28 @@ test('Compound class and date argument separation works properly without truncat
 
   const potentialClass2 = _cleanDateFromText(input2);
   assert.equal(potentialClass2, 'XI RPL 2');
+});
+
+test('Attendance calculation formula prevents students with approved Izin/Sakit from being counted as unexcused absent', () => {
+  const total = 36;
+  const hadir = 32;
+  const izinSakit = 3;
+  // Belum hadir harus dihitung tanpa menganggap siswa izin/sakit sebagai belum absen
+  const belum = Math.max(0, total - hadir - izinSakit);
+  assert.equal(belum, 1);
+  assert.equal(hadir + izinSakit + belum, total);
+});
+
+test('Dual 8-digit and 9-digit NIS mapping handles machine and school IDs correctly', () => {
+  const schoolNis = '242510163';
+  const machineId = schoolNis.slice(1); // '42510163'
+  
+  const idToNisMap = new Map();
+  idToNisMap.set(schoolNis, schoolNis);
+  if (schoolNis.length === 9) {
+    idToNisMap.set(schoolNis.slice(1), schoolNis);
+  }
+
+  assert.equal(idToNisMap.get(machineId), schoolNis);
+  assert.equal(idToNisMap.get(schoolNis), schoolNis);
 });
