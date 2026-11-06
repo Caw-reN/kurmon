@@ -683,10 +683,6 @@ export default function TabTampilan(props) {
                               </div>
                             )}
                           </div>
-                          <div>
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Deskripsi Footer</label>
-                            <textarea value={appSettings.footerDescription ||""} onChange={(e) => setAppSettings({ ...appSettings, footerDescription: e.target.value })} className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-sm font-bold focus:outline-[var(--ui-primary)] shadow-xs h-24 resize-none"></textarea>
-                          </div>
 
                           <div className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-slate-50/80 border border-slate-200/80 space-y-4 shadow-2xs">
                             <div className="border-b border-slate-200/80 pb-2.5">
@@ -2109,7 +2105,7 @@ export default function TabTampilan(props) {
                         </div>
                         <div>
                           <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Footer (Copyright)</label>
-                          <input type="text" value={appSettings.footerText ||""} onChange={(e) => setAppSettings({ ...appSettings, footerText: e.target.value })} placeholder="© 2026..." className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
+                          <input type="text" value={appSettings.footerText || appSettings.footerDescription || ""} onChange={(e) => setAppSettings({ ...appSettings, footerText: e.target.value, footerDescription: e.target.value })} placeholder="© 2026 SMK Karya Guna 2 Bekasi" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                       </div>
 

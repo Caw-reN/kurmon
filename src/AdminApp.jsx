@@ -4522,13 +4522,20 @@ export default function App() {
 
         <div className="mt-6 pt-4 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 pb-3 shrink-0 print:hidden">
           <div className="text-xs font-medium text-muted-foreground">
-            {appSettings.footerDescription ? (
-              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />
-            ) : appSettings.footerText ? (
-              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerText) }} />
-            ) : (
-              `© ${new Date().getFullYear()} ${appSettings.appName || "TimeSchedule"}. All rights reserved.`
-            )}
+            {(() => {
+              const ft = (appSettings.footerText || "").trim();
+              if (ft) {
+                if (/^\d{4}$/.test(ft)) {
+                  return `© ${ft} ${appSettings.instansiName || appSettings.appName || "KG2 School"}. All rights reserved.`;
+                }
+                return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(ft) }} />;
+              }
+              const desc = (appSettings.footerDescription || "").trim();
+              if (desc && !desc.includes('Inkscod')) {
+                return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(desc) }} />;
+              }
+              return `© ${new Date().getFullYear()} ${appSettings.instansiName || appSettings.appName || "KG2 School"}. All rights reserved.`;
+            })()}
           </div>
           <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
             <button type="button" onClick={openImportGuide} className="hover:text-foreground cursor-pointer transition-colors bg-transparent border-none p-0">

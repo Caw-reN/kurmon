@@ -186,16 +186,18 @@ export default function PublicFooter({
         <div className="w-full border-t border-[#dde3d9] mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-slate-500">
           <p>
             {(() => {
-              const ft = appSettings?.footerText?.trim();
-              const customCopyright = (ft && (ft.includes('©') || ft.length > 10)) ? ft : null;
-              if (customCopyright) {
-                return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(customCopyright) }} />;
+              const ft = (appSettings?.footerText || "").trim();
+              if (ft) {
+                if (/^\d{4}$/.test(ft)) {
+                  return `© ${ft} ${appName} · ${schoolName}`;
+                }
+                return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(ft) }} />;
               }
-              if (appSettings?.footerDescription && appSettings.footerDescription.trim() && !appSettings.footerDescription.includes('Inkscod')) {
-                return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(appSettings.footerDescription) }} />;
+              const desc = (appSettings?.footerDescription || "").trim();
+              if (desc && !desc.includes('Inkscod')) {
+                return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(desc) }} />;
               }
-              const year = (ft && /^\d{4}$/.test(ft)) ? ft : new Date().getFullYear();
-              return `© ${year} ${appName} · ${schoolName}`;
+              return `© ${new Date().getFullYear()} ${appName} · ${schoolName}`;
             })()}
           </p>
           <div className="text-slate-500 text-xs font-medium">
