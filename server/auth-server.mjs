@@ -1838,7 +1838,7 @@ const isMonitoringAdmin = (role) => ["admin", "hubin", "waka", "kaprog"].include
 
 const requireAdmin = (req, res) => {
   const session = getSession(req);
-  if (isAdminRole(session?.role)) return session;
+  if (isAdminRole(session?.role) || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin)) return session;
   send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
   return null;
 };
@@ -1846,7 +1846,7 @@ const requireAdmin = (req, res) => {
 const requireAdminOrTu = (req, res) => {
   const session = getSession(req);
   const role = normalizeServerRole(session?.role);
-  if (role === "admin" || role === "tu") return session;
+  if (role === "admin" || role === "tu" || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin)) return session;
   send(req, res, 403, { ok: false, error: "Sesi admin atau tata usaha diperlukan." });
   return null;
 };
@@ -2322,7 +2322,9 @@ const server = createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/api/monitoring/pkl-students/bulk") {
       const session = getSession(req);
-      if (!isAdminRole(session?.role) && !isMonitoringAdmin(session?.role)) {
+      const isHubinSession = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || Boolean(session?.isHubin) ||
+        String(session?.division || "").toLowerCase() === "hubin" || String(session?.subrole || "").toLowerCase().includes("hubin");
+      if (!isAdminRole(session?.role) && !isMonitoringAdmin(session?.role) && !isHubinSession) {
         return send(req, res, 403, { ok: false, error: "Hanya admin atau tim hubin yang diizinkan." });
       }
       if (!dbPool) { send(req, res, 503, { ok: false, error: dbStatus.message }); return; }
@@ -2435,8 +2437,10 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const sRole = normalizeServerRole(session.role);
-      if (!['admin', 'superadmin', 'kepsek'].includes(sRole)) {
-        return send(req, res, 403, { ok: false, error: 'Hanya admin / kepala sekolah yang dapat menghapus keterangan massal.' });
+      const canDeleteRemark = ['admin', 'superadmin', 'kepsek', 'waka', 'kesiswaan', 'tu'].includes(sRole) ||
+        Boolean(session.isSuperAdmin) || Boolean(session.isAdmin) || Boolean(session.isKesiswaan);
+      if (!canDeleteRemark) {
+        return send(req, res, 403, { ok: false, error: 'Hanya admin / kepala sekolah / tim manajemen yang dapat menghapus keterangan massal.' });
       }
       try {
         const remarkId = url.pathname.split('/').pop();
@@ -2490,7 +2494,7 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const sRole = normalizeServerRole(session.role);
-      const isSuper = isAdminRole(session.role) || sRole === 'admin' || sRole === 'superadmin';
+      const isSuper = isAdminRole(session.role) || sRole === 'admin' || sRole === 'superadmin' || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
       if (!isSuper) {
         return send(req, res, 403, { ok: false, error: 'Hanya Super Admin yang dapat mengubah template pilihan dan catatan presensi.' });
       }
@@ -3925,7 +3929,7 @@ const server = createServer(async (req, res) => {
       if (!session) return;
 
       const normalizedRole = normalizeServerRole(session.role);
-      const isUserAdmin = ["admin", "superadmin"].includes(normalizedRole);
+      const isUserAdmin = ["admin", "superadmin"].includes(normalizedRole) || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
       const isLeadership = ["kepsek", "waka", "tu", "bk"].includes(normalizedRole);
       let isAllowedToRead = isUserAdmin || isLeadership;
       if (!isAllowedToRead) {
@@ -4140,7 +4144,7 @@ const server = createServer(async (req, res) => {
       // FIX B-04: Hapus autentikasi via ?token= query string — token di URL masuk ke
       // server logs, browser history, dan proxy logs. Gunakan session cookie saja.
       const session = getSession(req);
-      if (!session || !isAdminRole(session?.role)) {
+      if (!session || (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin)) {
         send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
         return;
       }
@@ -4210,7 +4214,7 @@ const server = createServer(async (req, res) => {
     if (url.pathname === "/api/backup/excel" && req.method === "GET") {
       // FIX B-04: Hapus autentikasi via ?token= query string
       const session = getSession(req);
-      if (!session || !isAdminRole(session?.role)) {
+      if (!session || (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin)) {
         send(req, res, 403, { ok: false, error: "Sesi admin diperlukan." });
         return;
       }
@@ -4456,7 +4460,7 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/backup-telegram") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
+      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role)) && !session.isSuperAdmin && !session.isAdmin) {
         send(req, res, 403, { ok: false, error: "Akses ditolak" });
         return;
       }
@@ -4560,7 +4564,7 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/backup-r2") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
+      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role)) && !session.isSuperAdmin && !session.isAdmin) {
         send(req, res, 403, { ok: false, error: "Akses ditolak" });
         return;
       }
@@ -4635,7 +4639,7 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/archive-data") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role))) {
+      if (!["admin", "superadmin"].includes(normalizeServerRole(session.role)) && !session.isSuperAdmin && !session.isAdmin) {
         send(req, res, 403, { ok: false, error: "Akses ditolak" });
         return;
       }
@@ -4987,7 +4991,7 @@ const server = createServer(async (req, res) => {
           ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
           subrole.includes('kesiswaan') || subrole.includes('osis') ||
           division === 'kesiswaan' || division === 'osis';
-        const isAllowed = isAdminRole(session?.role) || ["tu", "tata_usaha", "waka", "waka_kesiswaan", "kesiswaan"].includes(roleStr) || isKesiswaanStaff;
+        const isAllowed = isAdminRole(session?.role) || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || ["tu", "tata_usaha", "waka", "waka_kesiswaan", "kesiswaan"].includes(roleStr) || isKesiswaanStaff;
         if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan sesi admin atau tata usaha." });
         try {
           const body = await readJsonBody(req);
@@ -5181,8 +5185,11 @@ const server = createServer(async (req, res) => {
             const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
             const userRole = String(session?.role || '').toLowerCase();
             const userDiv = String(session?.division || '').toLowerCase();
-            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
-                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+            const userSubrole = String(session?.subrole || '').toLowerCase();
+            const isKurikulumStaff = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || Boolean(session?.isKurikulum) ||
+              ['admin', 'superadmin', 'waka_kurikulum', 'kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(userRole) ||
+              (userRole === 'waka' && userDiv === 'kurikulum') || userDiv === 'kurikulum' || userSubrole.includes('kurikulum');
+            const isAuthorized = isKurikulumStaff ||
                                 (userCode && (userCode === docCode || userCode === bodyCode)) ||
                                 (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
 
@@ -5202,8 +5209,11 @@ const server = createServer(async (req, res) => {
             const docCode = String(doc.teacher_code || '').trim().toLowerCase();
             const userRole = String(session?.role || '').toLowerCase();
             const userDiv = String(session?.division || '').toLowerCase();
-            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
-                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+            const userSubrole = String(session?.subrole || '').toLowerCase();
+            const isKurikulumStaff = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || Boolean(session?.isKurikulum) ||
+              ['admin', 'superadmin', 'waka_kurikulum', 'kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(userRole) ||
+              (userRole === 'waka' && userDiv === 'kurikulum') || userDiv === 'kurikulum' || userSubrole.includes('kurikulum');
+            const isAuthorized = isKurikulumStaff ||
                                 (userCode && (userCode === docCode)) ||
                                 (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
 
@@ -5358,8 +5368,11 @@ const server = createServer(async (req, res) => {
             const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
             const userRole = String(session?.role || '').toLowerCase();
             const userDiv = String(session?.division || '').toLowerCase();
-            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
-                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+            const userSubrole = String(session?.subrole || '').toLowerCase();
+            const isKurikulumStaff = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || Boolean(session?.isKurikulum) ||
+              ['admin', 'superadmin', 'waka_kurikulum', 'kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(userRole) ||
+              (userRole === 'waka' && userDiv === 'kurikulum') || userDiv === 'kurikulum' || userSubrole.includes('kurikulum');
+            const isAuthorized = isKurikulumStaff ||
                                 (userCode && (userCode === docCode || userCode === bodyCode)) ||
                                 (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
 
@@ -5379,8 +5392,11 @@ const server = createServer(async (req, res) => {
             const bodyCode = String(body.teacher_code || '').trim().toLowerCase();
             const userRole = String(session?.role || '').toLowerCase();
             const userDiv = String(session?.division || '').toLowerCase();
-            const isAuthorized = ['admin', 'superadmin', 'waka_kurikulum'].includes(userRole) ||
-                                (userRole === 'waka' && userDiv === 'kurikulum') ||
+            const userSubrole = String(session?.subrole || '').toLowerCase();
+            const isKurikulumStaff = Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || Boolean(session?.isKurikulum) ||
+              ['admin', 'superadmin', 'waka_kurikulum', 'kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(userRole) ||
+              (userRole === 'waka' && userDiv === 'kurikulum') || userDiv === 'kurikulum' || userSubrole.includes('kurikulum');
+            const isAuthorized = isKurikulumStaff ||
                                 (userCode && (userCode === docCode || userCode === bodyCode)) ||
                                 (session?.name && String(session.name).trim().toLowerCase() === String(doc.teacher_name || '').trim().toLowerCase());
 
@@ -5923,7 +5939,7 @@ const server = createServer(async (req, res) => {
       // Token di URL bocor ke server log, browser history, dan proxy cache.
       // Gunakan session cookie atau Authorization header saja.
       const session = getSession(req);
-      if (!session || !isAdminRole(session.role)) {
+      if (!session || (!isAdminRole(session.role) && !session.isSuperAdmin && !session.isAdmin)) {
         send(req, res, 403, { ok: false, error: "Akses khusus Admin / Pengurus." });
         return;
       }
@@ -6055,7 +6071,7 @@ const server = createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/api/restore-backup") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session.role)) {
+      if (!isAdminRole(session.role) && !session.isSuperAdmin && !session.isAdmin) {
         send(req, res, 403, { ok: false, error: "Hanya Admin / Pengurus yang dapat memulihkan database." });
         return;
       }
