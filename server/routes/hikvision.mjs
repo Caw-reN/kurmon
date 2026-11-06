@@ -139,6 +139,14 @@ export async function autoLinkHikvisionTeachersAndStaffs(dbPool) {
 export async function handleHikvisionRoutes(req, res, url, ctx) {
   const { dbPool, send, sendDatabaseError, requireAuthenticated, requireAdmin, getSession, readJsonBody, readMainPayload, isMonitoringAdmin, isAdminRole } = ctx;
 
+  const isDeviceAdmin = (session) => {
+    const role = String(session?.role || '').toLowerCase();
+    return (typeof isAdminRole === 'function' && isAdminRole(role)) ||
+      ['admin', 'superadmin', 'super_admin', 'tu', 'tata_usaha', 'waka', 'kepsek'].includes(role) ||
+      Boolean(session?.isSuperAdmin) ||
+      Boolean(session?.isAdmin);
+  };
+
 
   async function getHikvisionConfig() {
     const defaultSchedules = {
@@ -496,7 +504,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/hikvision/devices") {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isDeviceAdmin(session)) {
+        return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Administrator yang dapat menambahkan perangkat." });
+      }
       try {
         const body = await readJsonBody(req);
         const { ip_address, location, username, encrypted_password, class_id, device_type } = body;
@@ -513,7 +525,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "PUT" && url.pathname.startsWith("/api/hikvision/devices/")) {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isDeviceAdmin(session)) {
+        return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Administrator yang dapat mengubah data perangkat." });
+      }
       try {
         const id = url.pathname.split("/").pop();
         const body = await readJsonBody(req);
@@ -552,7 +568,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "DELETE" && url.pathname.startsWith("/api/hikvision/devices/")) {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isDeviceAdmin(session)) {
+        return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Administrator yang dapat menghapus perangkat." });
+      }
       try {
         const id = url.pathname.split("/").pop();
         await dbPool.query("DELETE FROM hikvision_devices WHERE id = $1", [id]);
@@ -625,7 +645,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "POST" && url.pathname === "/api/hikvision/clear-test-logs") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      if (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         await dbPool.query("DELETE FROM hikvision_logs");
         await dbPool.query("DELETE FROM guru_attendance_records");
@@ -637,7 +657,11 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     }
 
     if (req.method === "POST" && url.pathname === "/api/hikvision/sync-all") {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
+      if (!isDeviceAdmin(session)) {
+        return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Administrator yang dapat menjalankan sinkronisasi mesin." });
+      }
       try {
         const conf = await getHikvisionConfig();
         const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices");
@@ -1053,7 +1077,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "POST" && url.pathname === "/api/hikvision/sync-time") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      if (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
 
       try {
         const { rows: devices } = await dbPool.query("SELECT * FROM hikvision_devices ORDER BY id");
@@ -1146,7 +1170,8 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       return;
     }
     if (req.method === "POST" && url.pathname === "/api/hikvision/manual-attendance") {
-      if (!requireAuthenticated(req, res)) return;
+      const session = requireAuthenticated(req, res);
+      if (!session) return;
       try {
         const body = await readJsonBody(req);
         const { teacherCode, date, status, note } = body; // status: Izin, Sakit, Dinas Luar, Alpa, Hadir
@@ -1156,9 +1181,18 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           return;
         }
 
-        const session = getSession(req) || {};
         const roleStr = String(session.role || '').toLowerCase();
-        const isManagement = ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(roleStr) || roleStr.startsWith('waka');
+        if (roleStr === 'siswa') {
+          return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan mengakses fitur ini." });
+        }
+
+        const isManagement = ['admin', 'superadmin', 'super_admin', 'kepsek', 'tu', 'tata_usaha'].includes(roleStr) || 
+          roleStr.startsWith('waka') || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
+
+        const userSelfCode = String(session.code || session.id || session.username || '').toLowerCase();
+        if (!isManagement && userSelfCode !== String(teacherCode).toLowerCase()) {
+          return send(req, res, 403, { ok: false, error: "Anda hanya dapat mengajukan perizinan untuk akun Anda sendiri." });
+        }
 
         const approvalStatus = isManagement ? 'approved' : 'pending';
         const approvedById = isManagement ? (session.id || 'admin') : null;
@@ -1393,7 +1427,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
         const userDivision = String(session.division || '').toLowerCase().trim();
         const userJabatan = String(session.jabatan || '').toLowerCase().trim();
 
-        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || session.username === 'admin' || Boolean(session.isSuperAdmin);
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(userRole) || session.username === 'admin' || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
 
         // Wewenang persetujuan (ACC):
         // Guru -> Wewenang Bagian Kurikulum
@@ -1969,7 +2003,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "POST" && url.pathname === "/api/hikvision/sync-classes-from-master") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      if (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         const updateResult = await dbPool.query(`
           UPDATE hikvision_students s
@@ -1990,7 +2024,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "PUT" && url.pathname === "/api/hikvision/students/bulk") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      if (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         const body = await readJsonBody(req);
         const updates = body.updates || [];
@@ -2024,7 +2058,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
     if (req.method === "PUT" && url.pathname.startsWith("/api/hikvision/students/") && url.pathname !== "/api/hikvision/students/bulk") {
       const session = requireAuthenticated(req, res);
       if (!session) return;
-      if (!isAdminRole(session?.role)) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
+      if (!isAdminRole(session?.role) && !session?.isSuperAdmin && !session?.isAdmin) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya admin." });
       try {
         const nis = url.pathname.split("/").pop();
         const body = await readJsonBody(req);
@@ -2046,7 +2080,7 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       const isKesiswaanStaff = Boolean(session?.isKesiswaan) ||
         ['kesiswaan', 'waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
         subrole.includes('kesiswaan') || division === 'kesiswaan';
-      const isAllowed = isAdminRole(session?.role) || ['tu', 'tata_usaha', 'waka', 'waka_kesiswaan', 'kesiswaan'].includes(roleStr) || isKesiswaanStaff;
+      const isAllowed = isAdminRole(session?.role) || ['tu', 'tata_usaha', 'waka', 'waka_kesiswaan', 'kesiswaan'].includes(roleStr) || isKesiswaanStaff || Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin);
       if (!isAllowed) return send(req, res, 403, { ok: false, error: "Akses ditolak. Memerlukan hak akses admin atau tata usaha." });
       try {
         const nis = url.pathname.split("/").pop();
