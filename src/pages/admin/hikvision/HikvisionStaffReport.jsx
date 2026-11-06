@@ -18,7 +18,8 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(roleStr) ||
     roleStr.includes('admin') ||
     String(user?.username || '').toLowerCase().trim() === 'admin' ||
-    Boolean(user?.isSuperAdmin);
+    Boolean(user?.isSuperAdmin) ||
+    Boolean(user?.isAdmin);
   const authToken = user?.authToken;
   
   const [data, setData] = useState([]);

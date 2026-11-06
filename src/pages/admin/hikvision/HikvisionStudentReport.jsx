@@ -42,7 +42,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const divisionStr = String(user?.division || '').toLowerCase();
 
   const isSuperAdmin = React.useMemo(() => {
-    return isSuperAdminRole(roleStr) || isSuperAdminRole(subroleStr) || ['admin', 'superadmin', 'super_admin'].includes(roleStr) || String(user?.username || '').toLowerCase() === 'admin' || Boolean(user?.isSuperAdmin);
+    return isSuperAdminRole(roleStr) || isSuperAdminRole(subroleStr) || ['admin', 'superadmin', 'super_admin'].includes(roleStr) || String(user?.username || '').toLowerCase() === 'admin' || Boolean(user?.isSuperAdmin) || Boolean(user?.isAdmin);
   }, [roleStr, subroleStr, user]);
 
   const [studentNotes, setStudentNotes] = useState(DEFAULT_STUDENT_ATTENDANCE_NOTES);
