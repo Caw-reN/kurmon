@@ -14,8 +14,10 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   const academicCalendar = useAppStore(state => state.academicCalendar) || [];
   const calendarCategories = useAppStore(state => state.calendarCategories) || [];
   const user = useAuthStore(state => state.user);
-  const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(String(user?.role || '').toLowerCase()) ||
-    String(user?.username || '').toLowerCase() === 'admin' ||
+  const roleStr = String(user?.role || '').toLowerCase().trim();
+  const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(roleStr) ||
+    roleStr.includes('admin') ||
+    String(user?.username || '').toLowerCase().trim() === 'admin' ||
     Boolean(user?.isSuperAdmin);
   const authToken = user?.authToken;
   

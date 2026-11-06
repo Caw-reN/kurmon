@@ -104,6 +104,7 @@ export async function handleBkRoutes(req, res, url, ctx) {
     const division = (session.division || '').toLowerCase();
     const isAllowed = BK_ALLOWED_ROLES.includes(role) ||
       BK_ALLOWED_ROLES.includes(subrole) ||
+      role.includes('admin') ||
       role.startsWith('waka_') ||
       role.includes('kesiswaan') ||
       role.includes('bk') ||
@@ -115,7 +116,10 @@ export async function handleBkRoutes(req, res, url, ctx) {
       division === 'bpbk' ||
       division === 'bp/bk' ||
       Boolean(session.isBK) ||
-      Boolean(session.isKesiswaan);
+      Boolean(session.isKesiswaan) ||
+      Boolean(session.isSuperAdmin) ||
+      Boolean(session.isAdmin) ||
+      (typeof isAdminRole === 'function' && isAdminRole(role));
     if (!isAllowed) {
       send(req, res, 403, { ok: false, error: 'Akses ditolak. Anda tidak memiliki izin untuk mengelola data BK.' });
       return null;

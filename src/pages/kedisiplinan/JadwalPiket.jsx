@@ -47,8 +47,8 @@ export default function JadwalPiket({ teachers: propTeachers = [], canEdit: canE
   const subrole = String(user?.subrole || '').toLowerCase().trim();
   const division = String(user?.division || '').toLowerCase().trim();
 
-  const isPrivileged = rawRole === 'admin' || rawRole === 'superadmin' || rawRole === 'kepsek' ||
-    rawRole === 'waka_kesiswaan' || (rawRole === 'waka' && (division === 'kesiswaan' || !division)) ||
+  const isPrivileged = rawRole.includes('admin') || Boolean(user?.isSuperAdmin) || Boolean(user?.isAdmin) ||
+    rawRole === 'kepsek' || rawRole === 'waka_kesiswaan' || (rawRole === 'waka' && (division === 'kesiswaan' || !division)) ||
     rawRole === 'kesiswaan' || rawRole === 'bpbk' || rawRole === 'bk' ||
     subrole === 'waka_kesiswaan' || subrole === 'bpbk' || subrole === 'bk' ||
     subrole.includes('kesiswaan') || subrole.includes('osis') ||
