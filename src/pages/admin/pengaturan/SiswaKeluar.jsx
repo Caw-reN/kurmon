@@ -400,7 +400,7 @@ export default function SiswaKeluar() {
   return (
     <div className="space-y-6 w-full pb-28 md:pb-12">
       
-      {/* 🟢 Page Header */}
+      {/* Page Header */}
       <PageHeader 
         title="Pendataan Siswa Keluar"
         icon={UserMinus}

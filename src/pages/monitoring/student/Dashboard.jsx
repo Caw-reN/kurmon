@@ -11,8 +11,8 @@ import { SharedDashboardLogs } from '../../../components/monitoring/ui/SharedDas
 /**
  * student/Dashboard.jsx
  * Exact 100% match with User Reference Screenshot:
- * - Top Greeting Row: Date + "Halo, Adam! ✌️" + Notification Bell & Mobile Logout Button
- * - Section Title: "Kartu Pelajar ✔"
+ * - Top Greeting Row: Date + "Halo, Adam!" + Notification Bell & Mobile Logout Button
+ * - Section Title: "Kartu Pelajar"
  * - Compact Green Hero Card: White Avatar Box + Student Info + Inset Status Lokasi Box (PT. Astra Motor / Real Company Name)
  */
 
