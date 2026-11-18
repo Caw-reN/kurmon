@@ -715,14 +715,13 @@ a[class*="active:scale"]:active {
   }
 }
 
-/* ---- Scrollbar Global & Custom ---- */
+/* ---- Scrollbar Global & Custom (Minimalist Modern Design) ---- */
 ::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 6px;
+  width: 6px;
 }
 
-/* Modifiers for Kustomisasi Scrollbar */
 .scrollbar-thin ::-webkit-scrollbar,
 .scrollbar-thin .custom-scrollbar::-webkit-scrollbar {
   height: 4px !important;
@@ -736,10 +735,12 @@ a[class*="active:scale"]:active {
   width: 0 !important;
 }
 
-/* Ensure firefox uses thin scrollbars */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+/* Restrict standard scrollbar properties strictly to Firefox to avoid Chromium 121+ OS fallback */
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
 }
 
 .hide-scrollbar::-webkit-scrollbar,
@@ -762,7 +763,7 @@ a[class*="active:scale"]:active {
 ::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 99px;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover,
@@ -772,7 +773,14 @@ a[class*="active:scale"]:active {
 
 ::-webkit-scrollbar-button,
 .custom-scrollbar::-webkit-scrollbar-button {
-  display: none;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-corner,
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Sidebar dedicated slim draggable scrollbar */
@@ -789,9 +797,10 @@ a[class*="active:scale"]:active {
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--ui-primary, #16a34a);
 }
-.sidebar-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+.sidebar-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ---- Sidebar Active Pill ---- */

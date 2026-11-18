@@ -384,8 +384,6 @@ export default function AdminSidebar({
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       if (item.adminOnly) continue;
-      // Skip pesan because it will be shown cleanly at the bottom above the profile card
-      if (item.id === 'pesan') continue;
       if (item.specialCondition === 'walas_only') {
         if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
@@ -457,8 +455,6 @@ export default function AdminSidebar({
     const rootItems = [];
 
     for (const item of MENU_REGISTRY) {
-      // Skip pesan from main list since it is rendered above the profile card
-      if (item.id === 'pesan') continue;
       if (!item.adminGroupKey) {
         if (!item.adminOnly || isSuperAdminRole(activeUserRole)) {
           rootItems.push(item);
@@ -794,60 +790,9 @@ export default function AdminSidebar({
         )}
       </div>
 
-      {/* ─── 4. BOTTOM BAR: QUICK ITEM, USER PROFILE, CLEAR LOGOUT & DETAILED VERSION ─── */}
+      {/* ─── 4. BOTTOM BAR: BACKUP, PROMINENT LOGOUT & DETAILED VERSION ─── */}
       {!isCollapsed ? (
         <div className="p-3 border-t border-slate-200/80 bg-slate-50/40 shrink-0 flex flex-col gap-2 relative">
-          {/* Quick Item: Pengumuman / Inbox (Untitled UI Style) */}
-          {checkIsAllowed('pesan', 'pesan') && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('pesan')}
-              className={cn(
-                "flex w-full items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer",
-                activeTab === 'pesan'
-                  ? "bg-primary/10 text-primary font-bold border-primary/20 shadow-2xs"
-                  : "bg-white border-slate-200/70 text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <MessageSquare size={16} strokeWidth={activeTab === 'pesan' ? 2.5 : 2} className={activeTab === 'pesan' ? "text-primary" : "text-slate-400"} />
-                <span className="truncate">Pengumuman & Pesan</span>
-              </div>
-              <span className="ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60">
-                Info
-              </span>
-            </button>
-          )}
-
-          {/* User Profile Card (Click to Open Profile Settings) */}
-          <div 
-            onClick={onOpenProfile}
-            className="group flex items-center justify-between p-2 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50/90 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
-            title="Klik untuk membuka Pengaturan Profil & Kata Sandi"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden shadow-2xs">
-                {currentUser?.avatar ? (
-                  <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
-                )}
-              </div>
-              <div className="flex flex-col min-w-0 text-left">
-                <span className="font-bold text-xs text-slate-800 truncate group-hover:text-primary transition-colors">
-                  {currentUser?.name || currentUser?.username || "Administrator"}
-                </span>
-                <span className="text-[10.5px] text-slate-400 truncate font-medium">
-                  {currentUser?.email || activeRoleLabel || "admin@school.sch.id"}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-1 text-slate-400 group-hover:text-primary transition-colors">
-              <span className="text-[10px] font-semibold hidden group-hover:inline">Profil</span>
-              <ChevronsUpDown size={14} className="shrink-0" />
-            </div>
-          </div>
-
           {/* Quick Action: Backup (Admin Only) */}
           {isSuperAdminRole(activeUserRole) && (
             <button
@@ -900,43 +845,6 @@ export default function AdminSidebar({
         </div>
       ) : (
         <div className="p-2 border-t border-slate-200/80 bg-slate-50/40 shrink-0 flex flex-col items-center gap-2 relative">
-          {/* Quick Item: Pengumuman in Collapsed Mode */}
-          {checkIsAllowed('pesan', 'pesan') && (
-            <div className="group relative">
-              <button
-                type="button"
-                onClick={() => setActiveTab('pesan')}
-                className={cn(
-                  "w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200/60 transition-all cursor-pointer bg-white shadow-2xs",
-                  activeTab === 'pesan' ? "bg-primary/10 text-primary border-primary/20" : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
-                )}
-              >
-                <MessageSquare size={17} />
-              </button>
-              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                Pengumuman
-              </div>
-            </div>
-          )}
-
-          {/* User Profile Avatar with Tooltip in Collapsed Mode */}
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={onOpenProfile}
-              className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all overflow-hidden shadow-2xs"
-            >
-              {currentUser?.avatar ? (
-                <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
-              ) : (
-                <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
-              )}
-            </button>
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              {currentUser?.name || "Profil Akun"}
-            </div>
-          </div>
-
           {/* Dedicated Visible Logout Button in Collapsed Mode */}
           <div className="group relative">
             <button
