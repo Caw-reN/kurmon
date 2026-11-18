@@ -489,7 +489,7 @@ export default function App() {
     }
   }, [activeTab]);
 
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => loadInitialState("isSidebarCollapsed", false));
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const sidebarScrollRef = useRef(null);
   const sidebarScrollPos = useRef(0);
   const mainContentRef = useRef(null);
@@ -1673,12 +1673,11 @@ export default function App() {
     calendarCategories,
     advancedRules,
     expandedGroups,
-    isSidebarCollapsed,
     staffs,
     passwordResetRequests,
     ...overrides,
     currentUser: null
-  }), [schedule, isGenerated, days, timeSlots, teachingLoads, teacherAvailability, classes, rooms, teachers, students, subjects, adminUser, appSettings, customThemePresets, jpDurationMinutes, majors, rememberMe, layoutSettings, roomLayout, layoutDay, layoutByDay, layoutPreset, layoutBlockLabels, deletedHistory, attendanceRecords, attendanceCorrections, attendanceSettings, featureSettings, rolePermissions, kedisiplinanSettings, syllabuses, syllabusCategories, activityLogs, dashboardMessages, academicCalendar, calendarCategories, advancedRules, expandedGroups, isSidebarCollapsed, staffs, passwordResetRequests]);
+  }), [schedule, isGenerated, days, timeSlots, teachingLoads, teacherAvailability, classes, rooms, teachers, students, subjects, adminUser, appSettings, customThemePresets, jpDurationMinutes, majors, rememberMe, layoutSettings, roomLayout, layoutDay, layoutByDay, layoutPreset, layoutBlockLabels, deletedHistory, attendanceRecords, attendanceCorrections, attendanceSettings, featureSettings, rolePermissions, kedisiplinanSettings, syllabuses, syllabusCategories, activityLogs, dashboardMessages, academicCalendar, calendarCategories, advancedRules, expandedGroups, staffs, passwordResetRequests]);
 
 
   useEffect(() => {

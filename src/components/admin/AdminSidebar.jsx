@@ -81,6 +81,11 @@ export default function AdminSidebar({
 
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);
+
+  const isMac = useMemo(() => {
+    return typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+  }, []);
+  const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [canScrollUp, setCanScrollUp] = useState(false);
   const [hoveredTooltip, setHoveredTooltip] = useState(null);
@@ -714,27 +719,31 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg hidden lg:flex border-none cursor-pointer items-center justify-center transition-colors shrink-0"
+                className="w-8 h-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg hidden lg:flex border border-slate-200/80 shadow-2xs cursor-pointer items-center justify-center transition-all shrink-0"
                 title="Sembunyikan Sidebar"
+                aria-label="Sembunyikan Sidebar"
               >
-                <PanelLeftClose size={15} strokeWidth={2.2} />
+                <PanelLeftClose size={16} strokeWidth={2} />
               </button>
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2">
-            <div
+          <div className="flex items-center justify-center w-full">
+            <button
+              type="button"
               onClick={toggleSidebar}
-              data-sidebar-tooltip={appSettings.appName || "KG2 School"}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer hover:opacity-85 shadow-2xs"
+              data-sidebar-tooltip="Perluas Sidebar"
+              aria-label="Perluas Sidebar"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/15 transition-all shadow-2xs group"
               title="Perluas Sidebar"
             >
               <img
                 src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
                 alt="Brand Logo"
-                className="w-7 h-7 object-contain"
+                className="w-6 h-6 object-contain group-hover:hidden transition-all"
               />
-            </div>
+              <PanelLeftOpen size={17} strokeWidth={2.2} className="text-primary hidden group-hover:block transition-all" />
+            </button>
           </div>
         )}
       </div>
@@ -743,27 +752,32 @@ export default function AdminSidebar({
       {!isCollapsed ? (
         <div className="px-3 pt-3 pb-1 shrink-0 flex flex-col gap-1.5">
           <div className="relative flex items-center">
-            <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+            <Search size={15} className="absolute left-2.5 text-slate-400 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search"
-              className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-12 py-1.5 text-xs rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
+              placeholder="Cari menu..."
+              className="w-full bg-slate-50/70 hover:bg-slate-50 focus:bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-16 py-1.5 text-xs rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
             />
             <div className="absolute right-2 flex items-center gap-1">
               {searchQuery ? (
                 <button
                   type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer border-none bg-transparent"
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/60 cursor-pointer border-none bg-transparent transition-colors flex items-center justify-center"
+                  title="Hapus pencarian"
+                  aria-label="Hapus pencarian"
                 >
-                  <X size={12} />
+                  <X size={12} strokeWidth={2.5} />
                 </button>
               ) : (
-                <kbd className="hidden sm:inline-block text-[9.5px] font-semibold text-slate-400 bg-slate-100 border border-slate-200/80 px-1.5 py-0.5 rounded">
-                  ⌘K
+                <kbd className="hidden sm:inline-flex items-center text-[9.5px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded shadow-2xs select-none">
+                  {shortcutLabel}
                 </kbd>
               )}
             </div>
@@ -791,12 +805,16 @@ export default function AdminSidebar({
         <div className="pt-2 pb-1 flex justify-center shrink-0">
           <button
             type="button"
-            onClick={toggleSidebar}
-            data-sidebar-tooltip="Cari Menu (⌘K)"
+            onClick={() => {
+              toggleSidebar();
+              setTimeout(() => searchInputRef.current?.focus(), 160);
+            }}
+            data-sidebar-tooltip={`Cari Menu (${shortcutLabel})`}
             aria-label="Cari Menu"
-            className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent"
+            className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-slate-200/60 shadow-2xs bg-white"
+            title={`Cari Menu (${shortcutLabel})`}
           >
-            <Search size={16} />
+            <Search size={16} strokeWidth={2} />
           </button>
         </div>
       )}

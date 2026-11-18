@@ -74,7 +74,6 @@ export function useAdminDatabaseSync({
     if (payload.expandedGroups && typeof payload.expandedGroups === 'object') {
       setExpandedGroups({ ...DEFAULT_SIDEBAR_GROUPS, ...payload.expandedGroups });
     }
-    if (typeof payload.isSidebarCollapsed === 'boolean') setIsSidebarCollapsed(payload.isSidebarCollapsed);
 
     // AppStore fields
     const nextStoreState = {};

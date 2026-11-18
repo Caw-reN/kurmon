@@ -5,7 +5,8 @@ import { Clock, MessageSquare,
   BookOpen, DoorOpen, Calendar, FileSpreadsheet, CalendarDays,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
   MonitorSmartphone, UserCog, User, HardDrive, KeyRound,
-  HelpCircle, Bell, LogOut, Wrench, Activity, ClipboardList, Trophy, UserMinus, Shield, ShieldCheck
+  HelpCircle, Bell, LogOut, Wrench, Activity, ClipboardList, Trophy, UserMinus, Shield, ShieldCheck,
+  Menu, PanelLeftOpen
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
@@ -354,6 +355,31 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
       
       {/* Left: Desktop Sidebar Toggle & Brand/Keterangan */}
       <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
+        {/* Mobile menu trigger */}
+        {typeof onOpenMobileMenu === 'function' && (
+          <button
+            type="button"
+            onClick={onOpenMobileMenu}
+            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer flex items-center justify-center transition-colors shrink-0"
+            title="Buka Menu"
+            aria-label="Buka Menu"
+          >
+            <Menu size={18} strokeWidth={2} />
+          </button>
+        )}
+
+        {/* Desktop Sidebar Expand trigger when collapsed */}
+        {isSidebarCollapsed && typeof toggleSidebar === 'function' && (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="hidden lg:flex p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer items-center justify-center transition-colors shrink-0"
+            title="Buka Sidebar"
+            aria-label="Buka Sidebar"
+          >
+            <PanelLeftOpen size={18} strokeWidth={2} />
+          </button>
+        )}
         
         <div className="flex items-center gap-2 min-w-0 flex-1">
           {IconComponent && (

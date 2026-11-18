@@ -39,6 +39,7 @@ export const normalizeLayoutBlockLabels = (value) => {
 };
 
 export const loadInitialState = (key, defaultVal) => {
+  if (key === "isSidebarCollapsed") return false;
   try {
     const parsed = getDatabaseSnapshot();
     if (parsed && parsed[key] !== undefined && parsed[key] !== null) {
