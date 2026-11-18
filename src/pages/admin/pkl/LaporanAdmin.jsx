@@ -4,7 +4,6 @@ import {
   Download, Trash2, CheckCircle2, Clock, ChevronLeft, ChevronRight, 
   AlertCircle, Users, BookOpen, GraduationCap, Building2, Eye
 } from 'lucide-react';
-import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import useAuthStore from "../../../store/monitoring/authStore";
 import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
@@ -176,6 +175,7 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
 
   const handleExport = async () => {
     setGenerating(true);
+    const ExcelJS = (await import("exceljs")).default;
     let wb = new ExcelJS.Workbook();
     let sheetName = "";
     let rows = [];

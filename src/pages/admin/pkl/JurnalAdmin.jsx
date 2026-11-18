@@ -4,7 +4,6 @@ import {
   ChevronUp, ChevronDown, Check, X, Building2, Calendar, User, 
   Clock3, MessageSquare, AlertCircle, RefreshCw
 } from 'lucide-react';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
 import { Button } from '../../../components/ui.jsx';
@@ -102,7 +101,8 @@ const JurnalAdmin = ({ readOnly }) => {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const exportData = filtered.map(j => ({
       Tanggal: j.tanggal || (j.created_at ? new Date(j.created_at).toLocaleDateString('id-ID') : '-'),
       NIS: j.student_nis,

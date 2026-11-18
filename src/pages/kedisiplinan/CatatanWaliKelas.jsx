@@ -6,10 +6,8 @@ import {
   ArrowUpDown, Check, RotateCcw, Sparkles, Star, Hourglass
 } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore.js';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
@@ -670,7 +668,8 @@ export default function CatatanWaliKelas({
 
   const isLeftFiltered = searchSiswa || filterTingkat !== 'all' || filterJurusan !== 'all' || filterKelas !== 'all' || filterStatusSiswa !== 'all';
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const data = filteredCatatan.map(c => ({
       Tanggal: new Date(c.tanggal).toLocaleDateString('id-ID'),
       Kelas: c.kelas || '',
@@ -693,9 +692,10 @@ export default function CatatanWaliKelas({
     });
   };
 
-  const exportClassRecapExcel = () => {
+  const exportClassRecapExcel = async () => {
     if (filteredStudents.length === 0) return showToast("Tidak ada data siswa untuk diekspor", "warning");
 
+    const ExcelJS = (await import('exceljs')).default;
     const data = filteredStudents.map((student, idx) => {
       const nis = getStudentNis(student);
       const name = getStudentName(student);
@@ -735,8 +735,12 @@ export default function CatatanWaliKelas({
     });
   };
 
-  const downloadRapotSiswa = () => {
+  const downloadRapotSiswa = async () => {
     if (!selectedSiswa) return;
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',

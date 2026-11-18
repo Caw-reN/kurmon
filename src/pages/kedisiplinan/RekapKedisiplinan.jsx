@@ -3,10 +3,7 @@ import useAuthStore from '../../store/monitoring/authStore.js';
 import { useAuthToken } from '../../hooks/useAuthToken.js';
 import { useAppStore } from '../../store/useAppStore.js';
 import { useDataStore } from '../../store/useDataStore.js';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { FileSpreadsheet, Download, Search, Users, User, Award, FileText, TrendingUp, AlertOctagon, Trophy, Printer, X } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
@@ -293,7 +290,8 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     return Object.values(map).sort((a, b) => b.poin - a.poin || a.class_name.localeCompare(b.class_name));
   }, [filteredRiwayat, filteredAbsensi, classes, students, studentScores]);
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const wb = new ExcelJS.Workbook();
 
     // Prepare Students Recap sheet
@@ -345,7 +343,11 @@ export default function RekapKedisiplinan({ classes = [], students = [] }) {
     showToast('Rekap Excel berhasil diunduh!');
   };
 
-  const printRaporPDF = (student, size = 'A4', action = 'download') => {
+  const printRaporPDF = async (student, size = 'A4', action = 'download') => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',

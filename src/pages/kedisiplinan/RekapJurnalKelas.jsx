@@ -16,10 +16,7 @@ import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
 import { getJurnalSubmissionStatus } from '../../utils/jurnalHelpers.js';
 import { drawKopSurat, getPrimaryColorRgb } from '../../utils/pdfHelpers.js';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 const HARI_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
@@ -353,12 +350,13 @@ export default function RekapJurnalKelas({ classes = [], teachers = [], schedule
   }, [filteredJurnals, currentClassInfo.studentCount]);
 
   // Export Excel
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (filteredJurnals.length === 0) {
       alert('Tidak ada data jurnal untuk diekspor.');
       return;
     }
 
+    const ExcelJS = (await import('exceljs')).default;
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet(`Jurnal ${selectedKelas}`);
 
@@ -414,13 +412,17 @@ export default function RekapJurnalKelas({ classes = [], teachers = [], schedule
   };
 
   // Cetak Dokumen PDF Resmi
-  const handlePrintPdf = () => {
+  const handlePrintPdf = async () => {
     if (filteredJurnals.length === 0) {
       alert('Tidak ada data jurnal untuk dicetak.');
       return;
     }
 
     try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable')
+      ]);
       const isF4 = appSettings?.defaultPaperSize === 'F4';
       const doc = new jsPDF({
         orientation: 'landscape',

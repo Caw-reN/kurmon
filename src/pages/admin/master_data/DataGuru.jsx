@@ -1,7 +1,6 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useMemo } from'react';
 import { Users, Upload, Download, Check, Edit3, Search } from'lucide-react';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import usePenugasanStore from'../../../store/monitoring/penugasanStore';
 import { PageHeader, Avatar, Badge } from'../../../components/monitoring/ui/index.js';
@@ -66,7 +65,8 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
     }
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const exportData = teachers.map(g => ({
       ID: g.id,
       Nama: g.nama || g.name,
@@ -85,7 +85,8 @@ const DataGuru = ({ teachers = [], students = [], setTeachers }) => {
     });
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const templateData = [
       {'Kode Guru':'G01','Nama Guru':'Budi Santoso, S.Pd','Jurusan':'RPL','Kapasitas': 5
       }

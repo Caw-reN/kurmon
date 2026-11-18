@@ -32,9 +32,6 @@ import {
   Camera,
   Image as ImageIcon
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas-pro';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
@@ -845,6 +842,10 @@ export default function KartuPelajar({ students: propStudents = [] }) {
         }
 
         // Standar Fisik ID-Card ISO CR80: 85.6 mm x 54 mm
+        const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+          import('jspdf'),
+          import('html2canvas-pro')
+        ]);
         const pdf = new jsPDF({
           orientation: 'landscape',
           unit: 'mm',
@@ -1044,7 +1045,8 @@ export default function KartuPelajar({ students: propStudents = [] }) {
   };
 
   // ─── Excel / CSV File Download Sample Template ───
-  const handleDownloadExcelTemplate = () => {
+  const handleDownloadExcelTemplate = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const templateData = [
       {
         "NIS": "1001",
@@ -1087,6 +1089,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
     reader.onload = async (evt) => {
       try {
         const buffer = evt.target.result;
+        const ExcelJS = (await import('exceljs')).default;
         const wb = new ExcelJS.Workbook();
         
         const fileExt = file.name.split('.').pop().toLowerCase();

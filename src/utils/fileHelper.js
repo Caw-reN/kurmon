@@ -2,7 +2,6 @@
  * fileHelper.js
  * Utility functions for handling file conversion, download, previews, and smart client-side compression.
  */
-import { PDFDocument } from 'pdf-lib';
 
 /**
  * Converts a Base64 Data URL or raw Base64 to a native Blob URL.
@@ -118,6 +117,7 @@ export const optimizePdfFile = async (file, onProgress) => {
     if (onProgress) onProgress(35, 'Menganalisis objek & font...');
     await new Promise(r => setTimeout(r, 40));
 
+    const { PDFDocument } = await import('pdf-lib');
     const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
     
     if (onProgress) onProgress(65, 'Merampingkan stream PDF...');

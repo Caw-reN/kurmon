@@ -6,8 +6,10 @@ import {
   GraduationCap, Check,
   Compass, FileSpreadsheet, CheckCheck
 } from 'lucide-react';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+
+let _excelJSCache = null;
+const getExcelJS = async () => { if (!_excelJSCache) _excelJSCache = (await import('exceljs')).default; return _excelJSCache; };
 import { getDatabaseSnapshot, setDatabaseSnapshot } from '../../../utils/dataSource';
 import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
 import { Button, Modal } from '../../../components/ui.jsx';
@@ -138,6 +140,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
     reader.onload = async (evt) => {
       try {
         const data = new Uint8Array(evt.target.result);
+        const ExcelJS = await getExcelJS();
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.load(data);
         const worksheet = workbook.worksheets[0];
@@ -267,7 +270,8 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   const sudahPklCount = pklStudents.filter(s => s.statusPKL === 'Sudah PKL').length;
   const belumPklCount = pklStudents.filter(s => s.statusPKL === 'Belum PKL').length;
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    const ExcelJS = await getExcelJS();
     const exportData = filtered.map(s => {
       const guru = teachers.find(g => String(g.code || g.id) === String(s.guruPembimbingCode));
       const perusahaan = perusahaanPKL.find(p => String(p.id) === String(s.perusahaanId));
@@ -297,6 +301,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
   // === DOWNLOAD TEMPLATE EXCEL PENUGASAN (MULTI-SHEET) ===
   const handleDownloadTemplate = async () => {
     try {
+      const ExcelJS = await getExcelJS();
       const wb = new ExcelJS.Workbook();
       wb.creator = 'Sistem PKL SMK Karya Guna 2';
       wb.created = new Date();
@@ -425,6 +430,7 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
 
     try {
       const buffer = await file.arrayBuffer();
+      const ExcelJS = await getExcelJS();
       const wb = new ExcelJS.Workbook();
       await wb.xlsx.load(buffer);
 

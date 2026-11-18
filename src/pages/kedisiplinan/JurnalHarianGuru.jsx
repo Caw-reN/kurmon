@@ -2,10 +2,10 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { BookOpen } from 'lucide-react';
 import useAuthStore from'../../store/monitoring/authStore.js';
 import { useDataStore } from'../../store/useDataStore.js';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
+let _excelJSCache = null;
+const getExcelJS = async () => { if (!_excelJSCache) _excelJSCache = (await import('exceljs')).default; return _excelJSCache; };
 import { drawKopSurat, getPrimaryColorRgb, getPrimaryColorLight } from '../../utils/pdfHelpers.js';
 import { Clock, CheckCircle2, AlertCircle, X, Calendar, Users, ClipboardList, Award, FileText, MessageSquare, RefreshCw, Download, Edit2, Trash2, Plus, Minus, Search, ArrowUpDown, Filter, Coffee, FileDown, ChevronDown, ChevronLeft, ChevronRight, Eye, Sparkles, Check, CheckCheck, Lightbulb, UserCheck, UserX, HeartPulse, UserMinus, ShieldAlert, ArrowRight, ArrowLeft, Zap, Wrench, Printer } from'lucide-react';
 import { CustomSelect } from'../../components/CustomSelect.jsx';
@@ -93,6 +93,10 @@ export async function generateRekapJurnalPDF({
   schoolProfile = {},
   kepsekInfo = {}
 }) {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable')
+  ]);
   const isF4 = appSettings?.defaultPaperSize === 'F4';
   const doc = new jsPDF({
     orientation: 'landscape',
@@ -565,6 +569,7 @@ function ExportSemesterModal({
         };
       });
 
+      const ExcelJS = await getExcelJS();
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet(`Jurnal_Sem_${selectedSemester}`);
       if (data.length > 0) {
@@ -2060,7 +2065,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
     }
   };
 
-  const exportRekapExcel = () => {
+  const exportRekapExcel = async () => {
+    const ExcelJS = await getExcelJS();
     const data = filteredRekapList.map((r, idx) => ({
       No: idx + 1,
       'Nama Guru': r.teacher_name,
@@ -2345,7 +2351,8 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
   const openEdit = (j) => setActiveModal(j);
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const ExcelJS = await getExcelJS();
     const data = jurnalList.map(j => {
       const st = getJurnalSubmissionStatus(j.tanggal, j.submitted_at);
       return {

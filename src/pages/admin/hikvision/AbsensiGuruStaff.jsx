@@ -29,7 +29,7 @@ import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useDataStore } from '../../../store/useDataStore';
 import { Button, TablePagination } from '../../../components/ui.jsx';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
-import ExcelJS from 'exceljs';
+
 import { saveAs } from 'file-saver';
 import { compressImageFromFile } from '../../../utils/imageUtils.js';
 
@@ -408,6 +408,7 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
   // Export ke Excel
   const exportExcel = async () => {
     try {
+      const ExcelJS = (await import('exceljs')).default;
       const workbook = new ExcelJS.Workbook();
       const sheetName = `Surat Izin ${activePersonType === 'karyawan' ? 'Karyawan' : 'Guru'}`;
       const worksheet = workbook.addWorksheet(sheetName);

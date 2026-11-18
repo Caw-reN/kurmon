@@ -7,8 +7,6 @@ import {
   Maximize2, Minimize2, Settings2, RotateCcw, ChevronDown, ChevronUp,
   SlidersHorizontal, Save
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas-pro';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore';
 import { useDataStore } from '../../../store/useDataStore';
@@ -534,6 +532,10 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
     if (!paperRef.current) return;
     setIsExportingPdf(true);
     try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas-pro')
+      ]);
       const element = paperRef.current;
       
       // Ensure all images are loaded before generating canvas

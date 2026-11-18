@@ -8,7 +8,7 @@ import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { PaginationControls } from '../../../components/ui/PaginationControls.jsx';
 import useAuthStore from '../../../store/monitoring/authStore';
-import ExcelJS from 'exceljs';
+
 
 // ── TOAST NOTIFICATION ────────────────────────────────────────────────────────
 const Toast = ({ message, type, onClose }) => {
@@ -198,6 +198,7 @@ function TabSiswa({ classes, authToken, showToast }) {
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
+        const ExcelJS = (await import('exceljs')).default;
         const wb = new ExcelJS.Workbook();
         await wb.xlsx.load(evt.target.result);
         const data = [];

@@ -7,7 +7,6 @@ import {
   GraduationCap, RefreshCw, Layers, Plus, Trash2, ShieldCheck,
   Archive, ArrowLeft, ArrowUpRight, Clock, HelpCircle, Check
 } from 'lucide-react';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
@@ -164,12 +163,13 @@ export default function SiswaKeluar() {
   }, [exitedStudents]);
 
   // Export to Excel Handler
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     if (exitedStudents.length === 0) {
       showToast('Tidak ada data riwayat untuk diekspor', 'error');
       return;
     }
 
+    const ExcelJS = (await import('exceljs')).default;
     const exportData = exitedStudents.map((s, idx) => ({
       'No': idx + 1,
       'Nama Siswa': s.nama || '-',

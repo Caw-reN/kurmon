@@ -159,7 +159,7 @@ export default defineConfig({
           if (id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) return 'fileHelper-excel';
           if (id.includes('node_modules/xlsx')) return 'fileHelper-xlsx';
           // PDF generation
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas')) return 'pdf';
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas') || id.includes('node_modules/pdf-lib')) return 'pdf';
           // Map libraries
           if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) return 'maps';
           // TanStack virtual list

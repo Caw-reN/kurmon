@@ -6,8 +6,6 @@ import {
   Download, Send, X, FileText, ArrowLeft, HeartPulse, Building2, 
   Calendar, Upload, Trash2, CheckCircle2, AlertCircle, Info 
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 
 const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -133,8 +131,12 @@ export default function MyAttendancePage({ setActiveTab }) {
   const selectedDayStyle = selectedDay != null ? getStatusStyle(myData?.days?.[selectedDay]) : null;
 
   /* ---------- PDF DOWNLOAD ---------- */
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     try {
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable')
+      ]);
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: getDatabaseSnapshot()?.appSettings?.defaultPaperSize === 'F4' ? [215, 330] : 'a4' });
       const pageW = doc.internal.pageSize.getWidth();
       const monthLabel = MONTH_NAMES[filter.month - 1];

@@ -4,7 +4,6 @@ import {
   MapPin, Users, Edit3, Trash2, Filter, X, ArrowUpDown, 
   Compass, ListFilter, AlertCircle, Phone, Sparkles, Check, RefreshCw
 } from 'lucide-react';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -322,7 +321,8 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
   const verifiedCount = locations.filter(l => l.verified || l.status === 'aktif').length;
   const pendingCount = locations.filter(l => !l.verified && l.status !== 'aktif').length;
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const exportData = filtered.map(p => {
       const terisi = pklStudentsMapping.filter(s => String(s.location_id) === String(p.id)).length;
       return {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import { useAuthToken } from '../../hooks/useAuthToken.js';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { 
   Trophy, FileSpreadsheet, Plus, Award, TrendingUp, Search, MapPin, 
@@ -200,7 +199,8 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
     return filteredPrestasi.slice(start, start + itemsPerPage);
   }, [filteredPrestasi, currentPage, itemsPerPage]);
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const ExcelJS = (await import('exceljs')).default;
     const data = filteredPrestasi.map((item, idx) => {
       const sInfo = getStudentInfo(item.siswa_nis);
       return {

@@ -1,8 +1,10 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState, useRef, useCallback } from'react';
 import { Upload, ChevronRight } from'lucide-react';
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+
+let _excelJSCache = null;
+const getExcelJS = async () => { if (!_excelJSCache) _excelJSCache = (await import('exceljs')).default; return _excelJSCache; };
 import { Info, Download, FileSpreadsheet, CheckCircle2, AlertCircle, Badge } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 ;
@@ -75,6 +77,7 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
           if (currentVal !== '' || row.length > 0) { row.push(currentVal); rawRows.push(row); }
         } else {
           const data = new Uint8Array(e.target.result);
+          const ExcelJS = await getExcelJS();
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(data);
           const worksheet = workbook.worksheets[0];
@@ -163,7 +166,8 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
     if (fileInputRef.current) fileInputRef.current.value ='';
   };
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
+    const ExcelJS = await getExcelJS();
     const templateData = [{'No': 1,'NIS':'242510001','Nama Siswa':'Ahmad Dahlan','Kelas':'XI RPL 1','Kode Guru':'G001','Nama Guru':'Budi Santoso','Nama Perusahaan':'PT Teknologi Maju','Tanggal Mulai':'2026-07-01','Tanggal Selesai':'2026-12-31'
     }];
     const wb = new ExcelJS.Workbook();
@@ -201,6 +205,7 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
         };
       });
 
+      const ExcelJS = await getExcelJS();
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet("Siswa PKL Saat Ini");
       if (exportData.length > 0) {
@@ -481,7 +486,8 @@ const ImportData = ({ teachers = [], students = [], authToken ="", setActiveTab 
           <p className="text-xs text-slate-400 mb-2">Belum punya template?</p>
           <Button
             variant="ghost"
-            onClick={() => {
+            onClick={async () => {
+              const ExcelJS = await getExcelJS();
               const wb = new ExcelJS.Workbook();
               const ws = wb.addWorksheet('Data PKL');
               ws.addRow(['No','NIS','Nama Siswa','Kelas','Kode Guru','Nama Perusahaan','Tanggal Mulai','Tanggal Selesai']);

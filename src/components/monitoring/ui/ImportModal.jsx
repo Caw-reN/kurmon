@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from'react';
-import ExcelJS from 'exceljs';
+
 import { X, FileSpreadsheet, Upload, CheckCircle2, AlertCircle, BookOpen, Loader2 } from'lucide-react';
 import { Button } from'./index.js';
 
@@ -98,6 +98,7 @@ const ImportModal = ({
           }
         } else {
           const data = new Uint8Array(e.target.result);
+          const ExcelJS = (await import('exceljs')).default;
           const workbook = new ExcelJS.Workbook();
           await workbook.xlsx.load(data);
           const worksheet = workbook.worksheets[0];

@@ -6,8 +6,6 @@ import {
   Eye, Send, AlertCircle, Edit2, User, Filter, RotateCcw, Award, ChevronRight,
   ExternalLink, Check, Sparkles, UserCheck, PhoneCall, MapPin
 } from 'lucide-react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { Button, Modal, UISelect, TablePagination } from '../../components/ui.jsx';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { StatCard, PageHeader } from '../../components/monitoring/ui/index.js';
@@ -15,7 +13,6 @@ import useAuthStore from "../../store/monitoring/authStore.js";
 import { useAuthToken } from "../../hooks/useAuthToken.js";
 import { useAppStore } from "../../store/useAppStore.js";
 import { useDataStore } from "../../store/useDataStore.js";
-import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 const getInitials = (name) => { if (!name) return '?'; const parts = name.trim().split(' '); if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase(); return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase(); };
@@ -754,9 +751,10 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
   };
 
   // Download PDF Surat Resmi BK
-  const downloadLetterPDF = (letter) => {
+  const downloadLetterPDF = async (letter) => {
     if (!letter) return;
     try {
+      const jsPDF = (await import('jspdf')).default;
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -1179,8 +1177,9 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
   };
 
   // Export Excel Data Konseling
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     try {
+      const ExcelJS = (await import('exceljs')).default;
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet('Catatan Konseling BK');
       
