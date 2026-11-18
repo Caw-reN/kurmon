@@ -3328,6 +3328,7 @@ export default function App() {
     icon,
     label,
     badge,
+    badgeColor,
     collapsed,
     featureKey,
     activeIds
@@ -3337,7 +3338,7 @@ export default function App() {
 
     const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;
     const isCollapsed = collapsed !== undefined ? collapsed : (isSidebarCollapsed && !isMobileMenuOpen);
-    return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
+    return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} badgeColor={badgeColor} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
   };
     const hasAnyConfigAccess = () => {
     const configTabs = ["fitur", "hak_akses", "manajemen_role", "tampilan", "pengaturanuser", "api_keys", "whatsapp", "gdrive_backup", "audit_log"];
