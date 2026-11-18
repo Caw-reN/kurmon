@@ -775,6 +775,25 @@ a[class*="active:scale"]:active {
   display: none;
 }
 
+/* Sidebar dedicated slim draggable scrollbar */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-primary, #16a34a);
+}
+.sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
 /* ---- Sidebar Active Pill ---- */
 .nav-active {
   background-color: var(--ui-accent, #bef264) !important;

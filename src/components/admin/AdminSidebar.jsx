@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
-  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User
+  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User, ArrowDown, ArrowUp
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
@@ -18,6 +18,7 @@ export default function AdminSidebar({
   handleLogout,
   expandedGroups,
   toggleGroup,
+  setExpandedGroups,
   isSuperAdminRole,
   activeUserRole,
   checkIsAllowed,
@@ -36,6 +37,8 @@ export default function AdminSidebar({
 
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef(null);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+  const [canScrollUp, setCanScrollUp] = useState(false);
 
   const [appVersion, setAppVersion] = useState({
     version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'v2.1.0',
@@ -59,7 +62,7 @@ export default function AdminSidebar({
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Keyboard shortcut Ctrl+K / Cmd+K to focus search
@@ -97,6 +100,78 @@ export default function AdminSidebar({
     }
   }, [activeTab, refToUse, searchQuery]);
 
+  // Helper to check whether content overflows and can scroll down/up
+  const checkScrollState = () => {
+    const el = refToUse.current;
+    if (!el) return;
+    const hasOverflow = el.scrollHeight > el.clientHeight + 10;
+    setCanScrollUp(hasOverflow && el.scrollTop > 30);
+    setCanScrollDown(hasOverflow && el.scrollTop + el.clientHeight < el.scrollHeight - 30);
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(checkScrollState, 150);
+    const el = refToUse.current;
+    if (!el) return () => clearTimeout(timer);
+    const handleResize = () => checkScrollState();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [expandedGroups, searchQuery, activeTab, isCollapsed]);
+
+  // Keyboard navigation handler inside the navigation panel
+  const handleNavKeyDown = (e) => {
+    const el = refToUse.current;
+    if (!el) return;
+    if (e.key === 'ArrowDown') {
+      el.scrollBy({ top: 60, behavior: 'smooth' });
+      e.preventDefault();
+    } else if (e.key === 'ArrowUp') {
+      el.scrollBy({ top: -60, behavior: 'smooth' });
+      e.preventDefault();
+    } else if (e.key === 'PageDown') {
+      el.scrollBy({ top: el.clientHeight * 0.75, behavior: 'smooth' });
+      e.preventDefault();
+    } else if (e.key === 'PageUp') {
+      el.scrollBy({ top: -el.clientHeight * 0.75, behavior: 'smooth' });
+      e.preventDefault();
+    } else if (e.key === 'Home') {
+      el.scrollTo({ top: 0, behavior: 'smooth' });
+      e.preventDefault();
+    } else if (e.key === 'End') {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+      e.preventDefault();
+    }
+  };
+
+  const allGroupKeys = useMemo(() => [
+    'dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem'
+  ], []);
+
+  const isAnyGroupOpen = useMemo(() => {
+    if (!expandedGroups) return false;
+    return allGroupKeys.some(key => expandedGroups[key] !== false);
+  }, [expandedGroups, allGroupKeys]);
+
+  const handleToggleAllGroups = () => {
+    const nextState = !isAnyGroupOpen;
+    if (typeof setExpandedGroups === 'function') {
+      setExpandedGroups(prev => {
+        const next = { ...(prev || {}) };
+        allGroupKeys.forEach(k => {
+          next[k] = nextState;
+        });
+        return next;
+      });
+    } else if (typeof toggleGroup === 'function') {
+      allGroupKeys.forEach(k => {
+        toggleGroup(k, nextState);
+      });
+    }
+  };
+
   // Real-time search filter across MENU_REGISTRY
   const filteredSearchItems = useMemo(() => {
     if (!searchQuery.trim()) return [];
@@ -106,7 +181,7 @@ export default function AdminSidebar({
         ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
         : true;
       if (!isAllowed) return false;
-      
+
       const labelMatch = item.label?.toLowerCase().includes(q);
       const groupMatch = item.adminGroup?.toLowerCase().includes(q);
       const sectionMatch = item.section?.toLowerCase().includes(q);
@@ -148,16 +223,16 @@ export default function AdminSidebar({
             type="button"
             className={cn(
               "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-10 h-10",
-              hasActiveChild 
-                ? "bg-primary/10 text-primary font-bold shadow-2xs" 
+              hasActiveChild
+                ? "bg-primary/10 text-primary font-bold shadow-2xs"
                 : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
             )}
           >
             {Icon && (
-              <Icon 
-                size={18} 
+              <Icon
+                size={18}
                 strokeWidth={hasActiveChild ? 2.5 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
+                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")}
               />
             )}
           </button>
@@ -177,17 +252,17 @@ export default function AdminSidebar({
           className={cn(
             "group relative flex w-full items-center justify-between rounded-lg border-none",
             "px-3 py-2 text-xs font-semibold transition-all cursor-pointer",
-            hasActiveChild 
-              ? "text-slate-900 font-bold bg-slate-50/90" 
+            hasActiveChild
+              ? "text-slate-900 font-bold bg-slate-50/90"
               : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
           )}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             {Icon && (
-              <Icon 
-                size={16} 
+              <Icon
+                size={16}
                 strokeWidth={hasActiveChild ? 2.4 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
+                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")}
               />
             )}
             <span className="truncate">{label}</span>
@@ -479,7 +554,7 @@ export default function AdminSidebar({
   return (
     <aside
       className={cn(
-        "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none",
+        "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none h-full max-h-screen overflow-hidden",
         isCollapsed ? "w-[68px]" : "w-[264px]",
         isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 shadow-sm translate-x-0" : "hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
       )}
@@ -527,7 +602,7 @@ export default function AdminSidebar({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
-            <div 
+            <div
               onClick={toggleSidebar}
               className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer hover:opacity-85 shadow-2xs"
               title="Perluas Sidebar"
@@ -544,7 +619,7 @@ export default function AdminSidebar({
 
       {/* ─── 2. SEARCH BAR WITH SHORTCUT BADGE (Untitled UI Style) ─── */}
       {!isCollapsed ? (
-        <div className="px-3 pt-3 pb-1 shrink-0">
+        <div className="px-3 pt-3 pb-1 shrink-0 flex flex-col gap-1.5">
           <div className="relative flex items-center">
             <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
             <input
@@ -571,6 +646,24 @@ export default function AdminSidebar({
               )}
             </div>
           </div>
+
+          {/* Quick Collapse / Expand Micro Bar */}
+          {!searchQuery.trim() && (
+            <div className="flex items-center justify-between px-1 pt-1 text-slate-400 select-none">
+              <span className="font-bold uppercase tracking-wider text-[9.5px] text-slate-400">
+                Daftar Menu
+              </span>
+              <button
+                type="button"
+                onClick={handleToggleAllGroups}
+                className="text-[10px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95"
+                title={isAnyGroupOpen ? "Tutup semua sub-menu agar ringkas" : "Buka semua sub-menu"}
+              >
+                <ChevronsUpDown size={11} strokeWidth={2.4} className="text-slate-400" />
+                <span>{isAnyGroupOpen ? "Tutup Semua" : "Buka Semua"}</span>
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="pt-2 pb-1 flex justify-center shrink-0">
@@ -589,74 +682,117 @@ export default function AdminSidebar({
         </div>
       )}
 
-      {/* ─── 3. NAVIGATION LIST (Tree & Accordion) ─── */}
-      <nav
-        ref={refToUse}
-        onScroll={(e) => {
-          const scrollTop = e.currentTarget.scrollTop;
-          posToUse.current = scrollTop;
-          sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
-        }}
-        className={cn("flex-1 overflow-y-auto hide-scrollbar pt-2 pb-3 relative z-10 transition-all", isCollapsed ? "px-2" : "px-3")}
-      >
-        {searchQuery.trim() ? (
-          <div className="flex flex-col gap-1 py-1">
-            <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Hasil Pencarian ({filteredSearchItems.length})
-            </div>
-            {filteredSearchItems.length > 0 ? (
-              filteredSearchItems.map(item => {
-                const isActive = activeTab === item.id || (Array.isArray(item.activeIds) && item.activeIds.includes(activeTab));
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      if (isMobileMenuOpen) setIsMobileMenuOpen(false);
-                    }}
-                    type="button"
-                    className={cn(
-                      "flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
-                      isActive 
-                        ? "bg-primary/10 text-primary font-bold shadow-2xs" 
-                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                    )}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={cn("w-5 h-5 flex items-center justify-center shrink-0", isActive ? "text-primary" : "text-slate-400")}>
-                        {item.icon && React.createElement(item.icon, { size: 16, strokeWidth: isActive ? 2.4 : 2 })}
-                      </div>
-                      <span className="truncate">{item.label}</span>
-                    </div>
-                    <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
-                      {item.adminGroup || item.section || "Menu"}
-                    </span>
-                  </button>
-                );
-              })
-            ) : (
-              <div className="px-3 py-4 text-center text-xs text-slate-400">
-                Tidak ada menu yang sesuai dengan "{searchQuery}"
+      {/* ─── 3. NAVIGATION LIST (Tree & Accordion with Smooth Draggable Scrollbar) ─── */}
+      <div className="relative flex-1 flex flex-col min-h-0 overflow-hidden">
+        <nav
+          ref={refToUse}
+          tabIndex={0}
+          onKeyDown={handleNavKeyDown}
+          onScroll={(e) => {
+            const scrollTop = e.currentTarget.scrollTop;
+            posToUse.current = scrollTop;
+            sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
+            checkScrollState();
+          }}
+          className={cn(
+            "flex-1 overflow-y-auto sidebar-scrollbar custom-scrollbar pt-1.5 pb-20 relative z-10 transition-all focus:outline-none",
+            isCollapsed ? "px-2" : "px-3"
+          )}
+          title="Gunakan tombol panah keyboard atau seret scrollbar untuk menggulir"
+        >
+          {searchQuery.trim() ? (
+            <div className="flex flex-col gap-1 py-1">
+              <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Hasil Pencarian ({filteredSearchItems.length})
               </div>
-            )}
-          </div>
-        ) : (
-          <>
-            {renderDynamicMenu()}
+              {filteredSearchItems.length > 0 ? (
+                filteredSearchItems.map(item => {
+                  const isActive = activeTab === item.id || (Array.isArray(item.activeIds) && item.activeIds.includes(activeTab));
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+                      }}
+                      type="button"
+                      className={cn(
+                        "flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
+                        isActive
+                          ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                      )}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={cn("w-5 h-5 flex items-center justify-center shrink-0", isActive ? "text-primary" : "text-slate-400")}>
+                          {item.icon && React.createElement(item.icon, { size: 16, strokeWidth: isActive ? 2.4 : 2 })}
+                        </div>
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
+                        {item.adminGroup || item.section || "Menu"}
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="px-3 py-4 text-center text-xs text-slate-400">
+                  Tidak ada menu yang sesuai dengan "{searchQuery}"
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {renderDynamicMenu()}
 
-            {/* Config access for non-admin with granted config permissions */}
-            {hasAnyConfigAccess() && (
-              <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
-                {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
-                {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
-                {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
-                {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
-                {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
-              </SidebarGroup>
-            )}
-          </>
+              {/* Config access for non-admin with granted config permissions */}
+              {hasAnyConfigAccess() && (
+                <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
+                  {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
+                  {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
+                  {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
+                  {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
+                  {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
+                </SidebarGroup>
+              )}
+            </>
+          )}
+        </nav>
+
+        {/* Floating Quick Scroll to Bottom Indicator */}
+        {canScrollDown && !isCollapsed && (
+          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center pointer-events-none">
+            <button
+              type="button"
+              onClick={() => {
+                refToUse.current?.scrollTo({ top: refToUse.current.scrollHeight, behavior: 'smooth' });
+              }}
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-slate-900/90 hover:bg-slate-900 text-white text-[10.5px] font-semibold rounded-full shadow-lg backdrop-blur-xs border border-slate-700/60 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-fade-in"
+              title="Klik untuk melompat ke bagian menu paling bawah"
+            >
+              <ArrowDown size={12} strokeWidth={2.5} className="animate-bounce" />
+              <span>Gulir ke Bawah</span>
+            </button>
+          </div>
         )}
-      </nav>
+
+        {/* Floating Quick Scroll to Top Indicator */}
+        {!canScrollDown && canScrollUp && !isCollapsed && (
+          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center pointer-events-none">
+            <button
+              type="button"
+              onClick={() => {
+                refToUse.current?.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-slate-800/90 hover:bg-slate-900 text-slate-100 text-[10.5px] font-semibold rounded-full shadow-lg backdrop-blur-xs border border-slate-700/60 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-fade-in"
+              title="Klik untuk kembali ke menu paling atas"
+            >
+              <ArrowUp size={12} strokeWidth={2.5} />
+              <span>Kembali ke Atas</span>
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* ─── 4. BOTTOM BAR: QUICK ITEM, USER PROFILE, CLEAR LOGOUT & DETAILED VERSION ─── */}
       {!isCollapsed ? (

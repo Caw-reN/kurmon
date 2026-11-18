@@ -466,13 +466,20 @@ export default function App() {
     ...DEFAULT_SIDEBAR_GROUPS,
     ...(loadInitialState("expandedGroups", {}) || {})
   }));
-  const toggleGroup = useCallback(groupKey => {
+  const toggleGroup = useCallback((groupKey, explicitState) => {
     setExpandedGroups(prev => {
-      const next = {
+      if (groupKey === '__ALL__') {
+        const next = {};
+        const allKeys = ['dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem'];
+        allKeys.forEach(k => {
+          next[k] = explicitState !== undefined ? explicitState : false;
+        });
+        return next;
+      }
+      return {
         ...prev,
-        [groupKey]: !prev[groupKey]
+        [groupKey]: explicitState !== undefined ? explicitState : !prev[groupKey]
       };
-      return next;
     });
   }, []);
   useEffect(() => {
@@ -4491,6 +4498,7 @@ export default function App() {
       handleLogout={handleLogout} 
       expandedGroups={expandedGroups} 
       toggleGroup={toggleGroup} 
+      setExpandedGroups={setExpandedGroups} 
       isSuperAdminRole={isSuperAdminRole} 
       activeUserRole={activeUserRole} 
       checkIsAllowed={checkIsAllowed} 
