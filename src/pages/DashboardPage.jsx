@@ -307,7 +307,7 @@ function TeachingScheduleCard({
           <button
             type="button"
             onClick={() => setActiveTab('jurnal_harian')}
-            className="w-full py-2.5 px-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm flex items-center justify-between cursor-pointer transition-all touch-manipulation select-none group"
+            className="w-full py-2.5 px-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm flex items-center justify-between cursor-pointer transition-all touch-manipulation select-none group"
           >
             <div className="flex items-center gap-2">
               <FileText size={15} strokeWidth={2.2} className="text-white shrink-0" />
@@ -532,31 +532,54 @@ export default function DashboardPage({
 
   const { myTeachingLoads, totalBebanJam, myClasses } = useMemo(() => {
     if (!isTeacher) return { myTeachingLoads: [], totalBebanJam: 0, myClasses: 0 };
-    const loads = teachingLoads.filter((load) => String(load.teacherCode ||"").split(",").map((c) => c.trim()).includes(teacherCode));
+    const rawLoads = teachingLoads.filter((load) => String(load.teacherCode || "").split(",").map((c) => c.trim()).includes(teacherCode));
     const matchesGrade = (targetGrade, className) => {
-      if (!targetGrade || targetGrade ==="All") return true;
-      return String(targetGrade).split(",").map((g) => g.trim()).filter(Boolean).some((g) => String(className ||"").startsWith(`${g} `));
+      if (!targetGrade || targetGrade === "All") return true;
+      return String(targetGrade).split(",").map((g) => g.trim()).filter(Boolean).some((g) => String(className || "").startsWith(`${g} `));
     };
-    const total = loads.reduce((sum, load) => {
-      const loadMajor = String(load.targetMajor ||"All").trim().toLowerCase();
+    const total = rawLoads.reduce((sum, load) => {
+      const loadMajor = String(load.targetMajor || "All").trim().toLowerCase();
       const matchingClassesCount = classes.filter((cls) =>
         matchesGrade(load.targetGrade, cls.name) &&
-        (loadMajor ==="all" || String(cls.major ||"").trim().toLowerCase() === loadMajor)
+        (loadMajor === "all" || String(cls.major || "").trim().toLowerCase() === loadMajor)
       ).length;
       const maxClasses = Number.parseInt(load.maxClasses, 10) || 0;
       const effectiveClasses = maxClasses > 0 ? Math.min(maxClasses, matchingClassesCount) : 0;
       return sum + ((Number(load.duration) || 0) * effectiveClasses);
     }, 0);
-    const mClasses = loads.reduce((sum, load) => {
-      const loadMajor = String(load.targetMajor ||"All").trim().toLowerCase();
+    const mClasses = rawLoads.reduce((sum, load) => {
+      const loadMajor = String(load.targetMajor || "All").trim().toLowerCase();
       const matchingClassesCount = classes.filter((cls) =>
         matchesGrade(load.targetGrade, cls.name) &&
-        (loadMajor ==="all" || String(cls.major ||"").trim().toLowerCase() === loadMajor)
+        (loadMajor === "all" || String(cls.major || "").trim().toLowerCase() === loadMajor)
       ).length;
       const maxClasses = Number.parseInt(load.maxClasses, 10) || 0;
       return sum + (maxClasses > 0 ? Math.min(maxClasses, matchingClassesCount) : 0);
     }, 0);
-    return { myTeachingLoads: loads, totalBebanJam: total, myClasses: mClasses };
+
+    // Deduplicate loads for table display to prevent identical or redundant rows
+    const uniqueLoads = [];
+    const seenMap = new Map();
+    for (const load of rawLoads) {
+      const normSub = String(load.subject || "").trim().toLowerCase();
+      const normDur = String(load.duration || "").trim();
+      const key = `${normSub}_${normDur}`;
+      if (!seenMap.has(key)) {
+        seenMap.set(key, load);
+        uniqueLoads.push(load);
+      } else {
+        const existing = seenMap.get(key);
+        const existingIsGeneric = !existing.targetMajor || existing.targetMajor === "All" || existing.targetGrade === "All";
+        const newIsSpecific = (load.targetMajor && load.targetMajor !== "All") || (load.targetGrade && load.targetGrade !== "All");
+        if (existingIsGeneric && newIsSpecific) {
+          const idx = uniqueLoads.indexOf(existing);
+          if (idx !== -1) uniqueLoads[idx] = load;
+          seenMap.set(key, load);
+        }
+      }
+    }
+
+    return { myTeachingLoads: uniqueLoads, totalBebanJam: total, myClasses: mClasses };
   }, [classes, isTeacher, teachingLoads, teacherCode]);
 
   const syllabuses = useAppStore((state) => state.syllabuses);
@@ -838,7 +861,7 @@ export default function DashboardPage({
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
-        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
+        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
           <div className="relative flex-1 min-w-0">
             <button
               type="button"
@@ -849,7 +872,7 @@ export default function DashboardPage({
               <div className="relative shrink-0">
                 <div 
                   className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white group-active:scale-95 transition-transform"
-                  style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 70%, #000) 100%)" }}
+                  style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
                 >
                   {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
                 </div>
@@ -1101,12 +1124,9 @@ export default function DashboardPage({
 
         {/* ======= DESKTOP HERO BANNER (GURU) ======= */}
         <div
-          className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-xs transition-all duration-300 mb-1"
-          style={{ background:"linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 60%, #000) 100%)" }}
+          className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-xs transition-all duration-300 mb-1 border border-white/10"
+          style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
         >
-          <div className="absolute inset-0 opacity-10 pointer-events-none">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-30 mix-blend-overlay"></div>
-          </div>
           
           <div className="relative z-10 flex flex-row items-center justify-between gap-3">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
@@ -1156,16 +1176,23 @@ export default function DashboardPage({
               setActiveTab={setActiveTab}
             />
 
-            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex flex-col flex-1 h-full min-h-[300px]">
+            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-2">
                   <Megaphone size={16} className="text-rose-500" /> Pengumuman Baru
                 </h3>
+                {dashboardMessages && dashboardMessages.length > 0 && (
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/80">
+                    {dashboardMessages.length}
+                  </span>
+                )}
               </div>
-              <div className="flex flex-col gap-2 overflow-y-auto max-h-[400px] pr-1 custom-scrollbar">
+              <div className="flex flex-col gap-2 overflow-y-auto max-h-[340px] pr-1 custom-scrollbar">
                 {(!dashboardMessages || dashboardMessages.length === 0) ? (
-                  <div className="flex flex-col items-center justify-center text-center p-4 bg-slate-50/50 rounded-[var(--ui-radius-small)]">
-                    <span className="text-xs font-bold text-slate-400">Belum ada pengumuman</span>
+                  <div className="flex flex-col items-center justify-center text-center py-6 px-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200/80">
+                    <MessageSquare size={24} className="text-slate-300 mb-1.5" />
+                    <span className="text-xs font-semibold text-slate-500">Belum ada pengumuman baru</span>
+                    <span className="text-[10.5px] text-slate-400 mt-0.5">Informasi dari sekolah akan tampil di sini</span>
                   </div>
                 ) : (
                   dashboardMessages.map((msg, idx) => (
@@ -1235,53 +1262,66 @@ export default function DashboardPage({
             </div>
           </div>
 
-          {/* KOLOM KANAN (col-span-3): Beban Mengajar (Lebih Diperkecil & Ramping) */}
-          <div className="lg:col-span-3 flex flex-col gap-4 h-full">
-            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
+          {/* KOLOM KANAN (col-span-3): Beban Mengajar */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex flex-col overflow-hidden">
               <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
                   <p className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">Daftar jam mengajar Anda</p>
                 </div>
-                <button className="shrink-0 flex items-center gap-1 px-2 py-1 bg-white border border-slate-200/90 shadow-xs rounded-[var(--ui-radius-small)] text-[10px] font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer active:scale-95">
+                <button 
+                  type="button"
+                  onClick={() => setActiveTab('beban')}
+                  className="shrink-0 flex items-center gap-1 px-2 py-1 bg-white border border-slate-200/90 shadow-xs rounded-[var(--ui-radius-small)] text-[10px] font-bold text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)] transition-colors cursor-pointer active:scale-95"
+                  title="Lihat rincian beban mengajar"
+                >
                   <Printer size={11} /> Export
                 </button>
               </div>
               {myTeachingLoads.length === 0 ? (
-                <div className="flex flex-col items-center justify-center flex-1 py-8 bg-white">
+                <div className="flex flex-col items-center justify-center py-8 bg-white">
                   <GraduationCap size={26} className="text-slate-300 mx-auto mb-2" />
                   <p className="text-[11px] font-bold text-slate-400 max-w-[160px] text-center">Belum ada beban mengajar ditugaskan.</p>
                 </div>
               ) : (
-                <div className="overflow-y-auto flex-1 custom-scrollbar max-h-[380px]">
-                  <table className="w-full text-left">
-                    <thead className="sticky top-0 bg-white z-10 shadow-xs">
-                      <tr className="border-b border-slate-100">
-                        <th className="py-2 px-3 font-bold text-slate-400 text-[9px] uppercase tracking-wider">Pelajaran</th>
-                        <th className="py-2 px-2.5 font-bold text-slate-400 text-[9px] uppercase tracking-wider text-right">Durasi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50">
-                      {myTeachingLoads.map((load, i) => (
-                        <tr key={i} className="hover:bg-slate-50/60 transition-colors">
-                          <td className="py-2 px-3">
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-bold text-[10.5px] text-slate-700 leading-tight truncate">{load.subject}</span>
-                              <div className="flex gap-1 items-center mt-0.5">
-                                <span className="bg-slate-100 text-slate-500 px-1 py-0.2 rounded text-[8.5px] font-bold">
-                                  {load.targetGrade !== "All" ? load.targetGrade : "Semua"} {load.targetMajor !== "All" ? load.targetMajor : ""}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-2 px-2.5 text-right whitespace-nowrap align-middle">
-                             <span className="font-black text-[11px] text-[var(--ui-primary)]">{load.duration} JP</span>
-                          </td>
+                <>
+                  <div className="overflow-y-auto custom-scrollbar max-h-[300px]">
+                    <table className="w-full text-left">
+                      <thead className="sticky top-0 bg-white z-10 shadow-xs">
+                        <tr className="border-b border-slate-100">
+                          <th className="py-2 px-3 font-bold text-slate-400 text-[9px] uppercase tracking-wider">Pelajaran</th>
+                          <th className="py-2 px-2.5 font-bold text-slate-400 text-[9px] uppercase tracking-wider text-right">Durasi</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {myTeachingLoads.map((load, i) => (
+                          <tr key={i} className="hover:bg-slate-50/60 transition-colors">
+                            <td className="py-2 px-3">
+                              <div className="flex flex-col min-w-0">
+                                <span className="font-bold text-[10.5px] text-slate-700 leading-tight truncate">{load.subject}</span>
+                                <div className="flex gap-1 items-center mt-0.5">
+                                  <span className="bg-slate-100 text-slate-500 px-1 py-0.2 rounded text-[8.5px] font-bold">
+                                    {load.targetGrade !== "All" ? load.targetGrade : "Semua"} {load.targetMajor !== "All" ? load.targetMajor : ""}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-2 px-2.5 text-right whitespace-nowrap align-middle">
+                               <span className="font-black text-[11px] text-[var(--ui-primary)]">{load.duration} JP</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="p-2.5 px-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-700 shrink-0">
+                    <span className="text-slate-500 font-semibold text-[10.5px]">Total Jam Mengajar:</span>
+                    <span className="text-[var(--ui-primary)] font-black text-xs bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 px-2 py-0.5 rounded-full">
+                      {totalBebanJam || myTeachingLoads.reduce((s, l) => s + (Number(l.duration) || 0), 0)} JP
+                    </span>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -1320,8 +1360,7 @@ export default function DashboardPage({
             <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
               
               {/* Realtime Notification Consent Prompt */}
-              <div className="bg-gradient-to-br from-[var(--ui-primary)]/10 to-[var(--ui-primary)]/5 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--ui-primary)]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
                 <div className="flex items-start gap-3 relative z-10">
                   <div className="bg-white p-1.5 rounded-full shadow-sm text-[var(--ui-primary)] shrink-0">
                     <BellRing className="w-4 h-4" strokeWidth={2.5} />
@@ -1995,12 +2034,9 @@ export default function DashboardPage({
 
       {/* ======= DESKTOP HERO BANNER ======= */}
       <div
-        className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-xs transition-all duration-300 mb-1"
-        style={{ background:"linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 60%, #000) 100%)" }}
+        className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-xs transition-all duration-300 mb-1 border border-white/10"
+        style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
       >
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl opacity-30 mix-blend-overlay"></div>
-        </div>
         
         <div className="relative z-10 flex flex-row items-center justify-between gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
@@ -2505,8 +2541,7 @@ export default function DashboardPage({
             <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
               
               {/* Realtime Notification Consent Prompt */}
-              <div className="bg-gradient-to-br from-[var(--ui-primary)]/10 to-[var(--ui-primary)]/5 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--ui-primary)]/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
                 <div className="flex items-start gap-3 relative z-10">
                   <div className="bg-white p-1.5 rounded-full shadow-sm text-[var(--ui-primary)] shrink-0">
                     <BellRing className="w-4 h-4" strokeWidth={2.5} />
@@ -3546,7 +3581,7 @@ const PanduanModal = ({ isOpen, onClose, role, division }) => {
       <div className="bg-white rounded-[var(--ui-radius-small)] w-full max-w-2xl shadow-sm flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border-none">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+        <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
               <HelpCircle size={22} className="opacity-90" />

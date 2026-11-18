@@ -147,7 +147,8 @@ export default function AdminSidebar({
       }
     } else {
       const isOverFlyout = e.target.closest('[data-sidebar-flyout]');
-      if (!isOverFlyout && activeFlyout && activeFlyout.type === 'item') {
+      const isOverGroup = e.target.closest('[data-sidebar-group]');
+      if (!isOverFlyout && !isOverGroup && activeFlyout && activeFlyout.type === 'item') {
         scheduleCloseFlyout();
       }
     }
@@ -751,6 +752,7 @@ export default function AdminSidebar({
   return (
     <aside
       onMouseMove={handleSidebarMouseMove}
+      onMouseOver={handleSidebarMouseMove}
       onMouseLeave={handleSidebarMouseLeave}
       className={cn(
         "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none h-full max-h-screen overflow-hidden",

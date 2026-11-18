@@ -715,17 +715,20 @@ a[class*="active:scale"]:active {
 }
 
 /* ---- Scrollbar Global & Custom (Minimalist Modern Design) ---- */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+/* Firefox standard scrollbars */
+@supports (-moz-appearance: none) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  *:hover {
+    scrollbar-color: #94a3b8 transparent;
+  }
 }
 
-*:hover {
-  scrollbar-color: #94a3b8 transparent;
-}
-
-*::-webkit-scrollbar,
+/* WebKit / Chromium custom scrollbars */
 ::-webkit-scrollbar,
+*::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {
   height: 6px;
   width: 6px;
@@ -772,14 +775,14 @@ a[class*="active:scale"]:active {
   height: 0 !important;
 }
 
-*::-webkit-scrollbar-track,
 ::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track,
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-*::-webkit-scrollbar-thumb,
 ::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb,
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #cbd5e1;
   border-radius: 9999px;
@@ -787,30 +790,32 @@ a[class*="active:scale"]:active {
   background-clip: padding-box;
 }
 
-*::-webkit-scrollbar-thumb:hover,
 ::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover,
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--ui-primary, #16a34a);
+  background-color: var(--ui-primary, #064e3b);
 }
 
-*::-webkit-scrollbar-button,
 ::-webkit-scrollbar-button,
+*::-webkit-scrollbar-button,
 .custom-scrollbar::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
 
-*::-webkit-scrollbar-corner,
 ::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-corner,
 .custom-scrollbar::-webkit-scrollbar-corner {
   background: transparent;
 }
 
 /* Sidebar dedicated slim draggable scrollbar */
-.sidebar-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+@supports (-moz-appearance: none) {
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
 }
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 5px;
@@ -823,7 +828,7 @@ a[class*="active:scale"]:active {
   border-radius: 9999px;
 }
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--ui-primary, #16a34a);
+  background-color: var(--ui-primary, #064e3b);
 }
 .sidebar-scrollbar::-webkit-scrollbar-button {
   display: none !important;
