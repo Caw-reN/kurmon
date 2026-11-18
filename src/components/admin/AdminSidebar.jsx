@@ -686,22 +686,22 @@ export default function AdminSidebar({
       )}
     >
       {/* ─── 1. HEADER (Untitled UI Style) ─── */}
-      <div className={cn("flex items-center shrink-0 border-b border-slate-100 transition-all", isCollapsed ? "h-[68px] justify-center px-2" : "h-[68px] px-3.5 justify-between")}>
+      <div className={cn("flex items-center shrink-0 border-b border-slate-100 transition-all", isCollapsed ? "h-14 justify-center px-2" : "h-14 px-3.5 justify-between")}>
         {!isCollapsed ? (
           <div className="flex items-center justify-between w-full min-w-0 gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
                 <img
                   src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
                   alt="Brand Logo"
-                  className="w-7 h-7 object-contain"
+                  className="w-6 h-6 object-contain"
                 />
               </div>
               <div className="flex flex-col min-w-0 select-none">
                 <span className="font-bold text-slate-900 text-xs tracking-tight truncate">
                   {appSettings.appName || "KG2 School"}
                 </span>
-                <span className="text-[10.5px] font-medium text-slate-400 tracking-tight truncate">
+                <span className="text-[10px] font-medium text-slate-400 tracking-tight truncate">
                   {appSettings.appSubtitle || appSettings.instansiName || "smkkg2.sch.id"}
                 </span>
               </div>
@@ -710,10 +710,11 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-lg lg:hidden border-none cursor-pointer flex items-center justify-center transition-colors"
+                className="w-8 h-8 text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 rounded-lg lg:hidden border-none cursor-pointer flex items-center justify-center transition-colors"
                 title="Tutup Menu"
+                aria-label="Tutup Menu"
               >
-                <X size={15} strokeWidth={2.5} />
+                <X size={16} strokeWidth={2.5} />
               </button>
             ) : (
               <button
@@ -734,15 +735,15 @@ export default function AdminSidebar({
               onClick={toggleSidebar}
               data-sidebar-tooltip="Perluas Sidebar"
               aria-label="Perluas Sidebar"
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/15 transition-all shadow-2xs group"
+              className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/15 transition-all shadow-2xs group"
               title="Perluas Sidebar"
             >
               <img
                 src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
                 alt="Brand Logo"
-                className="w-6 h-6 object-contain group-hover:hidden transition-all"
+                className="w-5 h-5 object-contain group-hover:hidden transition-all"
               />
-              <PanelLeftOpen size={17} strokeWidth={2.2} className="text-primary hidden group-hover:block transition-all" />
+              <PanelLeftOpen size={16} strokeWidth={2.2} className="text-primary hidden group-hover:block transition-all" />
             </button>
           </div>
         )}
@@ -904,10 +905,10 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: refToUse.current.scrollHeight, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-slate-900/90 hover:bg-slate-900 text-white text-[10.5px] font-semibold rounded-full shadow-lg backdrop-blur-xs border border-slate-700/60 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-fade-in"
-              title="Klik untuk melompat ke bagian menu paling bawah"
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
+              title="Gulir ke menu paling bawah"
             >
-              <ArrowDown size={12} strokeWidth={2.5} className="animate-bounce" />
+              <ArrowDown size={11} strokeWidth={2.5} className="text-primary animate-bounce" />
               <span>Gulir ke Bawah</span>
             </button>
           </div>
@@ -921,10 +922,10 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-slate-800/90 hover:bg-slate-900 text-slate-100 text-[10.5px] font-semibold rounded-full shadow-lg backdrop-blur-xs border border-slate-700/60 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-fade-in"
-              title="Klik untuk kembali ke menu paling atas"
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
+              title="Kembali ke menu paling atas"
             >
-              <ArrowUp size={12} strokeWidth={2.5} />
+              <ArrowUp size={11} strokeWidth={2.5} className="text-primary" />
               <span>Kembali ke Atas</span>
             </button>
           </div>
