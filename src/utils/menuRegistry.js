@@ -78,34 +78,14 @@ export const MENU_REGISTRY = [
 
   // ─── PEMBELAJARAN ────────────────────────────────────────────────────────────
   {
-    id: 'silabus',
-    icon: FileText,
-    label: 'Silabus Akademik',
-    section: 'Pembelajaran',
-    adminGroup: null,
-  },
-  {
-    id: 'rpp_guru',
-    icon: FileSpreadsheet,
-    label: 'Silabus & Perangkat Guru',
-    section: 'Pembelajaran',
-    adminGroup: null,
-  },
-  {
-    id: 'silabusguru',
-    icon: FileText,
-    label: 'Modul Saya',
-    section: 'Pembelajaran',
-    adminGroup: null,
-  },
-  {
     id: 'modul_ajar',
     icon: FileText,
-    label: 'Perangkat Ajar',
+    label: 'Modul & Perangkat Ajar',
     section: 'Pembelajaran',
     adminGroup: 'Kurikulum',
     adminGroupIcon: BookOpen,
     adminGroupKey: 'kurikulum',
+    activeIds: ['modul_ajar', 'silabus', 'silabusguru', 'rpp_guru'],
   },
   {
     id: 'jurnal_harian',

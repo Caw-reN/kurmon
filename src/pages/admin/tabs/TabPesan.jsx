@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../../components/ui.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { 
@@ -9,6 +9,7 @@ import {
 import { UISelect } from '../../../components/ui.jsx';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { useDataStore } from '../../../store/useDataStore.js';
+import { isSuperAdminRole, isLeadershipRole, normalizeUserRole } from '../../../utils/constants.js';
 
 export default function TabPesan(props) {
   const { 
@@ -82,13 +83,37 @@ export default function TabPesan(props) {
   });
   const [isSavingMaintenance, setIsSavingMaintenance] = useState(false);
 
-  // Permission
+  // Permission & Role Check
+  const normalizedRole = normalizeUserRole(activeUserRole);
+  const currentUser = props.currentUser || useAppStore.getState().currentUser || {};
+  const isSuperAdmin = isSuperAdminRole(normalizedRole) || isSuperAdminRole(currentUser?.role) || isSuperAdminRole(currentUser?.subrole);
+  const isLeadership = isSuperAdmin || isLeadershipRole(normalizedRole) || isLeadershipRole(currentUser?.role);
+  const isManagement = isLeadership || 
+    Boolean(currentUser?.isKurikulum || currentUser?.isKesiswaan || currentUser?.isTu) ||
+    ['kurikulum', 'kesiswaan', 'tu'].includes(normalizedRole);
+
   const permLevel = getTabPermissionLevel ? getTabPermissionLevel("pesan") : "edit";
-  const canEdit = permLevel === "edit" || (permLevel === "otomatis" && activeUserRole !== "kepsek");
+  const canEdit = isManagement && (permLevel === "edit" || permLevel === "full" || permLevel === "otomatis");
+  const canBroadcast = isLeadership;
+  const canMaintenance = isSuperAdmin || normalizedRole === "admin";
+
+  // Auto-switch sub-tab if permission not granted
+  useEffect(() => {
+    if (activeSubTab === 'siaran' && !canBroadcast) {
+      setActiveSubTab('pesan');
+    }
+    if (activeSubTab === 'maintenance' && !canMaintenance) {
+      setActiveSubTab('pesan');
+    }
+  }, [activeSubTab, canBroadcast, canMaintenance]);
 
   // Save Broadcast Alert
   const handleSaveBroadcast = async (e) => {
     if (e) e.preventDefault();
+    if (!canBroadcast) {
+      if (showNotification) showNotification("Anda tidak memiliki izin untuk mengaktifkan siaran admin.", "error");
+      return;
+    }
     if (broadcastForm.isActive && !broadcastForm.message.trim()) {
       if (showNotification) showNotification("Isi pesan siaran peringatan tidak boleh kosong!", "warning");
       return;
@@ -132,6 +157,10 @@ export default function TabPesan(props) {
   // Save Maintenance Mode
   const handleSaveMaintenance = async (e) => {
     if (e) e.preventDefault();
+    if (!canMaintenance) {
+      if (showNotification) showNotification("Hanya Super Administrator yang dapat mengubah mode maintenance.", "error");
+      return;
+    }
     setIsSavingMaintenance(true);
     try {
       const nextSettings = {
@@ -190,16 +219,16 @@ export default function TabPesan(props) {
             label: `Pengumuman (${dashboardMessages.length})`,
             icon: MessageSquare
           },
-          {
+          ...(canBroadcast ? [{
             id: 'siaran',
             label: broadcastForm.isActive ? 'Pita Siaran (Aktif)' : 'Pita Peringatan & Siaran',
             icon: Megaphone
-          },
-          {
+          }] : []),
+          ...(canMaintenance ? [{
             id: 'maintenance',
             label: maintenanceForm.isActive ? 'Maintenance (Aktif)' : 'Mode Pemeliharaan',
             icon: Wrench
-          }
+          }] : [])
         ]}
         activeTab={activeSubTab}
         onTabChange={setActiveSubTab}
@@ -550,7 +579,7 @@ export default function TabPesan(props) {
       {/* ========================================================================= */}
       {/* TAB 2: PITA PERINGATAN & SIARAN INSTAN                                   */}
       {/* ========================================================================= */}
-      {activeSubTab === 'siaran' && (
+      {activeSubTab === 'siaran' && canBroadcast && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 w-full animate-in fade-in duration-200">
           {/* Form Konfigurasi Siaran */}
           <section className="ui-card bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-5 md:p-6 space-y-6 overflow-hidden">
@@ -840,7 +869,7 @@ export default function TabPesan(props) {
       {/* ========================================================================= */}
       {/* TAB 3: MODE PEMELIHARAAN SISTEM (MAINTENANCE MODE)                         */}
       {/* ========================================================================= */}
-      {activeSubTab === 'maintenance' && (
+      {activeSubTab === 'maintenance' && canMaintenance && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 w-full animate-in fade-in duration-200">
           {/* Form Konfigurasi Maintenance */}
           <section className="ui-card bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-5 md:p-6 space-y-6 overflow-hidden">

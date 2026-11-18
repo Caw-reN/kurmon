@@ -132,94 +132,91 @@ const getMajorColorHex = className => {
 export const GLOBAL_ROLE_DEFAULTS = {
   guru: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "kedisiplinan_absensi", "silabusguru", "ketersediaan", "beban", "pesan",
-    "modul_ajar", "rpp_guru", "hikvision_report_siswa"
+    "ketersediaan", "beban", "modul_ajar", "pesan"
   ],
   walikelas: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "catatan_walikelas", "walas_report", "rekap_jurnal_kelas", "kedisiplinan_absensi",
-    "keterangan_massal", "silabusguru", "ketersediaan", "beban", "pesan",
-    "modul_ajar", "rpp_guru", "hikvision_report_siswa", "laporan_absensi",
-    "riwayat_prestasi", "siswa"
+    "ketersediaan", "beban", "modul_ajar", "catatan_walikelas", "walas_report",
+    "kedisiplinan_absensi", "pesan"
   ],
   bpbk: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
     "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
-    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
     "kedisiplinan_bpbk", "kedisiplinan_hub", "riwayat_prestasi", "tatib_skor",
-    "siswa_keluar", "siswa", "hikvision_report_siswa", "modul_ajar", "rpp_guru",
+    "siswa_keluar", "siswa", "hikvision_report_siswa", "modul_ajar",
     "rekap_jurnal_kelas", "kelas", "jurusan", "laporan_absensi"
   ],
   pembina_osis: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
     "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
-    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
     "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor", "riwayat_prestasi",
-    "siswa", "siswa_keluar", "hikvision_report_siswa", "modul_ajar", "rpp_guru",
+    "siswa", "siswa_keluar", "hikvision_report_siswa", "modul_ajar",
     "rekap_jurnal_kelas", "laporan_absensi", "kelas", "jurusan", "kartu_pelajar"
   ],
   sekretaris_osis: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "silabusguru",
+    "catatan_walikelas", "walas_report", "kedisiplinan_absensi",
     "ketersediaan", "beban", "pesan", "riwayat_prestasi", "siswa",
     "hikvision_report_siswa", "tatib_skor", "kedisiplinan_piket", "keterangan_massal",
     "laporan_absensi", "kelas", "jurusan", "kedisiplinan_bpbk", "kedisiplinan_hub",
-    "siswa_keluar", "rekap_jurnal_kelas", "rpp_guru", "modul_ajar", "kartu_pelajar"
+    "siswa_keluar", "rekap_jurnal_kelas", "modul_ajar", "kartu_pelajar"
   ],
   sekretaris_kesiswaan: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
     "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
-    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
     "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor", "siswa_keluar",
     "riwayat_prestasi", "siswa", "hikvision_report_siswa", "laporan_absensi",
-    "modul_ajar", "rpp_guru", "rekap_jurnal_kelas", "kelas", "jurusan", "kartu_pelajar"
+    "modul_ajar", "rekap_jurnal_kelas", "kelas", "jurusan", "kartu_pelajar"
   ],
   anggota_kesiswaan: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
     "catatan_walikelas", "walas_report", "kedisiplinan_absensi", "keterangan_massal",
-    "silabusguru", "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
+    "ketersediaan", "beban", "pesan", "kedisiplinan_piket",
     "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor", "siswa_keluar",
     "riwayat_prestasi", "siswa", "hikvision_report_siswa", "laporan_absensi",
-    "modul_ajar", "rpp_guru", "rekap_jurnal_kelas", "kelas", "jurusan", "kartu_pelajar"
+    "modul_ajar", "rekap_jurnal_kelas", "kelas", "jurusan", "kartu_pelajar"
   ],
   sekretaris_kurikulum: [
-    "dashboard", "generate", "akademik", "silabus", "modul_ajar", "rpp_guru",
-    "silabusguru", "absensiguru", "jurnal_harian", "ketersediaan", "beban",
+    "dashboard", "generate", "akademik", "modul_ajar",
+    "absensiguru", "jurnal_harian", "ketersediaan", "beban",
     "kelas", "pesan", "rekap_jurnal_kelas", "mapel", "jurusan", "data_pegawai",
     "guru", "siswa", "laporan_absensi", "kedisiplinan_absensi"
   ],
   anggota_kurikulum: [
-    "dashboard", "generate", "akademik", "silabus", "jurnal_harian",
-    "absensiguru", "modul_ajar", "rpp_guru", "silabusguru", "pesan",
+    "dashboard", "generate", "akademik", "jurnal_harian",
+    "absensiguru", "modul_ajar", "pesan",
     "rekap_jurnal_kelas", "ketersediaan", "beban", "kelas", "mapel",
     "jurusan", "kedisiplinan_absensi"
   ],
   sekretaris_hubin: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "modul_ajar", "ketersediaan", "beban", "pesan",
     "siswa", "kelas", "jurusan", "pkl_dashboard", "pkl_data_siswa",
     "pkl_data_perusahaan", "pkl_jurnal", "pkl_laporan", "pkl_administrasi",
     "pkl_absensi_setting", "hikvision_report_siswa", "laporan_absensi", "kedisiplinan_absensi"
   ],
   anggota_hubin: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "modul_ajar", "ketersediaan", "beban", "pesan",
     "siswa", "kelas", "jurusan", "pkl_dashboard", "pkl_data_siswa",
     "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal",
     "pkl_laporan", "hikvision_report_siswa", "kedisiplinan_absensi"
   ],
   sekretaris_sarpras: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "modul_ajar", "ketersediaan", "beban", "pesan",
     "kelas", "jurusan", "ruangan", "denah", "fasilitas", "kedisiplinan_absensi"
   ],
   anggota_sarpras: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "modul_ajar", "rpp_guru", "silabusguru", "ketersediaan", "beban", "pesan",
+    "modul_ajar", "ketersediaan", "beban", "pesan",
     "kelas", "jurusan", "ruangan", "denah", "fasilitas", "kedisiplinan_absensi"
   ],
   waka_kesiswaan: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "kedisiplinan_piket", "kedisiplinan_bpbk", "kedisiplinan_hub", "riwayat_prestasi",
     "catatan_walikelas", "walas_report", "siswa_keluar", "tatib_skor",
@@ -227,7 +224,7 @@ export const GLOBAL_ROLE_DEFAULTS = {
     "siswa", "laporan_absensi", "rekap_jurnal_kelas", "kelas", "jurusan", "kartu_pelajar"
   ],
   kesiswaan: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "kedisiplinan_piket", "kedisiplinan_bpbk", "kedisiplinan_hub", "riwayat_prestasi",
     "catatan_walikelas", "walas_report", "siswa_keluar", "tatib_skor",
@@ -235,7 +232,7 @@ export const GLOBAL_ROLE_DEFAULTS = {
     "siswa", "laporan_absensi", "rekap_jurnal_kelas", "kelas", "jurusan", "kartu_pelajar"
   ],
   waka: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "walas_report", "catatan_walikelas", "siswa", "kelas", "jurusan",
     "kedisiplinan_absensi", "hikvision_report_siswa", "laporan_absensi", "rekap_jurnal_kelas"
@@ -243,14 +240,14 @@ export const GLOBAL_ROLE_DEFAULTS = {
   kepsek: [
     "dashboard", "generate", "akademik", "absensi",
     "absensiguru", "ketersediaan", "beban", "jurnal_harian", "catatan_walikelas",
-    "modul_ajar", "rpp_guru", "silabusguru", "walas_report", "pesan",
+    "modul_ajar", "walas_report", "pesan",
     "kedisiplinan_piket", "siswa", "guru", "karyawan", "data_pegawai", "dataguru",
     "datasiswa", "dataperusahaan", "pkl_dashboard", "pkl_data_siswa",
     "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal",
     "pkl_laporan", "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_bpbk",
     "kedisiplinan_hub", "riwayat_prestasi", "tatib_skor", "laporan_absensi",
     "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
-    "ruangan", "denah", "fasilitas", "silabus", "keamanan", "audit_log",
+    "ruangan", "denah", "fasilitas", "keamanan", "audit_log",
     "activity_logs", "pengumuman", "rekap_jurnal_kelas", "kelas", "jurusan", "struktur"
   ],
   tu: [
@@ -281,40 +278,40 @@ export const GLOBAL_ROLE_DEFAULTS = {
     "dashboard", "absensiguru", "akademik", "pesan"
   ],
   waka_kurikulum: [
-    "dashboard", "generate", "akademik", "silabus", "modul_ajar", "rpp_guru",
-    "silabusguru", "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa",
+    "dashboard", "generate", "akademik", "modul_ajar",
+    "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa",
     "data_pegawai", "guru", "mapel", "walas_report", "catatan_walikelas", "pesan",
     "pengaturan", "advanced_rules", "absensiguru", "laporan_absensi",
     "kedisiplinan_absensi", "hikvision_report_guru", "hikvision_report_siswa",
     "rekap_jurnal_kelas", "jurusan"
   ],
   kurikulum: [
-    "dashboard", "generate", "akademik", "silabus", "modul_ajar", "rpp_guru",
-    "silabusguru", "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa",
+    "dashboard", "generate", "akademik", "modul_ajar",
+    "ketersediaan", "beban", "jurnal_harian", "kelas", "siswa",
     "data_pegawai", "guru", "mapel", "walas_report", "catatan_walikelas", "pesan",
     "pengaturan", "advanced_rules", "absensiguru", "laporan_absensi",
     "kedisiplinan_absensi", "hikvision_report_guru", "hikvision_report_siswa",
     "rekap_jurnal_kelas", "jurusan"
   ],
   waka_sarpras: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "ruangan", "denah", "fasilitas", "kelas", "jurusan", "data_pegawai",
     "walas_report", "catatan_walikelas", "siswa", "kedisiplinan_absensi"
   ],
   sarpras: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "ruangan", "denah", "fasilitas", "kelas", "jurusan", "data_pegawai",
     "walas_report", "catatan_walikelas", "siswa", "kedisiplinan_absensi"
   ],
   waka_humas: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "tampilan", "walas_report", "catatan_walikelas", "kedisiplinan_absensi"
   ],
   waka_hubin: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan",
     "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pkl_absensi_setting",
@@ -322,7 +319,7 @@ export const GLOBAL_ROLE_DEFAULTS = {
     "siswa", "kelas", "jurusan", "kedisiplinan_absensi"
   ],
   hubin: [
-    "dashboard", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",
+    "dashboard", "generate", "ketersediaan", "beban",
     "modul_ajar", "jurnal_harian", "absensiguru", "akademik", "pesan",
     "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan",
     "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pkl_absensi_setting",
@@ -2985,7 +2982,7 @@ export default function App() {
     // Default Fallbacks for Leadership & Specialized Roles (Only if not explicitly disabled on subrole)
     if (spLevel !== 'nonaktif' && spLevel !== 'none' && spLevel !== 'off') {
       const kurikulumTabs = [
-        "generate", "akademik", "silabus", "silabusguru", "modul_ajar",
+        "generate", "akademik", "modul_ajar",
         "ketersediaan", "beban", "kelas", "guru", "mapel", "jurnal_harian",
         "catatan_walikelas", "walas_report", "siswa", "pengaturan", "advanced_rules", "rekap_jurnal_kelas", "jurusan"
       ];
@@ -3006,7 +3003,7 @@ export default function App() {
         const sekKesiswaanTabs = [
           "siswa", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report",
           "riwayat_prestasi", "kedisiplinan_piket", "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor",
-          "siswa_keluar", "hikvision_report_siswa", "pesan", "jurnal_harian", "silabusguru", "modul_ajar",
+          "siswa_keluar", "hikvision_report_siswa", "pesan", "jurnal_harian", "modul_ajar",
           "absensiguru", "rekap_jurnal_kelas", "laporan_absensi", "kelas", "jurusan", "kartu_pelajar"
         ];
         if (sekKesiswaanTabs.includes(tab)) return "edit";
@@ -3016,7 +3013,7 @@ export default function App() {
         const angKesiswaanTabs = [
           "siswa", "kedisiplinan_absensi", "keterangan_massal", "catatan_walikelas", "walas_report",
           "riwayat_prestasi", "kedisiplinan_piket", "kedisiplinan_bpbk", "kedisiplinan_hub", "tatib_skor",
-          "siswa_keluar", "hikvision_report_siswa", "pesan", "jurnal_harian", "silabusguru", "modul_ajar",
+          "siswa_keluar", "hikvision_report_siswa", "pesan", "jurnal_harian", "modul_ajar",
           "absensiguru", "rekap_jurnal_kelas", "laporan_absensi", "kelas", "jurusan", "kartu_pelajar"
         ];
         if (angKesiswaanTabs.includes(tab)) return "edit";
@@ -3026,7 +3023,7 @@ export default function App() {
         const bpbkTabs = [
           "siswa", "kedisiplinan_bpbk", "kedisiplinan_hub", "kedisiplinan_absensi", "keterangan_massal",
           "catatan_walikelas", "walas_report", "riwayat_prestasi", "tatib_skor", "siswa_keluar",
-          "hikvision_report_siswa", "pesan", "jurnal_harian", "silabusguru", "modul_ajar", "absensiguru",
+          "hikvision_report_siswa", "pesan", "jurnal_harian", "modul_ajar", "absensiguru",
           "kedisiplinan_piket", "rekap_jurnal_kelas", "kelas", "jurusan", "laporan_absensi", "kartu_pelajar"
         ];
         if (bpbkTabs.includes(tab)) return "edit";
@@ -3035,7 +3032,7 @@ export default function App() {
       if (["pembina_osis", "sekretaris_osis"].includes(effectiveRoleKey) || ["pembina_osis", "sekretaris_osis"].includes(subrole)) {
         const osisTabs = [
           "kedisiplinan_piket", "tatib_skor", "riwayat_prestasi", "kedisiplinan_absensi", "keterangan_massal",
-          "hikvision_report_siswa", "pesan", "jurnal_harian", "silabusguru", "modul_ajar", "absensiguru",
+          "hikvision_report_siswa", "pesan", "jurnal_harian", "modul_ajar", "absensiguru",
           "siswa", "kedisiplinan_bpbk", "kedisiplinan_hub", "siswa_keluar", "catatan_walikelas", "walas_report",
           "rekap_jurnal_kelas", "laporan_absensi", "kelas", "jurusan", "kartu_pelajar"
         ];
@@ -3044,17 +3041,17 @@ export default function App() {
 
       const isSarprasTeam = (role === "waka" && division === "sarpras") || role === "sarpras" || role === "waka_sarpras" || ["waka_sarpras", "sekretaris_sarpras", "anggota_sarpras"].includes(subrole) || ["waka_sarpras", "sekretaris_sarpras", "anggota_sarpras"].includes(effectiveRoleKey);
       if (isSarprasTeam) {
-        const sarprasTabs = ["ruangan", "denah", "kelas", "absensiguru", "jurnal_harian", "modul_ajar", "silabusguru", "akademik", "pesan", "fasilitas", "jurusan", "data_pegawai"];
+        const sarprasTabs = ["ruangan", "denah", "kelas", "absensiguru", "jurnal_harian", "modul_ajar", "akademik", "pesan", "fasilitas", "jurusan", "data_pegawai"];
         if (sarprasTabs.includes(tab)) return "edit";
       }
 
       const isHubinTeam = (role === "waka" && division === "hubin") || role === "hubin" || role === "waka_hubin" || ["waka_hubin", "sekretaris_hubin", "anggota_hubin"].includes(subrole) || ["waka_hubin", "sekretaris_hubin", "anggota_hubin"].includes(effectiveRoleKey);
       if (isHubinTeam) {
-        if (tab.startsWith("pkl_") || ["absensiguru", "jurnal_harian", "modul_ajar", "silabusguru", "akademik", "pesan", "hikvision_report_siswa", "siswa", "kelas", "jurusan", "laporan_absensi"].includes(tab)) return "edit";
+        if (tab.startsWith("pkl_") || ["absensiguru", "jurnal_harian", "modul_ajar", "akademik", "pesan", "hikvision_report_siswa", "siswa", "kelas", "jurusan", "laporan_absensi"].includes(tab)) return "edit";
       }
 
       if (["sekretaris_kurikulum", "anggota_kurikulum"].includes(effectiveRoleKey) || ["sekretaris_kurikulum", "anggota_kurikulum"].includes(subrole)) {
-        const sekKurTabs = ["generate", "akademik", "silabus", "modul_ajar", "absensiguru", "jurnal_harian", "ketersediaan", "beban", "kelas", "pesan", "rekap_jurnal_kelas", "mapel", "jurusan", "data_pegawai", "guru"];
+        const sekKurTabs = ["generate", "akademik", "modul_ajar", "absensiguru", "jurnal_harian", "ketersediaan", "beban", "kelas", "pesan", "rekap_jurnal_kelas", "mapel", "jurusan", "data_pegawai", "guru"];
         if (sekKurTabs.includes(tab)) return "edit";
       }
 
@@ -3067,7 +3064,7 @@ export default function App() {
     if (spLevel === "nonaktif" || spLevel === "none" || spLevel === "off") return "none";
 
     if (isWalasUser && wLevel !== 'nonaktif') {
-      const walasTabs = ["catatan_walikelas", "walas_report", "rekap_jurnal_kelas", "kedisiplinan_absensi", "keterangan_massal", "hikvision_report_siswa", "jurnal_harian", "absensiguru", "silabusguru", "modul_ajar", "generate", "akademik", "pesan", "laporan_absensi", "riwayat_prestasi", "siswa"];
+      const walasTabs = ["catatan_walikelas", "walas_report", "kedisiplinan_absensi", "jurnal_harian", "absensiguru", "modul_ajar", "generate", "akademik", "pesan"];
       if (walasTabs.includes(tab)) return "edit";
     }
 
@@ -3076,7 +3073,7 @@ export default function App() {
     if (gLevel === "nonaktif" || gLevel === "none" || gLevel === "off") return "none";
 
     if (role === "guru" || role === "waka" || effectiveRoleKey === "guru" || (typeof effectiveRoleKey === "string" && effectiveRoleKey.startsWith("waka_")) || isKesiswaanTeam || isKurikulumTeam) {
-      const guruTabs = ["generate", "akademik", "absensiguru", "jurnal_harian", "kedisiplinan_absensi", "silabusguru", "ketersediaan", "beban", "pesan", "modul_ajar", "rpp_guru", "hikvision_report_siswa"];
+      const guruTabs = ["generate", "akademik", "absensiguru", "jurnal_harian", "ketersediaan", "beban", "pesan", "modul_ajar"];
       if (guruTabs.includes(tab)) return "edit";
     }
 

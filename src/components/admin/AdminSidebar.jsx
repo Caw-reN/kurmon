@@ -4,10 +4,53 @@ import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
-  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User, ArrowDown, ArrowUp
+  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User, ArrowDown, ArrowUp,
+  BookOpen, Clock, Cpu, HardDrive, Palette, Database, FolderOpen
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
+
+const SECTION_METADATA = {
+  'Jadwal & Agenda': { key: 'jadwal_agenda', icon: Calendar, label: 'Jadwal & Agenda' },
+  'Pembelajaran': { key: 'pembelajaran', icon: BookOpen, label: 'Pembelajaran' },
+  'Wali Kelas': { key: 'wali_kelas', icon: GraduationCap, label: 'Wali Kelas' },
+  'Kehadiran': { key: 'kehadiran', icon: Clock, label: 'Kehadiran' },
+  'Kesiswaan': { key: 'kesiswaan', icon: Users, label: 'Kesiswaan' },
+  'Data Master': { key: 'data_master', icon: Database, label: 'Data Master' },
+  'Administrasi': { key: 'administrasi', icon: FileText, label: 'Administrasi' },
+  'PKL & Hubin': { key: 'pkl_hubin', icon: Briefcase, label: 'PKL & Hubin' },
+  'Sarana & Prasarana': { key: 'sarpras', icon: Building2, label: 'Sarana & Prasarana' },
+  'Mesin Absensi': { key: 'mesin_absensi', icon: Cpu, label: 'Mesin Absensi' },
+  'Tampilan': { key: 'tampilan', icon: Palette, label: 'Tampilan Web' },
+  'Komunikasi': { key: 'komunikasi', icon: MessageSquare, label: 'Komunikasi' },
+  'Pengaturan': { key: 'pengaturan', icon: Settings, label: 'Pengaturan' },
+  'Konfigurasi Sistem': { key: 'sistem', icon: Settings, label: 'Konfigurasi Sistem' },
+};
+
+const SECTION_ORDER = [
+  'Jadwal & Agenda',
+  'Pembelajaran',
+  'Wali Kelas',
+  'Kehadiran',
+  'Kesiswaan',
+  'PKL & Hubin',
+  'Sarana & Prasarana',
+  'Data Master',
+  'Administrasi',
+  'Mesin Absensi',
+  'Tampilan',
+  'Pengaturan',
+  'Komunikasi',
+];
+
+const getSectionMeta = (sectionName) => {
+  if (SECTION_METADATA[sectionName]) return SECTION_METADATA[sectionName];
+  return {
+    key: String(sectionName).toLowerCase().replace(/[^a-z0-9]/g, '_'),
+    icon: FolderOpen,
+    label: sectionName,
+  };
+};
 
 export default function AdminSidebar({
   isMobileMenuOpen, setIsMobileMenuOpen,
@@ -178,7 +221,8 @@ export default function AdminSidebar({
   };
 
   const allGroupKeys = useMemo(() => [
-    'dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem'
+    'dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem',
+    'jadwal_agenda', 'pembelajaran', 'wali_kelas', 'administrasi', 'pkl_hubin', 'mesin_absensi', 'tampilan', 'komunikasi', 'pengaturan', 'data_master'
   ], []);
 
   const isAnyGroupOpen = useMemo(() => {
@@ -240,7 +284,7 @@ export default function AdminSidebar({
       if (!React.isValidElement(child)) return false;
       const childId = child.props?.id;
       const childActiveIds = child.props?.activeIds;
-      return childId === activeTab || (Array.isArray(childActiveIds) && childActiveIds.includes(activeTab));
+      return childId === activeTab || child.props?.isActive || (Array.isArray(childActiveIds) && childActiveIds.includes(activeTab));
     });
 
     if (isCollapsed) {
@@ -381,7 +425,7 @@ export default function AdminSidebar({
       return renderKepsekMenu();
     }
 
-    // For non-admin users: group MENU_REGISTRY by section and render dynamically
+    // For non-admin users: group MENU_REGISTRY into collapsible SidebarGroup accordions
     const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass);
     const div = (currentUser?.division || "").toLowerCase().trim();
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
@@ -409,15 +453,21 @@ export default function AdminSidebar({
       (role === 'guru' && div === 'kurikulum') ||
       div === 'kurikulum'
     );
+    const isPureWalas = isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam;
 
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       if (item.adminOnly) continue;
       if (item.specialCondition === 'walas_only') {
-        if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) continue;
+        if (isPureWalas) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
           continue;
         }
+      }
+
+      // If pure walas, kedisiplinan_absensi is handled inside the Wali Kelas group
+      if (isPureWalas && item.id === 'kedisiplinan_absensi') {
+        continue;
       }
 
       const section = item.section || '_root';
@@ -425,10 +475,33 @@ export default function AdminSidebar({
       sectionMap[section].push(item);
     }
 
-    const sections = Object.entries(sectionMap);
-    const renderedSections = [];
+    const sortedSections = Object.entries(sectionMap).sort(([a], [b]) => {
+      const idxA = SECTION_ORDER.indexOf(a);
+      const idxB = SECTION_ORDER.indexOf(b);
+      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+      if (idxA !== -1) return -1;
+      if (idxB !== -1) return 1;
+      return a.localeCompare(b);
+    });
 
-    for (const [sectionName, items] of sections) {
+    const renderedGroups = [];
+
+    for (const [sectionName, items] of sortedSections) {
+      if (sectionName === '_root') {
+        // Direct root items (like Dashboard)
+        items.forEach(item => {
+          const navEl = renderNavItem({
+            id: item.id,
+            icon: item.icon,
+            label: item.label,
+            featureKey: item.featureKey,
+            activeIds: item.activeIds,
+          });
+          if (navEl) renderedGroups.push(navEl);
+        });
+        continue;
+      }
+
       const renderedItems = items.map(item =>
         renderNavItem({
           id: item.id,
@@ -441,41 +514,62 @@ export default function AdminSidebar({
 
       if (renderedItems.length === 0) continue;
 
-      renderedSections.push(
-        <React.Fragment key={sectionName}>
-          {sectionName !== '_root' && <SidebarSection label={sectionName} />}
+      // If Komunikasi with single item (e.g. Pesan Dashboard), render directly as a bottom nav item
+      if (sectionName === 'Komunikasi' && renderedItems.length === 1) {
+        renderedGroups.push(
+          <React.Fragment key={sectionName}>
+            {renderedItems}
+          </React.Fragment>
+        );
+        continue;
+      }
+
+      const meta = getSectionMeta(sectionName);
+      renderedGroups.push(
+        <SidebarGroup
+          key={meta.key}
+          label={meta.label}
+          icon={meta.icon}
+          groupKey={meta.key}
+        >
           {renderedItems}
-        </React.Fragment>
+        </SidebarGroup>
       );
     }
 
-    // Special: Wali Kelas section (only for pure walas teachers)
-    if (currentUser?.isWalas || currentUser?.walasClass) {
-      if (!isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) {
-        const walasItems = MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only');
-        const renderedWalas = walasItems.map(item =>
-          renderNavItem({
-            id: item.id,
-            icon: item.icon,
-            label: item.label,
-            featureKey: item.featureKey,
-            activeIds: item.activeIds,
-          })
-        ).filter(Boolean);
+    // Special: Wali Kelas accordion group (for pure walas teachers)
+    if (isPureWalas) {
+      const walasItemIds = ['catatan_walikelas', 'walas_report', 'kedisiplinan_absensi'];
+      const walasItems = MENU_REGISTRY.filter(i => walasItemIds.includes(i.id));
+      const renderedWalas = walasItems.map(item =>
+        renderNavItem({
+          id: item.id,
+          icon: item.icon,
+          label: item.label,
+          featureKey: item.featureKey,
+          activeIds: item.activeIds,
+        })
+      ).filter(Boolean);
 
-        if (renderedWalas.length > 0) {
-          const insertIdx = Math.min(3, renderedSections.length);
-          renderedSections.splice(insertIdx, 0,
-            <React.Fragment key="walas">
-              <SidebarSection label={`Wali Kelas (${currentUser.walasClass || 'Kelas Ampuan'})`} />
-              {renderedWalas}
-            </React.Fragment>
-          );
-        }
+      if (renderedWalas.length > 0) {
+        const walasClassLabel = currentUser.walasClass || 'Kelas Ampuan';
+        const walasGroup = (
+          <SidebarGroup
+            key="wali_kelas"
+            label={`Wali Kelas (${walasClassLabel})`}
+            icon={GraduationCap}
+            groupKey="wali_kelas"
+          >
+            {renderedWalas}
+          </SidebarGroup>
+        );
+        // Insert right after Pembelajaran or Jadwal & Agenda
+        const insertIdx = Math.min(2, renderedGroups.length);
+        renderedGroups.splice(insertIdx, 0, walasGroup);
       }
     }
 
-    return renderedSections;
+    return renderedGroups;
   };
 
   const renderAdminMenu = () => {
