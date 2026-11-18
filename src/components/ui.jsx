@@ -346,10 +346,12 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
 
   if (collapsed) {
     return (
-      <div className="group relative mb-1 flex justify-center">
+      <div className="mb-1 flex justify-center">
         <button
           onClick={() => onClick(id)}
           type="button"
+          data-sidebar-tooltip={label}
+          aria-label={label}
           className={cn(
             "w-10 h-10 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer",
             isActive
@@ -359,10 +361,6 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
         >
           {icon && React.createElement(icon, { size: 18, strokeWidth: isActive ? 2.5 : 2 })}
         </button>
-        {/* Untitled UI Dark Tooltip on hover */}
-        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-          {label}
-        </div>
       </div>
     );
   }

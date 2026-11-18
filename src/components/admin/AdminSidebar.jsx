@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
@@ -39,6 +40,36 @@ export default function AdminSidebar({
   const searchInputRef = useRef(null);
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [canScrollUp, setCanScrollUp] = useState(false);
+  const [hoveredTooltip, setHoveredTooltip] = useState(null);
+
+  // Mouse hover event delegation for instant, high-performance tooltips in collapsed mode
+  const handleSidebarMouseMove = (e) => {
+    if (!isCollapsed) {
+      if (hoveredTooltip) setHoveredTooltip(null);
+      return;
+    }
+    const target = e.target.closest('[data-sidebar-tooltip]');
+    if (target) {
+      const label = target.getAttribute('data-sidebar-tooltip');
+      const rect = target.getBoundingClientRect();
+      const newTop = rect.top + rect.height / 2;
+      const newLeft = rect.right + 10;
+
+      if (!hoveredTooltip || hoveredTooltip.label !== label || Math.abs(hoveredTooltip.top - newTop) > 3) {
+        setHoveredTooltip({
+          label,
+          top: newTop,
+          left: newLeft,
+        });
+      }
+    } else {
+      if (hoveredTooltip) setHoveredTooltip(null);
+    }
+  };
+
+  const handleSidebarMouseLeave = () => {
+    setHoveredTooltip(null);
+  };
 
   const [appVersion, setAppVersion] = useState({
     version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'v2.1.0',
@@ -214,13 +245,15 @@ export default function AdminSidebar({
 
     if (isCollapsed) {
       return (
-        <div className="mb-1 w-full flex justify-center group relative">
+        <div className="mb-1 w-full flex justify-center">
           <button
             onClick={() => {
               toggleSidebar();
               if (!isOpen) toggleGroup(groupKey);
             }}
             type="button"
+            data-sidebar-tooltip={label}
+            aria-label={label}
             className={cn(
               "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-10 h-10",
               hasActiveChild
@@ -236,10 +269,6 @@ export default function AdminSidebar({
               />
             )}
           </button>
-          {/* Untitled UI Dark Tooltip */}
-          <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-            {label}
-          </div>
         </div>
       );
     }
@@ -549,6 +578,8 @@ export default function AdminSidebar({
 
   return (
     <aside
+      onMouseMove={handleSidebarMouseMove}
+      onMouseLeave={handleSidebarMouseLeave}
       className={cn(
         "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none h-full max-h-screen overflow-hidden",
         isCollapsed ? "w-[68px]" : "w-[264px]",
@@ -600,6 +631,7 @@ export default function AdminSidebar({
           <div className="flex flex-col items-center gap-2">
             <div
               onClick={toggleSidebar}
+              data-sidebar-tooltip={appSettings.appName || "KG2 School"}
               className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer hover:opacity-85 shadow-2xs"
               title="Perluas Sidebar"
             >
@@ -663,18 +695,15 @@ export default function AdminSidebar({
         </div>
       ) : (
         <div className="pt-2 pb-1 flex justify-center shrink-0">
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent"
-            >
-              <Search size={16} />
-            </button>
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              Cari Menu (⌘K)
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            data-sidebar-tooltip="Cari Menu (⌘K)"
+            aria-label="Cari Menu"
+            className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent"
+          >
+            <Search size={16} />
+          </button>
         </div>
       )}
 
@@ -691,7 +720,7 @@ export default function AdminSidebar({
             checkScrollState();
           }}
           className={cn(
-            "flex-1 overflow-y-auto sidebar-scrollbar custom-scrollbar pt-1.5 pb-20 relative z-10 transition-all focus:outline-none",
+            "flex-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar custom-scrollbar pt-1.5 pb-20 relative z-10 transition-all focus:outline-none",
             isCollapsed ? "px-2" : "px-3"
           )}
           title="Gunakan tombol panah keyboard atau seret scrollbar untuk menggulir"
@@ -846,37 +875,47 @@ export default function AdminSidebar({
       ) : (
         <div className="p-2 border-t border-slate-200/80 bg-slate-50/40 shrink-0 flex flex-col items-center gap-2 relative">
           {/* Dedicated Visible Logout Button in Collapsed Mode */}
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs"
-              title="Keluar Sistem"
-            >
-              <LogOut size={16} strokeWidth={2.4} />
-            </button>
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              Keluar Sistem
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            data-sidebar-tooltip="Keluar Sistem"
+            aria-label="Keluar Sistem"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs"
+            title="Keluar Sistem"
+          >
+            <LogOut size={16} strokeWidth={2.4} />
+          </button>
 
           {/* Detailed Version Status Indicator in Collapsed Mode */}
-          <div className="group relative flex justify-center py-1">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center cursor-default">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-            </div>
-            <div className="absolute left-full ml-3 bottom-0 bg-slate-900 text-white text-[11px] font-medium p-3 rounded-xl shadow-2xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 border border-slate-700">
-              <div className="flex items-center justify-between gap-3 pb-1 border-b border-slate-800">
-                <span className="font-bold text-emerald-400">{appVersion.version}</span>
-                <span className="font-mono text-[10px] text-slate-400">#{appVersion.commit || 'live'}</span>
-              </div>
-              <span className="text-[10px] text-slate-300">{appVersion.date ? `${appVersion.date}, ${appVersion.time || ''}` : appVersion.detail}</span>
-            </div>
+          <div
+            data-sidebar-tooltip={`Versi ${appVersion.version} (${appVersion.commit ? '#' + appVersion.commit : 'Terbaru'})`}
+            className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center cursor-default"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
           </div>
         </div>
+      )}
+
+      {/* ─── 5. FLOATING PORTAL TOOLTIP FOR COLLAPSED SIDEBAR (Untitled UI Style) ─── */}
+      {hoveredTooltip && isCollapsed && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed z-[99999] pointer-events-none transition-all duration-150 ease-out flex items-center"
+          style={{
+            top: `${hoveredTooltip.top}px`,
+            left: `${hoveredTooltip.left}px`,
+            transform: 'translateY(-50%)',
+          }}
+        >
+          <div className="relative bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-2xl border border-slate-700/80 backdrop-blur-md whitespace-nowrap flex items-center gap-1.5 animate-in fade-in-0 zoom-in-95 duration-100">
+            {/* Left triangle pointer arrow pointing directly to the icon */}
+            <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-700/80 rotate-45 pointer-events-none" />
+            <span>{hoveredTooltip.label}</span>
+          </div>
+        </div>,
+        document.body
       )}
     </aside>
   );
