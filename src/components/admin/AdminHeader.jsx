@@ -1,4 +1,5 @@
 import { Button } from '../../components/ui.jsx';
+import { cn } from '../../lib/utils';
 import { useState, useEffect, useRef } from'react';
 import { Clock, MessageSquare,
   LayoutDashboard, SlidersHorizontal, Users, GraduationCap,
@@ -6,7 +7,7 @@ import { Clock, MessageSquare,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
   MonitorSmartphone, UserCog, User, HardDrive, KeyRound,
   HelpCircle, Bell, LogOut, Wrench, Activity, ClipboardList, Trophy, UserMinus, Shield, ShieldCheck,
-  Menu, PanelLeftOpen
+  Menu, PanelLeftOpen, ChevronsUpDown
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
@@ -349,18 +350,26 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
   };
 
   const todayClasses = getTodayClasses();
+  const isPrimaryHeader = (appSettings?.headerStyle || 'primary') === 'primary';
+  const unreadMessagesCount = Array.isArray(dashboardMessages) ? dashboardMessages.length : 0;
+  const notifCount = (todayClasses?.length || 0) + unreadMessagesCount;
 
   return (
     <header className="app-header flex h-14 bg-background px-3 sm:px-5 md:px-8 items-center justify-between shrink-0 relative z-[60] border-none shadow-none !border-none !shadow-none print:hidden">
       
       {/* Left: Desktop Sidebar Toggle & Brand/Keterangan */}
-      <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 mr-2">
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">
         {/* Mobile menu trigger */}
         {typeof onOpenMobileMenu === 'function' && (
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer flex items-center justify-center transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+            className={cn(
+              "lg:hidden p-2 rounded-lg shadow-2xs cursor-pointer flex items-center justify-center transition-colors shrink-0 focus:outline-none focus-visible:ring-2",
+              isPrimaryHeader
+                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25 focus-visible:ring-white/40"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 focus-visible:ring-primary/25"
+            )}
             title="Buka Menu"
             aria-label="Buka Menu"
           >
@@ -373,7 +382,12 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <button
             type="button"
             onClick={toggleSidebar}
-            className="hidden lg:flex p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer items-center justify-center transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+            className={cn(
+              "hidden lg:flex p-2 rounded-lg shadow-2xs cursor-pointer items-center justify-center transition-colors shrink-0 focus:outline-none focus-visible:ring-2",
+              isPrimaryHeader
+                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25 focus-visible:ring-white/40"
+                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 focus-visible:ring-primary/25"
+            )}
             title="Buka Sidebar"
             aria-label="Buka Sidebar"
           >
@@ -381,20 +395,41 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           </button>
         )}
         
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           {IconComponent && (
-            <div className="flex items-center justify-center shrink-0 text-primary">
-              <IconComponent size={18} strokeWidth={2.5} />
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-2xs border transition-all",
+              isPrimaryHeader
+                ? "bg-white/15 text-white border-white/25"
+                : "bg-primary/10 text-primary border-primary/20"
+            )}>
+              <IconComponent size={16} strokeWidth={2.4} />
             </div>
           )}
           {getParentGroupLabel(activeTab) !== getTabLabel(activeTab) ? (
-            <h1 className="text-sm md:text-xl font-black flex items-center gap-1 select-none tracking-tight animate-in fade-in duration-200 min-w-0 truncate">
-              <span className="text-slate-400 font-medium hidden sm:inline">{getParentGroupLabel(activeTab)}</span>
-              <span className="text-slate-300 font-light hidden sm:inline">/</span>
-              <span className="text-primary font-black truncate">{getTabLabel(activeTab)}</span>
+            <h1 className="text-sm md:text-base font-black flex items-center gap-1.5 select-none tracking-tight animate-in fade-in duration-200 min-w-0 truncate">
+              <span className={cn(
+                "font-medium text-xs hidden sm:inline truncate",
+                isPrimaryHeader ? "text-white/70" : "text-slate-400"
+              )}>
+                {getParentGroupLabel(activeTab)}
+              </span>
+              <span className={cn(
+                "font-light text-xs hidden sm:inline",
+                isPrimaryHeader ? "text-white/40" : "text-slate-300"
+              )}>/</span>
+              <span className={cn(
+                "font-black truncate",
+                isPrimaryHeader ? "text-white" : "text-primary"
+              )}>
+                {getTabLabel(activeTab)}
+              </span>
             </h1>
           ) : (
-            <h1 className="text-sm md:text-xl font-black text-primary tracking-tight leading-tight animate-in fade-in duration-200 min-w-0 truncate">
+            <h1 className={cn(
+              "text-sm md:text-base font-black tracking-tight leading-tight animate-in fade-in duration-200 min-w-0 truncate",
+              isPrimaryHeader ? "text-white" : "text-primary"
+            )}>
               {getTabLabel(activeTab)}
             </h1>
           )}
@@ -402,7 +437,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
       </div>
 
       {/* Right: Notifications & User Profile */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         {appSettings?.maintenance?.isActive && (
           <button
             type="button"
@@ -411,8 +446,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                 window.__setActiveTab('pesan');
               }
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white/95 text-rose-800 border border-rose-300 text-[10px] sm:text-[11px] font-black tracking-tight uppercase shadow-xs hover:bg-white active:scale-95 transition-all cursor-pointer shrink-0"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', borderColor: '#fda4af', color: '#9f1239' }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 text-rose-800 border border-rose-300 text-[10px] sm:text-[11px] font-black tracking-tight uppercase shadow-2xs hover:bg-white active:scale-95 transition-all cursor-pointer shrink-0"
             title="Mode Pemeliharaan sedang aktif untuk pengguna lain. Klik untuk kelola."
           >
             <span className="relative flex h-2 w-2">
@@ -430,7 +464,12 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             type="button"
             variant="ghost"
             onClick={onOpenGuide}
-            className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold shrink-0 active:translate-y-[1px] transition-all w-fit h-9.5"
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-all w-fit shadow-2xs focus:outline-none focus-visible:ring-2",
+              isPrimaryHeader
+                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25 focus-visible:ring-white/40"
+                : "bg-white hover:bg-primary/10 text-slate-600 hover:text-primary border border-slate-200/80 focus-visible:ring-primary/25"
+            )}
             title="Bantuan / Panduan Penggunaan"
           >
             <HelpCircle size={14} />
@@ -444,19 +483,28 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             ref={notifBtnRef}
             type="button"
             onClick={() => setShowNotifDropdown(prev => !prev)}
-            className="relative flex items-center justify-center w-9 h-9 bg-white border border-slate-200/90 rounded-[var(--ui-radius-small)] text-slate-700 hover:text-[var(--ui-primary)] hover:bg-slate-50 transition-all shadow-xs shrink-0 cursor-pointer"
-            style={{ color: '#334155' }}
-            title="Notifikasi"
+            className={cn(
+              "relative flex items-center justify-center w-9 h-9 rounded-lg transition-all shadow-2xs shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2",
+              isPrimaryHeader
+                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25 focus-visible:ring-white/40"
+                : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 focus-visible:ring-primary/25"
+            )}
+            title="Pusat Pemberitahuan & Pengumuman"
+            aria-label="Pusat Pemberitahuan"
           >
-            <Bell size={18} strokeWidth={2.2} style={{ color: '#334155' }} />
-            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-rose-500 border-2 border-white ring-1 ring-rose-400" />
+            <Bell size={17} strokeWidth={2.2} />
+            {notifCount > 0 && (
+              <span className="absolute -top-1 -right-1 px-1 min-w-[17px] h-[17px] rounded-full bg-rose-500 text-white text-[9.5px] font-black border-2 border-white ring-1 ring-rose-400/80 flex items-center justify-center shadow-2xs animate-in zoom-in-75">
+                {notifCount > 9 ? '9+' : notifCount}
+              </span>
+            )}
           </button>
 
           {/* Notifications Dropdown */}
           {showNotifDropdown && (
             <div
               ref={notifDropdownRef}
-              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-11 sm:w-80 max-h-[70vh] sm:max-h-[420px] overflow-y-auto bg-card border border-slate-200/80 shadow-sm rounded-[var(--ui-radius-card)] p-4 z-[999] flex flex-col gap-3.5 animate-in fade-in slide-in-from-top-2 duration-200"
+              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-11 sm:w-80 max-h-[70vh] sm:max-h-[420px] overflow-y-auto bg-card border border-slate-200/80 shadow-md rounded-xl p-4 z-[999] flex flex-col gap-3.5 animate-in fade-in slide-in-from-top-2 duration-200 custom-scrollbar"
             >
               <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 shrink-0">
                 <span className="font-extrabold text-xs text-slate-800 tracking-tight">Notifikasi &amp; Informasi</span>
@@ -618,40 +666,88 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           )}
         </div>
 
-        <div className="w-px h-5 bg-border shrink-0" />
+        {/* Subtle Vertical Divider */}
+        <div className={cn(
+          "w-px h-6 shrink-0",
+          isPrimaryHeader ? "bg-white/20" : "bg-slate-200"
+        )} />
 
+        {/* User Profile Pill Capsule */}
         <div
           onClick={onOpenProfile}
-          className="flex items-center gap-1.5 sm:gap-2.5 rounded-[var(--ui-radius-small)] cursor-pointer min-w-0 transition-colors hover:bg-muted/80 p-0.5 sm:p-1 pr-1.5 sm:pr-2.5 shrink-0"
-          title="Profil Pengguna"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpenProfile?.(); }}
+          className={cn(
+            "flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer min-w-0 transition-all select-none shadow-2xs focus:outline-none focus-visible:ring-2",
+            isPrimaryHeader
+              ? "bg-white/15 hover:bg-white/25 border border-white/25 text-white focus-visible:ring-white/40 active:scale-[0.98]"
+              : "bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 focus-visible:ring-primary/25 active:scale-[0.98]"
+          )}
+          title="Profil Pengguna & Pengaturan Akun"
         >
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-primary/10 text-primary flex items-center justify-center font-extrabold text-xs shrink-0 border border-primary/20">
-            {getInitials(currentUser?.name)}
+          {/* Avatar (High Contrast & Crisp) */}
+          <div className={cn(
+            "w-7 h-7 rounded-md flex items-center justify-center font-black text-xs shrink-0 overflow-hidden shadow-2xs transition-all",
+            isPrimaryHeader 
+              ? "bg-white text-emerald-900 border border-white/60" 
+              : "bg-primary/10 text-primary border border-primary/20"
+          )}>
+            {currentUser?.avatar ? (
+              <img src={currentUser.avatar} alt="User Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span>{getInitials(currentUser?.name)}</span>
+            )}
           </div>
-          <div className="flex flex-col hidden sm:flex min-w-0 max-w-[280px] md:max-w-[360px] xl:max-w-[460px]">
+
+          {/* User Name & Role */}
+          <div className="flex flex-col hidden sm:flex min-w-0 max-w-[200px] md:max-w-[280px] xl:max-w-[360px] text-left">
             <span 
-              className="text-[12px] font-bold text-foreground leading-tight truncate"
+              className={cn(
+                "text-[12px] font-bold leading-tight truncate",
+                isPrimaryHeader ? "text-white" : "text-slate-900"
+              )}
               title={currentUser?.name || appSettings.appName}
             >
               {currentUser?.name || appSettings.appName}
             </span>
             <span 
-              className="text-[10px] text-muted-foreground font-semibold leading-tight mt-0.5 truncate"
+              className={cn(
+                "text-[10px] font-medium leading-tight mt-0.5 truncate",
+                isPrimaryHeader ? "text-emerald-100/90" : "text-slate-500"
+              )}
               title={activeRoleLabel}
             >
               {activeRoleLabel}
             </span>
           </div>
+
+          {/* Interactive Chevron indicator */}
+          <ChevronsUpDown 
+            size={13} 
+            strokeWidth={2.4} 
+            className={cn(
+              "shrink-0 ml-0.5 hidden sm:block",
+              isPrimaryHeader ? "text-white/70" : "text-slate-400"
+            )} 
+          />
         </div>
 
-        {handleLogout && (
+        {/* Quick Header Logout Button (Desktop & Mobile) */}
+        {typeof handleLogout === 'function' && (
           <button
             type="button"
             onClick={handleLogout}
-            className="flex sm:hidden p-2 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] items-center justify-center cursor-pointer transition-all shrink-0 active:translate-y-[1px] w-8 h-8"
-            title="Keluar"
+            className={cn(
+              "flex items-center justify-center w-9 h-9 rounded-lg transition-all cursor-pointer shadow-2xs shrink-0 focus:outline-none focus-visible:ring-2",
+              isPrimaryHeader
+                ? "bg-rose-500/20 hover:bg-rose-500 text-rose-100 hover:text-white border border-rose-300/30 focus-visible:ring-rose-300 active:scale-95"
+                : "bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 focus-visible:ring-rose-400/30 active:scale-95"
+            )}
+            title="Keluar Sistem"
+            aria-label="Keluar Sistem"
           >
-            <LogOut size={14} strokeWidth={2.5} />
+            <LogOut size={15} strokeWidth={2.4} />
           </button>
         )}
       </div>
