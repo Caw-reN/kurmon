@@ -360,7 +360,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <button
             type="button"
             onClick={onOpenMobileMenu}
-            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer flex items-center justify-center transition-colors shrink-0"
+            className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer flex items-center justify-center transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
             title="Buka Menu"
             aria-label="Buka Menu"
           >
@@ -373,7 +373,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <button
             type="button"
             onClick={toggleSidebar}
-            className="hidden lg:flex p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer items-center justify-center transition-colors shrink-0"
+            className="hidden lg:flex p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 shadow-2xs cursor-pointer items-center justify-center transition-colors shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
             title="Buka Sidebar"
             aria-label="Buka Sidebar"
           >

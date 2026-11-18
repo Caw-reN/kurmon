@@ -88,35 +88,73 @@ export default function AdminSidebar({
   const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
   const [canScrollDown, setCanScrollDown] = useState(false);
   const [canScrollUp, setCanScrollUp] = useState(false);
-  const [hoveredTooltip, setHoveredTooltip] = useState(null);
+  const [activeFlyout, setActiveFlyout] = useState(null);
+  const flyoutTimerRef = useRef(null);
+
+  const openFlyout = (targetEl, data) => {
+    if (!isCollapsed) return;
+    if (flyoutTimerRef.current) {
+      clearTimeout(flyoutTimerRef.current);
+      flyoutTimerRef.current = null;
+    }
+    const rect = targetEl.getBoundingClientRect();
+    const newTop = rect.top + rect.height / 2;
+    const newLeft = rect.right + 10;
+
+    setActiveFlyout({
+      ...data,
+      top: newTop,
+      left: newLeft,
+    });
+  };
+
+  const scheduleCloseFlyout = () => {
+    if (flyoutTimerRef.current) clearTimeout(flyoutTimerRef.current);
+    flyoutTimerRef.current = setTimeout(() => {
+      setActiveFlyout(null);
+    }, 150);
+  };
+
+  const cancelCloseFlyout = () => {
+    if (flyoutTimerRef.current) {
+      clearTimeout(flyoutTimerRef.current);
+      flyoutTimerRef.current = null;
+    }
+  };
 
   // Mouse hover event delegation for instant, high-performance tooltips in collapsed mode
   const handleSidebarMouseMove = (e) => {
     if (!isCollapsed) {
-      if (hoveredTooltip) setHoveredTooltip(null);
+      if (activeFlyout) setActiveFlyout(null);
       return;
     }
     const target = e.target.closest('[data-sidebar-tooltip]');
     if (target) {
+      if (target.hasAttribute('data-sidebar-group')) return;
       const label = target.getAttribute('data-sidebar-tooltip');
       const rect = target.getBoundingClientRect();
       const newTop = rect.top + rect.height / 2;
       const newLeft = rect.right + 10;
 
-      if (!hoveredTooltip || hoveredTooltip.label !== label || Math.abs(hoveredTooltip.top - newTop) > 3) {
-        setHoveredTooltip({
+      if (!activeFlyout || activeFlyout.label !== label || Math.abs(activeFlyout.top - newTop) > 3) {
+        cancelCloseFlyout();
+        setActiveFlyout({
+          type: 'item',
           label,
           top: newTop,
           left: newLeft,
         });
       }
     } else {
-      if (hoveredTooltip) setHoveredTooltip(null);
+      const isOverFlyout = e.target.closest('[data-sidebar-flyout]');
+      if (!isOverFlyout && activeFlyout && activeFlyout.type === 'item') {
+        scheduleCloseFlyout();
+      }
     }
   };
 
   const handleSidebarMouseLeave = () => {
-    setHoveredTooltip(null);
+    scheduleCloseFlyout();
   };
 
   const [appVersion, setAppVersion] = useState({
@@ -293,18 +331,53 @@ export default function AdminSidebar({
     });
 
     if (isCollapsed) {
+      const subItems = React.Children.toArray(children).map(child => {
+        if (!React.isValidElement(child)) return null;
+        const childId = child.props?.id;
+        const childActiveIds = child.props?.activeIds;
+        const childIsActive = childId === activeTab || child.props?.isActive || (Array.isArray(childActiveIds) && childActiveIds.includes(activeTab));
+        return {
+          id: childId,
+          label: child.props?.label || childId,
+          icon: child.props?.icon,
+          badge: child.props?.badge,
+          isActive: childIsActive,
+        };
+      }).filter(Boolean);
+
       return (
-        <div className="mb-1 w-full flex justify-center">
+        <div 
+          className="mb-1 w-full flex justify-center"
+          onMouseEnter={(e) => {
+            if (subItems.length > 0) {
+              openFlyout(e.currentTarget, {
+                type: 'group',
+                label,
+                icon: Icon,
+                subItems,
+                hasActiveChild,
+              });
+            } else {
+              openFlyout(e.currentTarget, {
+                type: 'item',
+                label,
+                icon: Icon,
+                hasActiveChild,
+              });
+            }
+          }}
+          onMouseLeave={scheduleCloseFlyout}
+        >
           <button
             onClick={() => {
               toggleSidebar();
               if (!isOpen) toggleGroup(groupKey);
             }}
             type="button"
-            data-sidebar-tooltip={label}
+            data-sidebar-group="true"
             aria-label={label}
             className={cn(
-              "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-10 h-10",
+              "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-9 h-9 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
               hasActiveChild
                 ? "bg-primary/10 text-primary font-bold shadow-2xs"
                 : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
@@ -770,14 +843,14 @@ export default function AdminSidebar({
                     setSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/60 cursor-pointer border-none bg-transparent transition-colors flex items-center justify-center"
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/60 cursor-pointer border-none bg-transparent transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
                   title="Hapus pencarian"
                   aria-label="Hapus pencarian"
                 >
                   <X size={12} strokeWidth={2.5} />
                 </button>
               ) : (
-                <kbd className="hidden sm:inline-flex items-center text-[9.5px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded shadow-2xs select-none">
+                <kbd className="hidden sm:inline-flex items-center text-[9.5px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded-md shadow-2xs select-none">
                   {shortcutLabel}
                 </kbd>
               )}
@@ -793,7 +866,7 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={handleToggleAllGroups}
-                className="text-[10px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95"
+                className="text-[10px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
                 title={isAnyGroupOpen ? "Tutup semua sub-menu agar ringkas" : "Buka semua sub-menu"}
               >
                 <ChevronsUpDown size={11} strokeWidth={2.4} className="text-slate-400" />
@@ -812,7 +885,7 @@ export default function AdminSidebar({
             }}
             data-sidebar-tooltip={`Cari Menu (${shortcutLabel})`}
             aria-label="Cari Menu"
-            className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-slate-200/60 shadow-2xs bg-white"
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-slate-200/60 shadow-2xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
             title={`Cari Menu (${shortcutLabel})`}
           >
             <Search size={16} strokeWidth={2} />
@@ -833,8 +906,8 @@ export default function AdminSidebar({
             checkScrollState();
           }}
           className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden sidebar-scrollbar custom-scrollbar pt-1.5 pb-20 relative z-10 transition-all focus:outline-none",
-            isCollapsed ? "px-2" : "px-3"
+            "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-20 relative z-10 transition-all focus:outline-none",
+            isCollapsed ? "px-2 no-scrollbar scrollbar-none" : "px-3 sidebar-scrollbar custom-scrollbar"
           )}
           title="Gunakan tombol panah keyboard atau seret scrollbar untuk menggulir"
         >
@@ -905,7 +978,7 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: refToUse.current.scrollHeight, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Gulir ke menu paling bawah"
             >
               <ArrowDown size={11} strokeWidth={2.5} className="text-primary animate-bounce" />
@@ -922,7 +995,7 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
+              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Kembali ke menu paling atas"
             >
               <ArrowUp size={11} strokeWidth={2.5} className="text-primary" />
@@ -941,7 +1014,7 @@ export default function AdminSidebar({
               type="button"
               onClick={handleBackupExport}
               disabled={isBackingUp}
-              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/70 rounded-xl transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-lg transition-all cursor-pointer shadow-2xs disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Backup & Export Database"
             >
               {isBackingUp ? <RefreshCw size={13} className="animate-spin text-primary" /> : <DatabaseBackup size={13} className="text-slate-500" />}
@@ -953,7 +1026,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-xl transition-all cursor-pointer shadow-2xs active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30"
             title="Keluar dari akun aplikasi"
           >
             <LogOut size={14} strokeWidth={2.4} />
@@ -993,7 +1066,7 @@ export default function AdminSidebar({
             onClick={handleLogout}
             data-sidebar-tooltip="Keluar Sistem"
             aria-label="Keluar Sistem"
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs"
+            className="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30"
             title="Keluar Sistem"
           >
             <LogOut size={16} strokeWidth={2.4} />
@@ -1002,7 +1075,7 @@ export default function AdminSidebar({
           {/* Detailed Version Status Indicator in Collapsed Mode */}
           <div
             data-sidebar-tooltip={`Versi ${appVersion.version} (${appVersion.commit ? '#' + appVersion.commit : 'Terbaru'})`}
-            className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center cursor-default"
+            className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center cursor-default shadow-2xs"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1012,21 +1085,74 @@ export default function AdminSidebar({
         </div>
       )}
 
-      {/* ─── 5. FLOATING PORTAL TOOLTIP FOR COLLAPSED SIDEBAR (Untitled UI Style) ─── */}
-      {hoveredTooltip && isCollapsed && typeof document !== 'undefined' && createPortal(
+      {/* ─── 5. FLOATING PORTAL FLYOUT / TOOLTIP FOR COLLAPSED SIDEBAR ─── */}
+      {activeFlyout && isCollapsed && typeof document !== 'undefined' && createPortal(
         <div
-          className="fixed z-[99999] pointer-events-none transition-all duration-150 ease-out flex items-center"
+          data-sidebar-flyout="true"
+          onMouseEnter={cancelCloseFlyout}
+          onMouseLeave={scheduleCloseFlyout}
+          className="fixed z-[99999] transition-all duration-150 ease-out flex items-center pointer-events-auto"
           style={{
-            top: `${hoveredTooltip.top}px`,
-            left: `${hoveredTooltip.left}px`,
+            top: `${Math.max(20, Math.min(window.innerHeight - 280, activeFlyout.top))}px`,
+            left: `${activeFlyout.left}px`,
             transform: 'translateY(-50%)',
           }}
         >
-          <div className="relative bg-slate-900 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg shadow-2xl border border-slate-700/80 backdrop-blur-md whitespace-nowrap flex items-center gap-1.5 animate-in fade-in-0 zoom-in-95 duration-100">
-            {/* Left triangle pointer arrow pointing directly to the icon */}
-            <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-700/80 rotate-45 pointer-events-none" />
-            <span>{hoveredTooltip.label}</span>
-          </div>
+          {/* Hover Bridge */}
+          <div className="absolute -left-3 top-0 bottom-0 w-3 bg-transparent pointer-events-auto" />
+
+          {activeFlyout.type === 'group' && activeFlyout.subItems && activeFlyout.subItems.length > 0 ? (
+            <div className="relative bg-white text-slate-800 text-xs rounded-xl shadow-xl border border-slate-200/90 backdrop-blur-md overflow-hidden min-w-[210px] max-w-[280px] animate-in fade-in-0 zoom-in-95 duration-100 select-none">
+              <div 
+                className="absolute -left-1.5 w-3 h-3 bg-white border-l border-b border-slate-200/90 rotate-45 pointer-events-none"
+                style={{ top: '22px' }}
+              />
+
+              <div className="px-3.5 py-2.5 bg-slate-50/90 border-b border-slate-200/70 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 font-bold text-slate-800 text-xs truncate">
+                  {activeFlyout.icon && <activeFlyout.icon size={15} className="text-primary shrink-0" />}
+                  <span className="truncate">{activeFlyout.label}</span>
+                </div>
+                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-full shrink-0 shadow-2xs">
+                  {activeFlyout.subItems.length} menu
+                </span>
+              </div>
+
+              <div className="p-1.5 flex flex-col gap-0.5 max-h-[340px] overflow-y-auto custom-scrollbar">
+                {activeFlyout.subItems.map(item => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setActiveFlyout(null);
+                    }}
+                    className={cn(
+                      "w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg text-left transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
+                      item.isActive
+                        ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium"
+                    )}
+                  >
+                    <span className="truncate">{item.label}</span>
+                    {item.isActive && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 ml-1.5" />
+                    )}
+                    {item.badge && !item.isActive && (
+                      <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/60 font-semibold ml-1.5 shrink-0">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="relative bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl border border-slate-800 backdrop-blur-md whitespace-nowrap flex items-center gap-2 animate-in fade-in-0 zoom-in-95 duration-100 pointer-events-none select-none">
+              <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-800 rotate-45 pointer-events-none" />
+              <span>{activeFlyout.label}</span>
+            </div>
+          )}
         </div>,
         document.body
       )}

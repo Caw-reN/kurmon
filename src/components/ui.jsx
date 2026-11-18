@@ -317,7 +317,7 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
         title={collapsed ? label : undefined}
         className={cn(
           "group relative flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-visible",
-          "py-1.5 px-3 text-xs rounded-lg my-0.5 font-medium",
+          "py-1.5 px-3 text-xs rounded-lg my-0.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1",
           isActive
             ? "text-primary font-semibold bg-primary/10 shadow-2xs"
             : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
@@ -353,7 +353,7 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
           data-sidebar-tooltip={label}
           aria-label={label}
           className={cn(
-            "w-10 h-10 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer",
+            "w-9 h-9 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
             isActive
               ? "bg-primary/10 text-primary font-bold shadow-2xs"
               : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80"
@@ -371,7 +371,7 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
       type="button"
       className={cn(
         "group relative mb-1 flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-hidden",
-        "px-3 py-2 text-xs font-semibold rounded-lg",
+        "px-3 py-2 text-xs font-semibold rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1",
         isActive
           ? "bg-primary/10 text-primary font-bold shadow-2xs"
           : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
