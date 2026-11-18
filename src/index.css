@@ -218,10 +218,11 @@
 @media (min-width: 640px) {
   .header-primary header:not(.landing-navbar),
   .header-primary .app-header {
-    background: linear-gradient(to right, var(--ui-primary, #064e3b), var(--ui-primary-hover, #047857)) !important;
+    background: var(--ui-primary, #064e3b) !important;
+    background-color: var(--ui-primary, #064e3b) !important;
     color: #ffffff !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
   }
   .header-primary header:not(.landing-navbar) h1,
   .header-primary header:not(.landing-navbar) p,

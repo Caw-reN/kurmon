@@ -763,7 +763,7 @@ export default function AdminSidebar({
         {!isCollapsed ? (
           <div className="flex items-center justify-between w-full min-w-0 gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
                 <img
                   src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
                   alt="Brand Logo"
@@ -808,7 +808,7 @@ export default function AdminSidebar({
               onClick={toggleSidebar}
               data-sidebar-tooltip="Perluas Sidebar"
               aria-label="Perluas Sidebar"
-              className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/15 transition-all shadow-2xs group"
+              className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/20 transition-all shadow-2xs group"
               title="Perluas Sidebar"
             >
               <img
