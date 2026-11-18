@@ -307,7 +307,7 @@ export const Button = ({ children, variant = "primary", size = "default", classN
   );
 };
 
-// SidebarNavItem (Untitled UI Style)
+// SidebarNavItem (Clean Modern Minimalist Style)
 export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, collapsed, isSubMenu }) => {
   if (isSubMenu) {
     return (
@@ -316,30 +316,26 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
         type="button"
         title={collapsed ? label : undefined}
         className={cn(
-          "group relative flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-visible",
-          "py-1.5 px-3 text-xs rounded-lg my-0.5 font-medium",
+          "group relative flex w-full items-center justify-between border-none text-left transition-colors cursor-pointer",
+          "py-1.5 px-3 text-xs rounded-lg my-0.5",
           isActive
-            ? "text-primary font-semibold bg-primary/10 shadow-2xs"
-            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+            ? "bg-[#e5e7eb] text-slate-900 font-semibold shadow-2xs"
+            : "text-slate-400 hover:text-slate-700 hover:bg-slate-50 font-normal"
         )}
       >
-        {/* Active Dot indicator on the tree guideline (Exact Untitled UI style) */}
-        {isActive && (
-          <span 
-            className="absolute -left-[15px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary ring-2 ring-white" 
-            aria-hidden="true"
-          />
-        )}
         <span className="truncate">{label}</span>
         
-        {badge && (
-          <span className={cn(
-            "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-            isActive ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-600 border border-slate-200/60"
-          )}>
-            {badge}
-          </span>
-        )}
+        <div className="flex items-center gap-1 shrink-0 ml-auto">
+          {badge && (
+            <span className={cn(
+              "px-1.5 py-0.5 text-[10px] font-semibold rounded-md",
+              isActive ? "bg-slate-900 text-white" : "bg-slate-200 text-slate-700"
+            )}>
+              {badge}
+            </span>
+          )}
+          {isActive && <ChevronRight size={12} className="text-slate-400 shrink-0 ml-1" />}
+        </div>
       </button>
     );
   }
@@ -351,49 +347,53 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
           onClick={() => onClick(id)}
           type="button"
           className={cn(
-            "w-10 h-10 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer",
+            "w-10 h-10 flex items-center justify-center rounded-xl border-none transition-colors cursor-pointer",
             isActive
-              ? "bg-primary/10 text-primary font-bold shadow-2xs"
-              : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80"
+              ? "bg-[#f3f4f6] text-slate-900"
+              : "text-slate-400 hover:text-slate-700 hover:bg-slate-100/80"
           )}
         >
-          {icon && React.createElement(icon, { size: 18, strokeWidth: isActive ? 2.5 : 2 })}
+          {icon && React.createElement(icon, { size: 17, strokeWidth: isActive ? 2 : 1.8 })}
         </button>
-        {/* Untitled UI Dark Tooltip on hover */}
-        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Dark Tooltip */}
+        <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-xs font-medium px-2.5 py-1 rounded-md shadow-md whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
           {label}
         </div>
       </div>
     );
   }
 
+  const isGreenBadge = id === 'pesan' || id === 'notifikasi';
+
   return (
     <button
       onClick={() => onClick(id)}
       type="button"
       className={cn(
-        "group relative mb-1 flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-hidden",
-        "px-3 py-2 text-xs font-semibold rounded-lg",
+        "group relative mb-1 flex w-full items-center justify-between border-none text-left transition-colors cursor-pointer",
+        "px-3.5 py-2.5 text-xs rounded-xl",
         isActive
-          ? "bg-primary/10 text-primary font-bold shadow-2xs"
-          : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
+          ? "bg-[#f3f4f6] text-slate-900 font-semibold"
+          : "text-slate-500 hover:bg-slate-50/80 hover:text-slate-900 font-normal"
       )}
     >
-      <div className="flex items-center gap-2.5 min-w-0">
+      <div className="flex items-center gap-3 min-w-0">
         {icon && (
           <div className={cn(
             "flex items-center justify-center shrink-0 w-5 h-5 transition-colors",
-            isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-700"
+            isActive ? "text-slate-900" : "text-slate-400 group-hover:text-slate-700"
           )}>
-            {React.createElement(icon, { size: 16, strokeWidth: isActive ? 2.5 : 2 })}
+            {React.createElement(icon, { size: 16, strokeWidth: isActive ? 2 : 1.8 })}
           </div>
         )}
         <span className="truncate">{label}</span>
       </div>
       {badge && (
         <span className={cn(
-          "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
-          isActive ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-600 border border-slate-200/60"
+          "ml-2 shrink-0 px-2 py-0.5 text-[10px] font-semibold rounded-md",
+          isGreenBadge 
+            ? "bg-emerald-600 text-white" 
+            : (isActive ? "bg-slate-900 text-white" : "bg-slate-900 text-white")
         )}>
           {badge}
         </span>

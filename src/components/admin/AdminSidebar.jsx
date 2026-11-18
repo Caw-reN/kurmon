@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import {
-  ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
+  ChevronDown, ChevronUp, ChevronRight, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
-  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User
+  CheckCircle2, FileSpreadsheet, Search, User
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
@@ -35,23 +35,7 @@ export default function AdminSidebar({
   const posToUse = sidebarScrollPos || fallbackScrollPos;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const searchInputRef = useRef(null);
-  const userMenuRef = useRef(null);
-
-  const [appVersion, setAppVersion] = useState({
-    version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'v2.1.0',
-    detail: typeof __GIT_FULL_DETAIL__ !== 'undefined' ? __GIT_FULL_DETAIL__ : 'Update Terbaru'
-  });
-
-  useEffect(() => {
-    fetch('/api/version')
-      .then(r => r.json())
-      .then(data => {
-        if (data.ok) setAppVersion({ version: data.version, detail: data.detail });
-      })
-      .catch(() => {});
-  }, []);
 
   // Keyboard shortcut Ctrl+K / Cmd+K to focus search
   useEffect(() => {
@@ -66,19 +50,6 @@ export default function AdminSidebar({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSidebarCollapsed, toggleSidebar]);
 
-  // Click outside to close user popover menu
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    if (isUserMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isUserMenuOpen]);
-
   // Restore scroll position on mount
   useEffect(() => {
     const savedPos = sessionStorage.getItem("admin_sidebar_scroll_top");
@@ -92,7 +63,7 @@ export default function AdminSidebar({
     if (refToUse.current && !searchQuery.trim()) {
       const timer = setTimeout(() => {
         if (!refToUse.current) return;
-        const activeEl = refToUse.current.querySelector(".bg-primary\\/10, .bg-accent\\/15");
+        const activeEl = refToUse.current.querySelector(".bg-\\[\\#f3f4f6\\], .bg-\\[\\#e5e7eb\\]");
         if (activeEl) {
           activeEl.scrollIntoView({ block: "nearest", behavior: "smooth" });
         }
@@ -122,8 +93,8 @@ export default function AdminSidebar({
   const SidebarSection = ({ label }) => {
     if (isCollapsed) return null;
     return (
-      <div className="mt-4 mb-1.5 px-3 flex items-center">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+      <div className="mt-4 mb-2 px-1 flex items-center">
+        <span className="text-[11px] font-medium text-slate-400">
           {label}
         </span>
       </div>
@@ -133,7 +104,7 @@ export default function AdminSidebar({
   const SidebarGroup = ({ label, icon: Icon, groupKey, children }) => {
     const isOpen = expandedGroups?.[groupKey] !== false;
 
-    // Cek apakah ada menu anak yang sedang aktif
+    // Check if any child is active
     const hasActiveChild = React.Children.toArray(children).some(child => {
       if (!React.isValidElement(child)) return false;
       const childId = child.props?.id;
@@ -151,23 +122,53 @@ export default function AdminSidebar({
             }}
             type="button"
             className={cn(
-              "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-10 h-10",
+              "flex items-center justify-center rounded-xl border-none transition-colors cursor-pointer w-10 h-10",
               hasActiveChild 
-                ? "bg-primary/10 text-primary font-bold shadow-2xs" 
-                : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
+                ? "bg-[#f3f4f6] text-slate-900" 
+                : "text-slate-400 hover:bg-slate-100/80 hover:text-slate-700"
             )}
           >
             {Icon && (
               <Icon 
-                size={18} 
-                strokeWidth={hasActiveChild ? 2.5 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
+                size={17} 
+                strokeWidth={hasActiveChild ? 2 : 1.8}
+                className={cn(hasActiveChild ? "text-slate-900" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
               />
             )}
           </button>
-          {/* Untitled UI Dark Tooltip */}
-          <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+
+          {/* Dark Tooltip Pill (Exact Reference Image) */}
+          <div className="absolute left-full ml-2.5 top-1 bg-slate-900 text-white text-xs font-medium px-2.5 py-1 rounded-md shadow-md whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
             {label}
+          </div>
+
+          {/* Floating White Submenu Card on Hover (Exact Reference Image 2nd Column) */}
+          <div className="absolute left-full ml-2.5 top-8 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 min-w-[155px] z-50 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all flex flex-col gap-0.5">
+            {React.Children.map(children, (child) => {
+              if (!React.isValidElement(child)) return null;
+              const childId = child.props?.id;
+              const childLabel = child.props?.label;
+              const isChildActive = childId === activeTab || (Array.isArray(child.props?.activeIds) && child.props.activeIds.includes(activeTab));
+              return (
+                <button
+                  key={childId}
+                  onClick={() => {
+                    setActiveTab(childId);
+                    if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+                  }}
+                  type="button"
+                  className={cn(
+                    "py-1.5 px-3 text-xs rounded-lg transition-colors cursor-pointer border-none text-left flex items-center justify-between",
+                    isChildActive
+                      ? "bg-[#e5e7eb] text-slate-900 font-semibold"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-50 font-normal"
+                  )}
+                >
+                  <span className="truncate">{childLabel}</span>
+                  {isChildActive && <ChevronRight size={12} className="text-slate-400 shrink-0 ml-1" />}
+                </button>
+              );
+            })}
           </div>
         </div>
       );
@@ -179,36 +180,39 @@ export default function AdminSidebar({
           onClick={() => toggleGroup(groupKey)}
           type="button"
           className={cn(
-            "group relative flex w-full items-center justify-between rounded-lg border-none",
-            "px-3 py-2 text-xs font-semibold transition-all cursor-pointer",
-            hasActiveChild 
-              ? "text-slate-900 font-bold bg-slate-50/90" 
-              : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
+            "group relative flex w-full items-center justify-between rounded-xl border-none",
+            "px-3.5 py-2.5 text-xs transition-colors cursor-pointer",
+            isOpen || hasActiveChild 
+              ? "text-slate-900 font-semibold bg-[#f3f4f6]" 
+              : "text-slate-500 hover:bg-slate-50/80 hover:text-slate-900 font-normal"
           )}
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             {Icon && (
               <Icon 
                 size={16} 
-                strokeWidth={hasActiveChild ? 2.4 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
+                strokeWidth={isOpen || hasActiveChild ? 2 : 1.8}
+                className={cn(isOpen || hasActiveChild ? "text-slate-900" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
               />
             )}
             <span className="truncate">{label}</span>
           </div>
-          <ChevronDown
-            size={14}
-            className={cn("text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0", isOpen ? "rotate-0" : "-rotate-90")}
-          />
+          {isOpen ? (
+            <ChevronUp size={13} className="text-slate-400 shrink-0" />
+          ) : (
+            <ChevronDown size={13} className="text-slate-400 shrink-0" />
+          )}
         </button>
+
+        {/* Tree Submenu List */}
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-5 pl-3 border-l border-slate-200/90 flex flex-col gap-0.5 sidebar-submenus relative"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-200 ease-in-out ml-4 pl-3 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
             pointerEvents: isOpen ? "auto" : "none",
-            marginTop: isOpen ? "2px" : "0px",
-            marginBottom: isOpen ? "2px" : "0px",
+            marginTop: isOpen ? "4px" : "0px",
+            marginBottom: isOpen ? "4px" : "0px",
           }}
         >
           {React.Children.map(children, (child) => {
@@ -223,43 +227,37 @@ export default function AdminSidebar({
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // KEPSEK MENU RENDERER — Khusus Kepala Sekolah (Fokus pada Menu Pintasan & Eksekutif)
+  // KEPSEK MENU RENDERER
   // ─────────────────────────────────────────────────────────────────────────────
   const renderKepsekMenu = () => {
     return (
       <>
-        {/* UTAMA */}
         {renderNavItem({
           id: 'dashboard',
           icon: LayoutDashboard,
           label: 'Dashboard',
         })}
 
-        {/* MONITORING & KBM */}
-        <SidebarSection label="MONITORING & KBM" />
+        <SidebarSection label="Monitoring & KBM" />
         {renderNavItem({ id: 'generate', icon: Calendar, label: 'Jadwal & KBM' })}
         {renderNavItem({ id: 'laporan_absensi', icon: ClipboardList, label: 'Rekap Kehadiran', activeIds: ['laporan_absensi', 'hikvision_report_guru', 'hikvision_report_karyawan'] })}
-        {renderNavItem({ id: 'pesan', icon: MessageSquare, label: 'Pengumuman' })}
         {renderNavItem({ id: 'kedisiplinan_bpbk', icon: Trophy, label: 'Buku BPBK' })}
         {renderNavItem({ id: 'pkl_dashboard', icon: Briefcase, label: 'Dashboard PKL' })}
         {renderNavItem({ id: 'akademik', icon: CalendarDays, label: 'Kalender' })}
 
-        {/* DATA UTAMA */}
-        <SidebarSection label="DATA UTAMA" />
+        <SidebarSection label="Data Utama" />
         {renderNavItem({ id: 'dataguru', icon: Users, label: 'Data Guru', activeIds: ['dataguru', 'guru', 'data_pegawai', 'karyawan'] })}
         {renderNavItem({ id: 'datasiswa', icon: GraduationCap, label: 'Data Siswa', activeIds: ['datasiswa', 'siswa'] })}
         {renderNavItem({ id: 'dataperusahaan', icon: Building2, label: 'Mitra DUDI', activeIds: ['dataperusahaan', 'pkl_data_perusahaan'] })}
         {renderNavItem({ id: 'riwayat_prestasi', icon: Trophy, label: 'Riwayat Prestasi' })}
 
-        {/* LAPORAN KEHADIRAN */}
-        <SidebarSection label="LAPORAN" />
+        <SidebarSection label="Laporan" />
         {renderNavItem({ id: 'hikvision_report_guru', icon: FileText, label: 'Absensi Guru' })}
         {renderNavItem({ id: 'hikvision_report_siswa', icon: FileText, label: 'Absensi Siswa' })}
         {renderNavItem({ id: 'kedisiplinan_absensi', icon: CheckCircle2, label: 'Izin & Sakit Siswa' })}
         {renderNavItem({ id: 'keterangan_massal', icon: FileSpreadsheet, label: 'Keterangan Massal' })}
 
-        {/* LOG AKTIVITAS */}
-        <SidebarSection label="AKTIVITAS" />
+        <SidebarSection label="Aktivitas" />
         {renderNavItem({ id: 'audit_log', icon: Activity, label: 'Log Aktivitas' })}
         {renderNavItem({ id: 'keamanan', icon: Shield, label: 'Keamanan Akun' })}
       </>
@@ -267,7 +265,7 @@ export default function AdminSidebar({
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // DYNAMIC MENU RENDERER — reads from MENU_REGISTRY
+  // DYNAMIC MENU RENDERER
   // ─────────────────────────────────────────────────────────────────────────────
   const renderDynamicMenu = () => {
     const isAdmin = isSuperAdminRole(activeUserRole);
@@ -281,7 +279,6 @@ export default function AdminSidebar({
       return renderKepsekMenu();
     }
 
-    // For non-admin users: group MENU_REGISTRY by section and render dynamically
     const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass);
     const div = (currentUser?.division || "").toLowerCase().trim();
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
@@ -313,7 +310,6 @@ export default function AdminSidebar({
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       if (item.adminOnly) continue;
-      // Skip pesan because it will be shown cleanly at the bottom above the profile card
       if (item.id === 'pesan') continue;
       if (item.specialCondition === 'walas_only') {
         if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) continue;
@@ -351,7 +347,6 @@ export default function AdminSidebar({
       );
     }
 
-    // Special: Wali Kelas section (only for pure walas teachers)
     if (currentUser?.isWalas || currentUser?.walasClass) {
       if (!isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) {
         const walasItems = MENU_REGISTRY.filter(i => i.specialCondition === 'walas_only');
@@ -381,12 +376,10 @@ export default function AdminSidebar({
   };
 
   const renderAdminMenu = () => {
-    // Build group map from registry
     const groupMap = {};
     const rootItems = [];
 
     for (const item of MENU_REGISTRY) {
-      // Skip pesan from main list since it is rendered above the profile card
       if (item.id === 'pesan') continue;
       if (!item.adminGroupKey) {
         if (!item.adminOnly || isSuperAdminRole(activeUserRole)) {
@@ -405,17 +398,16 @@ export default function AdminSidebar({
       groupMap[item.adminGroupKey].items.push(item);
     }
 
-    // Ordered groups for admin sidebar
     const groupOrder = ['dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem'];
     const sectionLabels = {
-      dataMaster: 'DATA UTAMA',
-      tataUsaha: 'MANAJEMEN SEKOLAH',
+      dataMaster: 'Data Utama',
+      tataUsaha: 'Manajemen Sekolah',
       kurikulum: null,
       kesiswaan: null,
       kehadiran: null,
       hubin: null,
       sarpras: null,
-      absensi: 'PENGATURAN',
+      absensi: 'Pengaturan',
       informasiUmum: null,
       sistem: null,
     };
@@ -452,7 +444,6 @@ export default function AdminSidebar({
       );
     }
 
-    // Render any remaining custom/extra groups not in groupOrder so nothing is ever dropped
     for (const [groupKey, group] of Object.entries(groupMap)) {
       if (groupOrder.includes(groupKey)) continue;
       const renderedItems = group.items.map(item =>
@@ -484,80 +475,108 @@ export default function AdminSidebar({
     <aside
       className={cn(
         "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none",
-        isCollapsed ? "w-[68px]" : "w-[264px]",
+        isCollapsed ? "w-[68px] px-2 py-4" : "w-[244px] p-4",
         isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 shadow-sm translate-x-0" : "hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
       )}
     >
-      {/* ─── 1. HEADER (Untitled UI Style) ─── */}
-      <div className={cn("flex items-center shrink-0 border-b border-slate-100 transition-all", isCollapsed ? "h-[68px] justify-center px-2" : "h-[68px] px-3.5 justify-between")}>
+      {/* ─── 1. BRAND HEADER (Exact Reference Style) ─── */}
+      <div className={cn("flex items-center shrink-0 w-full", isCollapsed ? "justify-center" : "justify-between")}>
         {!isCollapsed ? (
-          <div className="flex items-center justify-between w-full min-w-0 gap-2">
+          <div className="flex items-center justify-between w-full min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+              {/* Clean Geometric Logo Badge */}
+              <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black shrink-0 overflow-hidden shadow-2xs p-1.5">
                 <img
                   src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
-                  alt="Brand Logo"
-                  className="w-7 h-7 object-contain"
+                  alt="Logo"
+                  className="w-full h-full object-contain filter invert brightness-200"
                 />
               </div>
-              <div className="flex flex-col min-w-0 select-none">
-                <span className="font-bold text-slate-900 text-xs tracking-tight truncate">
-                  {appSettings.appName || "KG2 School"}
-                </span>
-                <span className="text-[10.5px] font-medium text-slate-400 tracking-tight truncate">
-                  {appSettings.appSubtitle || appSettings.instansiName || "smkkg2.sch.id"}
-                </span>
-              </div>
+              <span className="font-extrabold text-slate-900 text-sm tracking-wider uppercase truncate">
+                {appSettings.appName || "KURMON"}
+              </span>
             </div>
             {isMobileMenuOpen ? (
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-lg lg:hidden border-none cursor-pointer flex items-center justify-center transition-colors"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg lg:hidden border-none cursor-pointer flex items-center justify-center transition-colors bg-transparent"
                 title="Tutup Menu"
               >
-                <X size={15} strokeWidth={2.5} />
+                <X size={15} strokeWidth={2} />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg hidden lg:flex border-none cursor-pointer items-center justify-center transition-colors shrink-0"
-                title="Sembunyikan Sidebar"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hidden lg:flex border-none cursor-pointer items-center justify-center transition-colors shrink-0 bg-transparent"
+                title="Ciutkan Sidebar"
               >
-                <PanelLeftClose size={15} strokeWidth={2.2} />
+                <PanelLeftClose size={15} strokeWidth={2} />
               </button>
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2">
-            <div 
-              onClick={toggleSidebar}
-              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer hover:opacity-85 shadow-2xs"
-              title="Perluas Sidebar"
-            >
-              <img
-                src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
-                alt="Brand Logo"
-                className="w-7 h-7 object-contain"
-              />
-            </div>
+          <div 
+            onClick={toggleSidebar}
+            className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black shrink-0 overflow-hidden cursor-pointer shadow-2xs p-1.5 hover:opacity-90 transition-opacity"
+            title="Perluas Sidebar"
+          >
+            <img
+              src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
+              alt="Logo"
+              className="w-full h-full object-contain filter invert brightness-200"
+            />
           </div>
         )}
       </div>
 
-      {/* ─── 2. SEARCH BAR WITH SHORTCUT BADGE (Untitled UI Style) ─── */}
-      {!isCollapsed ? (
-        <div className="px-3 pt-3 pb-1 shrink-0">
+      {/* ─── 2. PRIMARY ACTION BUTTON ("+ New Report" Style) ─── */}
+      <div className={cn("shrink-0", isCollapsed ? "mt-3 mb-2 flex justify-center w-full" : "mt-4 mb-2 w-full")}>
+        {!isCollapsed ? (
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('jurnal_harian');
+              if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+            }}
+            className="w-full bg-[#1e2530] hover:bg-slate-800 text-white font-medium text-xs py-2.5 px-4 rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer border-none active:scale-[0.99]"
+          >
+            <span className="text-base leading-none font-normal">+</span>
+            <span>Jurnal KBM</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('jurnal_harian');
+              if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+            }}
+            className="bg-[#1e2530] hover:bg-slate-800 text-white text-[10px] font-semibold py-1.5 px-2 rounded-lg text-center cursor-pointer border-none transition-colors shadow-2xs whitespace-nowrap"
+            title="Jurnal KBM"
+          >
+            + Jurnal
+          </button>
+        )}
+      </div>
+
+      {/* ─── 3. SECTION LABEL "Menu" ─── */}
+      <div className={cn("text-[11px] font-medium text-slate-400 shrink-0", isCollapsed ? "text-[10px] mt-2 mb-1 text-center" : "mt-2 mb-1 px-1")}>
+        Menu
+      </div>
+
+      {/* ─── 4. SEARCH INPUT (Clean & Minimalist) ─── */}
+      {!isCollapsed && (
+        <div className="mb-2 shrink-0">
           <div className="relative flex items-center">
-            <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+            <Search size={13} className="absolute left-2.5 text-slate-400 pointer-events-none" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search"
-              className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-12 py-1.5 text-xs rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
+              className="w-full bg-slate-50/80 border border-slate-200/60 hover:border-slate-300 focus:border-slate-400 pl-8 pr-11 py-1.5 text-xs rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none transition-all font-normal"
             />
             <div className="absolute right-2 flex items-center gap-1">
               {searchQuery ? (
@@ -566,34 +585,19 @@ export default function AdminSidebar({
                   onClick={() => setSearchQuery("")}
                   className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer border-none bg-transparent"
                 >
-                  <X size={12} />
+                  <X size={11} />
                 </button>
               ) : (
-                <kbd className="hidden sm:inline-block text-[9.5px] font-semibold text-slate-400 bg-slate-100 border border-slate-200/80 px-1.5 py-0.5 rounded">
+                <kbd className="hidden sm:inline-block text-[9px] font-medium text-slate-400 bg-white border border-slate-200 px-1 py-0.2 rounded">
                   ⌘K
                 </kbd>
               )}
             </div>
           </div>
         </div>
-      ) : (
-        <div className="pt-2 pb-1 flex justify-center shrink-0">
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent"
-            >
-              <Search size={16} />
-            </button>
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              Cari Menu (⌘K)
-            </div>
-          </div>
-        </div>
       )}
 
-      {/* ─── 3. NAVIGATION LIST (Tree & Accordion) ─── */}
+      {/* ─── 5. SCROLLABLE NAVIGATION LIST ─── */}
       <nav
         ref={refToUse}
         onScroll={(e) => {
@@ -601,12 +605,12 @@ export default function AdminSidebar({
           posToUse.current = scrollTop;
           sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
         }}
-        className={cn("flex-1 overflow-y-auto hide-scrollbar pt-2 pb-4 relative z-10 transition-all", isCollapsed ? "px-2" : "px-3")}
+        className="flex-1 overflow-y-auto hide-scrollbar py-1 relative z-10"
       >
         {searchQuery.trim() ? (
           <div className="flex flex-col gap-1 py-1">
-            <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              Hasil Pencarian ({filteredSearchItems.length})
+            <div className="px-1 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+              Hasil ({filteredSearchItems.length})
             </div>
             {filteredSearchItems.length > 0 ? (
               filteredSearchItems.map(item => {
@@ -620,27 +624,27 @@ export default function AdminSidebar({
                     }}
                     type="button"
                     className={cn(
-                      "flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
+                      "flex items-center justify-between px-3.5 py-2 text-xs rounded-xl text-left transition-colors cursor-pointer border-none",
                       isActive 
-                        ? "bg-primary/10 text-primary font-bold shadow-2xs" 
-                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                        ? "bg-[#f3f4f6] text-slate-900 font-semibold" 
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-normal"
                     )}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={cn("w-5 h-5 flex items-center justify-center shrink-0", isActive ? "text-primary" : "text-slate-400")}>
-                        {item.icon && React.createElement(item.icon, { size: 16, strokeWidth: isActive ? 2.4 : 2 })}
+                      <div className={cn("w-4 h-4 flex items-center justify-center shrink-0", isActive ? "text-slate-900" : "text-slate-400")}>
+                        {item.icon && React.createElement(item.icon, { size: 15, strokeWidth: 1.8 })}
                       </div>
                       <span className="truncate">{item.label}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
+                    <span className="text-[10px] text-slate-400 font-normal shrink-0 ml-2">
                       {item.adminGroup || item.section || "Menu"}
                     </span>
                   </button>
                 );
               })
             ) : (
-              <div className="px-3 py-4 text-center text-xs text-slate-400">
-                Tidak ada menu yang sesuai dengan "{searchQuery}"
+              <div className="px-2 py-4 text-center text-xs text-slate-400">
+                Tidak ada menu yang sesuai
               </div>
             )}
           </div>
@@ -648,7 +652,7 @@ export default function AdminSidebar({
           <>
             {renderDynamicMenu()}
 
-            {/* Config access for non-admin with granted config permissions */}
+            {/* Non-admin granted config access */}
             {hasAnyConfigAccess() && (
               <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
                 {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
@@ -658,152 +662,83 @@ export default function AdminSidebar({
                 {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
               </SidebarGroup>
             )}
-          </>
-        )}
-      </nav>
 
-      {/* ─── 4. BOTTOM BAR: QUICK ITEM & USER PROFILE CARD (Untitled UI Style) ─── */}
-      {!isCollapsed ? (
-        <div className="p-3 border-t border-slate-200/70 bg-white shrink-0 flex flex-col gap-2 relative">
-          {/* Quick Item: Pengumuman / Inbox (Untitled UI Style) */}
-          {checkIsAllowed('pesan', 'pesan') && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('pesan')}
-              className={cn(
-                "flex w-full items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg border-none transition-all cursor-pointer",
-                activeTab === 'pesan'
-                  ? "bg-primary/10 text-primary font-bold shadow-2xs"
-                  : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
-              )}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <MessageSquare size={16} strokeWidth={activeTab === 'pesan' ? 2.5 : 2} className={activeTab === 'pesan' ? "text-primary" : "text-slate-400"} />
-                <span className="truncate">Pengumuman & Pesan</span>
-              </div>
-              <span className="ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60">
-                Info
-              </span>
-            </button>
-          )}
-
-          {/* User Profile Card */}
-          <div className="relative" ref={userMenuRef}>
-            <div 
-              onClick={() => setIsUserMenuOpen(prev => !prev)}
-              className="group flex items-center justify-between p-2 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
-              title="Buka Menu Pengguna"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
-                  {currentUser?.avatar ? (
-                    <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
-                  ) : (
-                    <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
-                  )}
-                </div>
-                <div className="flex flex-col min-w-0 text-left">
-                  <span className="font-bold text-xs text-slate-800 truncate">
-                    {currentUser?.name || currentUser?.username || "Administrator"}
-                  </span>
-                  <span className="text-[10.5px] text-slate-400 truncate font-medium">
-                    {currentUser?.email || activeRoleLabel || "admin@school.sch.id"}
-                  </span>
-                </div>
-              </div>
-              <ChevronsUpDown size={14} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
-            </div>
-
-            {/* Floating Popover Menu (Untitled UI Style) */}
-            {isUserMenuOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl border border-slate-200/90 shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-2.5 py-2 border-b border-slate-100 flex flex-col">
-                  <span className="text-xs font-bold text-slate-800 truncate">{currentUser?.name || "Pengguna"}</span>
-                  <span className="text-[10.5px] text-slate-400 font-medium truncate">{currentUser?.email || activeRoleLabel}</span>
-                </div>
-
-                <div className="py-1 flex flex-col gap-0.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      onOpenProfile?.();
-                    }}
-                    className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
-                  >
-                    <User size={14} className="text-slate-400" />
-                    <span>Pengaturan Profil</span>
-                  </button>
-
-                  {isSuperAdminRole(activeUserRole) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        handleBackupExport();
-                      }}
-                      disabled={isBackingUp}
-                      className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full disabled:opacity-50"
-                    >
-                      {isBackingUp ? <RefreshCw size={14} className="animate-spin text-primary" /> : <DatabaseBackup size={14} className="text-slate-400" />}
-                      <span>{isBackingUp ? "Membackup Data..." : "Backup & Export Data"}</span>
-                    </button>
-                  )}
-                </div>
-
-                <div className="pt-1 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
-                  >
-                    <LogOut size={14} strokeWidth={2.4} />
-                    <span>Keluar Sistem</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* App Version Info */}
-          {isSuperAdminRole(activeUserRole) && (
-            <div className="text-[9.5px] text-center font-medium text-slate-400 cursor-default px-1 leading-tight flex items-center justify-center gap-1.5 pt-0.5">
-              <span className="font-bold text-slate-500">{appVersion.version}</span>
-              <span>•</span>
-              <span className="truncate max-w-[120px]">{appVersion.detail}</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="p-2 border-t border-slate-200/70 bg-white shrink-0 flex flex-col items-center gap-1.5 relative" ref={userMenuRef}>
-          {/* Quick Item: Pengumuman in Collapsed Mode */}
-          {checkIsAllowed('pesan', 'pesan') && (
-            <div className="group relative">
+            {/* Notifications / Pesan item */}
+            {checkIsAllowed('pesan', 'pesan') && (
               <button
                 type="button"
                 onClick={() => setActiveTab('pesan')}
                 className={cn(
-                  "w-10 h-10 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer",
-                  activeTab === 'pesan' ? "bg-primary/10 text-primary" : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                  "group relative mb-1 flex w-full items-center justify-between border-none text-left transition-colors cursor-pointer",
+                  isCollapsed ? "justify-center p-2.5 rounded-xl" : "px-3.5 py-2.5 text-xs rounded-xl",
+                  activeTab === 'pesan'
+                    ? "bg-[#f3f4f6] text-slate-900 font-semibold"
+                    : "text-slate-500 hover:bg-slate-50/80 hover:text-slate-900 font-normal"
                 )}
               >
-                <MessageSquare size={18} />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className={cn("flex items-center justify-center shrink-0 w-5 h-5", activeTab === 'pesan' ? "text-slate-900" : "text-slate-400 group-hover:text-slate-700")}>
+                    <MessageSquare size={16} strokeWidth={activeTab === 'pesan' ? 2 : 1.8} />
+                  </div>
+                  {!isCollapsed && <span className="truncate">Notifikasi</span>}
+                </div>
+                {!isCollapsed && (
+                  <span className="ml-2 px-2 py-0.5 text-[10px] font-semibold rounded-md bg-emerald-600 text-white">
+                    2
+                  </span>
+                )}
               </button>
-              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                Pengumuman
-              </div>
-            </div>
-          )}
+            )}
+          </>
+        )}
+      </nav>
 
-          {/* User Profile Avatar with Tooltip */}
+      {/* ─── 6. PROFILE SECTION AT BOTTOM (Exact Reference Style) ─── */}
+      {!isCollapsed ? (
+        <div className="pt-3 border-t border-slate-100 shrink-0 flex flex-col">
+          <div className="text-[11px] font-medium text-slate-400 mb-2.5 px-1">Profile</div>
+          
+          {/* User Row */}
+          <div 
+            onClick={onOpenProfile}
+            className="flex items-center gap-2.5 px-1 cursor-pointer group"
+            title="Buka Pengaturan Profil"
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 overflow-hidden shadow-2xs">
+              {currentUser?.avatar ? (
+                <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
+              )}
+            </div>
+            <div className="flex flex-col min-w-0 text-left">
+              <span className="font-semibold text-xs text-slate-900 truncate group-hover:text-primary transition-colors">
+                {currentUser?.name || currentUser?.username || "Omotolani"}
+              </span>
+              <span className="text-[10.5px] text-slate-400 truncate font-normal">
+                {currentUser?.email || activeRoleLabel || "omotolani@example.com"}
+              </span>
+            </div>
+          </div>
+
+          {/* Log out Button (Exact Style from Reference Image) */}
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full mt-3 py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100/90 border border-slate-200/70 text-slate-700 hover:text-slate-900 text-xs font-medium flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs"
+          >
+            <LogOut size={13} strokeWidth={2} className="text-slate-500" />
+            <span>Log out</span>
+          </button>
+        </div>
+      ) : (
+        <div className="pt-3 border-t border-slate-100 shrink-0 flex flex-col items-center">
+          <div className="text-[10px] font-medium text-slate-400 mb-2 text-center">Profile</div>
           <div className="group relative">
             <button
               type="button"
-              onClick={() => setIsUserMenuOpen(prev => !prev)}
-              className="w-9 h-9 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all overflow-hidden"
+              onClick={onOpenProfile}
+              className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center font-bold text-xs text-slate-700 overflow-hidden cursor-pointer hover:ring-2 hover:ring-slate-300 transition-all shadow-2xs"
             >
               {currentUser?.avatar ? (
                 <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
@@ -811,63 +746,30 @@ export default function AdminSidebar({
                 <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
               )}
             </button>
-            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              {currentUser?.name || "Profil Akun"}
+            {/* Floating Tooltip Menu */}
+            <div className="absolute left-full ml-2.5 bottom-0 bg-white rounded-xl shadow-xl border border-slate-100 p-2 min-w-[140px] z-50 opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all flex flex-col gap-1">
+              <div className="px-2 py-1 border-b border-slate-100 flex flex-col">
+                <span className="text-xs font-bold text-slate-900 truncate">{currentUser?.name || "User"}</span>
+                <span className="text-[10px] text-slate-400 truncate">{currentUser?.email || activeRoleLabel}</span>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenProfile}
+                className="flex items-center gap-2 px-2 py-1.5 text-xs text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg border-none bg-transparent cursor-pointer text-left"
+              >
+                <User size={13} className="text-slate-400" />
+                <span>Profil Akun</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-2 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg border-none bg-transparent cursor-pointer text-left"
+              >
+                <LogOut size={13} strokeWidth={2} />
+                <span>Log out</span>
+              </button>
             </div>
           </div>
-
-          {/* Floating Popover Menu in Collapsed Mode */}
-          {isUserMenuOpen && (
-            <div className="absolute bottom-2 left-full ml-2 w-52 bg-white rounded-xl border border-slate-200/90 shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-2.5 py-2 border-b border-slate-100 flex flex-col">
-                <span className="text-xs font-bold text-slate-800 truncate">{currentUser?.name || "Pengguna"}</span>
-                <span className="text-[10px] text-slate-400 font-medium truncate">{currentUser?.email || activeRoleLabel}</span>
-              </div>
-
-              <div className="py-1 flex flex-col gap-0.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    onOpenProfile?.();
-                  }}
-                  className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
-                >
-                  <User size={14} className="text-slate-400" />
-                  <span>Pengaturan Profil</span>
-                </button>
-
-                {isSuperAdminRole(activeUserRole) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
-                      handleBackupExport();
-                    }}
-                    disabled={isBackingUp}
-                    className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full disabled:opacity-50"
-                  >
-                    {isBackingUp ? <RefreshCw size={14} className="animate-spin text-primary" /> : <DatabaseBackup size={14} className="text-slate-400" />}
-                    <span>Backup Data</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="pt-1 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsUserMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
-                >
-                  <LogOut size={14} strokeWidth={2.4} />
-                  <span>Keluar Sistem</span>
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </aside>
