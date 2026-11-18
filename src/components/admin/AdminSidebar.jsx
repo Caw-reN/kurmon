@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
-  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown
+  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
@@ -35,6 +35,9 @@ export default function AdminSidebar({
   const posToUse = sidebarScrollPos || fallbackScrollPos;
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const searchInputRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   const [appVersion, setAppVersion] = useState({
     version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'v2.1.0',
@@ -49,6 +52,32 @@ export default function AdminSidebar({
       })
       .catch(() => {});
   }, []);
+
+  // Keyboard shortcut Ctrl+K / Cmd+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (isSidebarCollapsed) toggleSidebar();
+        setTimeout(() => searchInputRef.current?.focus(), 150);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSidebarCollapsed, toggleSidebar]);
+
+  // Click outside to close user popover menu
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserMenuOpen]);
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -137,7 +166,7 @@ export default function AdminSidebar({
             )}
           </button>
           {/* Untitled UI Dark Tooltip */}
-          <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
             {label}
           </div>
         </div>
@@ -173,7 +202,7 @@ export default function AdminSidebar({
           />
         </button>
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-5 pl-3 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-5 pl-3 border-l border-slate-200/90 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
@@ -284,6 +313,8 @@ export default function AdminSidebar({
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       if (item.adminOnly) continue;
+      // Skip pesan because it will be shown cleanly at the bottom above the profile card
+      if (item.id === 'pesan') continue;
       if (item.specialCondition === 'walas_only') {
         if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
@@ -355,6 +386,8 @@ export default function AdminSidebar({
     const rootItems = [];
 
     for (const item of MENU_REGISTRY) {
+      // Skip pesan from main list since it is rendered above the profile card
+      if (item.id === 'pesan') continue;
       if (!item.adminGroupKey) {
         if (!item.adminOnly || isSuperAdminRole(activeUserRole)) {
           rootItems.push(item);
@@ -456,7 +489,7 @@ export default function AdminSidebar({
       )}
     >
       {/* ─── 1. HEADER (Untitled UI Style) ─── */}
-      <div className={cn("flex items-center shrink-0 border-b border-slate-100/90 transition-all", isCollapsed ? "h-[68px] justify-center px-2" : "h-[68px] px-3.5 justify-between")}>
+      <div className={cn("flex items-center shrink-0 border-b border-slate-100 transition-all", isCollapsed ? "h-[68px] justify-center px-2" : "h-[68px] px-3.5 justify-between")}>
         {!isCollapsed ? (
           <div className="flex items-center justify-between w-full min-w-0 gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
@@ -513,27 +546,34 @@ export default function AdminSidebar({
         )}
       </div>
 
-      {/* ─── 2. SEARCH BAR (Untitled UI Style) ─── */}
+      {/* ─── 2. SEARCH BAR WITH SHORTCUT BADGE (Untitled UI Style) ─── */}
       {!isCollapsed ? (
         <div className="px-3 pt-3 pb-1 shrink-0">
           <div className="relative flex items-center">
             <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search"
-              className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-7 py-1.5 text-xs rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-2xs font-medium"
+              className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-12 py-1.5 text-xs rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
             />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer border-none bg-transparent"
-              >
-                <X size={12} />
-              </button>
-            )}
+            <div className="absolute right-2 flex items-center gap-1">
+              {searchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer border-none bg-transparent"
+                >
+                  <X size={12} />
+                </button>
+              ) : (
+                <kbd className="hidden sm:inline-block text-[9.5px] font-semibold text-slate-400 bg-slate-100 border border-slate-200/80 px-1.5 py-0.5 rounded">
+                  ⌘K
+                </kbd>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -546,14 +586,14 @@ export default function AdminSidebar({
             >
               <Search size={16} />
             </button>
-            <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              Cari Menu
+            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              Cari Menu (⌘K)
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── 3. NAVIGATION (Tree & Accordion) ─── */}
+      {/* ─── 3. NAVIGATION LIST (Tree & Accordion) ─── */}
       <nav
         ref={refToUse}
         onScroll={(e) => {
@@ -622,58 +662,110 @@ export default function AdminSidebar({
         )}
       </nav>
 
-      {/* ─── 4. FOOTER / USER PROFILE CARD (Untitled UI Style) ─── */}
+      {/* ─── 4. BOTTOM BAR: QUICK ITEM & USER PROFILE CARD (Untitled UI Style) ─── */}
       {!isCollapsed ? (
-        <div className="p-3 border-t border-slate-200/70 bg-white shrink-0 flex flex-col gap-2">
-          {/* User Profile Card */}
-          <div 
-            onClick={onOpenProfile}
-            className="group flex items-center justify-between p-2 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/70 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
-            title="Buka Pengaturan Profil & Akun"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
-                {currentUser?.avatar ? (
-                  <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
-                )}
-              </div>
-              <div className="flex flex-col min-w-0 text-left">
-                <span className="font-bold text-xs text-slate-800 truncate">
-                  {currentUser?.name || currentUser?.username || "Administrator"}
-                </span>
-                <span className="text-[10.5px] text-slate-400 truncate font-medium">
-                  {currentUser?.email || activeRoleLabel || "admin@school.sch.id"}
-                </span>
-              </div>
-            </div>
-            <ChevronsUpDown size={14} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
-          </div>
-
-          {/* Quick Action Row: Backup (if admin) & Logout */}
-          <div className="flex items-center gap-1.5 pt-0.5">
-            {isSuperAdminRole(activeUserRole) && (
-              <button
-                type="button"
-                onClick={handleBackupExport}
-                disabled={isBackingUp}
-                className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-650 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 rounded-lg transition-colors cursor-pointer border-none disabled:opacity-50"
-                title="Backup Database"
-              >
-                {isBackingUp ? <RefreshCw size={12} className="animate-spin" /> : <DatabaseBackup size={12} />}
-                <span>{isBackingUp ? "Backup..." : "Backup"}</span>
-              </button>
-            )}
+        <div className="p-3 border-t border-slate-200/70 bg-white shrink-0 flex flex-col gap-2 relative">
+          {/* Quick Item: Pengumuman / Inbox (Untitled UI Style) */}
+          {checkIsAllowed('pesan', 'pesan') && (
             <button
               type="button"
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer border-none flex-1"
-              title="Keluar dari akun"
+              onClick={() => setActiveTab('pesan')}
+              className={cn(
+                "flex w-full items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg border-none transition-all cursor-pointer",
+                activeTab === 'pesan'
+                  ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                  : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
+              )}
             >
-              <LogOut size={12} strokeWidth={2.4} />
-              <span>Keluar</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <MessageSquare size={16} strokeWidth={activeTab === 'pesan' ? 2.5 : 2} className={activeTab === 'pesan' ? "text-primary" : "text-slate-400"} />
+                <span className="truncate">Pengumuman & Pesan</span>
+              </div>
+              <span className="ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200/60">
+                Info
+              </span>
             </button>
+          )}
+
+          {/* User Profile Card */}
+          <div className="relative" ref={userMenuRef}>
+            <div 
+              onClick={() => setIsUserMenuOpen(prev => !prev)}
+              className="group flex items-center justify-between p-2 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
+              title="Buka Menu Pengguna"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                  {currentUser?.avatar ? (
+                    <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0 text-left">
+                  <span className="font-bold text-xs text-slate-800 truncate">
+                    {currentUser?.name || currentUser?.username || "Administrator"}
+                  </span>
+                  <span className="text-[10.5px] text-slate-400 truncate font-medium">
+                    {currentUser?.email || activeRoleLabel || "admin@school.sch.id"}
+                  </span>
+                </div>
+              </div>
+              <ChevronsUpDown size={14} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
+            </div>
+
+            {/* Floating Popover Menu (Untitled UI Style) */}
+            {isUserMenuOpen && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-xl border border-slate-200/90 shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-2.5 py-2 border-b border-slate-100 flex flex-col">
+                  <span className="text-xs font-bold text-slate-800 truncate">{currentUser?.name || "Pengguna"}</span>
+                  <span className="text-[10.5px] text-slate-400 font-medium truncate">{currentUser?.email || activeRoleLabel}</span>
+                </div>
+
+                <div className="py-1 flex flex-col gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onOpenProfile?.();
+                    }}
+                    className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
+                  >
+                    <User size={14} className="text-slate-400" />
+                    <span>Pengaturan Profil</span>
+                  </button>
+
+                  {isSuperAdminRole(activeUserRole) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        handleBackupExport();
+                      }}
+                      disabled={isBackingUp}
+                      className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full disabled:opacity-50"
+                    >
+                      {isBackingUp ? <RefreshCw size={14} className="animate-spin text-primary" /> : <DatabaseBackup size={14} className="text-slate-400" />}
+                      <span>{isBackingUp ? "Membackup Data..." : "Backup & Export Data"}</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="pt-1 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
+                  >
+                    <LogOut size={14} strokeWidth={2.4} />
+                    <span>Keluar Sistem</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* App Version Info */}
@@ -686,12 +778,31 @@ export default function AdminSidebar({
           )}
         </div>
       ) : (
-        <div className="p-2 border-t border-slate-200/70 bg-white shrink-0 flex flex-col items-center gap-2">
+        <div className="p-2 border-t border-slate-200/70 bg-white shrink-0 flex flex-col items-center gap-1.5 relative" ref={userMenuRef}>
+          {/* Quick Item: Pengumuman in Collapsed Mode */}
+          {checkIsAllowed('pesan', 'pesan') && (
+            <div className="group relative">
+              <button
+                type="button"
+                onClick={() => setActiveTab('pesan')}
+                className={cn(
+                  "w-10 h-10 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer",
+                  activeTab === 'pesan' ? "bg-primary/10 text-primary" : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                )}
+              >
+                <MessageSquare size={18} />
+              </button>
+              <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                Pengumuman
+              </div>
+            </div>
+          )}
+
           {/* User Profile Avatar with Tooltip */}
           <div className="group relative">
             <button
               type="button"
-              onClick={onOpenProfile}
+              onClick={() => setIsUserMenuOpen(prev => !prev)}
               className="w-9 h-9 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all overflow-hidden"
             >
               {currentUser?.avatar ? (
@@ -700,41 +811,63 @@ export default function AdminSidebar({
                 <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
               )}
             </button>
-            <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
               {currentUser?.name || "Profil Akun"}
             </div>
           </div>
 
-          {/* Backup Button in Collapsed Mode */}
-          {isSuperAdminRole(activeUserRole) && (
-            <div className="group relative">
-              <button
-                type="button"
-                onClick={handleBackupExport}
-                disabled={isBackingUp}
-                className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer border-none bg-transparent disabled:opacity-50"
-              >
-                {isBackingUp ? <RefreshCw size={15} className="animate-spin" /> : <DatabaseBackup size={15} />}
-              </button>
-              <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-                Backup Data
+          {/* Floating Popover Menu in Collapsed Mode */}
+          {isUserMenuOpen && (
+            <div className="absolute bottom-2 left-full ml-2 w-52 bg-white rounded-xl border border-slate-200/90 shadow-xl p-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-2.5 py-2 border-b border-slate-100 flex flex-col">
+                <span className="text-xs font-bold text-slate-800 truncate">{currentUser?.name || "Pengguna"}</span>
+                <span className="text-[10px] text-slate-400 font-medium truncate">{currentUser?.email || activeRoleLabel}</span>
+              </div>
+
+              <div className="py-1 flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    onOpenProfile?.();
+                  }}
+                  className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
+                >
+                  <User size={14} className="text-slate-400" />
+                  <span>Pengaturan Profil</span>
+                </button>
+
+                {isSuperAdminRole(activeUserRole) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      handleBackupExport();
+                    }}
+                    disabled={isBackingUp}
+                    className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 rounded-lg transition-colors cursor-pointer border-none text-left w-full disabled:opacity-50"
+                  >
+                    {isBackingUp ? <RefreshCw size={14} className="animate-spin text-primary" /> : <DatabaseBackup size={14} className="text-slate-400" />}
+                    <span>Backup Data</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="pt-1 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-2.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer border-none text-left w-full"
+                >
+                  <LogOut size={14} strokeWidth={2.4} />
+                  <span>Keluar Sistem</span>
+                </button>
               </div>
             </div>
           )}
-
-          {/* Logout Button with Tooltip */}
-          <div className="group relative">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer border-none"
-            >
-              <LogOut size={15} />
-            </button>
-            <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
-              Keluar Sistem
-            </div>
-          </div>
         </div>
       )}
     </aside>

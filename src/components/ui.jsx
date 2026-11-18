@@ -307,7 +307,7 @@ export const Button = ({ children, variant = "primary", size = "default", classN
   );
 };
 
-// SidebarNavItem
+// SidebarNavItem (Untitled UI Style)
 export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, collapsed, isSubMenu }) => {
   if (isSubMenu) {
     return (
@@ -317,34 +317,24 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
         title={collapsed ? label : undefined}
         className={cn(
           "group relative flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-visible",
-          "py-1.5 px-2.5 text-xs rounded-lg my-0.5",
+          "py-1.5 px-3 text-xs rounded-lg my-0.5 font-medium",
           isActive
-            ? "text-primary font-bold bg-primary/10 shadow-2xs"
-            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
+            ? "text-primary font-semibold bg-primary/10 shadow-2xs"
+            : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
         )}
       >
-        {/* Active Dot indicator on the tree guideline (Untitled UI style) */}
+        {/* Active Dot indicator on the tree guideline (Exact Untitled UI style) */}
         {isActive && (
           <span 
-            className="absolute -left-[18px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary ring-2 ring-white" 
+            className="absolute -left-[15px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary ring-2 ring-white" 
             aria-hidden="true"
           />
         )}
-        <div className="flex items-center min-w-0 gap-2">
-          {icon && (
-            <div className={cn(
-              "flex items-center justify-center shrink-0 w-4 h-4 transition-colors",
-              isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-600"
-            )}>
-              {React.createElement(icon, { size: 13, strokeWidth: isActive ? 2.5 : 2 })}
-            </div>
-          )}
-          <span className="truncate">{label}</span>
-        </div>
+        <span className="truncate">{label}</span>
         
         {badge && (
           <span className={cn(
-            "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
+            "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold",
             isActive ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-600 border border-slate-200/60"
           )}>
             {badge}
@@ -370,7 +360,7 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
           {icon && React.createElement(icon, { size: 18, strokeWidth: isActive ? 2.5 : 2 })}
         </button>
         {/* Untitled UI Dark Tooltip on hover */}
-        <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
           {label}
         </div>
       </div>
