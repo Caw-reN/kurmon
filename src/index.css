@@ -291,9 +291,9 @@
 .card-panel {
   background-color: var(--ui-card-bg, var(--ui-surface, #ffffff));
   border: var(--ui-card-border, 1px solid var(--ui-border-soft, #e2e8f0));
-  border-color: var(--ui-card-border-color, transparent);
-  box-shadow: var(--ui-card-shadow, var(--ui-shadow-card));
-  border-radius: var(--ui-radius-card, 1.25rem);
+  border-color: var(--ui-card-border-color, var(--ui-border-soft, rgba(226, 232, 240, 0.8)));
+  box-shadow: var(--ui-card-shadow, var(--ui-shadow-card, 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04)));
+  border-radius: var(--ui-radius-card, 1rem);
   transition: all var(--ui-motion);
 }
 
@@ -322,8 +322,8 @@
 .card-elevated article[class*="rounded-2xl"][class*="bg-white"]:not(.border-dashed),
 .card-elevated section[class*="bg-card"],
 .card-elevated div[class*="bg-card"] {
-  border-color: transparent !important;
-  box-shadow: var(--ui-card-shadow, 0 10px 25px -5px rgba(0, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04)) !important;
+  border-color: var(--ui-card-border-color, var(--ui-border-soft, rgba(226, 232, 240, 0.8))) !important;
+  box-shadow: var(--ui-card-shadow, 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.05)) !important;
   --tw-ring-color: transparent !important;
   --tw-ring-shadow: 0 0 #0000 !important;
 }

@@ -189,8 +189,8 @@ function TeachingScheduleCard({
 
       {/* Main Integrated Card */}
       {!selectedClass ? (
-        <div className="ui-card rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] text-center flex flex-col items-center justify-center gap-2.5">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
+        <div className="ui-card rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-slate-200/80 shadow-xs text-center flex flex-col items-center justify-center gap-2.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
             <Calendar size={18} strokeWidth={2.2} />
           </div>
           <div>
@@ -203,7 +203,7 @@ function TeachingScheduleCard({
             <button
               type="button"
               onClick={() => setActiveTab('jurnal_harian')}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-[var(--ui-radius-control)] shadow-xs cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
             >
               <FileText size={13} strokeWidth={2.2} />
               <span>Buka Jurnal KBM</span>
@@ -211,17 +211,17 @@ function TeachingScheduleCard({
             <button
               type="button"
               onClick={() => setActiveTab('generate')}
-              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer active:scale-98 transition-all"
+              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-[var(--ui-radius-control)] cursor-pointer active:scale-98 transition-all"
             >
               Lihat Jadwal
             </button>
           </div>
         </div>
       ) : (
-        <div className="ui-card rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col gap-3 transition-all">
+        <div className="ui-card rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3 transition-all">
           {/* Integrated Segmented Class Switcher Tabs (Inside Card Header) */}
           {todayClasses.length > 1 && (
-            <div className="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 overflow-x-auto no-scrollbar">
+            <div className="bg-slate-100/80 p-1 rounded-[var(--ui-radius-control)] flex items-center gap-1 overflow-x-auto no-scrollbar">
               {todayClasses.map((cItem, cIdx) => {
                 const isSelected = selectedTodayClassIdx === cIdx;
                 let itemOngoing = false;
@@ -838,7 +838,7 @@ export default function DashboardPage({
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
-        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
+        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-gradient-to-r from-slate-50 via-white to-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
           <div className="relative flex-1 min-w-0">
             <button
               type="button"
@@ -990,7 +990,7 @@ export default function DashboardPage({
             )}
 
             {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3">
+              <div className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-400 shrink-0">
                   <Megaphone size={18} strokeWidth={2.2} />
                 </div>
@@ -1007,7 +1007,7 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
+                  className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
                 >
                   <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
@@ -1083,7 +1083,7 @@ export default function DashboardPage({
                 ];
                 const bg = pastelBgs[idx % pastelBgs.length];
                 return (
-                  <div key={idx} className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 active:scale-[0.98] transition-transform">
+                  <div key={idx} className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 active:scale-[0.98] transition-transform">
                     <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shrink-0`}>
                       <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
@@ -1156,7 +1156,7 @@ export default function DashboardPage({
               setActiveTab={setActiveTab}
             />
 
-            <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 flex flex-col flex-1 h-full min-h-[300px]">
+            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex flex-col flex-1 h-full min-h-[300px]">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-2">
                   <Megaphone size={16} className="text-rose-500" /> Pengumuman Baru
@@ -1192,7 +1192,7 @@ export default function DashboardPage({
           {/* KOLOM TENGAH (col-span-6): Menu Utama & Statistik */}
           <div className="lg:col-span-6 flex flex-col gap-4">
             {/* MENU UTAMA Section */}
-            <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-3.5 sm:p-4">
+            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4">
               <div className="flex items-center gap-2 mb-2.5">
                 <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
                 <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
@@ -1214,7 +1214,7 @@ export default function DashboardPage({
             </div>
 
             {/* DATA & INFORMASI STATISTIK Section */}
-            <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex-1">
+            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex-1">
               <div className="flex items-center gap-2 mb-2.5">
                 <Activity size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
                 <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
@@ -1237,7 +1237,7 @@ export default function DashboardPage({
 
           {/* KOLOM KANAN (col-span-3): Beban Mengajar (Lebih Diperkecil & Ramping) */}
           <div className="lg:col-span-3 flex flex-col gap-4 h-full">
-            <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
+            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex-col overflow-hidden flex h-full">
               <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
@@ -1295,7 +1295,7 @@ export default function DashboardPage({
         {/* Mobile Notification Modal (Desktop Style) */}
       {showMobileNotif && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-slate-200/50 shadow-2xl rounded-3xl w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+          <div className="bg-white border border-slate-200/80 shadow-md rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
             
             {/* Header (Sticky) */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
@@ -1421,7 +1421,7 @@ export default function DashboardPage({
       {/* Spacer comment */}
       {showAllAnnouncementsModal && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -1470,7 +1470,7 @@ export default function DashboardPage({
       {/* Modal Detail Single Announcement */}
       {activeAnnouncementDetail && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -1674,7 +1674,7 @@ export default function DashboardPage({
 
           {/* 1. STATUS PEMANTAAN / HERO CARD (Disembunyikan untuk Waka sesuai request) */}
           {!isWaka && (
-            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
+            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
               <div className="flex items-center justify-between gap-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -1709,7 +1709,7 @@ export default function DashboardPage({
 
           {/* PENGUMUMAN SEKOLAH (Ringkas & Nyaman) */}
           {(!dashboardMessages || dashboardMessages.length === 0) ? (
-            <div className="flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-50/90 border border-slate-200/70 text-slate-500 text-xs shadow-2xs">
+            <div className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-slate-50/90 border border-slate-200/80 text-slate-500 text-xs shadow-2xs">
               <div className="flex items-center gap-2 min-w-0">
                 <Megaphone size={13} className="text-slate-400 shrink-0" strokeWidth={2.2} />
                 <span className="text-[11px] font-semibold text-slate-500 truncate">Tidak ada pengumuman baru hari ini</span>
@@ -1739,7 +1739,7 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
+                  className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
                 >
                   <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={16} strokeWidth={2.2} />
@@ -2068,7 +2068,7 @@ export default function DashboardPage({
       )}
 
       {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}
-      <div className="hidden sm:flex ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+      <div className="hidden sm:flex ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
         {/* Dashboard Messages Carousel */}
         {dashboardMessages?.length > 0 && (
           <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
@@ -2480,7 +2480,7 @@ export default function DashboardPage({
       {/* Mobile Notification Modal (Desktop Style) */}
       {showMobileNotif && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-slate-200/50 shadow-2xl rounded-3xl w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+          <div className="bg-white border border-slate-200/80 shadow-md rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
             
             {/* Header (Sticky) */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
@@ -2606,7 +2606,7 @@ export default function DashboardPage({
       {/* Spacer comment */}
       {showAllAnnouncementsModal && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -2655,7 +2655,7 @@ export default function DashboardPage({
       {/* Modal Detail Single Announcement */}
       {activeAnnouncementDetail && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -2798,7 +2798,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
       {/* Modal Popup Detail Pengumuman */}
       {selectedMsg && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-3xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200 shadow-2xl w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {/* Modal Header */}
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">

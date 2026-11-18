@@ -224,9 +224,9 @@ export default function AdminMobileNav({
       role="navigation"
       aria-label="Navigasi Mobile"
     >
-      {/* Container TabBar: Lengkung halus atas (rounded-t-[26px]), putih murni, shadow lembut */}
+      {/* Container TabBar: Lengkung konsisten atas (rounded-t-2xl), putih murni, shadow lembut */}
       <div
-        className="w-full bg-white rounded-t-[26px] border-t border-slate-100/90 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] px-2 pt-2.5 pb-[max(0.65rem,calc(env(safe-area-inset-bottom,0px)+0.4rem))]"
+        className="w-full bg-white rounded-t-2xl border-t border-slate-200/80 shadow-[0_-2px_12px_rgba(0,0,0,0.04)] px-2 pt-2 pb-[max(0.65rem,calc(env(safe-area-inset-bottom,0px)+0.4rem))]"
       >
         <div className="grid grid-cols-5 items-center">
           {allTabs.map(tab => {

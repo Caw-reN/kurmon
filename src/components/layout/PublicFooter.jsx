@@ -189,7 +189,7 @@ export default function PublicFooter({
               const ft = (appSettings?.footerText || "").trim();
               if (ft) {
                 if (/^\d{4}$/.test(ft)) {
-                  return `© ${ft} ${appName} · ${schoolName}`;
+                  return `© ${ft} ${schoolName}`;
                 }
                 return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(ft) }} />;
               }
@@ -197,7 +197,7 @@ export default function PublicFooter({
               if (desc && !desc.includes('Inkscod')) {
                 return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(desc) }} />;
               }
-              return `© ${new Date().getFullYear()} ${appName} · ${schoolName}`;
+              return `© ${new Date().getFullYear()} ${schoolName}`;
             })()}
           </p>
           <div className="text-slate-500 text-xs font-medium">

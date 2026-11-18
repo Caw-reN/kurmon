@@ -2098,15 +2098,16 @@ export default function TabTampilan(props) {
                           <input type="text" value={appSettings.contactPhone ||""} onChange={(e) => setAppSettings({ ...appSettings, contactPhone: e.target.value })} placeholder="+62 123-456-789" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Instansi / Sekolah (Footer)</label>
-                          <input type="text" value={appSettings.instansiName ||""} onChange={(e) => setAppSettings({ ...appSettings, instansiName: e.target.value, schoolName: e.target.value })} placeholder="Institusi Pendidikan Terpadu" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Footer (Copyright)</label>
-                          <input type="text" value={appSettings.footerText || appSettings.footerDescription || ""} onChange={(e) => setAppSettings({ ...appSettings, footerText: e.target.value, footerDescription: e.target.value })} placeholder="© 2026 SMK Karya Guna 2 Bekasi" className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" />
-                        </div>
+                      <div>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Teks Footer (Copyright)</label>
+                        <input 
+                          type="text" 
+                          value={appSettings.footerText || appSettings.footerDescription || ""} 
+                          onChange={(e) => setAppSettings({ ...appSettings, footerText: e.target.value, footerDescription: e.target.value })} 
+                          placeholder="© 2026 SMK Karya Guna 2 Bekasi" 
+                          className="w-full border border-slate-200 bg-white p-2.5 rounded-[var(--ui-radius-control)] text-xs font-bold focus:outline-[var(--ui-primary)] shadow-xs" 
+                        />
+                        <span className="text-[10.5px] text-slate-400 mt-1 block">Teks copyright tunggal ini tampil seragam di footer publik, dashboard admin, dan login.</span>
                       </div>
 
                       <div className="pt-2 border-t border-slate-200/60 mt-4">

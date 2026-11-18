@@ -4524,9 +4524,10 @@ export default function App() {
           <div className="text-xs font-medium text-muted-foreground">
             {(() => {
               const ft = (appSettings.footerText || "").trim();
+              const school = appSettings.instansiName || appSettings.schoolName || "SMK Karya Guna 2 Bekasi";
               if (ft) {
                 if (/^\d{4}$/.test(ft)) {
-                  return `© ${ft} ${appSettings.instansiName || appSettings.appName || "KG2 School"}. All rights reserved.`;
+                  return `© ${ft} ${school}`;
                 }
                 return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(ft) }} />;
               }
@@ -4534,7 +4535,7 @@ export default function App() {
               if (desc && !desc.includes('Inkscod')) {
                 return <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(desc) }} />;
               }
-              return `© ${new Date().getFullYear()} ${appSettings.instansiName || appSettings.appName || "KG2 School"}. All rights reserved.`;
+              return `© ${new Date().getFullYear()} ${school}`;
             })()}
           </div>
           <div className="flex items-center gap-4 text-xs font-medium text-muted-foreground">
