@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
-  CheckCircle2, FileSpreadsheet
+  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
 import { normalizeUserRole } from '@/utils/constants';
@@ -24,13 +24,17 @@ export default function AdminSidebar({
   handleBackupExport,
   isBackingUp,
   sidebarScrollRef,
-  sidebarScrollPos
+  sidebarScrollPos,
+  activeRoleLabel,
+  onOpenProfile
 }) {
   const isCollapsed = isSidebarCollapsed && !isMobileMenuOpen;
   const fallbackScrollRef = useRef(null);
   const fallbackScrollPos = useRef(0);
   const refToUse = sidebarScrollRef || fallbackScrollRef;
   const posToUse = sidebarScrollPos || fallbackScrollPos;
+
+  const [searchQuery, setSearchQuery] = useState('');
 
   const [appVersion, setAppVersion] = useState({
     version: typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'v2.1.0',
@@ -56,7 +60,7 @@ export default function AdminSidebar({
 
   // Scroll active item into view on mount or tab change
   useEffect(() => {
-    if (refToUse.current) {
+    if (refToUse.current && !searchQuery.trim()) {
       const timer = setTimeout(() => {
         if (!refToUse.current) return;
         const activeEl = refToUse.current.querySelector(".bg-primary\\/10, .bg-accent\\/15");
@@ -66,13 +70,31 @@ export default function AdminSidebar({
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [activeTab, refToUse]);
+  }, [activeTab, refToUse, searchQuery]);
+
+  // Real-time search filter across MENU_REGISTRY
+  const filteredSearchItems = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase().trim();
+    return MENU_REGISTRY.filter(item => {
+      const isAllowed = typeof checkIsAllowed === 'function'
+        ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
+        : true;
+      if (!isAllowed) return false;
+      
+      const labelMatch = item.label?.toLowerCase().includes(q);
+      const groupMatch = item.adminGroup?.toLowerCase().includes(q);
+      const sectionMatch = item.section?.toLowerCase().includes(q);
+      const idMatch = item.id?.toLowerCase().includes(q);
+      return labelMatch || groupMatch || sectionMatch || idMatch;
+    });
+  }, [searchQuery, checkIsAllowed]);
 
   const SidebarSection = ({ label }) => {
     if (isCollapsed) return null;
     return (
-      <div className="mt-2.5 mb-1 px-3 flex items-center">
-        <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
+      <div className="mt-4 mb-1.5 px-3 flex items-center">
+        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
           {label}
         </span>
       </div>
@@ -92,28 +114,32 @@ export default function AdminSidebar({
 
     if (isCollapsed) {
       return (
-        <div className="mb-1.5 w-full flex justify-center">
+        <div className="mb-1 w-full flex justify-center group relative">
           <button
             onClick={() => {
               toggleSidebar();
               if (!isOpen) toggleGroup(groupKey);
             }}
             type="button"
-            title={label}
             className={cn(
-              "group relative flex items-center justify-center rounded-[var(--ui-radius-small)] border-none transition-all cursor-pointer",
-              "w-10 h-10 hover:bg-muted hover:text-foreground",
-              hasActiveChild ? "bg-primary/10 text-primary font-bold shadow-xs" : "text-muted-foreground"
+              "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-10 h-10",
+              hasActiveChild 
+                ? "bg-primary/10 text-primary font-bold shadow-2xs" 
+                : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
             )}
           >
             {Icon && (
               <Icon 
                 size={18} 
                 strokeWidth={hasActiveChild ? 2.5 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors")} 
+                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
               />
             )}
           </button>
+          {/* Untitled UI Dark Tooltip */}
+          <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            {label}
+          </div>
         </div>
       );
     }
@@ -124,28 +150,30 @@ export default function AdminSidebar({
           onClick={() => toggleGroup(groupKey)}
           type="button"
           className={cn(
-            "group relative mb-1 flex w-full items-center justify-between rounded-[var(--ui-radius-small)] border-none",
-            "px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer",
-            hasActiveChild ? "text-primary font-bold bg-primary/5" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            "group relative flex w-full items-center justify-between rounded-lg border-none",
+            "px-3 py-2 text-xs font-semibold transition-all cursor-pointer",
+            hasActiveChild 
+              ? "text-slate-900 font-bold bg-slate-50/90" 
+              : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
           )}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             {Icon && (
               <Icon 
-                size={15} 
-                strokeWidth={hasActiveChild ? 2.5 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-muted-foreground group-hover:text-foreground transition-colors")} 
+                size={16} 
+                strokeWidth={hasActiveChild ? 2.4 : 2}
+                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")} 
               />
             )}
             <span className="truncate">{label}</span>
           </div>
           <ChevronDown
             size={14}
-            className={cn("text-muted-foreground group-hover:text-foreground transition-transform duration-200 shrink-0", isOpen ? "rotate-0" : "-rotate-90")}
+            className={cn("text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0", isOpen ? "rotate-0" : "-rotate-90")}
           />
         </button>
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-5.5 pl-3 border-l border-slate-200/60 flex flex-col gap-1 sidebar-submenus"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-5 pl-3 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
@@ -211,9 +239,7 @@ export default function AdminSidebar({
 
   // ─────────────────────────────────────────────────────────────────────────────
   // DYNAMIC MENU RENDERER — reads from MENU_REGISTRY
-  // Groups items by section, renders renderNavItem for each
   // ─────────────────────────────────────────────────────────────────────────────
-
   const renderDynamicMenu = () => {
     const isAdmin = isSuperAdminRole(activeUserRole);
     const isKepsek = normalizeUserRole(activeUserRole) === 'kepsek' || normalizeUserRole(currentUser?.role) === 'kepsek';
@@ -257,11 +283,7 @@ export default function AdminSidebar({
 
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
-      // Skip admin-only items for non-admins
       if (item.adminOnly) continue;
-      // Handle items with specialCondition === 'walas_only':
-      // If user is a pure walas, show them in dedicated Walas section below.
-      // If user is in Kesiswaan, Kurikulum, or BK team, ALWAYS render in their main section even if also walas!
       if (item.specialCondition === 'walas_only') {
         if (isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
@@ -428,41 +450,37 @@ export default function AdminSidebar({
   return (
     <aside
       className={cn(
-        "app-sidebar border-r border-border bg-card flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none",
-        isCollapsed ? "w-[68px]" : "w-[268px]",
+        "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none",
+        isCollapsed ? "w-[68px]" : "w-[264px]",
         isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 shadow-sm translate-x-0" : "hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
       )}
     >
-      {/* Header / Logo */}
-      <div className={cn("flex items-center shrink-0 relative z-10 bg-transparent transition-all border-none", isCollapsed ? "h-[85px] justify-center px-2 py-2" : "h-[80px] px-[18px]")}>
+      {/* ─── 1. HEADER (Untitled UI Style) ─── */}
+      <div className={cn("flex items-center shrink-0 border-b border-slate-100/90 transition-all", isCollapsed ? "h-[68px] justify-center px-2" : "h-[68px] px-3.5 justify-between")}>
         {!isCollapsed ? (
-          <div className="flex items-center gap-3 cursor-pointer hover:opacity-85 transition-opacity min-w-0 w-full justify-between">
-            <div className="flex items-center gap-3 min-w-0">
-              {appSettings.sidebarLogoMode !== "text" && (
+          <div className="flex items-center justify-between w-full min-w-0 gap-2">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
                 <img
                   src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
                   alt="Brand Logo"
-                  className="w-11 h-11 object-contain shrink-0 rounded-[var(--ui-radius-small)]"
+                  className="w-7 h-7 object-contain"
                 />
-              )}
-              {appSettings.sidebarLogoMode !== "logo" && (
-                <div className="flex flex-col min-w-0 leading-tight select-none">
-                  <span className="font-extrabold text-slate-800 text-[14px] tracking-tight truncate">
-                    {appSettings.appName || "My Workspace"}
-                  </span>
-                  {appSettings.appSubtitle && (
-                    <span className="text-[10px] font-semibold text-slate-400 tracking-tight truncate mt-0.5">
-                      {appSettings.appSubtitle}
-                    </span>
-                  )}
-                </div>
-              )}
+              </div>
+              <div className="flex flex-col min-w-0 select-none">
+                <span className="font-bold text-slate-900 text-xs tracking-tight truncate">
+                  {appSettings.appName || "KG2 School"}
+                </span>
+                <span className="text-[10.5px] font-medium text-slate-400 tracking-tight truncate">
+                  {appSettings.appSubtitle || appSettings.instansiName || "smkkg2.sch.id"}
+                </span>
+              </div>
             </div>
             {isMobileMenuOpen ? (
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-[var(--ui-radius-small)] lg:hidden border-none cursor-pointer flex items-center justify-center"
+                className="p-1.5 text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200/80 rounded-lg lg:hidden border-none cursor-pointer flex items-center justify-center transition-colors"
                 title="Tutup Menu"
               >
                 <X size={15} strokeWidth={2.5} />
@@ -471,34 +489,71 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-[var(--ui-radius-small)] hidden lg:flex border border-slate-200/60 cursor-pointer items-center justify-center transition-all shrink-0 active:scale-95 shadow-xs"
+                className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-lg hidden lg:flex border-none cursor-pointer items-center justify-center transition-colors shrink-0"
                 title="Sembunyikan Sidebar"
               >
-                <PanelLeftClose size={16} strokeWidth={2.5} />
+                <PanelLeftClose size={15} strokeWidth={2.2} />
               </button>
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2.5">
-            <img
-              src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
-              alt="Brand Logo"
-              className="w-11 h-11 object-contain shrink-0 rounded-[var(--ui-radius-small)] cursor-pointer hover:opacity-85 transition-opacity"
+          <div className="flex flex-col items-center gap-2">
+            <div 
               onClick={toggleSidebar}
-            />
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60 cursor-pointer flex items-center justify-center transition-all active:scale-95"
+              className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer hover:opacity-85 shadow-2xs"
               title="Perluas Sidebar"
             >
-              <PanelLeftOpen size={13} strokeWidth={2.5} />
-            </button>
+              <img
+                src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
+                alt="Brand Logo"
+                className="w-7 h-7 object-contain"
+              />
+            </div>
           </div>
         )}
       </div>
 
-      {/* Nav */}
+      {/* ─── 2. SEARCH BAR (Untitled UI Style) ─── */}
+      {!isCollapsed ? (
+        <div className="px-3 pt-3 pb-1 shrink-0">
+          <div className="relative flex items-center">
+            <Search size={14} className="absolute left-2.5 text-slate-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search"
+              className="w-full bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-7 py-1.5 text-xs rounded-lg text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-2xs font-medium"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer border-none bg-transparent"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="pt-2 pb-1 flex justify-center shrink-0">
+          <div className="group relative">
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="w-10 h-10 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent"
+            >
+              <Search size={16} />
+            </button>
+            <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              Cari Menu
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── 3. NAVIGATION (Tree & Accordion) ─── */}
       <nav
         ref={refToUse}
         onScroll={(e) => {
@@ -506,85 +561,182 @@ export default function AdminSidebar({
           posToUse.current = scrollTop;
           sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
         }}
-        className={cn("flex-1 overflow-y-auto hide-scrollbar pt-3 pb-6 relative z-10 transition-all", isCollapsed ? "px-2" : "px-[18px]")}
+        className={cn("flex-1 overflow-y-auto hide-scrollbar pt-2 pb-4 relative z-10 transition-all", isCollapsed ? "px-2" : "px-3")}
       >
-        {renderDynamicMenu()}
+        {searchQuery.trim() ? (
+          <div className="flex flex-col gap-1 py-1">
+            <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Hasil Pencarian ({filteredSearchItems.length})
+            </div>
+            {filteredSearchItems.length > 0 ? (
+              filteredSearchItems.map(item => {
+                const isActive = activeTab === item.id || (Array.isArray(item.activeIds) && item.activeIds.includes(activeTab));
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+                    }}
+                    type="button"
+                    className={cn(
+                      "flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
+                      isActive 
+                        ? "bg-primary/10 text-primary font-bold shadow-2xs" 
+                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                    )}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={cn("w-5 h-5 flex items-center justify-center shrink-0", isActive ? "text-primary" : "text-slate-400")}>
+                        {item.icon && React.createElement(item.icon, { size: 16, strokeWidth: isActive ? 2.4 : 2 })}
+                      </div>
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
+                      {item.adminGroup || item.section || "Menu"}
+                    </span>
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-3 py-4 text-center text-xs text-slate-400">
+                Tidak ada menu yang sesuai dengan "{searchQuery}"
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {renderDynamicMenu()}
 
-        {/* Config access for non-admin with granted config permissions */}
-        {hasAnyConfigAccess() && (
-          <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
-            {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
-            {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
-            {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
-            {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
-            {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
-          </SidebarGroup>
+            {/* Config access for non-admin with granted config permissions */}
+            {hasAnyConfigAccess() && (
+              <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
+                {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
+                {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
+                {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
+                {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
+                {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
+              </SidebarGroup>
+            )}
+          </>
         )}
       </nav>
 
-      {/* Backup / Export Data - hanya untuk Admin/Superadmin */}
-      {isSuperAdminRole(activeUserRole) && (
-        <div className={`px-4 pb-2 shrink-0 ${isSidebarCollapsed ? "flex justify-center" : ""}`}>
-          {isSidebarCollapsed ? (
+      {/* ─── 4. FOOTER / USER PROFILE CARD (Untitled UI Style) ─── */}
+      {!isCollapsed ? (
+        <div className="p-3 border-t border-slate-200/70 bg-white shrink-0 flex flex-col gap-2">
+          {/* User Profile Card */}
+          <div 
+            onClick={onOpenProfile}
+            className="group flex items-center justify-between p-2 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/70 hover:border-slate-300 cursor-pointer transition-all shadow-2xs"
+            title="Buka Pengaturan Profil & Akun"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                {currentUser?.avatar ? (
+                  <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
+                )}
+              </div>
+              <div className="flex flex-col min-w-0 text-left">
+                <span className="font-bold text-xs text-slate-800 truncate">
+                  {currentUser?.name || currentUser?.username || "Administrator"}
+                </span>
+                <span className="text-[10.5px] text-slate-400 truncate font-medium">
+                  {currentUser?.email || activeRoleLabel || "admin@school.sch.id"}
+                </span>
+              </div>
+            </div>
+            <ChevronsUpDown size={14} className="text-slate-400 group-hover:text-slate-600 shrink-0" />
+          </div>
+
+          {/* Quick Action Row: Backup (if admin) & Logout */}
+          <div className="flex items-center gap-1.5 pt-0.5">
+            {isSuperAdminRole(activeUserRole) && (
+              <button
+                type="button"
+                onClick={handleBackupExport}
+                disabled={isBackingUp}
+                className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-slate-650 hover:text-slate-900 bg-slate-100 hover:bg-slate-200/80 rounded-lg transition-colors cursor-pointer border-none disabled:opacity-50"
+                title="Backup Database"
+              >
+                {isBackingUp ? <RefreshCw size={12} className="animate-spin" /> : <DatabaseBackup size={12} />}
+                <span>{isBackingUp ? "Backup..." : "Backup"}</span>
+              </button>
+            )}
             <button
-              onClick={handleBackupExport}
-              disabled={isBackingUp}
               type="button"
-              className="ui-control flex items-center justify-center p-3 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer bg-white w-11 h-11 rounded-[var(--ui-radius-small)] disabled:opacity-50"
-              title="Backup & Export Data"
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors cursor-pointer border-none flex-1"
+              title="Keluar dari akun"
             >
-              {isBackingUp ? <RefreshCw size={18} className="animate-spin" /> : <DatabaseBackup size={18} />}
+              <LogOut size={12} strokeWidth={2.4} />
+              <span>Keluar</span>
             </button>
-          ) : (
-            <button
-              onClick={handleBackupExport}
-              disabled={isBackingUp}
-              type="button"
-              className="w-full flex items-center justify-center gap-2 p-2.5 text-secondary-foreground font-bold text-xs hover:bg-secondary/80 transition-all cursor-pointer bg-secondary rounded-[var(--ui-radius-small)] disabled:opacity-50 border-none"
-            >
-              {isBackingUp ? <RefreshCw size={15} strokeWidth={2.5} className="animate-spin" /> : <DatabaseBackup size={15} strokeWidth={2.5} />}
-              <span>{isBackingUp ? "Membackup..." : "Backup & Export Data"}</span>
-            </button>
+          </div>
+
+          {/* App Version Info */}
+          {isSuperAdminRole(activeUserRole) && (
+            <div className="text-[9.5px] text-center font-medium text-slate-400 cursor-default px-1 leading-tight flex items-center justify-center gap-1.5 pt-0.5">
+              <span className="font-bold text-slate-500">{appVersion.version}</span>
+              <span>•</span>
+              <span className="truncate max-w-[120px]">{appVersion.detail}</span>
+            </div>
           )}
         </div>
-      )}
+      ) : (
+        <div className="p-2 border-t border-slate-200/70 bg-white shrink-0 flex flex-col items-center gap-2">
+          {/* User Profile Avatar with Tooltip */}
+          <div className="group relative">
+            <button
+              type="button"
+              onClick={onOpenProfile}
+              className="w-9 h-9 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all overflow-hidden"
+            >
+              {currentUser?.avatar ? (
+                <img src={currentUser.avatar} alt="User" className="w-full h-full object-cover" />
+              ) : (
+                <span>{(currentUser?.name || currentUser?.username || "A").slice(0, 2).toUpperCase()}</span>
+              )}
+            </button>
+            <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              {currentUser?.name || "Profil Akun"}
+            </div>
+          </div>
 
-      {/* Footer Logout Button */}
-      <div className={cn("p-3 pt-2 flex flex-col gap-2 border-t border-border/40 bg-card/80 shrink-0", isSidebarCollapsed ? "items-center" : "")}>
-        {isSidebarCollapsed ? (
-          <button
-            onClick={handleLogout}
-            type="button"
-            className="flex items-center justify-center p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-100 transition-all cursor-pointer bg-rose-50 w-10 h-10 rounded-[var(--ui-radius-small)] border-none shrink-0"
-            title="Keluar Sistem"
-          >
-            <LogOut size={16} />
-          </button>
-        ) : (
-          <button
-            onClick={handleLogout}
-            type="button"
-            className="w-full flex items-center justify-center gap-2 p-2.5 text-rose-600 font-bold text-xs hover:bg-rose-100 hover:text-rose-700 transition-all cursor-pointer bg-rose-50 rounded-[var(--ui-radius-small)] border-none shrink-0"
-          >
-            <LogOut size={15} strokeWidth={2.5} />
-            <span>Keluar Sistem</span>
-          </button>
-        )}
-        
-        {/* App Version Info - Hanya Admin/Superadmin */}
-        {isSuperAdminRole(activeUserRole) && (
-          !isSidebarCollapsed ? (
-            <div className="text-[10px] text-center font-medium text-slate-400 cursor-default px-1 leading-tight flex flex-col items-center gap-0.5">
-              <span className="font-bold text-slate-500">{appVersion.version}</span>
-              <span className="text-[9px] text-slate-400">{appVersion.detail}</span>
+          {/* Backup Button in Collapsed Mode */}
+          {isSuperAdminRole(activeUserRole) && (
+            <div className="group relative">
+              <button
+                type="button"
+                onClick={handleBackupExport}
+                disabled={isBackingUp}
+                className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors cursor-pointer border-none bg-transparent disabled:opacity-50"
+              >
+                {isBackingUp ? <RefreshCw size={15} className="animate-spin" /> : <DatabaseBackup size={15} />}
+              </button>
+              <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                Backup Data
+              </div>
             </div>
-          ) : (
-            <div className="text-[8px] text-center font-bold text-slate-400 cursor-default w-full truncate" title={`${appVersion.version} (${appVersion.detail})`}>
-              {appVersion.version}
+          )}
+
+          {/* Logout Button with Tooltip */}
+          <div className="group relative">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer border-none"
+            >
+              <LogOut size={15} />
+            </button>
+            <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+              Keluar Sistem
             </div>
-          )
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

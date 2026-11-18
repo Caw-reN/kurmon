@@ -4476,7 +4476,34 @@ export default function App() {
 
     {/* Sidebar */}
 
-    <AdminSidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} isSidebarCollapsed={isSidebarCollapsed} toggleSidebar={toggleSidebar} appSettings={appSettings} currentUser={currentUser} uiFontClass={uiFontClass} activeTab={activeTab} setActiveTab={setActiveTab} renderNavItem={renderNavItem} hasAnyConfigAccess={hasAnyConfigAccess} handleLogout={handleLogout} expandedGroups={expandedGroups} toggleGroup={toggleGroup} isSuperAdminRole={isSuperAdminRole} activeUserRole={activeUserRole} checkIsAllowed={checkIsAllowed} handleBackupExport={handleBackupExport} isBackingUp={isBackingUp} sidebarScrollRef={sidebarScrollRef} sidebarScrollPos={sidebarScrollPos} />
+    <AdminSidebar 
+      isMobileMenuOpen={isMobileMenuOpen} 
+      setIsMobileMenuOpen={setIsMobileMenuOpen} 
+      isSidebarCollapsed={isSidebarCollapsed} 
+      toggleSidebar={toggleSidebar} 
+      appSettings={appSettings} 
+      currentUser={currentUser} 
+      uiFontClass={uiFontClass} 
+      activeTab={activeTab} 
+      setActiveTab={setActiveTab} 
+      renderNavItem={renderNavItem} 
+      hasAnyConfigAccess={hasAnyConfigAccess} 
+      handleLogout={handleLogout} 
+      expandedGroups={expandedGroups} 
+      toggleGroup={toggleGroup} 
+      isSuperAdminRole={isSuperAdminRole} 
+      activeUserRole={activeUserRole} 
+      checkIsAllowed={checkIsAllowed} 
+      handleBackupExport={handleBackupExport} 
+      isBackingUp={isBackingUp} 
+      sidebarScrollRef={sidebarScrollRef} 
+      sidebarScrollPos={sidebarScrollPos}
+      activeRoleLabel={activeRoleLabel}
+      onOpenProfile={() => {
+        setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" });
+        setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null });
+      }}
+    />
 
 
     {/* Main Layout Area */}

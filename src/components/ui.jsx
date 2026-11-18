@@ -309,42 +309,71 @@ export const Button = ({ children, variant = "primary", size = "default", classN
 
 // SidebarNavItem
 export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, collapsed, isSubMenu }) => {
-  const getIconColorClass = (navId) => {
-    if (isActive) return isSubMenu ?"text-slate-700" :"text-primary";
-    return"text-slate-400 group-hover:text-primary transition-colors";
-  };
-
   if (isSubMenu) {
     return (
       <button
         onClick={() => onClick(id)}
         type="button"
         title={collapsed ? label : undefined}
-        className={cn("group relative mb-0.5 flex w-full items-center border-none text-left transition-all cursor-pointer overflow-hidden justify-between","px-3 py-1.5 text-[11px] font-semibold",
+        className={cn(
+          "group relative flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-visible",
+          "py-1.5 px-2.5 text-xs rounded-lg my-0.5",
           isActive
-            ?"text-slate-800 bg-accent/15 border border-accent/25 font-bold"
-            :"bg-transparent text-slate-650 hover:text-slate-900 hover:bg-slate-50/40"
+            ? "text-primary font-bold bg-primary/10 shadow-2xs"
+            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 font-medium"
         )}
-        style={{ borderRadius:"var(--radius, 8px)" }}
       >
+        {/* Active Dot indicator on the tree guideline (Untitled UI style) */}
+        {isActive && (
+          <span 
+            className="absolute -left-[18px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary ring-2 ring-white" 
+            aria-hidden="true"
+          />
+        )}
         <div className="flex items-center min-w-0 gap-2">
-          <div className={cn("flex items-center justify-center shrink-0 w-4 h-4 transition-all",
-            getIconColorClass(id)
-          )}>
-            {React.createElement(icon, { size: 12.5, strokeWidth: 2.5 })}
-          </div>
+          {icon && (
+            <div className={cn(
+              "flex items-center justify-center shrink-0 w-4 h-4 transition-colors",
+              isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-600"
+            )}>
+              {React.createElement(icon, { size: 13, strokeWidth: isActive ? 2.5 : 2 })}
+            </div>
+          )}
           <span className="truncate">{label}</span>
         </div>
         
-        <div className="flex items-center gap-1 shrink-0 ml-auto">
-          {!collapsed && badge && (
-            <span className="rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground">
-              {badge}
-            </span>
-          )}
-          {isActive && <ChevronRight size={10} className="text-slate-700 shrink-0" />}
-        </div>
+        {badge && (
+          <span className={cn(
+            "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
+            isActive ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-600 border border-slate-200/60"
+          )}>
+            {badge}
+          </span>
+        )}
       </button>
+    );
+  }
+
+  if (collapsed) {
+    return (
+      <div className="group relative mb-1 flex justify-center">
+        <button
+          onClick={() => onClick(id)}
+          type="button"
+          className={cn(
+            "w-10 h-10 flex items-center justify-center rounded-lg border-none transition-all cursor-pointer",
+            isActive
+              ? "bg-primary/10 text-primary font-bold shadow-2xs"
+              : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/80"
+          )}
+        >
+          {icon && React.createElement(icon, { size: 18, strokeWidth: isActive ? 2.5 : 2 })}
+        </button>
+        {/* Untitled UI Dark Tooltip on hover */}
+        <div className="absolute left-full ml-2.5 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-xl whitespace-nowrap z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+          {label}
+        </div>
+      </div>
     );
   }
 
@@ -352,25 +381,30 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
     <button
       onClick={() => onClick(id)}
       type="button"
-      title={collapsed ? label : undefined}
-      className={cn("group relative mb-1.5 flex w-full items-center border-none text-left transition-all cursor-pointer overflow-hidden",
-        collapsed ?"justify-center px-0 py-0 min-h-[34px]" :"justify-between px-3.5 py-2","font-semibold text-xs",
+      className={cn(
+        "group relative mb-1 flex w-full items-center justify-between border-none text-left transition-all cursor-pointer overflow-hidden",
+        "px-3 py-2 text-xs font-semibold rounded-lg",
         isActive
-          ?"bg-primary/10 text-primary shadow-xs font-bold"
-          :"bg-transparent text-slate-650 hover:bg-slate-100 hover:text-slate-900"
+          ? "bg-primary/10 text-primary font-bold shadow-2xs"
+          : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
       )}
-      style={{ borderRadius:"var(--radius, 8px)" }}
     >
-      <div className={cn("flex items-center min-w-0", collapsed ?"justify-center" :"gap-2.5")}>
-        <div className={cn("flex items-center justify-center shrink-0 w-6 h-6 transition-all",
-          isActive ?"text-primary" :"text-slate-400 group-hover:text-primary"
-        )}>
-          {React.createElement(icon, { size: 16, strokeWidth: isActive ? 2.5 : 2 })}
-        </div>
-        {!collapsed && <span className="truncate text-xs font-bold">{label}</span>}
+      <div className="flex items-center gap-2.5 min-w-0">
+        {icon && (
+          <div className={cn(
+            "flex items-center justify-center shrink-0 w-5 h-5 transition-colors",
+            isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-700"
+          )}>
+            {React.createElement(icon, { size: 16, strokeWidth: isActive ? 2.5 : 2 })}
+          </div>
+        )}
+        <span className="truncate">{label}</span>
       </div>
-      {!collapsed && badge && (
-        <span className="ml-3 shrink-0 rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold text-primary-foreground">
+      {badge && (
+        <span className={cn(
+          "ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
+          isActive ? "bg-primary text-primary-foreground" : "bg-slate-100 text-slate-600 border border-slate-200/60"
+        )}>
           {badge}
         </span>
       )}
