@@ -2246,15 +2246,15 @@ export default function DashboardPage({
                 key={i}
                 type="button"
                 onClick={() => setActiveTab(shortcut.tab)}
-                className="group relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-[var(--ui-radius-card)] bg-[var(--ui-card-bg,white)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/50 cursor-pointer overflow-hidden isolate h-full z-10"
+                className="group relative flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 lg:p-3.5 rounded-[var(--ui-radius-card)] bg-[var(--ui-card-bg,white)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/50 cursor-pointer overflow-hidden isolate h-full z-10"
               >
                 {/* Background Hover Effect */}
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-current" />
                 
-                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-[var(--ui-radius-control)] ${shortcut.color} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 mb-2 pointer-events-none`}>
-                  <img src={shortcut.icon} className="w-5 h-5 sm:w-6 sm:h-6 object-contain pointer-events-none" alt="" />
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-[var(--ui-radius-control)] ${shortcut.color} flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-300 mb-1.5 pointer-events-none`}>
+                  <img src={shortcut.icon} className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 lg:w-5.5 lg:h-5.5 object-contain pointer-events-none" alt="" />
                 </div>
-                <span className="text-xs sm:text-[13px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-1 pointer-events-none">
+                <span className="text-[10px] sm:text-[11px] md:text-xs lg:text-[12.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5 pointer-events-none">
                   {shortcut.label}
                 </span>
               </button>

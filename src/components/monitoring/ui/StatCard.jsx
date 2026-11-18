@@ -36,7 +36,7 @@ const StatCard = ({
     <div
       onClick={onClick}
       className={`bg-white border border-border/80 rounded-[var(--ui-radius-card)]
-        p-4 sm:p-5 flex flex-col min-[450px]:flex-row items-start min-[450px]:items-center gap-3 sm:gap-4 shadow-xs
+        p-3 sm:p-4 md:p-5 flex flex-col min-[450px]:flex-row items-start min-[450px]:items-center gap-2.5 sm:gap-3.5 md:gap-4 shadow-xs
         transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5
         ${onClick ? 'cursor-pointer hover:border-slate-300 active:scale-[0.99]' : ''}
         ${className}`}
@@ -44,15 +44,15 @@ const StatCard = ({
     >
       {/* Icon */}
       {Icon && (
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-          <Icon size={26} className={`w-6 h-6 sm:w-7 sm:h-7 ${iconColor}`} />
+        <div className={`w-9 h-9 sm:w-11 sm:h-11 md:w-13 md:h-13 rounded-[var(--ui-radius-small)] flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+          <Icon size={20} className={`w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 md:w-6.5 md:h-6.5 ${iconColor}`} />
         </div>
       )}
 
       {/* Content */}
       <div className="flex-1 min-w-0 w-full">
-        <p className="text-[10px] sm:text-xs text-slate-400 font-medium uppercase tracking-wider mb-1 truncate">{label}</p>
-        <p className="text-xl sm:text-2xl font-bold text-slate-800 leading-none truncate">{value}</p>
+        <p className="text-[9.5px] sm:text-xs text-slate-400 font-medium uppercase tracking-wider mb-1 truncate">{label}</p>
+        <p className="text-lg sm:text-xl md:text-2xl font-bold text-slate-800 leading-none truncate">{value}</p>
         {sub && <p className="text-[10px] sm:text-xs text-slate-400 mt-1 truncate">{sub}</p>}
 
         {/* Trend indicator */}

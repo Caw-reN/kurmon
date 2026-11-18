@@ -84,7 +84,7 @@
   }
 
   html {
-    font-size: var(--ui-font-size, 14px) !important;
+    font-size: var(--ui-font-size, 14px);
     font-family: 'Plus Jakarta Sans', 'Plus Jakarta Sans Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -106,6 +106,18 @@
   @media (max-width: 1280px) {
     html {
       font-size: 13px;
+    }
+  }
+
+  @media (max-width: 639px) {
+    html {
+      font-size: 12.5px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    html {
+      font-size: 12px;
     }
   }
 
@@ -139,20 +151,16 @@
  * =========================================
  */
 
-/* 1. Aksesibilitas Touch */
+/* 1. Aksesibilitas Touch (Proporsional: hanya memperbesar target kontrol form utama tanpa merusak icon-button, tab, atau pintasan grid) */
 .accessibility-touch-large {
   --ui-radius-control: 24px !important;
 }
-.accessibility-touch-large button,
-.accessibility-touch-large .btn,
-.accessibility-touch-large input,
+.accessibility-touch-large input:not([type="checkbox"]):not([type="radio"]),
 .accessibility-touch-large select,
-.accessibility-touch-large a,
-.accessibility-touch-large [role="button"] {
-  min-height: 46px !important;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
-  font-size: 105% !important;
+.accessibility-touch-large textarea,
+.accessibility-touch-large .btn-touch-large,
+.accessibility-touch-large button.btn-standard {
+  min-height: 44px;
 }
 
 /* 2. Sidebar Styles (Unified System) */
@@ -1127,38 +1135,32 @@ a[class*="active:scale"]:active {
 }
 
 @layer utilities {
-  .accessibility-touch-large button,
-  .accessibility-touch-large .btn,
   .accessibility-touch-large select,
-  .accessibility-touch-large input,
+  .accessibility-touch-large input:not([type="checkbox"]):not([type="radio"]),
   .accessibility-touch-large textarea,
-  .accessibility-touch-large [role="button"],
-  .accessibility-touch-large [type="checkbox"],
-  .accessibility-touch-large [type="radio"] {
-    min-height: 48px !important;
-    min-width: 48px !important;
-    padding-top: 0.75rem !important;
-    padding-bottom: 0.75rem !important;
+  .accessibility-touch-large .btn:not(.btn-icon):not([class*="p-0"]):not([class*="p-1"]):not([class*="flex-col"]),
+  .accessibility-touch-large button.btn-standard {
+    min-height: 44px;
   }
 
   .accessibility-touch-large [type="checkbox"],
   .accessibility-touch-large [type="radio"] {
-    width: 24px !important;
-    height: 24px !important;
-    min-height: 24px !important;
-    min-width: 24px !important;
+    width: 20px;
+    height: 20px;
+    min-height: 20px;
+    min-width: 20px;
   }
 
   .accessibility-touch-large td,
   .accessibility-touch-large th {
-    padding-top: 1.1rem !important;
-    padding-bottom: 1.1rem !important;
-    font-size: 1.05em !important;
+    padding-top: 0.85rem;
+    padding-bottom: 0.85rem;
+    font-size: 1em;
   }
 
-  .accessibility-touch-large .app-sidebar button {
-    padding-top: 0.85rem !important;
-    padding-bottom: 0.85rem !important;
+  .accessibility-touch-large .app-sidebar button:not(.btn-icon) {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
   }
 
 
