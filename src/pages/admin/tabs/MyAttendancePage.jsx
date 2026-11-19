@@ -16,29 +16,29 @@ function getStatusStyle(dayData) {
   if (!dayData) return null;
   if (dayData.isManual) {
     const s = dayData.status;
-    if (s === 'Izin')       return { bg:'bg-indigo-100',   text:'text-indigo-700',   border:'border-indigo-200',   label:'Izin',      dot:'bg-indigo-500' };
-    if (s === 'Sakit')      return { bg:'bg-yellow-100', text:'text-yellow-700', border:'border-yellow-200', label:'Sakit',     dot:'bg-yellow-500' };
-    if (s === 'Dinas Luar') return { bg:'bg-purple-100', text:'text-purple-700', border:'border-purple-200', label:'Dinas',     dot:'bg-purple-500' };
-    if (s === 'Alpa')       return { bg:'bg-rose-100',    text:'text-rose-700',    border:'border-rose-200',    label:'Alpa',      dot:'bg-rose-500' };
+    if (s === 'Izin')       return { bg:'bg-indigo-50',   text:'text-indigo-700',   border:'border-indigo-200/90',   label:'Izin',      dot:'bg-indigo-500' };
+    if (s === 'Sakit')      return { bg:'bg-yellow-50', text:'text-yellow-800', border:'border-yellow-200/90', label:'Sakit',     dot:'bg-yellow-500' };
+    if (s === 'Dinas Luar') return { bg:'bg-purple-50', text:'text-purple-700', border:'border-purple-200/90', label:'Dinas Luar', dot:'bg-purple-500' };
+    if (s === 'Alpa')       return { bg:'bg-rose-50',    text:'text-rose-700',    border:'border-rose-200/90',    label:'Alpa',      dot:'bg-rose-500' };
   }
   if (dayData.in) {
-    if (dayData.isLate)     return { bg:'bg-amber-100',  text:'text-amber-700',  border:'border-amber-200',  label:'Terlambat', dot:'bg-amber-500' };
-    return                         { bg:'bg-emerald-100',text:'text-emerald-700',border:'border-emerald-200',label:'Hadir',     dot:'bg-emerald-500' };
+    if (dayData.isLate)     return { bg:'bg-amber-50',  text:'text-amber-800',  border:'border-amber-200/90',  label:'Terlambat', dot:'bg-amber-500' };
+    return                         { bg:'bg-emerald-50',text:'text-emerald-700',border:'border-emerald-200/90',label:'Hadir',     dot:'bg-emerald-500' };
   }
   if (dayData.out) {
-    return { bg:'bg-orange-50', text:'text-orange-900', border:'border-orange-300', label:'Tdk Absen Pagi', dot:'bg-orange-500' };
+    return { bg:'bg-orange-50', text:'text-orange-900', border:'border-orange-200/90', label:'Tdk Absen Pagi', dot:'bg-orange-500' };
   }
   return null;
 }
 
 const LEGEND = [
-  { dot:'bg-emerald-500', label:'Hadir' },
-  { dot:'bg-amber-500',   label:'Terlambat' },
-  { dot:'bg-orange-500',  label:'Tdk Absen Pagi' },
-  { dot:'bg-indigo-500',  label:'Izin' },
-  { dot:'bg-yellow-500',  label:'Sakit' },
-  { dot:'bg-purple-500',  label:'Dinas Luar' },
-  { dot:'bg-rose-500',    label:'Alpa' },
+  { dot:'bg-emerald-500', bg:'bg-emerald-50', text:'text-emerald-700', border:'border-emerald-200/90', label:'Hadir' },
+  { dot:'bg-amber-500',   bg:'bg-amber-50',   text:'text-amber-800',   border:'border-amber-200/90',   label:'Terlambat' },
+  { dot:'bg-orange-500',  bg:'bg-orange-50',  text:'text-orange-900',  border:'border-orange-200/90',  label:'Tdk Absen Pagi' },
+  { dot:'bg-indigo-500',  bg:'bg-indigo-50',  text:'text-indigo-700',  border:'border-indigo-200/90',  label:'Izin' },
+  { dot:'bg-yellow-500',  bg:'bg-yellow-50',  text:'text-yellow-800',  border:'border-yellow-200/90',  label:'Sakit' },
+  { dot:'bg-purple-500',  bg:'bg-purple-50',  text:'text-purple-700',  border:'border-purple-200/90',  label:'Dinas Luar' },
+  { dot:'bg-rose-500',    bg:'bg-rose-50',    text:'text-rose-700',    border:'border-rose-200/90',    label:'Alpa' },
 ];
 
 // Helper
@@ -112,6 +112,7 @@ export default function MyAttendancePage({ setActiveTab }) {
 
   const prevMonth = () => setFilter(f => f.month === 1  ? { month:12, year:f.year-1 } : { ...f, month:f.month-1 });
   const nextMonth = () => setFilter(f => f.month === 12 ? { month:1,  year:f.year+1 } : { ...f, month:f.month+1 });
+  const goToCurrentMonth = () => setFilter({ month: today.getMonth() + 1, year: today.getFullYear() });
 
   const calendarGrid = useMemo(() => {
     const firstDay = new Date(filter.year, filter.month - 1, 1).getDay();
@@ -613,24 +614,24 @@ export default function MyAttendancePage({ setActiveTab }) {
 
   /* ---------- RENDER ---------- */
   return (
-    <div className="w-full flex flex-col gap-3 animate-in fade-in duration-300 pb-28 sm:pb-12">
+    <div className="w-full flex flex-col gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-12">
 
-      {/* HEADER */}
+      {/* HERO HEADER */}
       <div
-        className="rounded-[var(--ui-radius-card)] px-4 sm:px-5 py-3.5 sm:py-4 relative overflow-hidden text-white shadow-sm"
-        style={{ background:'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 65%, black) 100%)' }}
+        className="rounded-2xl px-4 sm:px-6 py-4 sm:py-5 relative overflow-hidden text-white shadow-sm"
+        style={{ background:'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, black) 100%)' }}
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 right-0 w-52 h-52 rounded-full border-[26px] border-white -mr-12 -mt-12" />
-          <div className="absolute bottom-0 left-1/3 w-24 h-24 rounded-full border-[11px] border-white -mb-7" />
+          <div className="absolute top-0 right-0 w-60 h-60 rounded-full border-[28px] border-white -mr-14 -mt-14" />
+          <div className="absolute bottom-0 left-1/3 w-28 h-28 rounded-full border-[12px] border-white -mb-8" />
         </div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5">
           <div className="flex items-start sm:items-center gap-3">
             {/* Tombol Back */}
             <button
               type="button"
               onClick={handleBack}
-              className="p-2 sm:p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/20 text-white rounded-[var(--ui-radius-small)] transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
+              className="p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white rounded-xl transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
               title="Kembali ke Beranda"
               aria-label="Kembali ke Beranda"
             >
@@ -639,71 +640,183 @@ export default function MyAttendancePage({ setActiveTab }) {
 
             <div>
               <div className="flex items-center gap-1.5 mb-1">
-                <Fingerprint size={12} className="text-white/70" />
-                <span className="text-white/70 text-[10px] font-black uppercase tracking-widest">Data Fingerprint Hikvision</span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
+                  <Fingerprint size={12} className="text-white" />
+                  <span>Data Biometrik Hikvision</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                </span>
               </div>
-              <h1 className="text-xl md:text-2xl font-black tracking-tight leading-tight">Absensi Saya</h1>
-              <p className="text-white/65 text-xs font-medium mt-0.5">Rekap kehadiran perorangan — {MONTH_NAMES[filter.month-1]} {filter.year}</p>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">Absensi Saya</h1>
+              <p className="text-white/80 text-xs font-medium mt-0.5">
+                Rekap presensi personal • {teacherName} {teacherNIP ? `(NIP: ${teacherNIP})` : (teacherCode ? `(ID: ${teacherCode})` : '')} • {MONTH_NAMES[filter.month-1]} {filter.year}
+              </p>
             </div>
           </div>
 
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 border border-white/20 text-white text-xs font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer w-fit shrink-0 self-end sm:self-auto shadow-xs"
+            className="flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white text-xs font-bold rounded-xl transition-all cursor-pointer w-fit shrink-0 self-end sm:self-auto shadow-xs"
           >
-            <Download size={13} />
+            <Download size={14} strokeWidth={2.4} />
             <span>Download PDF</span>
           </button>
         </div>
       </div>
 
-      {/* STATS compact */}
-      <div className="grid grid-cols-5 gap-2">
+      {/* STATS CARDS: Modern Elevation & Micro-badges */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
         {[
-          { label:'Hadir',     value:stats.hadir,     dot:'bg-emerald-500', bg:'bg-emerald-50', text:'text-emerald-700' },
-          { label:'Terlambat', value:stats.terlambat, dot:'bg-amber-500',   bg:'bg-amber-50',   text:'text-amber-700' },
-          { label:'Izin',      value:stats.izin,      dot:'bg-indigo-500',    bg:'bg-indigo-50',    text:'text-indigo-700' },
-          { label:'Sakit',     value:stats.sakit,     dot:'bg-yellow-500',  bg:'bg-yellow-50',  text:'text-yellow-700' },
-          { label:'Alpa',      value:stats.alpa,      dot:'bg-rose-500',     bg:'bg-rose-50',     text:'text-rose-700' },
-        ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-[var(--ui-radius-small)] px-2 py-2.5 flex flex-col items-center gap-0.5`}>
-            <span className={`w-2 h-2 rounded-[var(--ui-radius-pill)] ${s.dot}`} />
-            <span className={`text-[18px] font-black leading-none ${s.text}`}>{s.value}</span>
-            <span className={`text-[9px] font-black uppercase tracking-wider ${s.text} opacity-60 text-center leading-tight`}>{s.label}</span>
-          </div>
-        ))}
+          { 
+            label: 'Hadir', 
+            value: stats.hadir, 
+            icon: CheckCircle2,
+            accent: 'bg-emerald-500', 
+            iconBg: 'bg-emerald-50 border-emerald-200/80 text-emerald-700',
+            pillBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+            hoverBorder: 'hover:border-emerald-300'
+          },
+          { 
+            label: 'Terlambat', 
+            value: stats.terlambat, 
+            icon: Clock,
+            accent: 'bg-amber-500', 
+            iconBg: 'bg-amber-50 border-amber-200/80 text-amber-700',
+            pillBg: 'bg-amber-50 text-amber-800 border-amber-200/80',
+            hoverBorder: 'hover:border-amber-300'
+          },
+          { 
+            label: 'Izin', 
+            value: stats.izin, 
+            icon: FileText,
+            accent: 'bg-indigo-500', 
+            iconBg: 'bg-indigo-50 border-indigo-200/80 text-indigo-700',
+            pillBg: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+            hoverBorder: 'hover:border-indigo-300'
+          },
+          { 
+            label: 'Sakit', 
+            value: stats.sakit, 
+            icon: HeartPulse,
+            accent: 'bg-yellow-500', 
+            iconBg: 'bg-yellow-50 border-yellow-200/80 text-yellow-800',
+            pillBg: 'bg-yellow-50 text-yellow-800 border-yellow-200/80',
+            hoverBorder: 'hover:border-yellow-300'
+          },
+          { 
+            label: 'Alpa', 
+            value: stats.alpa, 
+            icon: AlertCircle,
+            accent: 'bg-rose-500', 
+            iconBg: 'bg-rose-50 border-rose-200/80 text-rose-700',
+            pillBg: 'bg-rose-50 text-rose-800 border-rose-200/80',
+            hoverBorder: 'hover:border-rose-300'
+          },
+        ].map(s => {
+          const Icon = s.icon;
+          return (
+            <div 
+              key={s.label} 
+              className={`ui-card bg-white border border-slate-200/80 ${s.hoverBorder} rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all relative overflow-hidden group`}
+            >
+              {/* Top Accent Strip */}
+              <div className={`absolute top-0 left-0 right-0 h-1 ${s.accent}`} />
+              
+              <div className="flex items-center justify-between gap-1 mb-2">
+                <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400">
+                  {s.label}
+                </span>
+                <div className={`w-7 h-7 rounded-lg border ${s.iconBg} flex items-center justify-center shrink-0`}>
+                  <Icon size={14} strokeWidth={2.4} />
+                </div>
+              </div>
+
+              <div className="flex items-baseline justify-between gap-2 mt-0.5">
+                <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                  {s.value}
+                </span>
+                <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md border ${s.pillBg}`}>
+                  {s.value} Hari
+                </span>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* CALENDAR */}
-      <div className="ui-card bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden w-full">
-        {/* Nav */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <button onClick={prevMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-[var(--ui-radius-small)] hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent">
-            <ChevronLeft size={18} className="text-slate-600" />
-          </button>
-          <div className="text-center">
-            <h2 className="font-black text-slate-800 text-sm">{MONTH_NAMES[filter.month-1]} {filter.year}</h2>
-            <p className="text-[9.5px] text-slate-400 font-medium">Klik tanggal untuk ajukan surat / izin</p>
-            {loading && <span className="text-[9px] text-slate-400 font-medium animate-pulse">Memuat...</span>}
+      {/* CALENDAR MATRIX CARD */}
+      <div className="ui-card bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden w-full">
+        {/* Navigasi Kalender */}
+        <div className="flex items-center justify-between px-3 sm:px-5 py-3 border-b border-slate-100 bg-white">
+          <div className="flex items-center gap-1.5">
+            <button 
+              onClick={prevMonth} 
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-600 transition-all cursor-pointer active:scale-95"
+              title="Bulan Sebelumnya"
+            >
+              <ChevronLeft size={16} strokeWidth={2.4} />
+            </button>
+            {!isCurrentMonth && (
+              <button
+                onClick={goToCurrentMonth}
+                className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-bold transition-all cursor-pointer active:scale-95"
+                title="Kembali ke Bulan Ini"
+              >
+                <Calendar size={12} strokeWidth={2.2} className="text-primary" />
+                <span>Bulan Ini</span>
+              </button>
+            )}
           </div>
-          <button onClick={nextMonth} disabled={isCurrentMonth} className="w-9.5 h-9.5 flex items-center justify-center rounded-[var(--ui-radius-small)] hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent disabled:opacity-25 disabled:cursor-not-allowed">
-            <ChevronRight size={18} className="text-slate-600" />
-          </button>
+
+          <div className="text-center flex flex-col items-center">
+            <div className="flex items-center gap-2">
+              <h2 className="font-black text-slate-800 text-sm sm:text-base tracking-tight">
+                {MONTH_NAMES[filter.month-1]} {filter.year}
+              </h2>
+              {isCurrentMonth && (
+                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.2 rounded-md">
+                  Periode Aktif
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+              Klik tanggal untuk ajukan surat izin / keterangan atau melihat detail scan
+            </p>
+            {loading && <span className="text-[9px] text-primary font-bold animate-pulse mt-0.5">Menyinkronkan data...</span>}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button 
+              onClick={nextMonth} 
+              disabled={isCurrentMonth} 
+              className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-slate-600 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+              title="Bulan Berikutnya"
+            >
+              <ChevronRight size={16} strokeWidth={2.4} />
+            </button>
+          </div>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 bg-slate-50 border-b border-slate-100">
-          {DAY_NAMES_SHORT.map(d => (
-            <div key={d} className={`py-2 text-center text-[10px] font-black uppercase tracking-widest ${d==='Min'||d==='Sab' ? 'text-rose-400' : 'text-slate-400'}`}>
-              {d}
-            </div>
-          ))}
+        <div className="grid grid-cols-7 bg-slate-50/80 border-b border-slate-100 select-none">
+          {DAY_NAMES_SHORT.map(d => {
+            const isWk = d === 'Min' || d === 'Sab';
+            return (
+              <div 
+                key={d} 
+                className={`py-2 text-center text-[10.5px] font-extrabold uppercase tracking-wider ${
+                  isWk ? 'text-rose-500 bg-rose-50/30' : 'text-slate-500'
+                }`}
+              >
+                {d}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Cells */}
+        {/* Calendar Grid Cells */}
         <div className="grid grid-cols-7 divide-x divide-y divide-slate-100">
           {calendarGrid.map((day, idx) => {
-            if (day === null) return <div key={`e-${idx}`} className="min-h-[80px] md:min-h-[90px] bg-slate-50/50" />;
+            if (day === null) return <div key={`e-${idx}`} className="min-h-[85px] sm:min-h-[96px] bg-slate-50/40" />;
 
             const dayData    = myData?.days?.[day];
             const style      = getStatusStyle(dayData);
@@ -726,48 +839,57 @@ export default function MyAttendancePage({ setActiveTab }) {
                 type="button"
                 onClick={() => openForm(day)}
                 className={`
-                  min-h-[80px] md:min-h-[90px] w-full flex flex-col items-center pt-2 pb-2 gap-0.5
+                  min-h-[85px] sm:min-h-[96px] w-full flex flex-col items-center pt-1.5 pb-2 px-1 gap-1
                   transition-all cursor-pointer border-none text-left relative group
-                  ${isSelected ? 'bg-[var(--ui-primary)]/10 ring-2 ring-inset ring-[var(--ui-primary)] z-10' : isFuture ? 'bg-slate-50/40 hover:bg-slate-100/70' : 'hover:bg-slate-50 bg-white'}
+                  ${isSelected ? 'bg-emerald-50/60 ring-2 ring-inset ring-emerald-500 z-10' : isFuture ? 'bg-slate-50/40 hover:bg-slate-100/70' : isWeekend ? 'bg-slate-50/30 hover:bg-slate-100/60' : 'bg-white hover:bg-slate-50/90'}
                 `}
                 title={`Klik tanggal ${day} untuk ajukan surat keterangan / izin`}
               >
                 {/* Date number */}
                 <span className={`
-                  w-7 h-7 flex items-center justify-center rounded-full text-xs font-black shrink-0
-                  ${isToday ? 'bg-[var(--ui-primary)] text-white shadow-xs' : isWeekend ? 'text-rose-400' : isFuture ? 'text-slate-400' : 'text-slate-600'}
+                  w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs font-black shrink-0 transition-transform group-hover:scale-105
+                  ${isToday 
+                    ? 'bg-emerald-600 text-white shadow-2xs ring-2 ring-emerald-200' 
+                    : isWeekend 
+                      ? 'text-rose-500 font-extrabold' 
+                      : isFuture 
+                        ? 'text-slate-400 font-medium' 
+                        : 'text-slate-700 font-bold'
+                  }
                 `}>
                   {day}
                 </span>
 
                 {/* Status pill (desktop) */}
                 {style && (
-                  <div className={`hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] ${style.bg} border ${style.border} max-w-full`}>
+                  <div className={`hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-md ${style.bg} border ${style.border} max-w-full shadow-2xs`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${style.dot} shrink-0`} />
-                    <span className={`text-[8px] font-black ${style.text} truncate`}>{style.label}</span>
+                    <span className={`text-[8.5px] font-black ${style.text} truncate leading-tight`}>{style.label}</span>
                   </div>
                 )}
 
                 {/* Jam Masuk & Keluar */}
                 {(showIn || showOut) && (
-                  <div className="flex flex-col items-center w-full px-0 sm:px-1">
-                    <div className="flex items-center gap-0.5 w-full justify-center">
-                      <span className={`hidden sm:inline text-[7px] font-black ${style?.text || 'text-emerald-500'}`}>↑</span>
+                  <div className="flex flex-col items-center w-full px-0 sm:px-1 gap-0.5 mt-0.5">
+                    <div className="flex items-center gap-1 w-full justify-center">
                       {!showIn ? (
-                        <span className="text-[7.5px] font-extrabold text-rose-600 flex items-center justify-center gap-1 leading-none">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                        <span className="text-[7.5px] font-extrabold text-rose-600 px-1 py-0.2 rounded bg-rose-50 border border-rose-100 flex items-center gap-0.5 leading-none">
+                          <span className="w-1 h-1 rounded-full bg-rose-500 shrink-0" />
                           <span>Tdk Absen</span>
                         </span>
                       ) : (
-                        <span className={`text-[8px] font-black tracking-tighter ${style?.text || 'text-emerald-700'}`}>
-                          {fmt5(dayData.in)}
+                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-emerald-50 text-emerald-800 text-[8px] font-bold border border-emerald-200/60 leading-tight">
+                          <Clock size={8} className="text-emerald-600 shrink-0" />
+                          <span>{fmt5(dayData.in)}</span>
                         </span>
                       )}
                     </div>
                     {showOut && (
-                      <div className="flex items-center gap-0.5 w-full justify-center">
-                        <span className="hidden sm:inline text-[7px] text-slate-400 font-black">↓</span>
-                        <span className="text-[8px] font-black text-slate-600 tracking-tighter">{fmt5(dayData.out)}</span>
+                      <div className="flex items-center gap-1 w-full justify-center">
+                        <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-slate-100 text-slate-700 text-[8px] font-bold border border-slate-200/60 leading-tight">
+                          <span className="text-[7px] text-slate-400">P</span>
+                          <span>{fmt5(dayData.out)}</span>
+                        </span>
                       </div>
                     )}
                   </div>
@@ -775,14 +897,14 @@ export default function MyAttendancePage({ setActiveTab }) {
 
                 {/* Info Hari Kosong (Libur/Event) */}
                 {!style && !showIn && !isFuture && (
-                  <div className="flex flex-col items-center justify-center w-full px-1 mt-0.5 grow">
+                  <div className="flex flex-col items-center justify-center w-full px-0.5 mt-1 grow">
                     {dayEvent ? (
-                      <span className={`text-[7.5px] font-black uppercase tracking-widest text-center leading-tight ${isHolidayEvent ? 'text-rose-500' : 'text-slate-400'}`}>
+                      <span className={`text-[7.5px] font-extrabold uppercase tracking-wider text-center leading-tight px-1 py-0.5 rounded ${isHolidayEvent ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
                         {dayEvent.title}
                       </span>
                     ) : isWeekend ? (
-                      <span className="text-[7.5px] font-black text-rose-400/80 uppercase tracking-widest text-center leading-tight">
-                        Libur Akhir Pekan
+                      <span className="text-[7.5px] font-extrabold text-rose-500/90 uppercase tracking-wider text-center leading-tight px-1 py-0.5 rounded bg-rose-50/80 border border-rose-100/80">
+                        Akhir Pekan
                       </span>
                     ) : null}
                   </div>
@@ -795,49 +917,54 @@ export default function MyAttendancePage({ setActiveTab }) {
           })}
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-3 border-t border-slate-100 bg-slate-50/50">
-          {LEGEND.map(l => (
-            <div key={l.label} className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${l.dot}`} />
-              <span className="text-[10px] font-semibold text-slate-500">{l.label}</span>
-            </div>
-          ))}
-          <span className="text-[10px] text-slate-400 ml-auto hidden sm:flex items-center gap-1">
-            <Info size={11} className="text-slate-400" />
-            <span>Klik tanggal untuk langsung mengajukan surat</span>
-          </span>
+        {/* Legend: Strict UI Compliance Badge Pill Pastel */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 px-3 sm:px-5 py-3 border-t border-slate-100 bg-slate-50/60">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {LEGEND.map(l => (
+              <span 
+                key={l.label} 
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] ${l.bg} ${l.text} border ${l.border} text-[10px] font-bold shadow-2xs`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${l.dot} shrink-0`} />
+                <span>{l.label}</span>
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 bg-white border border-slate-200/80 px-2.5 py-1 rounded-lg shadow-2xs">
+            <Info size={12} className="text-slate-400 shrink-0" />
+            <span>Klik tanggal untuk langsung mengajukan surat / izin</span>
+          </div>
         </div>
       </div>
 
-      {/* DAY DETAIL */}
+      {/* DAY DETAIL CARD */}
       {selectedDay != null && (
-        <div className={`rounded-[var(--ui-radius-card)] border overflow-hidden ${selectedDayStyle ? `${selectedDayStyle.bg} ${selectedDayStyle.border}` : 'bg-slate-50 border-slate-200'}`}>
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/5">
+        <div className={`rounded-2xl border overflow-hidden shadow-xs transition-all ${selectedDayStyle ? `${selectedDayStyle.bg} ${selectedDayStyle.border}` : 'bg-white border-slate-200/90'}`}>
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-black/5 bg-white/50">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Detail Kehadiran</p>
-              <h3 className="font-black text-slate-800">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-0.5">Detail Kehadiran</p>
+              <h3 className="font-black text-slate-800 text-sm sm:text-base">
                 {DAY_NAMES_FULL[new Date(filter.year, filter.month-1, selectedDay).getDay()]}, {selectedDay} {MONTH_NAMES[filter.month-1]} {filter.year}
               </h3>
             </div>
             <div className="flex items-center gap-2">
               {selectedDayStyle && (
-                <span className={`px-2.5 py-1 rounded-[var(--ui-radius-pill)] text-[10px] font-black uppercase border ${selectedDayStyle.bg} ${selectedDayStyle.text} ${selectedDayStyle.border}`}>
+                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${selectedDayStyle.bg} ${selectedDayStyle.text} ${selectedDayStyle.border} shadow-2xs`}>
                   {selectedDayStyle.label}
                 </span>
               )}
               <button
                 type="button"
                 onClick={() => openForm(selectedDay)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/80 hover:bg-white border border-slate-200 text-slate-600 text-[10px] font-black rounded-[var(--ui-radius-small)] transition-all cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-2xs active:scale-95"
               >
-                <FileText size={11} />
-                {selectedDayData?.isManual ? 'Ubah Keterangan' : 'Ajukan Keterangan'}
+                <FileText size={12} className="text-primary" />
+                <span>{selectedDayData?.isManual ? 'Ubah Keterangan' : 'Ajukan Keterangan'}</span>
               </button>
             </div>
           </div>
 
-          <div className="p-4">
+          <div className="p-4 sm:p-5">
             {selectedDayData ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {selectedDayData.isManual ? (
