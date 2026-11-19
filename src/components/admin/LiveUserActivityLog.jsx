@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   LogIn, UploadCloud, BookOpen, Shield, Activity, RefreshCw, Clock, 
-  UserCheck, ChevronRight, Settings, FileCheck, Layers, Download, 
-  Compass, LayoutGrid, FileText, CheckCircle2 
+  ChevronRight, ChevronLeft, Settings, Download, Compass, 
+  FileText, CheckCircle2, User, ArrowUpRight, Sparkles
 } from 'lucide-react';
 import useAuthStore from '../../store/monitoring/authStore';
 import { useDataStore } from '../../store/useDataStore';
@@ -12,7 +12,7 @@ export function getActionMeta(action, detail = '') {
   const act = String(action || '').toUpperCase();
   const det = String(detail || '').toLowerCase();
 
-  // 1. LOGIN
+  // 1. LOGIN / LOGOUT
   if (act.includes('LOGIN') || act.includes('MASUK') || det.includes('masuk ke sistem') || det.includes('login')) {
     return {
       label: 'LOGIN',
@@ -23,7 +23,22 @@ export function getActionMeta(action, detail = '') {
     };
   }
 
-  // 2. BUKA MENU / NAVIGASI
+  // 2. UPDATE / SIMPAN / PERUBAHAN DATA
+  if (
+    act.includes('UPDATE') || act.includes('SIMPAN') || act.includes('EDIT') || 
+    act.includes('SAVE') || act.includes('UBAH') || det.includes('menyimpan') || 
+    det.includes('memperbarui') || det.includes('mengubah') || det.includes('update')
+  ) {
+    return {
+      label: 'UPDATE',
+      bg: 'bg-teal-50 text-teal-700 border-teal-200/80',
+      icon: RefreshCw,
+      color: 'text-teal-600',
+      category: 'update'
+    };
+  }
+
+  // 3. BUKA MENU / NAVIGASI
   if (act.includes('NAVIGASI') || act.includes('TAB') || act.includes('MENU') || det.includes('membuka') || det.includes('navigasi') || det.includes('melihat tab')) {
     return {
       label: 'BUKA MENU',
@@ -34,7 +49,7 @@ export function getActionMeta(action, detail = '') {
     };
   }
 
-  // 3. UPLOAD & UNDUH / FILE
+  // 4. UPLOAD & UNDUH / FILE
   if (
     act.includes('DOWNLOAD') || act.includes('UNDUH') || act.includes('UPLOAD') || 
     act.includes('UNGGAH') || act.includes('IMPORT') || act.includes('EXPORT') || 
@@ -45,7 +60,7 @@ export function getActionMeta(action, detail = '') {
   ) {
     const isUpload = act.includes('UPLOAD') || act.includes('UNGGAH') || act.includes('IMPORT') || det.includes('unggah') || det.includes('upload');
     return {
-      label: isUpload ? 'UPLOAD / FILE' : 'DOWNLOAD',
+      label: isUpload ? 'FILE / UPLOAD' : 'DOWNLOAD',
       bg: isUpload ? 'bg-indigo-50 text-indigo-700 border-indigo-200/80' : 'bg-amber-50 text-amber-700 border-amber-200/80',
       icon: isUpload ? UploadCloud : Download,
       color: isUpload ? 'text-indigo-600' : 'text-amber-600',
@@ -53,7 +68,7 @@ export function getActionMeta(action, detail = '') {
     };
   }
 
-  // 4. JURNAL KBM & KESISWAAN
+  // 5. JURNAL KBM & KESISWAAN
   if (
     act.includes('JURNAL') || act.includes('KBM') || act.includes('ABSENSI') || 
     act.includes('PRESENSI') || act.includes('NILAI') || act.includes('VALIDASI') || 
@@ -71,7 +86,7 @@ export function getActionMeta(action, detail = '') {
     };
   }
 
-  // 5. PENGATURAN / KELOLA DATA
+  // 6. PENGATURAN / KELOLA DATA
   if (act.includes('SETTING') || act.includes('CONFIG') || act.includes('ROLE') || act.includes('BACKUP') || act.includes('OVERRIDE')) {
     return {
       label: 'PENGATURAN',
@@ -84,7 +99,7 @@ export function getActionMeta(action, detail = '') {
 
   return {
     label: act || 'AKTIVITAS',
-    bg: 'bg-slate-100 text-slate-700 border-slate-200',
+    bg: 'bg-slate-100 text-slate-700 border-slate-200/80',
     icon: Activity,
     color: 'text-slate-600',
     category: 'other'
@@ -93,14 +108,60 @@ export function getActionMeta(action, detail = '') {
 
 export function getRoleBadge(role) {
   const r = String(role || '').toLowerCase();
-  if (r.includes('walas') || r.includes('wali')) return { label: 'Wali Kelas', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
-  if (r.includes('guru')) return { label: 'Guru', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100' };
-  if (r.includes('karyawan') || r.includes('staff')) return { label: 'Karyawan', bg: 'bg-teal-50 text-teal-700 border-teal-100' };
-  if (r.includes('tu') || r.includes('tata')) return { label: 'Staf TU', bg: 'bg-sky-50 text-sky-700 border-sky-100' };
-  if (r.includes('waka')) return { label: 'Waka', bg: 'bg-amber-50 text-amber-700 border-amber-100' };
-  if (r.includes('kepsek')) return { label: 'Kepsek', bg: 'bg-purple-50 text-purple-700 border-purple-100' };
-  if (r.includes('admin')) return { label: 'Admin', bg: 'bg-slate-900 text-white border-slate-700' };
-  return { label: role || 'User', bg: 'bg-slate-100 text-slate-600 border-slate-200' };
+  if (r.includes('walas') || r.includes('wali')) {
+    return { 
+      label: 'Wali Kelas', 
+      bg: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+      avatarBg: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+    };
+  }
+  if (r.includes('guru')) {
+    return { 
+      label: 'Guru', 
+      bg: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
+      avatarBg: 'bg-indigo-100 text-indigo-800 border-indigo-200'
+    };
+  }
+  if (r.includes('karyawan') || r.includes('staff')) {
+    return { 
+      label: 'Karyawan', 
+      bg: 'bg-teal-50 text-teal-700 border-teal-200/80',
+      avatarBg: 'bg-teal-100 text-teal-800 border-teal-200'
+    };
+  }
+  if (r.includes('tu') || r.includes('tata')) {
+    return { 
+      label: 'Staf TU', 
+      bg: 'bg-sky-50 text-sky-700 border-sky-200/80',
+      avatarBg: 'bg-sky-100 text-sky-800 border-sky-200'
+    };
+  }
+  if (r.includes('waka')) {
+    return { 
+      label: 'Waka', 
+      bg: 'bg-amber-50 text-amber-700 border-amber-200/80',
+      avatarBg: 'bg-amber-100 text-amber-800 border-amber-200'
+    };
+  }
+  if (r.includes('kepsek')) {
+    return { 
+      label: 'Kepsek', 
+      bg: 'bg-purple-50 text-purple-700 border-purple-200/80',
+      avatarBg: 'bg-purple-100 text-purple-800 border-purple-200'
+    };
+  }
+  if (r.includes('admin')) {
+    return { 
+      label: 'Admin', 
+      bg: 'bg-slate-800 text-white border-slate-700 shadow-2xs',
+      avatarBg: 'bg-slate-800 text-white border-slate-700'
+    };
+  }
+  return { 
+    label: role || 'User', 
+    bg: 'bg-slate-100 text-slate-700 border-slate-200/80',
+    avatarBg: 'bg-slate-100 text-slate-700 border-slate-200'
+  };
 }
 
 export function formatLogTime(dateStr) {
@@ -125,11 +186,15 @@ export function formatLogTime(dateStr) {
     const minute = timeParts.find(p => p.type === 'minute')?.value || '00';
     const timeStr = `${hour}.${minute}`;
     
-    if (diffMins >= 0 && diffMins < 1) return 'Baru saja';
-    if (diffMins >= 1 && diffMins < 60) return `${diffMins} mnt lalu`;
+    if (diffMins >= 0 && diffMins < 1) {
+      return 'Baru saja';
+    }
+    if (diffMins >= 1 && diffMins < 60) {
+      return `${diffMins} mnt lalu`;
+    }
     return `${timeStr} WIB`;
   } catch {
-    return dateStr;
+    return String(dateStr);
   }
 }
 
@@ -138,7 +203,7 @@ export function getDuration(dateStr) {
     const d = new Date(dateStr);
     const now = new Date();
     const diffMins = Math.floor((now.getTime() - d.getTime()) / 60000);
-    if (diffMins < 0) return '';
+    if (diffMins <= 0) return '';
     if (diffMins < 60) return `${diffMins} mnt`;
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
@@ -157,7 +222,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filterType, setFilterType] = useState('all'); // 'all' | 'login' | 'navigasi' | 'kbm' | 'file'
+  const [filterType, setFilterType] = useState('all'); // 'all' | 'update' | 'login' | 'navigasi' | 'kbm' | 'file'
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -189,7 +254,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, isAllowed]);
 
   useEffect(() => {
     fetchAuditLogs();
@@ -251,7 +316,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
 
   // Filtered list & Category Counts
   const categoryCounts = useMemo(() => {
-    const counts = { all: appActivities.length, login: 0, navigasi: 0, kbm: 0, file: 0 };
+    const counts = { all: appActivities.length, update: 0, login: 0, navigasi: 0, kbm: 0, file: 0 };
     appActivities.forEach(item => {
       const meta = getActionMeta(item.action, item.detail);
       if (meta.category && counts[meta.category] !== undefined) {
@@ -275,77 +340,94 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   if (!isAllowed) return null;
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-xl border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col justify-between h-full overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-xs flex flex-col justify-between h-full overflow-hidden transition-all duration-200">
       {/* ── Header ── */}
-      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col justify-between gap-2.5">
-        <div className="flex items-center justify-between gap-2 min-w-0">
+      <div className="px-4 pt-3.5 pb-3 border-b border-slate-100 bg-slate-50/60 flex flex-col justify-between gap-3">
+        <div className="flex items-center justify-between gap-2.5 min-w-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
-              <Activity size={15} className="text-primary" />
+            <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/90 shadow-2xs flex items-center justify-center shrink-0 text-emerald-600">
+              <Activity size={16} className="text-emerald-600" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight truncate">
                   Log Aktivitas Pengguna
                 </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs shrink-0">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                  </span>
                   LIVE
                 </span>
               </div>
             </div>
           </div>
+
           {onlineStats.totalUsers > 0 && (
-            <span className="text-[8.5px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200/80 whitespace-nowrap shrink-0">
-              <span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
-            </span>
+            <div className="inline-flex items-center gap-1.5 text-[9.5px] font-bold text-indigo-700 bg-indigo-50/90 px-2.5 py-1 rounded-full border border-indigo-200/70 shadow-2xs whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              <span><span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)</span>
+            </div>
           )}
         </div>
 
         {/* Filter Pills & Refresh Button */}
-        <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar pb-0.5 shrink-0 w-full">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none pb-0.5 shrink-0 w-full">
           {[
             { id: 'all', label: 'Semua', count: categoryCounts.all },
+            { id: 'update', label: 'Pembaruan', count: categoryCounts.update },
             { id: 'login', label: 'Login', count: categoryCounts.login },
             { id: 'navigasi', label: 'Buka Menu', count: categoryCounts.navigasi },
             { id: 'kbm', label: 'Jurnal KBM', count: categoryCounts.kbm },
             { id: 'file', label: 'Upload & File', count: categoryCounts.file }
-          ].map(f => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
-              className={`whitespace-nowrap px-2 py-0.5 text-[9.5px] font-bold rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
-                filterType === f.id
-                  ? 'bg-primary text-white border-primary'
-                  : 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50'
-              }`}
-            >
-              <span>{f.label}</span>
-              <span className={`px-1.5 py-0.2 rounded-full text-[8.5px] font-bold ${
-                filterType === f.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60'
-              }`}>
-                {f.count}
-              </span>
-            </button>
-          ))}
+          ].map(f => {
+            const isActive = filterType === f.id;
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
+                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-bold rounded-full border transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  isActive
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                    : 'bg-white text-slate-600 border-slate-200/90 hover:bg-slate-50/80 hover:text-slate-800'
+                }`}
+              >
+                <span>{f.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold leading-none ${
+                  isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-600 border border-slate-200/60'
+                }`}>
+                  {f.count}
+                </span>
+              </button>
+            );
+          })}
           <button
             type="button"
             onClick={fetchAuditLogs}
-            title="Perbarui data aktivitas"
-            className="p-1 rounded-md bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-500 hover:text-primary cursor-pointer transition-colors"
+            title="Segarkan data aktivitas"
+            className="p-1.5 rounded-full bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-500 hover:text-emerald-600 cursor-pointer transition-colors shrink-0 shadow-2xs ml-auto"
           >
-            <RefreshCw size={11} className={loading ? 'animate-spin text-primary' : ''} />
+            <RefreshCw size={12} className={loading ? 'animate-spin text-emerald-600' : ''} />
           </button>
         </div>
       </div>
 
       {/* ── Feed List Container ── */}
       <div className="p-3 bg-white flex-1 flex flex-col justify-between">
-        <div className="divide-y divide-slate-100 my-1 flex-1 flex flex-col justify-around">
+        <div className="divide-y divide-slate-100/90 flex-1 flex flex-col justify-around">
           {paginatedLogs.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 font-semibold text-xs">
-              Belum ada aktivitas {filterType !== 'all' ? filterType : ''} tercatat
+            <div className="py-10 text-center flex flex-col items-center justify-center gap-2 text-slate-400">
+              <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400">
+                <Activity size={18} />
+              </div>
+              <p className="font-semibold text-xs text-slate-500">
+                Belum ada aktivitas {filterType !== 'all' ? `kategori ${filterType}` : ''} tercatat
+              </p>
+              <p className="text-[10px] text-slate-400">
+                Aktivitas pengguna akan muncul secara langsung di sini
+              </p>
             </div>
           ) : (
             paginatedLogs.map((item, idx) => {
@@ -354,6 +436,8 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
               const Icon = meta.icon;
               const userName = item.userName || 'Pengguna';
               const userInitial = userName.charAt(0).toUpperCase();
+              const timeText = formatLogTime(item.timestamp);
+              const isRecent = timeText === 'Baru saja';
 
               // Cek apakah guru adalah wali kelas
               let isWaliKelas = false;
@@ -375,48 +459,52 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
               return (
                 <div 
                   key={item.id || idx}
-                  className="py-1.5 sm:py-2 flex items-center justify-between gap-2.5 group hover:bg-slate-50/80 -mx-1.5 px-1.5 rounded-lg transition-colors"
+                  className="py-2.5 px-2 flex items-center justify-between gap-3 group hover:bg-slate-50/90 rounded-xl transition-all duration-150"
                 >
-                  {/* Kiri: Avatar & Info */}
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center font-bold text-[10.5px] text-slate-700 shrink-0 group-hover:bg-white transition-colors">
+                  {/* Kiri: Avatar & Info Pengguna */}
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div className={`w-8 h-8 rounded-full border shadow-2xs flex items-center justify-center font-bold text-xs shrink-0 transition-transform group-hover:scale-105 ${roleMeta.avatarBg}`}>
                       {userInitial}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[11.5px] font-bold text-slate-800 tracking-tight truncate max-w-[140px] sm:max-w-[190px]">
+                        <span className="text-xs font-bold text-slate-800 tracking-tight truncate max-w-[140px] sm:max-w-[200px]">
                           {userName}
                         </span>
                         
-                        <span className={`text-[8.5px] font-bold px-1.5 py-0.2 rounded-md border ${roleMeta.bg}`}>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-2xs ${roleMeta.bg}`}>
                           {roleMeta.label}
                         </span>
 
                         {isWaliKelas && (
-                          <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/80 shadow-2xs">
                             {waliKelasLabel}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5" title={item.detail}>
+                      <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5 leading-snug" title={item.detail}>
                         {item.detail}
                       </p>
                     </div>
                   </div>
 
                   {/* Kanan: Badge Aksi & Timestamp */}
-                  <div className="flex flex-col items-end gap-0.5 shrink-0 text-right">
-                    <span className={`inline-flex items-center gap-1 text-[8.5px] font-bold px-1.5 py-0.2 rounded-md border whitespace-nowrap ${meta.bg}`}>
-                      <Icon size={9} className={meta.color} />
+                  <div className="flex flex-col items-end gap-1 shrink-0 text-right">
+                    <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full border shadow-2xs whitespace-nowrap ${meta.bg}`}>
+                      <Icon size={10} className={meta.color} />
                       {meta.label}
                     </span>
-                    <div className="flex items-center gap-1 text-[9px] text-slate-400 font-medium whitespace-nowrap">
-                      <span>{formatLogTime(item.timestamp)}</span>
-                      {getDuration(item.timestamp) && (
-                        <span className="text-[8.5px] text-slate-400 font-normal">
-                          · {getDuration(item.timestamp)}
+                    <div className="flex items-center gap-1 text-[9.5px] text-slate-400 font-medium whitespace-nowrap">
+                      {isRecent ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          Baru saja
+                        </span>
+                      ) : (
+                        <span className="text-slate-500 font-medium">
+                          {timeText}
                         </span>
                       )}
                     </div>
@@ -428,48 +516,51 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
         </div>
 
         {/* ── Footer Pagination & Audit Log Link ── */}
-        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9.5px] mt-auto">
-        <span className="text-[9.5px] font-medium text-slate-400">
-          Menampilkan {paginatedLogs.length} dari {filteredLogs.length} aktivitas
-        </span>
+        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-[10px] mt-auto">
+          <span className="font-medium text-slate-500">
+            Menampilkan <span className="font-bold text-slate-700">{paginatedLogs.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}–{Math.min(currentPage * itemsPerPage, filteredLogs.length)}</span> dari <span className="font-bold text-slate-700">{filteredLogs.length}</span> aktivitas
+          </span>
 
-        <div className="flex items-center gap-1.5">
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-1 text-[10px] font-bold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs text-slate-600"
+                  title="Halaman Sebelumnya"
+                >
+                  <ChevronLeft size={13} />
+                </button>
+                <span className="text-[10px] font-bold text-slate-600 px-1.5 py-0.5 bg-slate-50 rounded-md border border-slate-200/80">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-1 text-[10px] font-bold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs text-slate-600"
+                  title="Halaman Selanjutnya"
+                >
+                  <ChevronRight size={13} />
+                </button>
+              </div>
+            )}
+
+            {onNavigateTab && (
               <button
                 type="button"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-1.5 py-0.5 text-[9px] font-bold rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                onClick={() => onNavigateTab('keamanan')}
+                className="text-[10.5px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer ml-1 py-1 px-2 rounded-lg hover:bg-emerald-50/60 transition-colors"
               >
-                Prev
+                <span>Audit Log Lengkap</span>
+                <ArrowUpRight size={12} />
               </button>
-              <span className="text-[9px] font-bold text-slate-500 px-1">
-                {currentPage} / {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-1.5 py-0.5 text-[9px] font-bold rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-              >
-                Next
-              </button>
-            </div>
-          )}
-
-          {onNavigateTab && (
-            <button
-              type="button"
-              onClick={() => onNavigateTab('keamanan')}
-              className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer ml-1"
-            >
-              Audit Log Lengkap <ChevronRight size={11} />
-            </button>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
