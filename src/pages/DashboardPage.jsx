@@ -1380,7 +1380,7 @@ export default function DashboardPage({
                               </div>
                             </td>
                             <td className="py-1.5 px-2.5 text-right whitespace-nowrap align-middle">
-                               <span className="font-bold text-[10.5px] text-primary">{load.duration} JP</span>
+                              <span className="font-bold text-[10.5px] text-primary">{load.duration} JP</span>
                             </td>
                           </tr>
                         ))}
@@ -2193,10 +2193,10 @@ export default function DashboardPage({
           const theme = cardThemes[idx % cardThemes.length];
 
           return (
-            <button 
-              key={idx} 
+            <button
+              key={idx}
               type="button"
-              onClick={() => setActiveTab(card.tab)} 
+              onClick={() => setActiveTab(card.tab)}
               className="bg-white hover:bg-slate-50/70 p-2.5 sm:p-3 rounded-xl border border-slate-200/80 hover:border-slate-300 flex items-center justify-between gap-3 active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
             >
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -2282,15 +2282,15 @@ export default function DashboardPage({
       <div className="w-full flex flex-col gap-3">
 
         {/* Full-width Ringkasan & Grafik Card */}
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 flex flex-col">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col">
 
           {/* Header Bar: Tabs Navigation */}
           <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
-            <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
+            <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-lg border border-slate-200/60">
               <button
                 type="button"
                 onClick={() => setActiveMiddleTab('ringkasan')}
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${activeMiddleTab === 'ringkasan'
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition-all cursor-pointer border-none ${activeMiddleTab === 'ringkasan'
                   ? 'bg-white text-slate-900 border border-slate-200/60'
                   : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
@@ -2302,7 +2302,7 @@ export default function DashboardPage({
               <button
                 type="button"
                 onClick={() => setActiveMiddleTab('statistik')}
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${activeMiddleTab === 'statistik'
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-bold transition-all cursor-pointer border-none ${activeMiddleTab === 'statistik'
                   ? 'bg-white text-slate-900 border border-slate-200/60'
                   : 'text-slate-500 hover:text-slate-700 bg-transparent'
                   }`}
@@ -3230,7 +3230,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
-            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
+            className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">
@@ -3290,7 +3290,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
-            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+            className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">
@@ -3349,7 +3349,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           return (
             <button
               onClick={() => setActiveTab(isSuperAdmin || isWaka || isKepsek ? 'kedisiplinan_absensi' : (isTU || isKaryawan ? 'laporan_absensi' : 'absensi'))}
-              className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+              className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
             >
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
                 <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">

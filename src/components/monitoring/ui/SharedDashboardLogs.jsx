@@ -74,7 +74,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const appStoreTeachers = useAppStore(state => state.teachers);
   const snapshotTeachers = getDatabaseSnapshot()?.teachers || [];
   const storeTeachers = (dataStoreTeachers && dataStoreTeachers.length > 0) ? dataStoreTeachers : ((appStoreTeachers && appStoreTeachers.length > 0) ? appStoreTeachers : snapshotTeachers);
-  
+
   const dataStoreStaffs = useDataStore(state => state.staffs) || [];
   const appStoreStaffs = useAppStore(state => state.staffs) || [];
   const snapshotStaffs = getDatabaseSnapshot()?.staffs || [];
@@ -198,7 +198,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       const canonicalNis = String(item.canonical_nis || item.siswa_nis || '').trim().toLowerCase();
       const rawId = String(item.employee_id || item.nis || item.username || '').trim().toLowerCase();
       const normName = String(item.name || item.student_name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-      
+
       let idKey = canonicalNis;
       if (!idKey && rawId && studentLookupMap?.nisMap) {
         const stu = studentLookupMap.nisMap.get(rawId);
@@ -317,7 +317,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       const empId = String(item.employee_id || item.username || item.nis || '').trim().toLowerCase();
       const normName = String(item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
       const type = String(item.true_person_type || item.role_type || '').toLowerCase();
-      
+
       if (type.includes('guru') || type.includes('karyawan') || empId.toUpperCase().startsWith('K')) {
         return true;
       }
@@ -640,8 +640,14 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     if (type === 'guru_karyawan' || type === 'guru_terlambat') {
       const isKaryawan = String(item.role_type || item.true_person_type || '').toUpperCase().includes('KARYAWAN');
       const badgeRole = isKaryawan ? 'KARYAWAN' : 'GURU';
-      avatarBg = isKaryawan ? 'bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200/80' : 'bg-indigo-50 text-indigo-800 border-indigo-200/80';
-      subtitleBadge = <span className={`font-black uppercase px-1.5 py-0.5 rounded-[3px] text-[8px] whitespace-nowrap shrink-0 ${isKaryawan ? 'bg-fuchsia-100/80 text-fuchsia-700' : 'bg-indigo-100/80 text-indigo-700'}`}>{badgeRole}</span>;
+      avatarBg = isKaryawan ? 'bg-teal-50 text-teal-700 border-teal-200/80' : 'bg-indigo-50 text-indigo-700 border-indigo-200/80';
+      subtitleBadge = (
+        <span className={`font-bold uppercase px-1.5 py-0.2 rounded-md text-[8.5px] whitespace-nowrap shrink-0 border ${
+          isKaryawan ? 'bg-teal-50 text-teal-700 border-teal-200/80' : 'bg-indigo-50 text-indigo-700 border-indigo-200/80'
+        }`}>
+          {badgeRole}
+        </span>
+      );
       subtitleText = item.division && item.division !== '-' ? item.division : '';
 
       let s = String(item.status || 'HADIR').toLowerCase();
@@ -657,12 +663,12 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         rightBadgeBg = 'bg-rose-500 text-white border-rose-600/80';
         rightBadgeText = 'ALPA';
       } else {
-        rightBadgeBg = 'bg-purple-50 text-purple-700 border-purple-200/80';
+        rightBadgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
         rightBadgeText = 'HADIR';
       }
     } else {
       subtitleBadge = className && className !== '-' ? (
-        <span className={`font-black uppercase px-2 py-0.5 rounded-md text-[9px] tracking-wide whitespace-nowrap shrink-0 border ${getClassBadge(className)}`}>
+        <span className={`font-bold uppercase px-1.5 py-0.2 rounded-md text-[8.5px] tracking-wide whitespace-nowrap shrink-0 border ${getClassBadge(className)}`}>
           {className}
         </span>
       ) : null;
@@ -683,14 +689,13 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         rightBadgeText = item.peringkat || item.tingkat || 'PRESTASI';
         subtitleText = item.nama_prestasi ? `${item.nama_prestasi} (${item.penyelenggara || '-'})` : `NIS: ${item.nis}`;
       } else {
-        avatarBg = 'bg-purple-50 text-purple-800 border-purple-200/60';
-        rightBadgeBg = 'bg-purple-50 text-purple-700 border-purple-200/80';
+        avatarBg = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
         let s = String(item.status || item.true_person_type || 'HADIR').toLowerCase();
         // FIX: Override ALPA to TERLAMBAT if they actually have a valid timestamp today
         if ((s.includes('alpa') || s.includes('absen')) && rawTs) {
           s = 'terlambat';
         }
-        
+
         rightBadgeText = s.toUpperCase();
         if (s.includes('terlambat') || s.includes('late')) {
           rightBadgeBg = 'bg-amber-50 text-amber-700 border-amber-200/80';
@@ -699,6 +704,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           rightBadgeBg = 'bg-rose-500 text-white border-rose-600/80';
           rightBadgeText = 'ALPA';
         } else {
+          rightBadgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
           rightBadgeText = 'HADIR';
         }
       }
@@ -713,7 +719,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           </div>
           <div className="min-w-0 flex flex-col justify-center flex-1">
             <div className="flex items-center gap-1.5 min-w-0">
-              <p className="text-[11.5px] font-bold text-slate-800 truncate uppercase tracking-tight">{name}</p>
+              <p className="text-[11.5px] font-bold text-slate-800 truncate tracking-tight">{name}</p>
               {subtitleBadge}
             </div>
             <p className="text-[9.5px] text-slate-400 font-medium mt-0.5 truncate">
@@ -739,23 +745,25 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
 
     return (
-      <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--ui-surface-muted)] border-t border-[var(--ui-border-muted)] mt-auto">
-        <span className="text-[10px] text-slate-500 font-medium">
+      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9.5px] mt-auto">
+        <span className="text-[9.5px] font-medium text-slate-400">
           Data {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
         </span>
         <div className="flex items-center gap-1.5">
           <button
+            type="button"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="px-1.5 py-0.5 text-[9px] font-bold rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             Prev
           </button>
-          <span className="px-2.5 text-[10px] font-bold text-slate-700">{currentPage} / {totalPages}</span>
+          <span className="text-[9px] font-bold text-slate-500 px-1">{currentPage} / {totalPages}</span>
           <button
+            type="button"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="px-1.5 py-0.5 text-[9px] font-bold rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             Next
           </button>
@@ -766,7 +774,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   if (logsLoading) {
     return (
-      <div className="bg-white rounded-[var(--ui-radius-card)] p-8 flex flex-col items-center justify-center min-h-[380px] border border-slate-200/80">
+      <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center min-h-[380px] border border-slate-200/80">
         <Loader2 className="animate-spin text-[var(--ui-primary)] mb-3" size={28} />
         <p className="text-xs font-bold text-slate-600">Memuat Log Monitor & Aktivitas...</p>
         <p className="text-[11px] text-slate-400 mt-1">Mengambil sinkronisasi terbaru dari sistem</p>
@@ -775,7 +783,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   }
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-xl border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
 
       {/* Dynamic Header */}
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -852,7 +860,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       </div>
 
       {/* Navigation Tabs Bar - Minimalist Segmented Tabs */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3 bg-slate-50/50 border-b border-slate-100 select-none">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 p-2 sm:p-2.5 bg-slate-50/50 border-b border-slate-100 select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -861,7 +869,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
               className={cn(
-                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95",
+                "py-1.5 px-1 sm:px-1.5 rounded-lg border flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer text-center w-full min-h-[46px] sm:min-h-[48px] relative touch-manipulation active:scale-95",
                 isActive
                   ? "bg-primary text-white border-primary font-bold"
                   : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 font-semibold"
@@ -872,20 +880,20 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                   src={tab.icon}
                   alt={tab.label}
                   className={cn(
-                    "w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-200",
+                    "w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain transition-transform duration-200",
                     isActive ? "scale-105" : "opacity-85"
                   )}
                   style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
                 <span className={cn(
-                  "absolute -top-1.5 -right-3.5 px-1.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none border",
+                  "absolute -top-1 -right-3 px-1 min-w-[15px] h-[15px] flex items-center justify-center rounded-full text-[8px] font-black leading-none border",
                   isActive ? "bg-white text-slate-900 border-white" : "bg-slate-100 text-slate-700 border-slate-200"
                 )}>
                   {tab.count}
                 </span>
               </div>
               <span className={cn(
-                "text-[10px] leading-tight truncate max-w-full px-0.5",
+                "text-[9px] sm:text-[9.5px] leading-tight truncate max-w-full px-0.5",
                 isActive ? "text-white font-bold" : "text-slate-600 font-semibold"
               )}>
                 <span className="sm:hidden">{tab.labelShort || tab.label}</span>
