@@ -1174,30 +1174,60 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
       if (!session) return;
       try {
         const body = await readJsonBody(req);
-        const { teacherCode, date, status, note } = body; // status: Izin, Sakit, Dinas Luar, Alpa, Hadir
+        const { teacherCode, status, note } = body; // status: Izin, Sakit, Dinas Luar, Alpa, Hadir
+        const date = body.date || body.startDate;
         
         if (!teacherCode || !date || !status) {
           send(req, res, 400, { ok: false, error: "Data tidak lengkap" });
           return;
         }
 
-        const roleStr = String(session.role || '').toLowerCase();
+        const roleStr = String(session.role || '').toLowerCase().trim();
+        const subrole = String(session.subrole || '').toLowerCase().trim();
+        const division = String(session.division || '').toLowerCase().trim();
+        const jabatan = String(session.jabatan || '').toLowerCase().trim();
+
         if (roleStr === 'siswa') {
           return send(req, res, 403, { ok: false, error: "Akses ditolak. Siswa tidak diizinkan mengakses fitur ini." });
         }
 
-        const isManagement = ['admin', 'superadmin', 'super_admin', 'kepsek', 'tu', 'tata_usaha'].includes(roleStr) || 
-          roleStr.startsWith('waka') || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
+        const isSuperAdmin = ['admin', 'superadmin', 'super_admin', 'kepsek'].includes(roleStr) || session.username === 'admin' || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
 
+        // Otorisasi Guru: Hanya Kurikulum atau Admin/Superadmin/Kepsek yang berwenang
+        const canManageGuru = isSuperAdmin || 
+          roleStr.includes('kurikulum') || 
+          subrole.includes('kurikulum') || 
+          division.includes('kurikulum') || 
+          jabatan.includes('kurikulum') ||
+          (roleStr === 'waka' && (division.includes('kurikulum') || !division));
+
+        // Otorisasi Karyawan: Hanya Tata Usaha (TU) atau Admin/Superadmin/Kepsek yang berwenang
+        const canManageKaryawan = isSuperAdmin || 
+          ['tu', 'tata_usaha', 'tata usaha', 'kepala_tu', 'staf_tu'].includes(roleStr) || 
+          subrole.includes('tu') || subrole.includes('tata_usaha') || subrole.includes('tata usaha') ||
+          division.includes('tu') || division.includes('tata_usaha') || division.includes('tata usaha') ||
+          jabatan.includes('tu') || jabatan.includes('tata_usaha') || jabatan.includes('tata usaha');
+
+        const personType = String(body.personType || 'guru').toLowerCase();
         const userSelfCode = String(session.code || session.id || session.username || '').toLowerCase();
-        if (!isManagement && userSelfCode !== String(teacherCode).toLowerCase()) {
-          return send(req, res, 403, { ok: false, error: "Anda hanya dapat mengajukan perizinan untuk akun Anda sendiri." });
+        const isSelf = userSelfCode === String(teacherCode).toLowerCase();
+
+        if (personType === 'karyawan') {
+          if (!canManageKaryawan && !isSelf) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak: Hanya Staf Tata Usaha (TU) atau Administrator yang berhak menginput perizinan karyawan." });
+          }
+        } else {
+          // Guru
+          if (!canManageGuru && !isSelf) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak: Hanya Tim Kurikulum atau Administrator yang berhak menginput perizinan guru lain." });
+          }
         }
 
-        const approvalStatus = isManagement ? 'approved' : 'pending';
-        const approvedById = isManagement ? (session.id || 'admin') : null;
-        const approvedByName = isManagement ? (session.name || session.username || 'Admin') : null;
-        const personType = body.personType || 'guru';
+        const isApproverForThisType = personType === 'karyawan' ? canManageKaryawan : canManageGuru;
+        const approvalStatus = isApproverForThisType ? 'approved' : 'pending';
+        const roleTag = personType === 'karyawan' ? 'Tata Usaha' : 'Kurikulum';
+        const approvedById = isApproverForThisType ? (session.id || 'admin') : null;
+        const approvedByName = isApproverForThisType ? `${session.name || session.username || 'Admin'} (${roleTag})` : null;
         const gdriveUrl = body.gdrive_url || body.fileData || null;
 
         // 1. Hapus record lama pada tanggal tersebut jika ada (agar tidak double/tumpang tindih)

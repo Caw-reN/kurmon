@@ -35,12 +35,13 @@ const DEFAULT_ATTENDANCE_SETTINGS = {
 const BASE_GURU_PERMISSIONS = {
   dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
   akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
-  walas_report: "nonaktif", kedisiplinan_absensi: "otomatis",
+  walas_report: "nonaktif", kedisiplinan_absensi: "nonaktif",
   jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "nonaktif",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
   rpp_guru: "otomatis",
   kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
-  keterangan_massal: "nonaktif", riwayat_prestasi: "nonaktif"
+  keterangan_massal: "nonaktif", riwayat_prestasi: "nonaktif",
+  hikvision_report_siswa: "nonaktif", siswa: "nonaktif", siswa_keluar: "nonaktif", laporan_absensi: "nonaktif"
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -49,12 +50,15 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     ...BASE_GURU_PERMISSIONS,
     dashboard: "otomatis", ketersediaan: "otomatis", generate: "otomatis",
     akademik: "otomatis", absensiguru: "otomatis", silabusguru: "otomatis",
-    walas_report: "nonaktif", kedisiplinan_absensi: "otomatis",
+    walas_report: "nonaktif", kedisiplinan_absensi: "nonaktif",
     jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "nonaktif",
     modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     rpp_guru: "otomatis",
-    hikvision_report_siswa: "view",
+    hikvision_report_siswa: "nonaktif",
+    siswa: "nonaktif",
+    siswa_keluar: "nonaktif",
+    laporan_absensi: "nonaktif",
     keterangan_massal: "nonaktif",
     riwayat_prestasi: "nonaktif",
   },
@@ -67,10 +71,11 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     beban: "otomatis", pesan: "otomatis",
     rekap_jurnal_kelas: "otomatis",
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
-    hikvision_report_siswa: "otomatis",
+    hikvision_report_siswa: "nonaktif",
     keterangan_massal: "nonaktif",
     riwayat_prestasi: "nonaktif",
-    siswa: "view",
+    siswa: "nonaktif",
+    siswa_keluar: "nonaktif",
     laporan_absensi: "nonaktif"
   },
 

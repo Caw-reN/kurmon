@@ -242,10 +242,25 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [showPermissionPreviewModal, setShowPermissionPreviewModal] = useState(false);
 
   const handleCellClick = (d, dayNum) => {
-    if (user?.role ==="siswa") return; // Siswa cannot edit their own or others' data
+    if (user?.role === "siswa") return; // Siswa cannot edit their own or others' data
     
     const dayData = d.days[dayNum];
     let pd = dayData?.pending_permission || dayData;
+
+    // Strict Role Integrity: Hanya Kesiswaan/BK/TU/Admin atau Walikelas untuk kelas binaannya
+    const isWalas = Boolean(user?.isWalas || user?.walasClass || subroleStr === 'walikelas');
+    const userWalasClass = String(user?.walasClass || '').trim().toLowerCase();
+    const canEditGlobal = isKesiswaanOrAdmin && roleStr !== 'kepsek';
+    const canEditThisStudent = canEditGlobal || (isWalas && userWalasClass && String(d.class_name || '').trim().toLowerCase() === userWalasClass);
+
+    if (!canEditThisStudent) {
+      if (pd && (pd.gdrive_url || pd.fileData)) {
+        setShowPermissionPreviewModal(true);
+        return;
+      }
+      showToast(isWalas ? "Anda hanya berwenang menginput data kehadiran untuk kelas binaan Anda." : "Akses ditolak: Anda tidak memiliki wewenang untuk menginput presensi siswa.", "error");
+      return;
+    }
 
     let initialStatus = "Sakit";
     let initialKet = "";

@@ -21,6 +21,12 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
     Boolean(user?.isSuperAdmin) ||
     Boolean(user?.isAdmin);
   const authToken = user?.authToken;
+  const userSubrole = String(user?.subrole || '').toLowerCase().trim();
+  const userDivision = String(user?.division || '').toLowerCase().trim();
+  const canManageKaryawan = isSuperAdmin || 
+    ['tu', 'tata_usaha', 'tata usaha', 'kepala_tu', 'staf_tu'].includes(roleStr) || 
+    userSubrole.includes('tu') || userSubrole.includes('tata_usaha') ||
+    userDivision.includes('tu') || userDivision.includes('tata_usaha');
   
   const [data, setData] = useState([]);
   const [toast, setToast] = useState(null);
@@ -115,6 +121,33 @@ export default function HikvisionStaffReport({ classes = [], isNested = false })
   const handleCellClick = (d, dayNum) => {
     const dayData = d.days?.[dayNum];
     let pd = dayData?.pending_permission || dayData;
+
+    // Strict Role Integrity: Hanya TU & Admin yang berwenang menginput/mengubah izin karyawan
+    if (!canManageKaryawan) {
+      if (pd && (pd.gdrive_url || pd.gdriveUrl || pd.fileData)) {
+        setPermissionForm({ 
+          status: pd.status || "Izin", 
+          keterangan: pd.keterangan || pd.note || "", 
+          gdriveUrl: pd.gdrive_url || pd.gdriveUrl || pd.fileData || null, 
+          fileData: null, 
+          fileName: null, 
+          fileSizeKB: null,
+          replaceImage: false
+        });
+        setSelectedCell({
+          nis: d.nis,
+          name: d.name,
+          day: dayNum,
+          inTime: formatAttendanceTime(dayData?.in),
+          outTime: formatAttendanceTime(dayData?.out),
+          isMissingIn: false
+        });
+        setShowPermissionPreviewModal(true);
+        return;
+      }
+      showToast("Hanya Staf Tata Usaha (TU) atau Administrator yang berwenang menginput surat izin/sakit karyawan.", "error");
+      return;
+    }
 
     let initialStatus = "Sakit";
     let initialKet = "";

@@ -620,6 +620,11 @@ export default function AdminSidebar({
         continue;
       }
 
+      // Pastikan item yang tidak diizinkan untuk role ini tidak masuk ke grup menu
+      if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
+        continue;
+      }
+
       const section = item.section || '_root';
       if (!sectionMap[section]) sectionMap[section] = [];
       sectionMap[section].push(item);

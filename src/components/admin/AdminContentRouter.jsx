@@ -270,13 +270,12 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       }
       if (activeTab ==="jurnal_harian" && role ==="guru") return true;
 
-      // Allow all attendance report tabs for tu, tata_usaha, karyawan, kepsek, waka roles unconditionally
-      const attendanceReportTabs = [
-        "laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru",
-        "hikvision_report_karyawan", "absensi", "absensiguru", "kedisiplinan_absensi"
-      ];
-      if (attendanceReportTabs.includes(activeTab)) {
-        if (role === "tu" || role === "tata_usaha" || role === "karyawan" || role === "kepsek" || role === "waka" || role === "guru") {
+      // Absensi mandiri dapat diakses oleh seluruh guru dan pegawai
+      if (activeTab === "absensiguru") return true;
+
+      // Tab presensi & rekap untuk TU, Kepsek, & Waka sesuai perannya
+      if (["laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru", "hikvision_report_karyawan", "absensi"].includes(activeTab)) {
+        if (role === "tu" || role === "tata_usaha" || role === "kepsek") {
           return true;
         }
       }
@@ -330,31 +329,45 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           ];
           if (bpbkDefaultTabs.includes(activeTab)) return true;
         }
-        if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") {
-          // Strict Role Security: Guru dan Walikelas DILARANG mengakses keterangan_massal dan riwayat_prestasi
-          if (activeTab === "keterangan_massal" || activeTab === "riwayat_prestasi") {
+        const divClean = (currentUser?.division || "").toLowerCase().trim();
+        const subClean = (currentUser?.subrole || "").toLowerCase().trim();
+        const isSpecializedGuru = isKesiswaan || isBK || subClean.includes('kesiswaan') || subClean.includes('osis') || subClean.includes('bk') || subClean.includes('bpbk') || subClean.includes('kurikulum') || divClean === 'kesiswaan' || divClean === 'osis' || divClean === 'kurikulum' || divClean === 'bk';
+
+        if ((roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") && !isSpecializedGuru) {
+          // Strict Role Security: Blokir akses modul Kesiswaan, BK, dan Master Data untuk Guru Biasa & Walas murni
+          const forbiddenTabs = [
+            "keterangan_massal", "riwayat_prestasi", "hikvision_report_siswa",
+            "siswa", "datasiswa", "siswa_keluar", "tatib_skor", "kedisiplinan_piket",
+            "kedisiplinan_bpbk", "kedisiplinan_hub", "laporan_absensi", "absensi"
+          ];
+          if (forbiddenTabs.includes(activeTab)) {
             return false;
           }
-          if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
-          const guruDefaultTabs = [
-            "dashboard","generate","akademik","absensi","jurnal_harian",
-            "modul_ajar","kedisiplinan_absensi","hikvision_report_siswa",
-            "absensiguru","silabusguru","ketersediaan","beban","pesan","rpp_guru"
-          ];
+
+          // Izin & Sakit Siswa hanya untuk Wali Kelas
+          if (activeTab === "kedisiplinan_absensi") {
+            return Boolean(isWalasUser);
+          }
+
           if (isWalasUser && ["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(activeTab)) {
             return true;
           }
-          const guruPermissionedTabs = [
-            "silabus","rpp_guru","siswa_keluar","tatib_skor","laporan_rekap_walas",
-            "siswa","hikvision_report_siswa"
+
+          if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
+
+          const guruDefaultTabs = [
+            "dashboard", "generate", "akademik", "jurnal_harian",
+            "modul_ajar", "absensiguru", "silabusguru", "ketersediaan",
+            "beban", "pesan", "rpp_guru"
           ];
           if (guruDefaultTabs.includes(activeTab)) return true;
+
+          const guruPermissionedTabs = ["silabus", "rpp_guru"];
           if (guruPermissionedTabs.includes(activeTab)) {
             return level && level !== "none" && level !== "nonaktif";
           }
           return false;
         }
-        const divClean = (currentUser?.division || "").toLowerCase().trim();
         if (roleKey === "waka_kesiswaan" || roleKey === "kesiswaan" || ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(currentUser?.subrole) || (roleKey === 'guru' && divClean === 'kesiswaan')) {
           const defaultKesiswaanTabs = [
             "dashboard", "akademik", "generate", "ketersediaan", "beban", "rpp_guru", "silabusguru",

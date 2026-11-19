@@ -26,6 +26,13 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     Boolean(user?.isSuperAdmin) ||
     Boolean(user?.isAdmin);
   const authToken = user?.authToken;
+  const userSubrole = String(user?.subrole || '').toLowerCase().trim();
+  const userDivision = String(user?.division || '').toLowerCase().trim();
+  const canManageGuru = isSuperAdmin || 
+    roleStr.includes('kurikulum') || 
+    userSubrole.includes('kurikulum') || 
+    userDivision.includes('kurikulum') ||
+    (roleStr === 'waka' && (userDivision.includes('kurikulum') || !userDivision));
   
   const storeTeachers = useDataStore(state => state.teachers) || [];
   const [teachers, setTeachers] = useState(storeTeachers);
@@ -131,6 +138,33 @@ export default function HikvisionTeacherReport({ isNested = false }) {
   const handleCellClick = (d, dayNum) => {
     const dayData = d.days?.[dayNum];
     let pd = dayData?.pending_permission || dayData;
+
+    // Strict Role Integrity: Hanya Kurikulum & Admin yang berwenang menginput/mengubah izin guru
+    if (!canManageGuru) {
+      if (pd && (pd.gdrive_url || pd.gdriveUrl || pd.fileData)) {
+        setPermissionForm({ 
+          status: pd.status || "Izin", 
+          keterangan: pd.keterangan || pd.note || "", 
+          gdriveUrl: pd.gdrive_url || pd.gdriveUrl || pd.fileData || null, 
+          fileData: null, 
+          fileName: null, 
+          fileSizeKB: null,
+          replaceImage: false
+        });
+        setSelectedCell({
+          nis: d.nis,
+          name: d.name,
+          day: dayNum,
+          inTime: formatAttendanceTime(dayData?.in),
+          outTime: formatAttendanceTime(dayData?.out),
+          isMissingIn: false
+        });
+        setShowPermissionPreviewModal(true);
+        return;
+      }
+      showToast("Hanya Tim Kurikulum atau Administrator yang berwenang menginput surat izin/sakit guru.", "error");
+      return;
+    }
 
     let initialStatus = "Sakit";
     let initialKet = "";

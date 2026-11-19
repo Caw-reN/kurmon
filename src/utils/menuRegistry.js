@@ -188,7 +188,7 @@ export const MENU_REGISTRY = [
     id: 'siswa',
     icon: GraduationCap,
     label: 'Data Siswa',
-    section: 'Kesiswaan',
+    section: 'Data Master',
     adminGroup: 'Data Sekolah',
     adminGroupIcon: FolderOpen,
     adminGroupKey: 'dataMaster',
