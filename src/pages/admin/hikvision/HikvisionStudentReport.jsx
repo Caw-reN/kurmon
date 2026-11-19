@@ -131,6 +131,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
+  const [showMobileFilterOptions, setShowMobileFilterOptions] = useState(false);
 
   // ─── Validasi Harian Absensi oleh Wali Kelas ───
   const isWalasUser = Boolean(user?.isWalas || user?.walasClass || roleStr === 'walas' || roleStr === 'walikelas' || subroleStr === 'walikelas');
@@ -1639,17 +1640,71 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-20 sm:pb-6">
-      {/* Mobile Navigation Top Header */}
-      <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
-        <button
-          type="button"
-          onClick={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
-          className="w-9 h-9 rounded-full bg-white border border-slate-200 shadow-xs flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
-        >
-          <ChevronLeft size={20} strokeWidth={2.5} />
-        </button>
-        <h2 className="text-sm font-black text-slate-800 text-center flex-1 tracking-tight">Laporan</h2>
-        <div className="w-9 shrink-0" />
+      {/* Mobile Unified Compact Header & Segmented Tabs */}
+      <div className="sm:hidden flex flex-col gap-2 p-2.5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
+              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-200/80 active:scale-95"
+              title="Kembali ke Dashboard"
+              aria-label="Kembali ke Dashboard"
+            >
+              <ChevronLeft size={18} strokeWidth={2.4} />
+            </button>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
+              <PieChart size={16} strokeWidth={2.2} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs font-black text-slate-800 tracking-tight truncate leading-tight">
+                Laporan Kehadiran
+              </h2>
+              <p className="text-[10px] font-medium text-slate-400 truncate leading-tight mt-0.5">
+                {activeTab === 'matriks' ? 'Rekap kehadiran bulanan siswa' : activeTab === 'surat' ? 'Manajemen surat izin / sakit' : 'Keterangan massal absensi'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Segmented Pill Tabs */}
+        <div className="bg-slate-100/90 rounded-xl p-1 flex items-center gap-1 border border-slate-200/60">
+          <button
+            type="button"
+            onClick={() => setActiveTab('matriks')}
+            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+              activeTab === 'matriks'
+                ? 'bg-white text-emerald-700 shadow-2xs'
+                : 'text-slate-500 hover:text-slate-700 bg-transparent'
+            }`}
+          >
+            MATRIKS BULANAN
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('surat')}
+            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+              activeTab === 'surat'
+                ? 'bg-white text-emerald-700 shadow-2xs'
+                : 'text-slate-500 hover:text-slate-700 bg-transparent'
+            }`}
+          >
+            MANAJEMEN SURAT
+          </button>
+          {canManageBulkRemarks && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('keterangan')}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
+                activeTab === 'keterangan'
+                  ? 'bg-white text-emerald-700 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-700 bg-transparent'
+              }`}
+            >
+              KETERANGAN
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Desktop Header */}
@@ -1688,75 +1743,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         </div>
       )}
 
-      {/* Mobile Hero Header Card (Reference Layout matching media__1785568140000.png) */}
-      <div 
-        className="sm:hidden w-full rounded-[var(--ui-radius-card)] p-5 text-white shadow-xs flex flex-col gap-4 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, #0d9488) 100%)" }}
-      >
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-[var(--ui-radius-card)] bg-white/20 backdrop-blur-md text-white flex items-center justify-center shrink-0 border border-white/20 shadow-inner">
-            <PieChart size={24} strokeWidth={2.2} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-black leading-snug tracking-tight">Laporan Kehadiran</h2>
-            <p className="text-xs opacity-90 leading-relaxed font-medium mt-0.5">
-              Rekap kehadiran siswa per bulan
-            </p>
-          </div>
-        </div>
-
-        {/* Segmented Pill Tabs */}
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-1 flex items-center gap-1 shadow-sm border border-slate-100/90">
-          <button
-            type="button"
-            onClick={() => setActiveTab('matriks')}
-            className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-              activeTab === 'matriks'
-                ? 'bg-slate-100 shadow-xs'
-                : 'text-slate-400 hover:text-slate-600 bg-transparent'
-            }`}
-            style={activeTab === 'matriks' ? {
-              background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
-              color: "var(--ui-primary)"
-            } : {}}
-          >
-            MATRIKS BULANAN
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('surat')}
-            className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-              activeTab === 'surat'
-                ? 'bg-slate-100 shadow-xs'
-                : 'text-slate-400 hover:text-slate-600 bg-transparent'
-            }`}
-            style={activeTab === 'surat' ? {
-              background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
-              color: "var(--ui-primary)"
-            } : {}}
-          >
-            MANAJEMEN SURAT
-          </button>
-          {canManageBulkRemarks && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('keterangan')}
-              className={`flex-1 py-2 px-2.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-                activeTab === 'keterangan'
-                  ? 'bg-slate-100 shadow-xs'
-                  : 'text-slate-400 hover:text-slate-600 bg-transparent'
-              }`}
-              style={activeTab === 'keterangan' ? {
-                background: "color-mix(in srgb, var(--ui-primary) 12%, #ffffff)",
-                color: "var(--ui-primary)"
-              } : {}}
-            >
-              KETERANGAN MASSAL
-            </button>
-          )}
-        </div>
-      </div>
-
       {activeTab === 'keterangan' && canManageBulkRemarks ? (
         <React.Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
           <KeteranganMasalAbsensi authToken={authToken} classes={classes} />
@@ -1767,35 +1753,35 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <>
           {/* Daily Attendance KPI Summary Cards (Ramping & 3 Kolom Sejajar) */}
           {isCurrentMonthYear && data.length > 0 && (!isHolidayOrWeekendToday || presentStudentsToday.length > 0) && (
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-4">
               {/* Card 1: Siswa Hadir */}
               <div 
                 onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3">
                   <div className="min-w-0">
-                    <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
+                    <span className="text-[8.5px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
                       <span className="sm:hidden">{isHolidayOrWeekendToday ? "Hadir (Libur)" : "Hadir (Hari Ini)"}</span>
                       <span className="hidden sm:inline">{isHolidayOrWeekendToday ? "Siswa Hadir di Sekolah (Hari Libur / Ekskul)" : "Total Siswa Hadir (Hari Ini)"}</span>
                     </span>
                     <div className="flex items-baseline gap-1">
-                      <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                      <h3 className="text-lg sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {presentStudentsToday.length}
                       </h3>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">
-                        {isHolidayOrWeekendToday ? "Siswa di Sekolah" : `/${data.length}`}
+                      <span className="text-[9.5px] sm:text-xs font-bold text-slate-400">
+                        {isHolidayOrWeekendToday ? "Siswa" : `/${data.length}`}
                       </span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
-                    <UserCheck size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
+                  <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 shadow-2xs self-end sm:self-start">
+                    <UserCheck size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
-                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60 text-[9px] sm:text-[10px] truncate">
-                    {isHolidayOrWeekendToday ? "Kegiatan / Libur" : `${data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir`}
+                <div className="mt-1.5 sm:mt-3 pt-1.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                  <span className="font-bold text-emerald-700 bg-emerald-50 px-1 sm:px-2 py-0.5 rounded-full border border-emerald-200/60 text-[8.5px] sm:text-[10px] truncate">
+                    {isHolidayOrWeekendToday ? "Libur" : `${data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir`}
                   </span>
                   <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-emerald-700 items-center gap-1 transition-colors">
                     Lihat &rarr;
@@ -1806,27 +1792,27 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 2: Siswa Terlambat */}
               <div 
                 onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3">
                   <div className="min-w-0">
-                    <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-0.5 truncate">
-                      Terlambat (Hari Ini)
+                    <span className="text-[8.5px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-0.5 truncate">
+                      Terlambat
                     </span>
                     <div className="flex items-baseline gap-1">
-                      <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                      <h3 className="text-lg sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {lateStudentsToday.length}
                       </h3>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
+                      <span className="text-[9.5px] sm:text-xs font-bold text-slate-400">Siswa</span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
-                    <Clock size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
+                  <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 shadow-2xs self-end sm:self-start">
+                    <Clock size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
-                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-                  <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border text-[9px] sm:text-[10px] truncate ${
+                <div className="mt-1.5 sm:mt-3 pt-1.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                  <span className={`font-bold px-1 sm:px-2 py-0.5 rounded-full border text-[8.5px] sm:text-[10px] truncate ${
                     lateStudentsToday.length > 0 
                       ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
                       : 'text-slate-500 bg-slate-50 border-slate-200/60'
@@ -1842,28 +1828,28 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {/* Card 3: Siswa Belum Scan / Tidak Masuk */}
               <div 
                 onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-[var(--ui-radius-card)] p-2.5 sm:p-4 border border-[var(--ui-border-soft)] shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 sm:gap-3">
                   <div className="min-w-0">
-                    <span className="text-[9.5px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-0.5 truncate">
-                      <span className="sm:hidden">Tidak Hadir (Hari Ini)</span>
+                    <span className="text-[8.5px] sm:text-[11px] font-black uppercase tracking-wider text-rose-600 block mb-0.5 truncate">
+                      <span className="sm:hidden">Tidak Hadir</span>
                       <span className="hidden sm:inline">Belum Hadir / Izin / Sakit (Hari Ini)</span>
                     </span>
                     <div className="flex items-baseline gap-1">
-                      <h3 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+                      <h3 className="text-lg sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
                         {absentStudentsToday.length}
                       </h3>
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
+                      <span className="text-[9.5px] sm:text-xs font-bold text-slate-400">Siswa</span>
                     </div>
                   </div>
-                  <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-[var(--ui-radius-control)] bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-xs self-end sm:self-start">
-                    <UserX size={16} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
+                  <div className="w-6 h-6 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 shadow-2xs self-end sm:self-start">
+                    <UserX size={14} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
                 
-                <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-                  <span className="font-bold text-rose-700 bg-rose-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-rose-200/60 text-[9px] sm:text-[10px] truncate">
+                <div className="mt-1.5 sm:mt-3 pt-1.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
+                  <span className="font-bold text-rose-700 bg-rose-50 px-1 sm:px-2 py-0.5 rounded-full border border-rose-200/60 text-[8.5px] sm:text-[10px] truncate">
                     {absentStudentsToday.length > 0 ? `${absentStudentsToday.length} Siswa` : 'Nihil'}
                   </span>
                   <span className="hidden sm:flex font-bold text-slate-400 group-hover:text-rose-600 items-center gap-1 transition-colors">
@@ -1878,44 +1864,43 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           {(isWalasUser || (activeWalasClass && activeWalasClass !== 'all')) && (
             <div className="w-full">
               {isAttendanceValidated ? (
-                <div className="bg-emerald-50/90 border border-emerald-300/80 rounded-[var(--ui-radius-card)] p-3 sm:p-4 flex items-center justify-between gap-3 shadow-[var(--ui-shadow-card)]">
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center justify-between gap-2.5 shadow-2xs">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     <div 
-                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-[var(--ui-radius-control)] text-white flex items-center justify-center shrink-0 shadow-xs"
-                      style={{ backgroundColor: "var(--ui-primary)" }}
+                      className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl text-white flex items-center justify-center shrink-0 shadow-2xs bg-emerald-600"
                     >
-                      <CheckCircle2 size={18} strokeWidth={2.5} />
+                      <CheckCircle2 size={16} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0">
                       <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate leading-snug">
                         Absensi Kelas {activeWalasClass || filter.class_name} Tervalidasi
                       </h4>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                        Diverifikasi hari ini ({attendanceValidatedTime || 'Hari ini'})
+                      <p className="text-[9.5px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                        Diverifikasi: {attendanceValidatedTime || 'Hari ini'}
                       </p>
                     </div>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
+                  <span className="text-[8.5px] sm:text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0">
                     Terverifikasi
                   </span>
                 </div>
               ) : (
-                <div className="bg-gradient-to-r from-amber-50/90 via-white to-amber-50/70 border border-amber-200/90 rounded-[var(--ui-radius-card)] p-3 sm:p-4 shadow-[var(--ui-shadow-card)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[var(--ui-radius-control)] bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                      <UserCheck size={18} strokeWidth={2.5} />
+                <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <UserCheck size={16} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <h4 className="text-xs sm:text-sm font-black text-slate-800 truncate leading-snug">
                           Validasi Wali Kelas
                         </h4>
-                        <span className="text-[8.5px] sm:text-[9.5px] font-extrabold text-amber-700 bg-amber-100/90 border border-amber-200/80 px-2 py-0.5 rounded-[var(--ui-radius-pill)] shrink-0">
+                        <span className="text-[8px] sm:text-[9.5px] font-extrabold text-amber-700 bg-amber-100/90 border border-amber-200/80 px-1.5 py-0.2 rounded-full shrink-0">
                           Perlu Validasi
                         </span>
                       </div>
-                      <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                        Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span> &bull; Konfirmasi Anda telah memeriksa absensi hari ini.
+                      <p className="text-[9.5px] sm:text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                        Kelas: <span className="font-bold text-slate-700">{activeWalasClass || filter.class_name || 'Pilih Kelas'}</span> &bull; Konfirmasi absensi hari ini.
                       </p>
                     </div>
                   </div>
@@ -1923,11 +1908,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <button
                     type="button"
                     onClick={handleConfirmWalasAttendance}
-                    className="w-full sm:w-auto shrink-0 py-2.5 px-4 rounded-[var(--ui-radius-control)] text-white text-xs font-black shadow-[var(--ui-shadow-control)] hover:brightness-95 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 touch-manipulation"
-                    style={{ backgroundColor: "var(--ui-primary)" }}
+                    className="w-full sm:w-auto shrink-0 py-2 px-3 sm:px-4 rounded-xl text-white text-xs font-black shadow-2xs hover:brightness-95 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5 touch-manipulation bg-emerald-600"
                   >
-                    <CheckCircle2 size={16} strokeWidth={2.5} />
-                    <span>Saya Sudah Memeriksa Absensi Hari Ini</span>
+                    <CheckCircle2 size={15} strokeWidth={2.5} />
+                    <span>Konfirmasi Absensi Hari Ini</span>
                   </button>
                 </div>
               )}
@@ -2125,16 +2109,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             </Modal>
           )}
 
-      {/* Mobile Filter Card (Reference Layout matching media__1785568140000.png) */}
-      <div className="sm:hidden ui-card rounded-[var(--ui-radius-card)] p-4 shadow-sm border border-slate-100/90 flex flex-col gap-4">
-        {/* Top Row: Class Filter Label + Export Buttons */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-              <Users size={16} strokeWidth={2.2} />
+      {/* Mobile Compact Unified Filter & Search Card */}
+      <div className="sm:hidden ui-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-3 flex flex-col gap-2.5">
+        {/* Row 1: Header Class Info + Quick Export Buttons */}
+        <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+              <Users size={14} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block leading-tight">FILTER DATA KELAS</span>
+              <span className="text-[8.5px] font-black text-slate-400 uppercase tracking-wider block leading-tight">KELAS</span>
               <h4 className="text-xs font-black text-slate-800 truncate">
                 {user?.isWalas ? (user.walasClass || 'Kelas Saya') : (filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name)}
               </h4>
@@ -2147,7 +2131,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => handleExportPDF(exportMode === 'detailed')}
               disabled={loading || data.length === 0}
-              className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
+              className="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 font-black text-[10px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
               title="Export PDF"
             >
               PDF
@@ -2156,7 +2140,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               type="button"
               onClick={() => handleExport(exportMode === 'detailed')}
               disabled={loading || data.length === 0}
-              className="px-2.5 py-1.5 rounded-[var(--ui-radius-small)] bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 flex items-center justify-center font-black text-[10px] transition-all cursor-pointer disabled:opacity-50"
+              className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 font-black text-[10px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
               title="Export Excel"
             >
               XLS
@@ -2164,43 +2148,52 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         </div>
 
-        {/* Form Grid 2x2 */}
-        <div className="grid grid-cols-2 gap-2.5">
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tipe Laporan</label>
-            <CustomSelect
-              value={viewMode}
-              onChange={val => setViewMode(val)}
-              options={[
-                { value: "monthly", label: "Bulanan" },
-                { value: "weekly", label: "Mingguan" }
-              ]}
+        {/* Row 2: Search Input + Filter Options Toggle */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari nama siswa..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-7 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
             />
+            {search && (
+              <button 
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
+              >
+                <X size={13} />
+              </button>
+            )}
           </div>
 
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Format</label>
-            <CustomSelect
-              value={exportMode}
-              onChange={val => setExportMode(val)}
-              options={[
-                { value: "summary", label: "Ringkas" },
-                { value: "detailed", label: "Lengkap" }
-              ]}
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => setShowMobileFilterOptions(prev => !prev)}
+            className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+              showMobileFilterOptions
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}
+            title="Pengaturan Filter & Bulan"
+          >
+            <Filter size={13} />
+            <span>Filter</span>
+          </button>
+        </div>
 
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Bulan</label>
+        {/* Row 3: Primary Quick Selectors (Bulan & Tahun) - Always accessible in a tight 2-col row */}
+        <div className="grid grid-cols-2 gap-2">
+          <div>
             <CustomSelect 
               value={filter.month} 
               onChange={val => setFilter({ ...filter, month: parseInt(val) })}
               options={monthOptions}
             />
           </div>
-
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tahun</label>
+          <div>
             <CustomSelect 
               value={filter.year} 
               onChange={val => setFilter({ ...filter, year: parseInt(val) })}
@@ -2209,115 +2202,124 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           </div>
         </div>
 
-        {(routeTab !== "walas_report" || !user?.walasClass || isKesiswaanOrAdmin) ? (
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Pilih Kelas</label>
-            <CustomSelect 
-              value={filter.class_name || "all"} 
-              onChange={val => setFilter({ ...filter, class_name: val })}
-              options={[
-                { value: "all", label: "Semua Kelas" },
-                ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
-                ...((classes && classes.length > 0)
-                  ? classes.map(c => ({ value: c.name || c.kelas || c.id, label: c.name || c.kelas || c.id })).filter(c => c.value && c.value !== user?.walasClass)
-                  : Array.from(new Set(data.map(d => d.class_name).filter(Boolean))).sort().map(c => ({ value: c, label: c })).filter(c => c.value !== user?.walasClass)
-                )
-              ]}
-            />
-          </div>
-        ) : (
-          <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Kelas Binaan</label>
-            <div className="px-3 py-1.5 bg-white border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-bold text-slate-800">
-              {user.walasClass}
+        {/* Collapsible Advanced Filter Options */}
+        {showMobileFilterOptions && (
+          <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 animate-in fade-in duration-200">
+            {(routeTab !== "walas_report" || !user?.walasClass || isKesiswaanOrAdmin) && (
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Pilih Kelas</label>
+                <CustomSelect 
+                  value={filter.class_name || "all"} 
+                  onChange={val => setFilter({ ...filter, class_name: val })}
+                  options={[
+                    { value: "all", label: "Semua Kelas" },
+                    ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
+                    ...((classes && classes.length > 0)
+                      ? classes.map(c => ({ value: c.name || c.kelas || c.id, label: c.name || c.kelas || c.id })).filter(c => c.value && c.value !== user?.walasClass)
+                      : Array.from(new Set(data.map(d => d.class_name).filter(Boolean))).sort().map(c => ({ value: c, label: c })).filter(c => c.value !== user?.walasClass)
+                    )
+                  ]}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tipe Laporan</label>
+                <CustomSelect
+                  value={viewMode}
+                  onChange={val => setViewMode(val)}
+                  options={[
+                    { value: "monthly", label: "Bulanan" },
+                    { value: "weekly", label: "Mingguan" }
+                  ]}
+                />
+              </div>
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Format</label>
+                <CustomSelect
+                  value={exportMode}
+                  onChange={val => setExportMode(val)}
+                  options={[
+                    { value: "summary", label: "Ringkas" },
+                    { value: "detailed", label: "Lengkap" }
+                  ]}
+                />
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Urutan</label>
+                <div className="flex items-center gap-1">
+                  <div className="flex-1 min-w-0">
+                    <CustomSelect 
+                      value={sortBy} 
+                      onChange={val => setSortBy(val)}
+                      options={[
+                        { value: "class_nis", label: "Per Kelas & NIS" },
+                        { value: "nis", label: "NIS / No. Absen" },
+                        { value: "name", label: "Nama (A-Z)" },
+                        { value: "class_name", label: "Kelas" },
+                        { value: "hadir", label: "Total Hadir" },
+                        { value: "alpa", label: "Total Alpa" }
+                      ]}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+                    className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      sortDir === 'desc' 
+                        ? 'bg-slate-800 text-white border-slate-800' 
+                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <ArrowUpDown size={13} />
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Status Siswa</label>
+                <CustomSelect
+                  value={studentStatusFilter}
+                  onChange={val => setStudentStatusFilter(val)}
+                  options={[
+                    { value: "active", label: "Siswa Aktif" },
+                    { value: "all", label: "Semua Siswa" },
+                    { value: "mutasi", label: "Mutasi Saja" }
+                  ]}
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={fetchData}
+              className="w-full py-2 rounded-xl font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-98 cursor-pointer bg-emerald-600 hover:bg-emerald-700 mt-1"
+            >
+              <Wand2 size={14} strokeWidth={2.2} />
+              Terapkan & Muat Ulang
+            </button>
           </div>
         )}
 
-        <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Urutkan Data</label>
-          <div className="flex items-center gap-1.5 w-full min-w-0">
-            <div className="flex-1 min-w-0">
-              <CustomSelect 
-                value={sortBy} 
-                onChange={val => setSortBy(val)}
-                options={[
-                  { value: "class_nis", label: "Per Kelas & NIS" },
-                  { value: "nis", label: "NIS / No. Absen" },
-                  { value: "name", label: "Nama Siswa (A-Z)" },
-                  { value: "class_name", label: "Nama Kelas" },
-                  { value: "hadir", label: "Total Hadir" },
-                  { value: "alpa", label: "Total Alpa" }
-                ]}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
-              title={sortDir === "asc" ? "Urutan Naik" : "Urutan Turun"}
-              className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-[var(--ui-radius-small)] border text-xs font-bold transition-all cursor-pointer ${
-                sortDir === 'desc' 
-                  ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <ArrowUpDown size={14} />
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-slate-50 p-2.5 rounded-[var(--ui-radius-card)] border border-slate-100">
-          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Status Siswa</label>
-          <CustomSelect
-            value={studentStatusFilter}
-            onChange={val => setStudentStatusFilter(val)}
-            options={[
-              { value: "active", label: "Siswa Aktif (Default)" },
-              { value: "all", label: "Semua Siswa" },
-              { value: "mutasi", label: "Mutasi Keluar Saja" }
-            ]}
-          />
-        </div>
-
-        {/* Tampilkan Data Action Button */}
-        <button
-          type="button"
-          onClick={fetchData}
-          className="w-full py-3 rounded-[var(--ui-radius-card)] font-black text-xs text-white flex items-center justify-center gap-2 transition-all shadow-xs active:scale-98 cursor-pointer"
-          style={{ background: "var(--ui-primary)" }}
-        >
-          <Wand2 size={16} strokeWidth={2.2} />
-          Tampilkan Data
-        </button>
-      </div>
-
-      {/* Mobile Pill Search Bar & Legend Badges */}
-      <div className="sm:hidden flex flex-col gap-3">
-        <div className="relative w-full">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari nama siswa..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white rounded-full border border-slate-200/80 text-xs font-semibold text-slate-700 shadow-xs focus:outline-none focus:border-[var(--ui-primary)]"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-[10px] font-extrabold no-scrollbar">
-          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 flex items-center gap-1">
+        {/* Quick Attendance Status Badges */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-1 text-[9.5px] font-extrabold no-scrollbar">
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> HADIR
           </span>
-          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> TELAT
           </span>
-          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> IZIN/SKT
           </span>
-          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-teal-50 text-teal-700 border border-teal-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-teal-500" /> PraPKL
           </span>
-          <span className="px-3 py-1 rounded-[var(--ui-radius-pill)] bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
+          <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 shrink-0 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> ALPA
           </span>
         </div>

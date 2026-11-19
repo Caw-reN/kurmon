@@ -547,28 +547,28 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       {/* Unified Header Toolbar (Pills + Controls in 1 Card) */}
       <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
         {/* Quick Filter Status Pills Row */}
-        <div className="p-3 sm:p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="p-2 sm:p-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full">
             {[
-              { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-xs" },
-              { id: "pending", label: "Menunggu Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-xs" },
-              { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-xs" },
-              { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-xs" },
-              { id: "Alpa", label: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-xs" },
-              { id: "Terlambat", label: "Dispensasi / Catatan", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-xs" },
+              { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-2xs" },
+              { id: "pending", label: "Menunggu Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
+              { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
+              { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-2xs" },
+              { id: "Alpa", label: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
+              { id: "Terlambat", label: "Dispensasi", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-2xs" },
             ].map(tab => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setFilterStatus(tab.id)}
-                className={`px-3 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-2 active:scale-95 ${
+                className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-extrabold transition-all cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${
                   filterStatus === tab.id
                     ? `${tab.activeBg} font-black`
                     : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100/80"
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-[var(--ui-radius-small)] ${
+                <span className={`text-[9.5px] font-black px-1.5 py-0.2 rounded-full ${
                   filterStatus === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                 }`}>
                   {tab.count}
@@ -577,24 +577,24 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             ))}
           </div>
 
-          <div className="hidden lg:flex items-center gap-1.5 text-xs text-slate-400 font-bold">
+          <div className="hidden lg:flex items-center gap-1.5 text-xs text-slate-400 font-bold shrink-0">
             <span>Total:</span>
             <span className="text-slate-800 font-black">{filteredItems.length} Data</span>
           </div>
         </div>
 
         {/* Filter Controls & Action Bar Row */}
-        <div className="p-3.5 sm:p-4 bg-white flex flex-col md:flex-row gap-3 justify-between items-start md:items-center">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto flex-1">
+        <div className="p-2.5 sm:p-4 bg-white flex flex-col md:flex-row gap-2 sm:gap-3 justify-between items-start md:items-center">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 w-full md:w-auto flex-1">
             {externalSearch === undefined && (
               <div className="relative flex-1 min-w-[200px] w-full">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                 <input
                   type="text"
                   placeholder="Cari siswa atau NIS..."
                   value={activeSearch}
                   onChange={e => handleSearchChange(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all"
+                  className="w-full pl-9 pr-4 py-1.5 sm:py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
                 />
               </div>
             )}
@@ -611,10 +611,10 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 type="date"
                 value={filterTanggal}
                 onChange={e => setFilterTanggal(e.target.value)}
-                className="flex-1 sm:flex-none px-3.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                className="flex-1 sm:flex-none px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
               />
               {filterTanggal !== "" && (
-                 <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs rounded-[var(--ui-radius-small)] text-rose-600 hover:bg-rose-50">Clear</Button>
+                 <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs rounded-xl text-rose-600 hover:bg-rose-50">Clear</Button>
               )}
             </div>
           </div>

@@ -38,41 +38,36 @@ export default function PageHeader({
 
   return (
     <div className={cn("relative z-20 flex flex-col gap-2.5", isPlain ? '-mb-2' : '')}>
-      {/* Mobile Navigation Header (Shown on Mobile screens when not plain) */}
+      {/* Mobile Unified Compact Header (Shown on Mobile screens when not plain) */}
       {!isPlain && (
-        <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-1">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="w-9 h-9 rounded-full bg-white border border-slate-200 shadow-xs flex items-center justify-center text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer shrink-0"
-            title="Kembali ke Dashboard"
-          >
-            <ChevronLeft size={20} strokeWidth={2.5} />
-          </button>
-          <h2 className="text-sm font-black text-slate-800 text-center flex-1 tracking-tight truncate px-2">
-            {title}
-          </h2>
-          <div className="w-9 shrink-0" />
-        </div>
-      )}
-
-      {/* Mobile Hero Header Card (Shown on Mobile screens when not plain) */}
-      {!isPlain && (
-        <div 
-          className="sm:hidden w-full rounded-2xl p-3.5 flex items-center gap-3 relative overflow-hidden mb-1 transition-all bg-white border border-slate-200/80 text-slate-900 shadow-xs"
-        >
-          {Icon && (
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-2xs"
+        <div className="sm:hidden flex items-center justify-between gap-2.5 px-3 py-2 bg-white border border-slate-200/80 rounded-2xl shadow-2xs mb-0.5">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-200/80 active:scale-95"
+              title="Kembali ke Dashboard"
+              aria-label="Kembali ke Dashboard"
             >
-              <Icon size={18} strokeWidth={2.2} />
+              <ChevronLeft size={18} strokeWidth={2.4} />
+            </button>
+            {Icon && (
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
+                <Icon size={16} strokeWidth={2.2} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs font-black text-slate-800 tracking-tight truncate leading-tight">
+                {title}
+              </h2>
+              {description && (
+                <p className="text-[10px] font-medium text-slate-400 truncate leading-tight mt-0.5">
+                  {description}
+                </p>
+              )}
             </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold leading-relaxed text-slate-600">
-              {description || "Kelola & pantau informasi modul sekolah secara real-time."}
-            </p>
           </div>
+          {actions && <div className="shrink-0 flex items-center">{actions}</div>}
         </div>
       )}
 
