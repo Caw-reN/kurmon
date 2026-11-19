@@ -336,7 +336,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         if ((roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") && !isSpecializedGuru) {
           // Strict Role Security: Blokir akses modul Kesiswaan, BK, dan Master Data untuk Guru Biasa & Walas murni
           const forbiddenTabs = [
-            "keterangan_massal", "riwayat_prestasi", "hikvision_report_siswa",
+            "beban", "keterangan_massal", "riwayat_prestasi", "hikvision_report_siswa",
             "siswa", "datasiswa", "siswa_keluar", "tatib_skor", "kedisiplinan_piket",
             "kedisiplinan_bpbk", "kedisiplinan_hub", "laporan_absensi", "absensi"
           ];
@@ -358,7 +358,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           const guruDefaultTabs = [
             "dashboard", "generate", "akademik", "jurnal_harian",
             "modul_ajar", "absensiguru", "silabusguru", "ketersediaan",
-            "beban", "pesan", "rpp_guru"
+            "pesan", "rpp_guru"
           ];
           if (guruDefaultTabs.includes(activeTab)) return true;
 

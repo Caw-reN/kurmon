@@ -132,12 +132,12 @@ const getMajorColorHex = className => {
 export const GLOBAL_ROLE_DEFAULTS = {
   guru: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "ketersediaan", "beban", "modul_ajar", "pesan"
+    "ketersediaan", "modul_ajar", "pesan"
   ],
   walikelas: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
-    "ketersediaan", "beban", "modul_ajar", "catatan_walikelas", "walas_report",
-    "kedisiplinan_absensi", "pesan"
+    "ketersediaan", "modul_ajar", "catatan_walikelas", "walas_report",
+    "kedisiplinan_absensi", "rekap_jurnal_kelas", "pesan"
   ],
   bpbk: [
     "dashboard", "generate", "akademik", "absensiguru", "jurnal_harian",
@@ -1851,15 +1851,18 @@ export default function App() {
       const gLevel = (role === 'guru' || effectiveKey === 'guru') ? getRoleLevel('guru') : null;
 
       // 0. Strict Role Integrity: Modul Kesiswaan, BK, & Master Data
-      // Regular Guru and Walikelas MUST NOT access Keterangan Massal, Riwayat Prestasi, Presensi Siswa global, Data Siswa, dll.
+      // Regular Guru and Walikelas MUST NOT access Keterangan Massal, Riwayat Prestasi, Presensi Siswa global, Data Siswa, Beban Mengajar, dll.
       const forbiddenForPureGuruWalas = [
-        'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa',
+        'beban', 'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa',
         'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor', 'kedisiplinan_piket',
         'kedisiplinan_bpbk', 'kedisiplinan_hub', 'laporan_absensi', 'absensi'
       ];
       if (forbiddenForPureGuruWalas.includes(tabId)) {
         if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') {
           return true;
+        }
+        if (tabId === 'beban') {
+          return isKurikulumTeam && spLevel !== 'nonaktif';
         }
         if (isKesiswaanTeam || isBKTeam || ['tu', 'tata_usaha'].includes(role) || effectiveKey === 'tu') {
           return spLevel !== 'nonaktif';
@@ -2978,8 +2981,11 @@ export default function App() {
     );
 
     // 0. Strict Role Isolation: Tab Kesiswaan, BK, & Master Data tidak boleh bocor ke Guru biasa / Walas
-    if (['keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa', 'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor', 'laporan_absensi'].includes(tab)) {
+    if (['beban', 'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa', 'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor', 'laporan_absensi'].includes(tab)) {
       if (role === 'kepsek') return 'view';
+      if (tab === 'beban') {
+        return isKurikulumTeam ? 'edit' : 'none';
+      }
       if (isKesiswaanTeam || isBKTeam) return 'edit';
       if (role === 'tu' || role === 'tata_usaha' || effectiveRoleKey === 'tu') {
         return ['riwayat_prestasi', 'hikvision_report_siswa', 'laporan_absensi'].includes(tab) ? 'view' : 'edit';
@@ -3117,7 +3123,7 @@ export default function App() {
     if (gLevel === "nonaktif" || gLevel === "none" || gLevel === "off") return "none";
 
     if (role === "guru" || role === "waka" || effectiveRoleKey === "guru" || (typeof effectiveRoleKey === "string" && effectiveRoleKey.startsWith("waka_")) || isKesiswaanTeam || isKurikulumTeam) {
-      const guruTabs = ["generate", "akademik", "absensiguru", "jurnal_harian", "ketersediaan", "beban", "pesan", "modul_ajar"];
+      const guruTabs = ["generate", "akademik", "absensiguru", "jurnal_harian", "ketersediaan", "pesan", "modul_ajar"];
       if (guruTabs.includes(tab)) return "edit";
     }
 
@@ -3291,15 +3297,18 @@ export default function App() {
     const gLevel = (activeRole === 'guru' || effectiveKey === 'guru') ? getRoleLevel('guru') : null;
 
     // 0. Strict Role Integrity: Modul Kesiswaan, BK, & Master Data
-    // Regular Guru and Walikelas MUST NOT access Keterangan Massal, Riwayat Prestasi, Presensi Siswa global, Data Siswa, dll.
+    // Regular Guru and Walikelas MUST NOT access Keterangan Massal, Riwayat Prestasi, Presensi Siswa global, Data Siswa, Beban Mengajar, dll.
     const forbiddenForPureGuruWalas = [
-      'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa',
+      'beban', 'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa',
       'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor', 'kedisiplinan_piket',
       'kedisiplinan_bpbk', 'kedisiplinan_hub', 'laporan_absensi', 'absensi'
     ];
     if (forbiddenForPureGuruWalas.includes(id)) {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
+      }
+      if (id === 'beban') {
+        return isKurikulumTeam && spLevel !== 'nonaktif';
       }
       if (isKesiswaanTeam || isBKTeam || ['tu', 'tata_usaha'].includes(activeRole) || effectiveKey === 'tu') {
         return spLevel !== 'nonaktif';

@@ -42,13 +42,30 @@ const MasterDataBeban = memo(function MasterDataBeban({
   DEFAULT_TABLE_SORTS,
   csvValuesIntersect
 }) {
-        if (!isSuperAdminRole(currentUser.role) && !(currentUser.role ==="waka" && (currentUser.division ||"").toLowerCase() ==="kurikulum")) {
-          return (
-            <div className="bg-white border-none rounded-[var(--ui-radius-small)] p-6 text-center">
-              <p className="font-bold text-slate-700">Tab Beban Mengajar hanya untuk SuperAdmin atau Waka Kurikulum.</p>
-            </div>
-          );
-        }
+  const userRole = String(currentUser?.role || '').toLowerCase().trim();
+  const userSubrole = String(currentUser?.subrole || '').toLowerCase().trim();
+  const userDivision = String(currentUser?.division || '').toLowerCase().trim();
+  const isSuperAdmin = isSuperAdminRole(userRole) || ['admin', 'superadmin', 'super_admin'].includes(userRole) || currentUser?.username === 'admin' || Boolean(currentUser?.isSuperAdmin);
+  const isKepsek = userRole === 'kepsek';
+  const isKurikulum = isSuperAdmin ||
+    userRole.includes('kurikulum') ||
+    userSubrole.includes('kurikulum') ||
+    userDivision.includes('kurikulum') ||
+    (userRole === 'waka' && (userDivision.includes('kurikulum') || !userDivision));
+
+  if (!isKurikulum && !isKepsek) {
+    return (
+      <div className="bg-white border border-slate-200 rounded-[var(--ui-radius-card)] p-8 text-center max-w-md mx-auto my-12 shadow-sm">
+        <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
+          <BookOpen size={24} />
+        </div>
+        <h3 className="font-bold text-slate-800 text-sm mb-1">Akses Terbatas</h3>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Pengelolaan Master Beban Mengajar hanya dapat diakses oleh Administrator, Kepala Sekolah, dan Tim Kurikulum.
+        </p>
+      </div>
+    );
+  }
         const filteredLoads = teachingLoads.filter((item) => {
           const teacherCode = String(item?.teacherCode ||"");
           const teacherName = getTeacherName(teacherCode);
@@ -73,13 +90,13 @@ const MasterDataBeban = memo(function MasterDataBeban({
         const totalFilteredJp = filteredLoads.reduce((sum, item) => sum + parsePositiveInt(item.duration, 0), 0);
         const teachersInFilteredLoads = new Set(filteredLoads.flatMap((item) => parseTeacherCodes(item.teacherCode))).size;
         const subjectsInFilteredLoads = new Set(filteredLoads.map((item) => String(item.subject ||"").trim()).filter(Boolean)).size;
-        const actionButtons = (
+        const actionButtons = isKurikulum ? (
           <React.Fragment>
             <Button variant="outline" size="sm" onClick={downloadMasterTemplate} className="flex-1 lg:flex-none flex items-center justify-center gap-1.5 md:text-xs"><Download size={14} /> Template</Button>
             <Button variant="outline" size="sm" onClick={() => openModal("bulk","add")} className="flex-1 lg:flex-none flex items-center justify-center gap-1.5 md:text-xs"><Upload size={14} /> Import</Button>
             <Button size="sm" onClick={() => openModal("beban","add")} className="flex-1 lg:flex-none flex items-center justify-center gap-1.5 md:text-xs"><Plus size={14} strokeWidth={3} /> Tambah Beban</Button>
           </React.Fragment>
-        );
+        ) : null;
 
         return (
           <div className="flex flex-col gap-4  w-full animate-in fade-in duration-300">
