@@ -741,6 +741,43 @@ a[class*="active:scale"]:active {
   scrollbar-color: #cbd5e1 transparent !important;
 }
 
+/* Sembunyikan tampilan scrollbar pada layar mobile (<768px) dan layar sentuh */
+@media (max-width: 768px), (pointer: coarse) {
+  html,
+  body,
+  #root,
+  .app-shell,
+  .app-content,
+  .custom-scrollbar,
+  .sidebar-scroll-left,
+  .popover-custom-scrollbar,
+  [class*="overflow-y-auto"],
+  [class*="overflow-x-auto"],
+  [class*="overflow-auto"] {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  #root::-webkit-scrollbar,
+  .app-shell::-webkit-scrollbar,
+  .app-content::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar,
+  .sidebar-scroll-left::-webkit-scrollbar,
+  .popover-custom-scrollbar::-webkit-scrollbar,
+  [class*="overflow-y-auto"]::-webkit-scrollbar,
+  [class*="overflow-x-auto"]::-webkit-scrollbar,
+  [class*="overflow-auto"]::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+    -webkit-appearance: none !important;
+  }
+}
+
 ::-webkit-scrollbar,
 *::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {
