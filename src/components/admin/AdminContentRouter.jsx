@@ -591,27 +591,27 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </Suspense>;
       case"mapel":
         return renderTable("Kelola Mata Pelajaran", ["Nama Mapel","Tingkat","Jurusan","Sifat Mapel","Ruangan Praktik","Durasi"], subjects, (item, idx, isSelected) => <tr key={item.name} className={`hover:bg-slate-50/50 transition-colors ${isSelected ?"bg-[var(--ui-accent)]/20/40" :""}`}>
-          <td className="px-4 py-4 text-center">
+          <td className="px-2.5 py-2.5 text-center">
             <input type="checkbox" checked={isSelected} onChange={() => updateSelectionForTab("mapel", current => current.includes(item.name) ? current.filter(x => x !== item.name) : [...current, item.name])} className="accent-[var(--ui-primary)] cursor-pointer" aria-label={`Pilih mapel ${item.name}`} />
           </td>
-          <td className="px-6 py-4 text-center font-bold text-slate-400">
+          <td className="px-2 py-2.5 text-center font-bold text-slate-400 text-xs">
             {idx + 1}
           </td>
-          <td className="px-6 py-4 font-bold text-slate-800">
+          <td className="px-3.5 py-2.5 font-bold text-slate-800 text-xs">
             {item.name}
           </td>
-          <td className="px-6 py-4 font-black text-slate-700">
+          <td className="px-3.5 py-2.5 text-center font-black text-slate-700 text-xs">
             {item.grade}
           </td>
-          <td className="px-6 py-4 font-medium text-slate-600">
+          <td className="px-3.5 py-2.5 font-medium text-slate-600 text-xs">
             {item.major}
           </td>
-          <td className="px-6 py-4">
-            <span className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold uppercase tracking-wider ${item.isBlock ?"bg-[var(--ui-accent)]/20 text-[var(--ui-primary)]" :"bg-slate-100 text-slate-600"}`}>
+          <td className="px-3.5 py-2.5">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-[10.5px] font-bold uppercase tracking-wider shadow-2xs ${item.isBlock ?"bg-amber-50 text-amber-700 border border-amber-200/80" :"bg-indigo-50 text-indigo-700 border border-indigo-200/80"}`}>
               {item.isBlock ?"Praktik / Bengkel" :"Teori Reguler"}
             </span>
           </td>
-          <td className="px-6 py-4 font-medium text-slate-600">
+          <td className="px-3.5 py-2.5 font-medium text-slate-600 text-xs">
             <div className="max-w-[260px]">
               <div className="text-xs font-bold text-slate-700 leading-snug">
                 {getPracticeRoomLabel(item.practiceRoomIds)}
@@ -621,30 +621,45 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
               </div>}
             </div>
           </td>
-          <td className="px-6 py-4 font-medium text-slate-600">
-            {item.defaultDuration} Jam
+          <td className="px-3.5 py-2.5 text-center font-bold text-slate-700 text-xs">
+            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[11px] font-bold">
+              {item.defaultDuration} JP
+            </span>
           </td>
-          <td className="px-6 py-4 text-right">
-            <div className="flex justify-end gap-2">
-              <button onClick={() => openModal("mapel","edit", item)} className="p-2 text-slate-400 hover:text-[var(--ui-primary)] bg-white hover:bg-[var(--ui-accent)]/20 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer">
-                <Edit2 size={14} />
+          <td className="px-3 py-2.5 text-right">
+            <div className="flex justify-end items-center gap-1.5">
+              <button 
+                type="button"
+                onClick={() => openModal("mapel","edit", item)} 
+                className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200/80 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                title="Edit Mapel"
+              >
+                <Edit2 size={13} />
               </button>
               {(() => {
                 const deps = checkDependencies("mapel", item.name);
                 if (deps.length > 0) {
                   return (
                     <button 
+                      type="button"
                       onClick={() => openModal('lock_info', 'view', { type: 'mapel', name: `Mata Pelajaran: ${item.name}`, deps })}
                       title="Klik untuk melihat detail koneksi data"
-                      className="p-2 text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-[var(--ui-radius-small)] transition-colors cursor-pointer"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-600 transition-colors shadow-2xs cursor-pointer"
                     >
-                      <Lock size={14} className="text-amber-500" />
+                      <Lock size={13} />
                     </button>
                   );
                 }
-                return <button onClick={() => handleDelete("mapel", item.name)} className="p-2 text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50 border-none rounded-[var(--ui-radius-small)] transition-colors cursor-pointer" title="Hapus">
-                  <Trash2 size={14} />
-                </button>;
+                return (
+                  <button 
+                    type="button"
+                    onClick={() => handleDelete("mapel", item.name)} 
+                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-rose-200/80 bg-white hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer" 
+                    title="Hapus"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                );
               })()}
             </div>
           </td>

@@ -341,20 +341,20 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
               {/* Status Alat Hikvision */}
               <td className="px-2.5 py-2.5 text-center">
                 {isConnected ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold whitespace-nowrap">
-                    <CheckCircle2 size={13} className="text-emerald-600" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10.5px] font-bold whitespace-nowrap shadow-2xs">
+                    <CheckCircle2 size={12} className="text-emerald-600" />
                     <span>Terhubung</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 text-[10.5px] font-bold whitespace-nowrap">
-                    <XCircle size={13} className="text-rose-500" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-50 text-slate-600 border border-slate-200/80 text-[10.5px] font-bold whitespace-nowrap shadow-2xs">
+                    <XCircle size={12} className="text-slate-400" />
                     <span>Belum di Mesin</span>
                   </span>
                 )}
               </td>
               <td className="px-2.5 py-2.5 text-right">
                 {!isViewOnly ? (
-                  <div className="flex justify-end items-center gap-1">
+                  <div className="flex justify-end items-center gap-1.5">
                     {quickEditKaryawanCode === item.code ? (
                       <>
                         <Button size="sm" className="h-7 px-2 text-xs" onClick={() => saveQuickEditKaryawan(item.code)}>Save</Button>
@@ -362,28 +362,37 @@ const MasterDataKaryawan = memo(function MasterDataKaryawan({
                       </>
                     ) : (
                       <>
-                        <Button size="icon" variant="ghost" className="h-7 w-7 p-0" onClick={() => openModal('Karyawan','edit', item)} title="Edit Karyawan">
-                          <Edit2 size={13} className="text-slate-600" />
-                        </Button>
+                        <button 
+                          type="button"
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200/80 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer" 
+                          onClick={() => openModal('Karyawan','edit', item)} 
+                          title="Edit Karyawan"
+                        >
+                          <Edit2 size={13} />
+                        </button>
                         {(() => {
                           const deps = checkDependencies('Karyawan', item.code);
                           if (deps.length > 0) {
                             return (
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-7 w-7 p-0 hover:bg-amber-50 border border-amber-200/80 cursor-pointer"
+                              <button 
+                                type="button"
+                                className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-600 transition-colors shadow-2xs cursor-pointer"
                                 onClick={() => openModal('lock_info', 'view', { type: 'Karyawan', name: `Karyawan: ${item.name || item.code}`, deps })}
                                 title="Klik untuk melihat detail koneksi data"
                               >
-                                <Lock size={13} className="text-amber-500" />
-                              </Button>
+                                <Lock size={13} />
+                              </button>
                             );
                           }
                           return (
-                            <Button size="icon" variant="ghost" className="h-7 w-7 p-0 hover:bg-rose-50 text-rose-500" onClick={() => handleDelete('Karyawan', item.code)} title="Hapus">
+                            <button 
+                              type="button"
+                              className="w-7 h-7 flex items-center justify-center rounded-lg border border-rose-200/80 bg-white hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer" 
+                              onClick={() => handleDelete('Karyawan', item.code)} 
+                              title="Hapus"
+                            >
                               <Trash2 size={13} />
-                            </Button>
+                            </button>
                           );
                         })()}
                       </>

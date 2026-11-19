@@ -257,10 +257,10 @@ export function useAdminTableRenderer(context) {
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder={`Cari ${title.toLowerCase()}...`}
+                  placeholder={`Cari ${title.toLowerCase().startsWith('kelola ') ? title.slice(7).toLowerCase() : title.toLowerCase()}...`}
                   value={searchTerm}
                   onChange={e => { setSearchTerm(e.target.value); setTablePage(1); }}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all placeholder:text-slate-400"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all placeholder:text-slate-400 shadow-2xs"
                 />
               </div>
 
@@ -273,7 +273,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="outline" 
                     onClick={() => openModal("bulk","add")} 
-                    className="text-xs font-bold gap-1.5 rounded-lg border-slate-200 hover:bg-slate-50 text-slate-700"
+                    className="text-xs font-bold gap-1.5 rounded-lg border-slate-200/90 hover:bg-slate-50 text-slate-700 h-8.5 shadow-2xs transition-all"
                   >
                     <Upload size={13} /> Import Teks
                   </Button>
@@ -284,7 +284,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="outline" 
                     onClick={undoLastDelete} 
-                    className="text-xs font-bold gap-1.5 rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50"
+                    className="text-xs font-bold gap-1.5 rounded-lg border-slate-200/90 text-slate-700 hover:bg-slate-50 h-8.5 shadow-2xs transition-all"
                   >
                     <History size={13} /> Undo Hapus
                   </Button>
@@ -296,7 +296,7 @@ export function useAdminTableRenderer(context) {
                       type="button"
                       variant="outline" 
                       onClick={() => openModal('bulk_edit', 'edit', { tabKey, ids: selectedKeys })} 
-                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-lg"
+                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-lg h-8.5 shadow-2xs transition-all"
                     >
                       <Edit3 size={13} /> Edit Massal ({selectedCount})
                     </Button>
@@ -304,7 +304,7 @@ export function useAdminTableRenderer(context) {
                       type="button"
                       variant="destructive" 
                       onClick={() => handleBulkDelete(tabKey, selectedKeys)} 
-                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg"
+                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-8.5 shadow-2xs transition-all"
                     >
                       <Trash2 size={13} /> Hapus ({selectedCount})
                     </Button>
@@ -316,7 +316,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="destructive" 
                     onClick={handleResetRuangan} 
-                    className="text-xs font-bold gap-1.5 rounded-lg"
+                    className="text-xs font-bold gap-1.5 rounded-lg h-8.5 shadow-2xs transition-all"
                   >
                     <Trash2 size={13} /> Kosongkan Semua
                   </Button>
@@ -326,7 +326,7 @@ export function useAdminTableRenderer(context) {
                   <Button 
                     type="button"
                     onClick={() => openModal(tabKey,"add")} 
-                    className="text-xs font-extrabold gap-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-lg px-3.5 py-2 active:scale-95 transition-all border-none"
+                    className="text-xs font-extrabold gap-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-lg px-3.5 h-8.5 active:scale-95 transition-all border-none shadow-2xs"
                   >
                     <Plus size={15} strokeWidth={2.5} /> Tambah Data
                   </Button>
@@ -508,7 +508,13 @@ export function useAdminTableRenderer(context) {
                         <div className={cn("flex items-center gap-1", alignClass === "text-center" ? "justify-center" : "justify-start")}>
                           <span>{col}</span>
                           {isActiveSort && (
-                            <span className="text-[9px] font-black text-primary">{sortConfig.dir === "asc" ? "▲" : "▼"}</span>
+                            <span className="inline-flex items-center text-primary ml-0.5">
+                              {sortConfig.dir === "asc" ? (
+                                <ChevronUp size={11} strokeWidth={2.6} />
+                              ) : (
+                                <ChevronDown size={11} strokeWidth={2.6} />
+                              )}
+                            </span>
                           )}
                         </div>
                       </TableHead>
