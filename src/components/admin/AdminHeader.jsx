@@ -7,7 +7,7 @@ import { Clock, MessageSquare,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
   MonitorSmartphone, UserCog, User, HardDrive, KeyRound,
   HelpCircle, Bell, LogOut, Wrench, Activity, ClipboardList, Trophy, UserMinus, Shield, ShieldCheck,
-  Menu, PanelLeftOpen, ChevronsUpDown
+  Menu, ChevronsUpDown
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
@@ -374,24 +374,6 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             aria-label="Buka Menu"
           >
             <Menu size={18} strokeWidth={2} />
-          </button>
-        )}
-
-        {/* Desktop Sidebar Expand trigger when collapsed */}
-        {isSidebarCollapsed && typeof toggleSidebar === 'function' && (
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            className={cn(
-              "hidden lg:flex p-2 rounded-lg cursor-pointer items-center justify-center transition-colors shrink-0",
-              isPrimaryHeader
-                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25"
-                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80"
-            )}
-            title="Buka Sidebar"
-            aria-label="Buka Sidebar"
-          >
-            <PanelLeftOpen size={18} strokeWidth={2} />
           </button>
         )}
         
