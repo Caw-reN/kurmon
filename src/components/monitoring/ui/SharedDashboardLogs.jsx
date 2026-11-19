@@ -711,7 +711,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     }
 
     return (
-      <div key={index} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg border border-slate-100 bg-slate-50/40 hover:bg-slate-50/90 transition-colors group">
+      <div key={index} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg border border-slate-200/70 bg-slate-50/50 hover:bg-slate-100/70 transition-colors group">
         <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
           <div className="text-[10px] font-black text-slate-400 w-3.5 text-right shrink-0">{absoluteIndex}.</div>
           <div className={`w-7 h-7 rounded-full font-black text-[11px] flex items-center justify-center shrink-0 border ${avatarBg}`}>
@@ -911,7 +911,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         {activeLogTab === 'guru_karyawan' && (
           <div className="animate-in fade-in duration-200">
             {guruKaryawanLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
+              <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Guru Hadir" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Kehadiran</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Belum ada guru atau karyawan yang scan absen hari ini</p>
@@ -931,7 +931,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         {activeLogTab === 'kehadiran_siswa' && (
           <div className="animate-in fade-in duration-200">
             {kehadiranSiswaLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
+              <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/066-education.svg" alt="Kehadiran Siswa" className="w-9 h-9 mx-auto opacity-30 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Data Kehadiran Siswa</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Scan absensi siswa untuk menampilkan log live</p>
@@ -951,7 +951,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         {activeLogTab === 'siswa_terlambat' && (
           <div className="animate-in fade-in duration-200">
             {terlambatSiswaLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
+              <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Tepat Waktu" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Keterlambatan Siswa</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Seluruh siswa tercatat tepat waktu hari ini</p>
@@ -971,7 +971,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         {activeLogTab === 'guru_terlambat' && (
           <div className="animate-in fade-in duration-200">
             {terlambatGuruLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
+              <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Tepat Waktu" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Keterlambatan Guru & Karyawan</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Seluruh guru dan karyawan tercatat hadir tepat waktu hari ini</p>
@@ -991,7 +991,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         {activeLogTab === 'siswa_bermasalah' && (
           <div className="animate-in fade-in duration-200">
             {bermasalahLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
+              <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/079-checklist.svg" alt="Aman" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Catatan Siswa Bermasalah</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Kedisiplinan siswa dalam kondisi kondusif</p>
@@ -1011,7 +1011,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         {activeLogTab === 'siswa_prestasi' && (
           <div className="animate-in fade-in duration-200">
             {siswaPrestasiLogs.length === 0 ? (
-              <div className="p-8 rounded-[var(--ui-radius-card)] bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
+              <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
                 <img src="/icons/063-follow.svg" alt="Prestasi" className="w-9 h-9 mx-auto opacity-35 mb-2" />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Data Siswa Berprestasi</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Catatan pencapaian dan prestasi siswa akan muncul di sini</p>

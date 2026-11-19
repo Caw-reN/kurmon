@@ -275,71 +275,73 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   if (!isAllowed) return null;
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-xl border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col justify-between h-full overflow-hidden">
       {/* ── Header ── */}
-      <div>
-        <div className="flex flex-col justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col justify-between gap-2.5">
+        <div className="flex items-center justify-between gap-2 min-w-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
-              <Activity size={14} className="text-primary" />
+            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
+              <Activity size={15} className="text-primary" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight truncate">
+                <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight truncate">
                   Log Aktivitas Pengguna
                 </h3>
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] sm:text-[8.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                   LIVE
                 </span>
-                {onlineStats.totalUsers > 0 && (
-                  <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/80 whitespace-nowrap shrink-0">
-                    <span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
-                  </span>
-                )}
               </div>
             </div>
           </div>
-
-          {/* Filter Pills & Refresh Button */}
-          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar pb-0.5 shrink-0 w-full">
-            {[
-              { id: 'all', label: 'Semua', count: categoryCounts.all },
-              { id: 'login', label: 'Login', count: categoryCounts.login },
-              { id: 'navigasi', label: 'Buka Menu', count: categoryCounts.navigasi },
-              { id: 'kbm', label: 'Jurnal KBM', count: categoryCounts.kbm },
-              { id: 'file', label: 'Upload & File', count: categoryCounts.file }
-            ].map(f => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
-                className={`whitespace-nowrap px-2 py-0.5 text-[9.5px] font-bold rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
-                  filterType === f.id
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-white'
-                }`}
-              >
-                <span>{f.label}</span>
-                <span className={`px-1.5 py-0.2 rounded-full text-[8.5px] font-bold ${
-                  filterType === f.id ? 'bg-white/25 text-white' : 'bg-slate-200/80 text-slate-700'
-                }`}>
-                  {f.count}
-                </span>
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={fetchAuditLogs}
-              title="Perbarui data aktivitas"
-              className="p-1 rounded-md bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-primary cursor-pointer transition-colors"
-            >
-              <RefreshCw size={11} className={loading ? 'animate-spin text-primary' : ''} />
-            </button>
-          </div>
+          {onlineStats.totalUsers > 0 && (
+            <span className="text-[8.5px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200/80 whitespace-nowrap shrink-0">
+              <span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
+            </span>
+          )}
         </div>
 
-        {/* ── Feed List ── */}
+        {/* Filter Pills & Refresh Button */}
+        <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar pb-0.5 shrink-0 w-full">
+          {[
+            { id: 'all', label: 'Semua', count: categoryCounts.all },
+            { id: 'login', label: 'Login', count: categoryCounts.login },
+            { id: 'navigasi', label: 'Buka Menu', count: categoryCounts.navigasi },
+            { id: 'kbm', label: 'Jurnal KBM', count: categoryCounts.kbm },
+            { id: 'file', label: 'Upload & File', count: categoryCounts.file }
+          ].map(f => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
+              className={`whitespace-nowrap px-2 py-0.5 text-[9.5px] font-bold rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
+                filterType === f.id
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50'
+              }`}
+            >
+              <span>{f.label}</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[8.5px] font-bold ${
+                filterType === f.id ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60'
+              }`}>
+                {f.count}
+              </span>
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={fetchAuditLogs}
+            title="Perbarui data aktivitas"
+            className="p-1 rounded-md bg-white hover:bg-slate-50 border border-slate-200/80 text-slate-500 hover:text-primary cursor-pointer transition-colors"
+          >
+            <RefreshCw size={11} className={loading ? 'animate-spin text-primary' : ''} />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Feed List Container ── */}
+      <div className="p-3 bg-white flex-1 flex flex-col justify-between">
         <div className="divide-y divide-slate-100 my-1 flex-1 flex flex-col justify-around">
           {paginatedLogs.length === 0 ? (
             <div className="py-8 text-center text-slate-400 font-semibold text-xs">
@@ -377,7 +379,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 >
                   {/* Kiri: Avatar & Info */}
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center font-bold text-[10px] text-slate-700 shrink-0 group-hover:bg-white transition-colors">
+                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center font-bold text-[10.5px] text-slate-700 shrink-0 group-hover:bg-white transition-colors">
                       {userInitial}
                     </div>
 
@@ -424,10 +426,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
             })
           )}
         </div>
-      </div>
 
-      {/* ── Footer Pagination & Audit Log Link ── */}
-      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9.5px] mt-0.5">
+        {/* ── Footer Pagination & Audit Log Link ── */}
+        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9.5px] mt-auto">
         <span className="text-[9.5px] font-medium text-slate-400">
           Menampilkan {paginatedLogs.length} dari {filteredLogs.length} aktivitas
         </span>
@@ -468,6 +469,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }

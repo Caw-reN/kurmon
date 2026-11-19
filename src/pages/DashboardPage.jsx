@@ -2122,7 +2122,7 @@ export default function DashboardPage({
             </h1>
           </div>
           <div className="flex items-center gap-2.5 shrink-0 sm:ml-auto">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-md">
               <LayoutGrid size={12} strokeWidth={2.4} /> {dashboardMode.badge}
             </span>
             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
@@ -2146,7 +2146,7 @@ export default function DashboardPage({
 
       {/* Backup Error Alert */}
       {dashLogs?.backupErrors?.length > 0 && isSuperAdmin && (
-        <details className="group bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-card)] overflow-hidden open:pb-3 transition-all mb-4">
+        <details className="group bg-rose-50 border border-rose-200 rounded-xl overflow-hidden open:pb-3 transition-all mb-4">
           <summary className="p-4 flex items-center justify-between cursor-pointer list-none select-none hover:bg-rose-100/30 transition-colors">
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600 group-open:bg-rose-600 group-open:text-white transition-colors duration-300">
@@ -2169,7 +2169,7 @@ export default function DashboardPage({
           <div className="px-4 pb-1">
             <div className="space-y-1.5 pt-2 border-t border-rose-200/60 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
               {dashLogs.backupErrors.map((err, i) => (
-                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-[var(--ui-radius-small)] border border-rose-100/80">
+                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-lg border border-rose-100/80">
                   <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">
                     {new Date(err.time).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {err.action}
                   </span>
@@ -2336,7 +2336,7 @@ export default function DashboardPage({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
                         <span className="font-bold text-slate-800 text-[10.5px] truncate">{row.label}</span>
-                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[8px] font-bold uppercase tracking-wider border shrink-0 ${row.statusLabel === 'Selesai'
+                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[8.5px] font-bold uppercase tracking-wider border shrink-0 ${row.statusLabel === 'Selesai'
                           ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
                           : row.statusLabel === 'In Progress'
                             ? 'bg-amber-50 text-amber-700 border-amber-200/70'
