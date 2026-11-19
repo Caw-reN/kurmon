@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import {
   ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
-  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User, ArrowDown, ArrowUp,
+  CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User,
   BookOpen, Clock, Cpu, HardDrive, Palette, Database, FolderOpen
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
@@ -86,8 +86,6 @@ export default function AdminSidebar({
     return typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   }, []);
   const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
-  const [canScrollDown, setCanScrollDown] = useState(false);
-  const [canScrollUp, setCanScrollUp] = useState(false);
   const [activeFlyout, setActiveFlyout] = useState(null);
   const flyoutTimerRef = useRef(null);
 
@@ -218,27 +216,6 @@ export default function AdminSidebar({
     }
   }, [activeTab, refToUse, searchQuery]);
 
-  // Helper to check whether content overflows and can scroll down/up
-  const checkScrollState = () => {
-    const el = refToUse.current;
-    if (!el) return;
-    const hasOverflow = el.scrollHeight > el.clientHeight + 10;
-    setCanScrollUp(hasOverflow && el.scrollTop > 30);
-    setCanScrollDown(hasOverflow && el.scrollTop + el.clientHeight < el.scrollHeight - 30);
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(checkScrollState, 150);
-    const el = refToUse.current;
-    if (!el) return () => clearTimeout(timer);
-    const handleResize = () => checkScrollState();
-    window.addEventListener('resize', handleResize);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [expandedGroups, searchQuery, activeTab, isCollapsed]);
-
   // Keyboard navigation handler inside the navigation panel
   const handleNavKeyDown = (e) => {
     const el = refToUse.current;
@@ -312,8 +289,8 @@ export default function AdminSidebar({
   const SidebarSection = ({ label }) => {
     if (isCollapsed) return null;
     return (
-      <div className="mt-3.5 mb-1 px-3 flex items-center">
-        <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
+      <div className="pt-3 pb-1 px-2.5 flex items-center">
+        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
           {label}
         </span>
       </div>
@@ -381,7 +358,7 @@ export default function AdminSidebar({
               "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-9 h-9",
               hasActiveChild
                 ? "bg-primary/10 text-primary font-bold"
-                : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
             )}
           >
             {Icon && (
@@ -397,25 +374,32 @@ export default function AdminSidebar({
     }
 
     return (
-      <div className="mb-1 w-full">
+      <div className="mb-0.5 w-full">
         <button
           onClick={() => toggleGroup(groupKey)}
           type="button"
           className={cn(
             "group relative flex w-full items-center justify-between rounded-lg border-none",
-            "px-3 py-2 text-[13px] font-medium transition-all cursor-pointer",
+            "px-2.5 py-1.5 text-xs font-semibold transition-all cursor-pointer",
             hasActiveChild
-              ? "text-slate-900 font-semibold bg-slate-50/90"
-              : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
+              ? "text-slate-900 font-bold bg-slate-100/80"
+              : "text-slate-600 hover:bg-slate-100/70 hover:text-slate-900"
           )}
         >
           <div className="flex items-center gap-2.5 min-w-0">
             {Icon && (
-              <Icon
-                size={16}
-                strokeWidth={hasActiveChild ? 2.4 : 2}
-                className={cn(hasActiveChild ? "text-primary" : "text-slate-400 group-hover:text-slate-700 transition-colors")}
-              />
+              <div className={cn(
+                "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                hasActiveChild 
+                  ? "bg-primary/15 text-primary" 
+                  : "bg-slate-100/90 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-800"
+              )}>
+                <Icon
+                  size={15}
+                  strokeWidth={hasActiveChild ? 2.4 : 2}
+                  className="transition-colors"
+                />
+              </div>
             )}
             <span className="truncate">{label}</span>
           </div>
@@ -425,7 +409,7 @@ export default function AdminSidebar({
           />
         </button>
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-5 pl-3 border-l border-slate-200/90 flex flex-col gap-0.5 sidebar-submenus relative"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-4 pl-3.5 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
@@ -905,17 +889,16 @@ export default function AdminSidebar({
             const scrollTop = e.currentTarget.scrollTop;
             posToUse.current = scrollTop;
             sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
-            checkScrollState();
           }}
           className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-20 relative z-10 transition-all focus:outline-none",
+            "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-6 relative z-10 transition-all focus:outline-none",
             isCollapsed ? "px-2 no-scrollbar scrollbar-none" : "px-3 sidebar-scrollbar custom-scrollbar"
           )}
-          title="Gunakan tombol panah keyboard atau seret scrollbar untuk menggulir"
+          title="Gunakan tombol panah keyboard atau scroll mouse untuk menggulir"
         >
           {searchQuery.trim() ? (
             <div className="flex flex-col gap-1 py-1">
-              <div className="px-3 py-1 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 Hasil Pencarian ({filteredSearchItems.length})
               </div>
               {filteredSearchItems.length > 0 ? (
@@ -930,19 +913,19 @@ export default function AdminSidebar({
                       }}
                       type="button"
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 text-[13px] font-medium rounded-lg text-left transition-colors cursor-pointer border-none",
+                        "flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
                         isActive
-                          ? "bg-primary/10 text-primary font-semibold"
+                          ? "bg-primary/10 text-primary font-bold"
                           : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={cn("w-5 h-5 flex items-center justify-center shrink-0", isActive ? "text-primary" : "text-slate-400")}>
-                          {item.icon && React.createElement(item.icon, { size: 16, strokeWidth: isActive ? 2.4 : 2 })}
+                        <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", isActive ? "bg-primary text-white" : "bg-slate-100 text-slate-500")}>
+                          {item.icon && React.createElement(item.icon, { size: 15, strokeWidth: isActive ? 2.4 : 2 })}
                         </div>
                         <span className="truncate">{item.label}</span>
                       </div>
-                      <span className="text-[10.5px] text-slate-400 font-medium shrink-0 ml-2">
+                      <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
                         {item.adminGroup || item.section || "Menu"}
                       </span>
                     </button>
@@ -971,92 +954,63 @@ export default function AdminSidebar({
             </>
           )}
         </nav>
-
-        {/* Floating Quick Scroll to Bottom Indicator */}
-        {canScrollDown && !isCollapsed && (
-          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center pointer-events-none">
-            <button
-              type="button"
-              onClick={() => {
-                refToUse.current?.scrollTo({ top: refToUse.current.scrollHeight, behavior: 'smooth' });
-              }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full border border-slate-700 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
-              title="Gulir ke menu paling bawah"
-            >
-              <ArrowDown size={12} strokeWidth={2.4} className="text-emerald-400 animate-bounce" />
-              <span>Gulir ke Bawah</span>
-            </button>
-          </div>
-        )}
-
-        {/* Floating Quick Scroll to Top Indicator */}
-        {!canScrollDown && canScrollUp && !isCollapsed && (
-          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center pointer-events-none">
-            <button
-              type="button"
-              onClick={() => {
-                refToUse.current?.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full border border-slate-700 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
-              title="Kembali ke menu paling atas"
-            >
-              <ArrowUp size={12} strokeWidth={2.4} className="text-emerald-400" />
-              <span>Kembali ke Atas</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* ─── 4. BOTTOM BAR: BACKUP, PROMINENT LOGOUT & DETAILED VERSION ─── */}
       {!isCollapsed ? (
         <div className="p-3 border-t border-slate-200/80 bg-slate-50/40 shrink-0 flex flex-col gap-2 relative">
-          {/* Quick Action: Backup (Admin Only) */}
-          {isSuperAdminRole(activeUserRole) && (
+          {/* Quick Action: Backup & Logout in neat harmonious row */}
+          <div className="flex items-center gap-2">
+            {isSuperAdminRole(activeUserRole) && (
+              <button
+                type="button"
+                onClick={handleBackupExport}
+                disabled={isBackingUp}
+                className="flex-1 h-9 flex items-center justify-center gap-1.5 px-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200/80 rounded-lg transition-all cursor-pointer disabled:opacity-50"
+                title="Backup & Export Database"
+              >
+                {isBackingUp ? <RefreshCw size={13} className="animate-spin text-primary" /> : <DatabaseBackup size={14} className="text-slate-500" />}
+                <span className="truncate">{isBackingUp ? "Backup..." : "Backup"}</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={handleBackupExport}
-              disabled={isBackingUp}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-lg transition-all cursor-pointer disabled:opacity-50"
-              title="Backup & Export Database"
+              onClick={handleLogout}
+              className={cn(
+                "h-9 flex items-center justify-center gap-1.5 px-3 text-xs font-bold text-rose-600 hover:text-white bg-rose-50/80 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer active:scale-95",
+                isSuperAdminRole(activeUserRole) ? "flex-1" : "w-full"
+              )}
+              title="Keluar dari akun aplikasi"
             >
-              {isBackingUp ? <RefreshCw size={13} className="animate-spin text-primary" /> : <DatabaseBackup size={13} className="text-slate-500" />}
-              <span>{isBackingUp ? "Membackup Data..." : "Backup Database"}</span>
+              <LogOut size={14} strokeWidth={2.4} />
+              <span>Keluar</span>
             </button>
-          )}
+          </div>
 
-          {/* Clear, Highly Visible, Prominent Logout Button */}
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full h-[38px] flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer active:scale-[0.98]"
-            title="Keluar dari akun aplikasi"
-          >
-            <LogOut size={15} strokeWidth={2.4} />
-            <span>Keluar Sistem</span>
-          </button>
-
-          {/* Detailed & Clear Version / Update Section */}
-          <div className="pt-2 border-t border-slate-200/60 flex flex-col gap-1.5">
+          {/* Unified Compact System & Version Status Card */}
+          <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200/70 flex flex-col gap-1 select-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-[11.5px] font-bold text-slate-700 tracking-tight">Sistem Aktif</span>
+                <span className="text-[11px] font-bold text-slate-700">Sistem Aktif</span>
               </div>
-              <span className="font-mono text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10.5px]">
+              <span className="font-mono text-emerald-700 font-bold bg-white border border-emerald-200/80 px-1.5 py-0.5 rounded-md text-[10px]">
                 {appVersion.version}
               </span>
             </div>
-            <div className="bg-white border border-slate-200/70 rounded-lg px-2.5 py-1.5 flex flex-col gap-0.5">
-              <div className="flex items-center justify-between text-[10.5px]">
-                <span className="text-slate-400 font-medium">Versi Pembaruan:</span>
-                <span className="font-mono text-slate-700 font-bold">{appVersion.commit ? `#${appVersion.commit}` : 'Terbaru'}</span>
-              </div>
-              <div className="text-[10.5px] text-slate-500 font-medium truncate" title={appVersion.detail}>
-                {appVersion.date ? `${appVersion.date}, ${appVersion.time || ''}` : appVersion.detail}
-              </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200/50">
+              <span className="truncate font-medium" title={appVersion.detail}>
+                {appVersion.date ? `${appVersion.date}${appVersion.time ? ', ' + appVersion.time : ''}` : (appVersion.detail || 'Terbaru')}
+              </span>
+              {appVersion.commit && (
+                <span className="font-mono text-slate-500 font-semibold shrink-0 ml-1">
+                  #{appVersion.commit}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -1095,7 +1049,7 @@ export default function AdminSidebar({
           onMouseLeave={scheduleCloseFlyout}
           className="fixed z-[99999] transition-all duration-150 ease-out flex items-center pointer-events-auto"
           style={{
-            top: `${Math.max(20, Math.min(window.innerHeight - 280, activeFlyout.top))}px`,
+            top: `${Math.max(20, Math.min(window.innerHeight - 300, activeFlyout.top))}px`,
             left: `${activeFlyout.left}px`,
             transform: 'translateY(-50%)',
           }}
@@ -1104,23 +1058,22 @@ export default function AdminSidebar({
           <div className="absolute -left-3 top-0 bottom-0 w-3 bg-transparent pointer-events-auto" />
 
           {activeFlyout.type === 'group' && activeFlyout.subItems && activeFlyout.subItems.length > 0 ? (
-            <div className="relative bg-white text-slate-800 text-xs rounded-xl border border-slate-200/90 backdrop-blur-md overflow-hidden min-w-[210px] max-w-[280px] animate-in fade-in-0 zoom-in-95 duration-100 select-none">
-              <div 
-                className="absolute -left-1.5 w-3 h-3 bg-white border-l border-b border-slate-200/90 rotate-45 pointer-events-none"
-                style={{ top: '22px' }}
-              />
-
-              <div className="px-3.5 py-2.5 bg-slate-50/90 border-b border-slate-200/70 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 font-bold text-slate-800 text-xs truncate">
-                  {activeFlyout.icon && <activeFlyout.icon size={15} className="text-primary shrink-0" />}
+            <div className="relative bg-white text-slate-800 text-xs rounded-xl border border-slate-200 shadow-xl overflow-hidden min-w-[210px] max-w-[280px] p-1.5 animate-in fade-in-0 zoom-in-95 duration-100 select-none flex flex-col gap-1">
+              <div className="px-2.5 py-2 bg-slate-50/90 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 font-bold text-slate-800 text-xs truncate min-w-0">
+                  {activeFlyout.icon && (
+                    <div className="w-5 h-5 rounded-md bg-white border border-slate-200/70 flex items-center justify-center shrink-0 text-primary">
+                      <activeFlyout.icon size={13} strokeWidth={2.4} />
+                    </div>
+                  )}
                   <span className="truncate">{activeFlyout.label}</span>
                 </div>
-                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-full shrink-0">
+                <span className="text-[10px] font-bold text-slate-500 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-md shrink-0">
                   {activeFlyout.subItems.length} menu
                 </span>
               </div>
 
-              <div className="p-1.5 flex flex-col gap-0.5 max-h-[340px] overflow-y-auto custom-scrollbar">
+              <div className="flex flex-col gap-0.5 max-h-[320px] overflow-y-auto sidebar-scrollbar custom-scrollbar px-0.5">
                 {activeFlyout.subItems.map(item => (
                   <button
                     key={item.id}
@@ -1130,18 +1083,27 @@ export default function AdminSidebar({
                       setActiveFlyout(null);
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg text-left transition-all cursor-pointer",
+                      "w-full flex items-center justify-between px-2.5 py-2 text-xs rounded-lg text-left transition-all cursor-pointer border-none",
                       item.isActive
                         ? "bg-primary/10 text-primary font-bold"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium"
                     )}
                   >
-                    <span className="truncate">{item.label}</span>
-                    {item.isActive && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 ml-1.5" />
-                    )}
-                    {item.badge && !item.isActive && (
-                      <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/60 font-semibold ml-1.5 shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span 
+                        className={cn(
+                          "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
+                          item.isActive ? "bg-primary" : "bg-slate-300 group-hover:bg-slate-500"
+                        )} 
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className={cn(
+                        "text-[10px] px-1.5 py-0.5 rounded-md font-semibold ml-1.5 shrink-0",
+                        item.isActive ? "bg-primary text-white" : "bg-slate-100 text-slate-600 border border-slate-200/60"
+                      )}>
                         {item.badge}
                       </span>
                     )}
@@ -1150,8 +1112,7 @@ export default function AdminSidebar({
               </div>
             </div>
           ) : (
-            <div className="relative bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-800 backdrop-blur-md whitespace-nowrap flex items-center gap-2 animate-in fade-in-0 zoom-in-95 duration-100 pointer-events-none select-none">
-              <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-800 rotate-45 pointer-events-none" />
+            <div className="relative bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-800 shadow-xl whitespace-nowrap flex items-center gap-2 animate-in fade-in-0 zoom-in-95 duration-100 pointer-events-none select-none">
               <span>{activeFlyout.label}</span>
             </div>
           )}
