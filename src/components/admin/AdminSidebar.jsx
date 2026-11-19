@@ -1210,7 +1210,7 @@ export default function AdminSidebar({
                 </span>
               </div>
 
-              <div className="flex flex-col gap-0.5 max-h-[320px] overflow-y-auto sidebar-scrollbar custom-scrollbar px-0.5">
+              <div className="flex flex-col gap-0.5 max-h-[min(480px,calc(100vh-100px))] overflow-y-auto scrollbar-none no-scrollbar px-0.5">
                 {activeFlyout.subItems.map(item => (
                   <button
                     key={item.id}
