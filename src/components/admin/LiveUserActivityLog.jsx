@@ -275,12 +275,12 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   if (!isAllowed) return null;
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
       {/* ── Header ── */}
       <div>
         <div className="flex flex-col justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-xs flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex items-center justify-center shrink-0">
               <Activity size={16} className="text-[var(--ui-primary)]" />
             </div>
             <div className="min-w-0">
@@ -293,7 +293,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   LIVE
                 </span>
                 {onlineStats.totalUsers > 0 && (
-                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded-[var(--ui-radius-small)] border border-slate-200 shadow-xs whitespace-nowrap shrink-0">
+                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded-[var(--ui-radius-small)] border border-slate-200 whitespace-nowrap shrink-0">
                     <span className="text-indigo-600">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
                   </span>
                 )}
@@ -319,7 +319,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
                 className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer flex items-center gap-1.5 ${
                   filterType === f.id
-                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm'
+                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]'
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
                 }`}
               >
@@ -380,7 +380,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 >
                   {/* Kiri: Avatar & Info */}
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 shadow-2xs group-hover:bg-white transition-colors">
+                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 group-hover:bg-white transition-colors">
                       {userInitial}
                     </div>
 

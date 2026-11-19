@@ -250,8 +250,8 @@ function TeachingScheduleCard({
 
       {/* Main Integrated Card */}
       {!selectedClass ? (
-        <div className="ui-card rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-slate-200/80 shadow-xs text-center flex flex-col items-center justify-center gap-2.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-2xs">
+        <div className="ui-card rounded-[var(--ui-radius-card)] p-4 sm:p-5 bg-white border border-slate-200/80 text-center flex flex-col items-center justify-center gap-2.5">
+          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <Calendar size={18} strokeWidth={2.2} />
           </div>
           <div>
@@ -264,7 +264,7 @@ function TeachingScheduleCard({
             <button
               type="button"
               onClick={() => setActiveTab('jurnal_harian')}
-              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-[var(--ui-radius-control)] shadow-xs cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
+              className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-[var(--ui-radius-control)] cursor-pointer active:scale-98 transition-all flex items-center gap-1.5"
             >
               <FileText size={13} strokeWidth={2.2} />
               <span>Buka Jurnal KBM</span>
@@ -279,7 +279,7 @@ function TeachingScheduleCard({
           </div>
         </div>
       ) : (
-        <div className="ui-card rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 bg-white border border-slate-200/80 shadow-xs flex flex-col gap-3 transition-all">
+        <div className="ui-card rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 bg-white border border-slate-200/80 flex flex-col gap-3 transition-all">
           {/* Integrated Segmented Class Switcher Tabs (Inside Card Header) */}
           {todayClasses.length > 1 && (
             <div className="bg-slate-100/80 p-1 rounded-[var(--ui-radius-control)] flex items-center gap-1 overflow-x-auto no-scrollbar">
@@ -298,7 +298,7 @@ function TeachingScheduleCard({
                     onClick={() => setSelectedTodayClassIdx && setSelectedTodayClassIdx(cIdx)}
                     className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${
                       isSelected
-                        ? 'bg-white text-slate-900 shadow-xs'
+                        ? 'bg-white text-slate-900 border border-slate-200/80'
                         : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
@@ -368,7 +368,7 @@ function TeachingScheduleCard({
           <button
             type="button"
             onClick={() => setActiveTab('jurnal_harian')}
-            className="w-full py-2.5 px-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow-sm flex items-center justify-between cursor-pointer transition-all touch-manipulation select-none group"
+            className="w-full py-2.5 px-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs sm:text-sm rounded-xl flex items-center justify-between cursor-pointer transition-all touch-manipulation select-none group"
           >
             <div className="flex items-center gap-2">
               <FileText size={15} strokeWidth={2.2} className="text-white shrink-0" />
@@ -922,7 +922,7 @@ export default function DashboardPage({
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
-        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
+        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80">
           <div className="relative flex-1 min-w-0">
             <button
               type="button"
@@ -932,13 +932,13 @@ export default function DashboardPage({
             >
               <div className="relative shrink-0">
                 <div 
-                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white group-active:scale-95 transition-transform"
+                  className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center border-2 border-white group-active:scale-95 transition-transform"
                   style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
                 >
                   {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
                 </div>
                 <span 
-                  className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500 shadow-xs"
+                  className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500"
                 />
               </div>
               <div className="flex flex-col min-w-0 flex-1">
@@ -958,7 +958,7 @@ export default function DashboardPage({
             {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
             {showMobileProfileModal && (
               <div 
-                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-popover)] rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 shrink-0">
@@ -974,7 +974,7 @@ export default function DashboardPage({
 
                 <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex items-center gap-3">
                   <div 
-                    className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center shadow-xs border-2 border-white shrink-0"
+                    className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center border-2 border-white shrink-0"
                     style={{ background: "var(--ui-primary)" }}
                   >
                     {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
@@ -1029,7 +1029,7 @@ export default function DashboardPage({
                       if (onOpenProfile) onOpenProfile();
                       else if (setActiveTab) setActiveTab('profile');
                     }}
-                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--ui-border-soft)] shadow-xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--ui-border-soft)] active:scale-98"
                   >
                     <User size={14} strokeWidth={2.2} /> Edit Profil & Kata Sandi
                   </button>
@@ -1040,7 +1040,7 @@ export default function DashboardPage({
                       setShowMobileProfileModal(false);
                       triggerLogout();
                     }}
-                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 shadow-xs active:scale-98"
+                    className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-rose-200/70 active:scale-98"
                   >
                     <LogOut size={14} strokeWidth={2.5} /> Keluar Akun (Logout)
                   </button>
@@ -1050,7 +1050,7 @@ export default function DashboardPage({
           </div>
           
           <div className="shrink-0 flex items-center gap-1.5">
-            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-[var(--ui-border-soft)] px-2.5 py-1.5 rounded-[var(--ui-radius-control)] shadow-xs">
+            <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-[var(--ui-border-soft)] px-2.5 py-1.5 rounded-[var(--ui-radius-control)]">
               {todayShort}
             </span>
           </div>
@@ -1074,7 +1074,7 @@ export default function DashboardPage({
             )}
 
             {(!dashboardMessages || dashboardMessages.length === 0) ? (
-              <div className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+              <div className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-slate-100 border border-slate-200/60 flex items-center justify-center text-slate-400 shrink-0">
                   <Megaphone size={18} strokeWidth={2.2} />
                 </div>
@@ -1091,7 +1091,7 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
+                  className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
                 >
                   <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={18} strokeWidth={2.2} />
@@ -1142,7 +1142,7 @@ export default function DashboardPage({
                     onClick={() => setActiveTab(shortcut.tab)}
                     className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none touch-manipulation active:scale-90 transition-transform select-none relative z-10"
                   >
-                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-xs group-active:shadow-none transition-all pointer-events-none`}>
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center transition-all pointer-events-none`}>
                       <img src={shortcut.icon} className="w-5 h-5 object-contain pointer-events-none" alt="" />
                     </div>
                     <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5 pointer-events-none">
@@ -1167,7 +1167,7 @@ export default function DashboardPage({
                 ];
                 const bg = pastelBgs[idx % pastelBgs.length];
                 return (
-                  <div key={idx} className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 active:scale-[0.98] transition-transform">
+                  <div key={idx} className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3 active:scale-[0.98] transition-transform">
                     <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shrink-0`}>
                       <img src={stat.icon} className="w-6 h-6 object-contain" alt="" />
                     </div>
@@ -1184,7 +1184,7 @@ export default function DashboardPage({
         </div>
 
         {/* ======= MINIMALIST DESKTOP HERO BANNER (GURU) ======= */}
-        <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs mb-1">
+        <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
             <div className="min-w-0">
               <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
@@ -1209,7 +1209,7 @@ export default function DashboardPage({
               type="button"
               onClick={() => setShowPanduan(true)}
               title="Panduan Guru"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 hover:text-slate-900 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-semibold transition-all cursor-pointer active:scale-95"
             >
               <HelpCircle size={14} strokeWidth={2.2} className="text-slate-500" />
               <span>Panduan</span>
@@ -1237,7 +1237,7 @@ export default function DashboardPage({
               setActiveTab={setActiveTab}
             />
 
-            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 flex flex-col">
+            <div className="ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-2">
                   <Megaphone size={16} className="text-rose-500" /> Pengumuman Baru
@@ -1260,7 +1260,7 @@ export default function DashboardPage({
                     <div 
                       key={idx} 
                       onClick={() => setActiveAnnouncementDetail(msg)}
-                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-slate-200/70 shadow-xs hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all"
+                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-slate-200/70 hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all"
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
@@ -1280,7 +1280,7 @@ export default function DashboardPage({
           {/* KOLOM TENGAH (col-span-6): Menu Utama & Statistik */}
           <div className="lg:col-span-6 flex flex-col gap-4">
             {/* MENU UTAMA Section */}
-            <div className="ui-card bg-white border border-slate-200/80 shadow-2xs rounded-xl p-3.5 sm:p-4">
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4">
               <div className="flex items-center gap-2 mb-3">
                 <Zap size={15} className="text-primary shrink-0" strokeWidth={2.4} />
                 <h2 className="text-sm font-bold text-slate-800 tracking-tight">Menu Utama</h2>
@@ -1291,9 +1291,9 @@ export default function DashboardPage({
                     key={i}
                     type="button"
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-2 shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1 active:scale-[0.98]"
+                    className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-2 transition-all duration-150 cursor-pointer text-center active:scale-[0.98]"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center shrink-0 shadow-2xs transition-colors">
+                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center shrink-0 transition-colors">
                       <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                     </div>
                     <span className="text-[11px] sm:text-[11.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
@@ -1305,19 +1305,19 @@ export default function DashboardPage({
             </div>
 
             {/* DATA & INFORMASI STATISTIK Section */}
-            <div className="ui-card bg-white border border-slate-200/80 shadow-2xs rounded-xl p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
               <div className="flex items-center gap-2 mb-3">
                 <Activity size={15} className="text-primary shrink-0" strokeWidth={2.4} />
                 <h2 className="text-sm font-bold text-slate-800 tracking-tight">Statistik Saya</h2>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 {teacherStatCards.map((stat, i) => (
-                  <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 shadow-2xs transition-colors">
+                  <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 transition-colors">
                     <div className="min-w-0 flex-1">
                       <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
                       <p className="text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
                       <img src={stat.icon} className="w-5 h-5 object-contain" alt="" />
                     </div>
                   </div>
@@ -1328,7 +1328,7 @@ export default function DashboardPage({
 
           {/* KOLOM KANAN (col-span-3): Beban Mengajar */}
           <div className="lg:col-span-3 flex flex-col gap-4">
-            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] flex flex-col overflow-hidden">
+            <div className="ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col overflow-hidden">
               <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
@@ -1337,7 +1337,7 @@ export default function DashboardPage({
                 <button 
                   type="button"
                   onClick={() => setActiveTab('beban')}
-                  className="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 shadow-2xs rounded-lg text-[10.5px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)] transition-colors cursor-pointer active:scale-95"
+                  className="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 rounded-lg text-[10.5px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)] transition-colors cursor-pointer active:scale-95"
                   title="Lihat rincian beban mengajar"
                 >
                   <Printer size={11} /> Export
@@ -1352,7 +1352,7 @@ export default function DashboardPage({
                 <>
                   <div className="overflow-y-auto custom-scrollbar max-h-[300px]">
                     <table className="w-full text-left">
-                      <thead className="sticky top-0 bg-white z-10 shadow-xs">
+                      <thead className="sticky top-0 bg-white z-10 border-b border-slate-100">
                         <tr className="border-b border-slate-100">
                           <th className="py-2 px-3 font-bold text-slate-400 text-[9px] uppercase tracking-wider">Pelajaran</th>
                           <th className="py-2 px-2.5 font-bold text-slate-400 text-[9px] uppercase tracking-wider text-right">Durasi</th>
@@ -1399,12 +1399,12 @@ export default function DashboardPage({
         {/* Mobile Notification Modal (Desktop Style) */}
       {showMobileNotif && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-slate-200/80 shadow-md rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
             
             {/* Header (Sticky) */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
               <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shadow-inner">
+                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
                    <Bell size={18} strokeWidth={2.5} />
                  </div>
                  <div className="flex flex-col">
@@ -1424,9 +1424,9 @@ export default function DashboardPage({
             <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
               
               {/* Realtime Notification Consent Prompt */}
-              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
+              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 relative overflow-hidden">
                 <div className="flex items-start gap-3 relative z-10">
-                  <div className="bg-white p-1.5 rounded-full shadow-sm text-[var(--ui-primary)] shrink-0">
+                  <div className="bg-white p-1.5 rounded-full text-[var(--ui-primary)] shrink-0">
                     <BellRing className="w-4 h-4" strokeWidth={2.5} />
                   </div>
                   <div className="flex flex-col">
@@ -1442,7 +1442,7 @@ export default function DashboardPage({
                       });
                     }
                   }}
-                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-[var(--ui-shadow-card)] relative z-10"
+                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 relative z-10"
                   style={{ backgroundColor: "var(--ui-primary)" }}
                 >
                   <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
@@ -1464,7 +1464,7 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-sm hover:border-indigo-200 transition-all cursor-pointer group">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl hover:border-indigo-200 transition-all cursor-pointer group">
                         <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <Clock3 className="w-5 h-5" strokeWidth={2.5} />
                         </div>
@@ -1498,7 +1498,7 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-sm transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
                         <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
                         </div>
@@ -1524,7 +1524,7 @@ export default function DashboardPage({
       {/* Spacer comment */}
       {showAllAnnouncementsModal && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -1552,7 +1552,7 @@ export default function DashboardPage({
                   <div
                     key={idx}
                     onClick={() => { setShowAllAnnouncementsModal(false); setActiveAnnouncementDetail(msg); }}
-                    className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 hover:shadow-xs transition-all cursor-pointer flex flex-col gap-1.5"
+                    className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 transition-all cursor-pointer flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between">
                       <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-2 py-0.5 rounded uppercase">
@@ -1573,7 +1573,7 @@ export default function DashboardPage({
       {/* Modal Detail Single Announcement */}
       {activeAnnouncementDetail && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -1750,7 +1750,7 @@ export default function DashboardPage({
       <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-0.5">
         <div className="flex items-center gap-3 min-w-0">
           <div 
-            className="w-10 h-10 rounded-full text-white font-extrabold text-xs flex items-center justify-center shadow-xs shrink-0"
+            className="w-10 h-10 rounded-full text-white font-extrabold text-xs flex items-center justify-center shrink-0"
             style={{ background: "var(--ui-primary)" }}
           >
             {(currentUser?.name || currentUser?.username || 'AD').slice(0, 2).toUpperCase()}
@@ -1766,7 +1766,7 @@ export default function DashboardPage({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)] shadow-xs">
+          <span className="bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-pill)]">
             {todayShort}
           </span>
         </div>
@@ -1777,7 +1777,7 @@ export default function DashboardPage({
 
           {/* 1. STATUS PEMANTAAN / HERO CARD (Disembunyikan untuk Waka sesuai request) */}
           {!isWaka && (
-            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs">
+            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80">
               <div className="flex items-center justify-between gap-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -1801,7 +1801,7 @@ export default function DashboardPage({
                 <button
                   type="button"
                   onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
-                  className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
+                  className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
                 >
                   <CheckCircle2 size={14} strokeWidth={2.5} />
                   <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
@@ -1812,7 +1812,7 @@ export default function DashboardPage({
 
           {/* PENGUMUMAN SEKOLAH (Ringkas & Nyaman) */}
           {(!dashboardMessages || dashboardMessages.length === 0) ? (
-            <div className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-slate-50/90 border border-slate-200/80 text-slate-500 text-xs shadow-2xs">
+            <div className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-slate-50/90 border border-slate-200/80 text-slate-500 text-xs">
               <div className="flex items-center gap-2 min-w-0">
                 <Megaphone size={13} className="text-slate-400 shrink-0" strokeWidth={2.2} />
                 <span className="text-[11px] font-semibold text-slate-500 truncate">Tidak ada pengumuman baru hari ini</span>
@@ -1842,7 +1842,7 @@ export default function DashboardPage({
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
                   onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
+                  className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
                 >
                   <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
                     <Megaphone size={16} strokeWidth={2.2} />
@@ -2033,7 +2033,7 @@ export default function DashboardPage({
                       onClick={() => setActiveTab(shortcut.tab)}
                       className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
                     >
-                      <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center shadow-xs group-active:scale-95 transition-transform`}>
+                      <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center group-active:scale-95 transition-transform`}>
                         <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                       </div>
                       <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
@@ -2078,7 +2078,7 @@ export default function DashboardPage({
                 }
 
                 return dynamicStatCards.map((stat, idx) => (
-                  <div key={idx} className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex items-center gap-3">
+                  <div key={idx} className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3">
                     <div className={`w-11 h-11 rounded-[var(--ui-radius-card)] ${stat.color} border flex items-center justify-center shrink-0`}>
                       <img src={stat.icon} className="w-5.5 h-5.5 object-contain" alt="" />
                     </div>
@@ -2097,11 +2097,11 @@ export default function DashboardPage({
         </div>
 
       {/* ======= MINIMALIST DESKTOP HERO BANNER (ADMIN/UMUM) ======= */}
-      <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs mb-1">
+      <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
           <div className="min-w-0">
             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
-              Selamat Datang, <span className="text-primary font-black">{currentUser?.name || currentUser?.username || "Pengguna"}</span>!
+              Selamat Datang, <span className="text-primary font-bold">{currentUser?.name || currentUser?.username || "Pengguna"}</span>!
             </h1>
             <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
               Ringkasan pemantauan sistem, operasional sekolah & aktivitas terpadu.
@@ -2122,7 +2122,7 @@ export default function DashboardPage({
             type="button"
             onClick={() => setShowPanduan(true)}
             title="Panduan Aplikasi"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 hover:text-slate-900 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-semibold transition-all cursor-pointer active:scale-95"
           >
             <HelpCircle size={14} strokeWidth={2.2} className="text-slate-500" />
             <span>Panduan</span>
@@ -2135,7 +2135,7 @@ export default function DashboardPage({
         <details className="group bg-rose-50 border border-rose-200 rounded-[var(--ui-radius-card)] overflow-hidden open:pb-3 transition-all mb-4">
           <summary className="p-4 flex items-center justify-between cursor-pointer list-none select-none hover:bg-rose-100/30 transition-colors">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600 shadow-xs group-open:bg-rose-600 group-open:text-white transition-colors duration-300">
+              <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0 text-rose-600 group-open:bg-rose-600 group-open:text-white transition-colors duration-300">
                 <AlertTriangle size={20} strokeWidth={2.5} />
               </div>
               <div>
@@ -2155,7 +2155,7 @@ export default function DashboardPage({
           <div className="px-4 pb-1">
             <div className="space-y-1.5 pt-2 border-t border-rose-200/60 max-h-[220px] overflow-y-auto custom-scrollbar pr-1">
               {dashLogs.backupErrors.map((err, i) => (
-                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-[var(--ui-radius-small)] border border-rose-100/80 shadow-xs">
+                <div key={i} className="flex flex-col gap-0.5 p-2 bg-white/70 rounded-[var(--ui-radius-small)] border border-rose-100/80">
                   <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider">
                     {new Date(err.time).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} • {err.action}
                   </span>
@@ -2168,7 +2168,7 @@ export default function DashboardPage({
       )}
 
       {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}
-      <div className="hidden sm:flex ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+      <div className="hidden sm:flex ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
         {/* Dashboard Messages Carousel */}
         {dashboardMessages?.length > 0 && (
           <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
@@ -2346,12 +2346,12 @@ export default function DashboardPage({
                 key={i}
                 type="button"
                 onClick={() => setActiveTab(shortcut.tab)}
-                className="group relative flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 lg:p-3.5 rounded-[var(--ui-radius-card)] bg-[var(--ui-card-bg,white)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--ui-primary)]/50 cursor-pointer overflow-hidden isolate h-full z-10"
+                className="group relative flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 lg:p-3.5 rounded-[var(--ui-radius-card)] bg-white hover:bg-slate-50/80 border border-slate-200/80 hover:border-slate-300 transition-all duration-200 cursor-pointer overflow-hidden isolate h-full z-10"
               >
                 {/* Background Hover Effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none bg-current" />
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-200 pointer-events-none bg-current" />
                 
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-[var(--ui-radius-control)] ${shortcut.color} flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform duration-300 mb-1.5 pointer-events-none`}>
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-[var(--ui-radius-control)] ${shortcut.color} border border-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 mb-1.5 pointer-events-none`}>
                   <img src={shortcut.icon} className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 lg:w-5.5 lg:h-5.5 object-contain pointer-events-none" alt="" />
                 </div>
                 <span className="text-[10px] sm:text-[11px] md:text-xs lg:text-[12.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5 pointer-events-none">
@@ -2403,7 +2403,7 @@ export default function DashboardPage({
                 key={idx} 
                 type="button"
                 onClick={() => setActiveTab(card.tab)} 
-                className="bg-white p-2.5 sm:p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 hover:shadow-sm active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
+                className="bg-white hover:bg-slate-50/50 p-2.5 sm:p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-slate-300 flex flex-col justify-between active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
               >
                 <div className="flex items-center justify-between w-full gap-1 mb-2">
                   <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
@@ -2439,7 +2439,7 @@ export default function DashboardPage({
       <div className="w-full flex flex-col gap-3">
         
         {/* Full-width Ringkasan & Grafik Card */}
-        <div className="bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3 sm:p-4 flex flex-col">
+        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3 sm:p-4 flex flex-col">
           
           {/* Header Bar: Tabs Navigation */}
           <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-slate-100">
@@ -2449,7 +2449,7 @@ export default function DashboardPage({
                 onClick={() => setActiveMiddleTab('ringkasan')}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
                   activeMiddleTab === 'ringkasan'
-                    ? 'bg-white text-slate-800 shadow-xs'
+                    ? 'bg-white text-slate-900 border border-slate-200/60'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
                 }`}
               >
@@ -2462,7 +2462,7 @@ export default function DashboardPage({
                 onClick={() => setActiveMiddleTab('statistik')}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
                   activeMiddleTab === 'statistik'
-                    ? 'bg-white text-slate-800 shadow-xs'
+                    ? 'bg-white text-slate-900 border border-slate-200/60'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
                 }`}
               >
@@ -2554,8 +2554,8 @@ export default function DashboardPage({
 
         {/* Rekomendasi Aksi System */}
         {isSuperAdmin && summaryRows.filter(r => r.statusLabel !== "Selesai").length > 0 && (
-          <div className="bg-amber-50/80 border border-amber-200/70 shadow-xs rounded-[var(--ui-radius-card)] px-3 py-2 flex items-center gap-2.5">
-            <div className="shrink-0 w-6 h-6 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+          <div className="bg-amber-50/80 border border-amber-200/70 rounded-[var(--ui-radius-card)] px-3 py-2 flex items-center gap-2.5">
+            <div className="shrink-0 w-6 h-6 rounded-[var(--ui-radius-small)] bg-amber-400 text-slate-950 flex items-center justify-center">
               <AlertTriangle size={13} strokeWidth={2.2} />
             </div>
             <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -2580,12 +2580,12 @@ export default function DashboardPage({
       {/* Mobile Notification Modal (Desktop Style) */}
       {showMobileNotif && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-slate-200/80 shadow-md rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
+          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
             
             {/* Header (Sticky) */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
               <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shadow-inner">
+                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
                    <Bell size={18} strokeWidth={2.5} />
                  </div>
                  <div className="flex flex-col">
@@ -2605,9 +2605,9 @@ export default function DashboardPage({
             <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
               
               {/* Realtime Notification Consent Prompt */}
-              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 shadow-sm relative overflow-hidden">
+              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 relative overflow-hidden">
                 <div className="flex items-start gap-3 relative z-10">
-                  <div className="bg-white p-1.5 rounded-full shadow-sm text-[var(--ui-primary)] shrink-0">
+                  <div className="bg-white p-1.5 rounded-full text-[var(--ui-primary)] shrink-0">
                     <BellRing className="w-4 h-4" strokeWidth={2.5} />
                   </div>
                   <div className="flex flex-col">
@@ -2623,7 +2623,7 @@ export default function DashboardPage({
                       });
                     }
                   }}
-                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 shadow-sm hover:shadow-[var(--ui-shadow-card)] relative z-10"
+                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 relative z-10"
                   style={{ backgroundColor: "var(--ui-primary)" }}
                 >
                   <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
@@ -2645,7 +2645,7 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:shadow-sm hover:border-indigo-200 transition-all cursor-pointer group">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl hover:border-indigo-200 transition-all cursor-pointer group">
                         <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <Clock3 className="w-5 h-5" strokeWidth={2.5} />
                         </div>
@@ -2679,7 +2679,7 @@ export default function DashboardPage({
                 ) : (
                   <div className="flex flex-col gap-2">
                     {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 shadow-sm rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 hover:shadow-sm transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
                         <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
                         </div>
@@ -2705,7 +2705,7 @@ export default function DashboardPage({
       {/* Spacer comment */}
       {showAllAnnouncementsModal && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -2733,7 +2733,7 @@ export default function DashboardPage({
                   <div
                     key={idx}
                     onClick={() => { setShowAllAnnouncementsModal(false); setActiveAnnouncementDetail(msg); }}
-                    className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 hover:shadow-xs transition-all cursor-pointer flex flex-col gap-1.5"
+                    className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 transition-all cursor-pointer flex flex-col gap-1.5"
                   >
                     <div className="flex items-center justify-between">
                       <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-2 py-0.5 rounded uppercase">
@@ -2754,7 +2754,7 @@ export default function DashboardPage({
       {/* Modal Detail Single Announcement */}
       {activeAnnouncementDetail && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -2848,7 +2848,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
               <button
                 onClick={handlePrev}
                 type="button"
-                className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs transition-all active:scale-95"
+                className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 cursor-pointer transition-all active:scale-95"
                 title="Sebelumnya"
               >
                 <ChevronLeft size={14} />
@@ -2856,7 +2856,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
               <button
                 onClick={handleNext}
                 type="button"
-                className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs transition-all active:scale-95"
+                className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/60 text-slate-600 flex items-center justify-center hover:bg-slate-200 cursor-pointer transition-all active:scale-95"
                 title="Selanjutnya"
               >
                 <ChevronRight size={14} />
@@ -2869,7 +2869,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
       {/* Card matching reference mockup — Ultra Compact & Slim */}
       <article 
         onClick={() => setSelectedMsg(activeMsg)}
-        className="rounded-[var(--ui-radius-small)] border border-slate-200/80 p-2.5 sm:p-3 shadow-xs relative overflow-hidden transition-all duration-300 bg-white hover:border-[var(--ui-primary)]/40 cursor-pointer group"
+        className="rounded-[var(--ui-radius-small)] border border-slate-200/80 p-2.5 sm:p-3 relative overflow-hidden transition-all duration-300 bg-white hover:border-[var(--ui-primary)]/40 cursor-pointer group"
       >
         <div className="flex items-center gap-2.5">
           <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
@@ -2897,7 +2897,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
       {/* Modal Popup Detail Pengumuman */}
       {selectedMsg && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 shadow-md w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
             {/* Modal Header */}
             <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
             <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
@@ -2945,7 +2945,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
             <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button
                 onClick={(e) => { e.stopPropagation(); setSelectedMsg(null); }}
-                className="px-5 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold text-white shadow-xs cursor-pointer active:scale-95 transition-transform border-none"
+                className="px-5 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold text-white cursor-pointer active:scale-95 transition-transform border-none"
                 style={{ backgroundColor: "var(--ui-primary)" }}
               >
                 Tutup
@@ -3391,11 +3391,11 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
-            className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-xs hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
                   <img src="/icons/045-account.svg" alt="Guru" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
                 </div>
                 <div className="min-w-0">
@@ -3408,13 +3408,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] sm:text-xs font-black text-indigo-700 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-indigo-100/80 whitespace-nowrap shrink-0 shadow-xs">
+              <span className="text-[9px] sm:text-xs font-black text-indigo-700 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-indigo-100/80 whitespace-nowrap shrink-0">
                 {guruPercent}% Hadir
               </span>
             </div>
 
             {/* Segmented Progress Bar */}
-            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
               <div style={{ width: `${(guruStats.Hadir / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
               <div style={{ width: `${(guruStats.Terlambat / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
               <div style={{ width: `${(guruStats.Izin / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
@@ -3451,11 +3451,11 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
-            className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-xs hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
                   <img src="/icons/045-account.svg" alt="Karyawan" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
                 </div>
                 <div className="min-w-0">
@@ -3468,13 +3468,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] sm:text-xs font-black text-teal-700 bg-teal-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-teal-100/80 whitespace-nowrap shrink-0 shadow-xs">
+              <span className="text-[9px] sm:text-xs font-black text-teal-700 bg-teal-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-teal-100/80 whitespace-nowrap shrink-0">
                 {karyawanStats.totalKaryawan > 0 ? Math.round(((karyawanStats.Hadir + karyawanStats.Terlambat) / karyawanStats.totalKaryawan) * 100) : 0}% Hadir
               </span>
             </div>
 
             {/* Segmented Progress Bar */}
-            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
               <div style={{ width: `${(karyawanStats.Hadir / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
               <div style={{ width: `${(karyawanStats.Terlambat / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
               <div style={{ width: `${(karyawanStats.Izin / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
@@ -3510,11 +3510,11 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           return (
             <button
               onClick={() => setActiveTab(isSuperAdmin || isWaka || isKepsek ? 'kedisiplinan_absensi' : (isTU || isKaryawan ? 'laporan_absensi' : 'absensi'))}
-              className="bg-white rounded-[var(--ui-radius-card)] shadow-xs border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:shadow-xs hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+              className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
             >
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
                     <img src="/icons/066-education.svg" alt="Siswa" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
                   </div>
                   <div className="min-w-0">
@@ -3530,13 +3530,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                     </p>
                   </div>
                 </div>
-                <span className="text-[9px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-emerald-100/80 whitespace-nowrap shrink-0 shadow-xs">
+                <span className="text-[9px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-emerald-100/80 whitespace-nowrap shrink-0">
                   {siswaPercent}% Hadir
                 </span>
               </div>
 
               {/* Segmented Progress Bar */}
-              <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+              <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
                 <div style={{ width: `${(siswaStats.Hadir / totalSiswaDenominator) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
                 <div style={{ width: `${(siswaStats.Terlambat / totalSiswaDenominator) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
                 <div style={{ width: `${(siswaStats.Izin / totalSiswaDenominator) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
@@ -3642,7 +3642,7 @@ const PanduanModal = ({ isOpen, onClose, role, division }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-white rounded-[var(--ui-radius-small)] w-full max-w-2xl shadow-sm flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border-none">
+      <div className="bg-white rounded-[var(--ui-radius-small)] w-full max-w-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200">
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/70">
@@ -3664,14 +3664,14 @@ const PanduanModal = ({ isOpen, onClose, role, division }) => {
         <div className="p-6 overflow-y-auto max-h-[65vh] flex flex-col gap-4 bg-slate-50/50">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Hak Akses:</span>
-            <span className="text-[10px] font-black px-3 py-1 bg-[var(--ui-primary)] text-white rounded-[var(--ui-radius-small)] tracking-wider shadow-sm">
+            <span className="text-[10px] font-black px-3 py-1 bg-[var(--ui-primary)] text-white rounded-[var(--ui-radius-small)] tracking-wider">
               {currentRoleName}
             </span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {getGuide().map((item, idx) => (
-              <div key={idx} className="flex gap-4 bg-white p-5 rounded-[var(--ui-radius-card)] border-none shadow-sm hover:-md transition- hover:border-[var(--ui-primary)]/30 group">
+              <div key={idx} className="flex gap-4 bg-white p-5 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-[var(--ui-primary)]/40 transition-colors group">
                 <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 font-black text-sm group-hover:bg-[var(--ui-primary)] group-hover:text-white transition-colors">
                   {idx + 1}
                 </div>

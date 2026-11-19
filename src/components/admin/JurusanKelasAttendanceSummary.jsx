@@ -239,13 +239,13 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
   const topMajor = majorStats[0] || { short: '-', presentPct: 0 };
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
       
       {/* ── Header Card ── */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-3.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-200/80 shadow-xs flex items-center justify-center text-indigo-600 shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0">
               <GraduationCap size={16} />
             </div>
             <div className="min-w-0">
@@ -279,7 +279,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                   onClick={() => setActiveTab(m.id)}
                   className={`px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1.5 ${
                     activeTab === m.id
-                      ? 'bg-white text-slate-900 shadow-xs'
+                      ? 'bg-white text-slate-900'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
@@ -297,14 +297,14 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
             {majorStats.map(major => (
               <div 
                 key={major.code}
-                className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex flex-col justify-between hover:bg-white hover:border-slate-300 hover:shadow-2xs transition-all group"
+                className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex flex-col justify-between hover:bg-white hover:border-slate-300 transition-all group"
               >
                 <div>
                   <div className="flex items-start justify-between gap-1.5 mb-2">
                     <span className={`text-[9.5px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] border ${major.color}`}>
                       {major.short}
                     </span>
-                    <span className="text-xs font-black text-slate-900 bg-white px-2 py-0.5 rounded-full border border-slate-200/80 shadow-2xs">
+                    <span className="text-xs font-black text-slate-900 bg-white px-2 py-0.5 rounded-full border border-slate-200/80">
                       {major.presentPct}%
                     </span>
                   </div>
@@ -317,7 +317,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                   </p>
 
                   {/* Progress Bar */}
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden flex mb-2 shadow-inner">
+                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden flex mb-2">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(major.hadir, major.total)}%` }} title="Tepat Waktu" />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(major.telat, major.total)}%` }} title="Terlambat" />
                     <div className="h-full bg-orange-400" style={{ width: `${pct(major.izin, major.total)}%` }} title="Izin" />
@@ -359,7 +359,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                     Kapasitas: <strong className="text-slate-700">{g.total} Siswa Terdaftar</strong>
                   </p>
 
-                  <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden flex mb-2.5 shadow-inner">
+                  <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden flex mb-2.5">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(g.hadir, g.total)}%` }} />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(g.telat, g.total)}%` }} />
                     <div className="h-full bg-orange-400" style={{ width: `${pct(g.izin, g.total)}%` }} />
@@ -390,7 +390,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                 placeholder="Cari kelas (misal: X TKJ 1)..."
                 value={searchKelas}
                 onChange={e => setSearchKelas(e.target.value)}
-                className="w-full pl-7 pr-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[var(--ui-primary)] font-semibold"
+                className="w-full pl-7 pr-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] focus:outline-none focus:bg-white(--ui-primary)] font-semibold"
               />
             </div>
 
@@ -409,7 +409,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                     </span>
                   </div>
 
-                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex mb-1 shadow-inner">
+                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex mb-1">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(c.hadir, c.total)}%` }} />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(c.telat, c.total)}%` }} />
                     <div className="h-full bg-rose-400" style={{ width: `${pct(c.alpa, c.total)}%` }} />

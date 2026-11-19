@@ -30,18 +30,18 @@ const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 4 }) 
 const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct, detail, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 border cursor-pointer group transition-all hover:shadow-[var(--ui-shadow-card-hover,var(--ui-shadow-card))] flex flex-col justify-between
+    className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 border cursor-pointer group transition-all flex flex-col justify-between
       ${active
-        ? 'border-[var(--ui-primary)] shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/10'
-        : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] hover:border-[var(--ui-primary)]/30 shadow-[var(--ui-shadow-card)]'}`}
+        ? 'border-[var(--ui-primary)](--ui-primary)]/10'
+        : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] hover:border-[var(--ui-primary)]/30'}`}
   >
     <div>
       <div className="flex items-center justify-between gap-1.5 mb-1.5">
-        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 shadow-2xs transition-transform group-hover:scale-105
-          ${active ? 'bg-[var(--ui-primary)] text-white shadow-2xs' : 'bg-slate-50 border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'}`}>
+        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105
+          ${active ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-50 border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'}`}>
           <img src={icon} alt={label} className={`w-4 h-4 object-contain ${active ? 'invert brightness-0' : ''}`} />
         </div>
-        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border whitespace-nowrap shadow-2xs ${badgeColor}`}>
+        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border whitespace-nowrap ${badgeColor}`}>
           {badge}
         </span>
       </div>
@@ -59,11 +59,11 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
 );
 
 const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false, className = '' }) => (
-  <div className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] ${accent ? 'border border-[var(--ui-primary)]/20' : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'} p-4 sm:p-5 flex flex-col h-full ${className}`}>
+  <div className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] ${accent ? 'border border-[var(--ui-primary)]/20' : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'} p-4 sm:p-5 flex flex-col h-full ${className}`}>
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 shrink-0 mb-4`}>
       <div className="flex items-center gap-3 min-w-0">
         {icon && (
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-xs flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex items-center justify-center shrink-0">
             <img src={icon} alt={title} className="w-4 h-4 object-contain" />
           </div>
         )}
@@ -845,7 +845,7 @@ export default function KepsekExecutiveDashboard({
 
       {/* ═══════════════ HERO BANNER (1 BARIS DI DESKTOP, ICON GRID DI MOBILE) ═══════════════ */}
       <div
-        className="rounded-[var(--ui-radius-card)] text-white shadow-md relative overflow-hidden border border-white/10"
+        className="rounded-[var(--ui-radius-card)] text-white relative overflow-hidden border border-white/10"
         style={{ background: 'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 55%, #000) 100%)' }}
       >
         <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-[60px] pointer-events-none -mr-20 -mt-20" />
@@ -882,7 +882,7 @@ export default function KepsekExecutiveDashboard({
                 type="button"
                 onClick={() => setShowScheduleModal(true)}
                 title="Lihat jadwal mengajar guru & KBM hari ini"
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
               >
                 <BookOpen size={11} className="text-amber-300" />
                 <span>Jam Ajar Guru</span>
@@ -893,7 +893,7 @@ export default function KepsekExecutiveDashboard({
                 type="button"
                 onClick={() => setShowSyllabusModal(true)}
                 title="Monitoring kelengkapan modul ajar & silabus guru"
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
               >
                 <GraduationCap size={11} className="text-cyan-300" />
                 <span>Perangkat Ajar</span>
@@ -903,7 +903,7 @@ export default function KepsekExecutiveDashboard({
                 type="button"
                 onClick={handleManualSync}
                 title="Sinkronisasi seluruh data sistem realtime"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
               >
                 <RefreshCw size={11} className={isSyncing ? 'animate-spin text-emerald-300' : 'text-amber-300'} />
                 <span>{isSyncing ? 'Sinkron...' : 'Sinkron'}</span>
@@ -913,7 +913,7 @@ export default function KepsekExecutiveDashboard({
                 type="button"
                 onClick={() => setShowReportModal(true)}
                 title="Cetak Laporan Eksekutif Hari Ini"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-slate-900 hover:bg-slate-100 active:scale-95 text-[10px] font-black border border-white/30 shadow-xs transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-slate-900 hover:bg-slate-100 active:scale-95 text-[10px] font-black border border-white/30 transition-all cursor-pointer"
               >
                 <FileText size={11} className="text-emerald-600" />
                 <span>Cetak Laporan</span>
@@ -939,9 +939,9 @@ export default function KepsekExecutiveDashboard({
                   key={m.tab}
                   type="button"
                   onClick={() => gotoTab(m.tab)}
-                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-90 border border-white/20 backdrop-blur-md transition-all text-center cursor-pointer shadow-xs group"
+                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-90 border border-white/20 backdrop-blur-md transition-all text-center cursor-pointer group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shadow-xs mb-1 group-active:scale-95 transition-transform">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center mb-1 group-active:scale-95 transition-transform">
                     <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
                   </div>
                   <span className="text-[9.5px] font-black text-white leading-tight truncate w-full text-center">
@@ -984,12 +984,12 @@ export default function KepsekExecutiveDashboard({
 
         {/* Box 2 (4 Kolom): Persentase Donut + Presensi Live */}
         <div className="lg:col-span-4 flex flex-col h-full">
-          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
+          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
             
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-1">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0 shadow-xs">
+                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
                   <PieChart size={14} />
                 </div>
                 <div>
@@ -1066,7 +1066,7 @@ export default function KepsekExecutiveDashboard({
                       {pct(row.hadir + row.telat, row.total || 1)}% Hadir
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden flex shadow-inner">
+                  <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden flex">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} />
                     <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} />
@@ -1087,13 +1087,13 @@ export default function KepsekExecutiveDashboard({
 
         {/* Box 3 (3 Kolom): Jam Ajar Guru & KBM Hari Ini (Live Jam 1 - 7) */}
         <div className="lg:col-span-3 flex flex-col h-full">
-          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
+          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
             
             {/* Header */}
             <div>
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0 shadow-xs">
+                  <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0">
                     <BookOpen size={14} />
                   </div>
                   <div>
@@ -1134,7 +1134,7 @@ export default function KepsekExecutiveDashboard({
                         key={s.num} 
                         className={`text-center py-1 rounded text-[9px] font-black border transition-all ${
                           isNow 
-                            ? 'bg-amber-500 text-white border-amber-600 shadow-xs' 
+                            ? 'bg-amber-500 text-white border-amber-600' 
                             : 'bg-slate-50 text-slate-600 border-slate-200/70'
                         }`}
                         title={`${s.label}: ${s.time}`}
@@ -1152,7 +1152,7 @@ export default function KepsekExecutiveDashboard({
               <button
                 type="button"
                 onClick={() => setShowScheduleModal(true)}
-                className="w-full py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 text-amber-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-98"
+                className="w-full py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 text-amber-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer active:scale-98"
               >
                 <div className="flex items-center gap-1.5">
                   <BookOpen size={12} className="text-amber-600" />
@@ -1164,7 +1164,7 @@ export default function KepsekExecutiveDashboard({
               <button
                 type="button"
                 onClick={() => setShowSyllabusModal(true)}
-                className="w-full py-1.5 px-2.5 rounded-lg bg-teal-50 hover:bg-teal-100/80 border border-teal-200/80 text-teal-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer shadow-2xs active:scale-98"
+                className="w-full py-1.5 px-2.5 rounded-lg bg-teal-50 hover:bg-teal-100/80 border border-teal-200/80 text-teal-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer active:scale-98"
               >
                 <div className="flex items-center gap-1.5">
                   <GraduationCap size={12} className="text-teal-600" />
@@ -1241,7 +1241,7 @@ export default function KepsekExecutiveDashboard({
             }
           `}</style>
 
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
             
             {/* Modal Navigation Header (Screen Only) */}
             <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/90 no-print">
@@ -1486,7 +1486,7 @@ export default function KepsekExecutiveDashboard({
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                  className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
                 >
                   <Printer size={13} />
                   <span>Print / Simpan PDF</span>
@@ -1501,12 +1501,12 @@ export default function KepsekExecutiveDashboard({
       {/* ═══════════════ MODAL RINGKASAN JAM AJAR GURU HARI INI (MAX JAM 1-7) ═══════════════ */}
       {showScheduleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
             
             {/* Modal Header */}
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
+                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-500 text-white flex items-center justify-center font-bold">
                   <BookOpen size={18} />
                 </div>
                 <div>
@@ -1526,28 +1526,28 @@ export default function KepsekExecutiveDashboard({
             {/* Quick KPI Stats Summary */}
             <div className="p-4 sm:p-5 pb-3 bg-slate-50/50 border-b border-slate-100">
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div className="p-3 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Guru Mengajar Hari Ini</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-slate-800">{totalGuruMengajarHariIni}</span>
                     <span className="text-[11px] text-slate-500 font-medium">Guru Aktif</span>
                   </div>
                 </div>
-                <div className="p-3 bg-white border border-emerald-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-emerald-200/80 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block">Jurnal KBM Terisi</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-emerald-700">{jurnalSubmittedCount}</span>
                     <span className="text-[11px] text-emerald-600 font-bold">Guru ({jurnalPct}%)</span>
                   </div>
                 </div>
-                <div className="p-3 bg-white border border-rose-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-rose-200/80 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Belum Isi Jurnal</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-rose-700">{jurnalUnfilledCount}</span>
                     <span className="text-[11px] text-rose-500 font-medium">Guru Pengajar</span>
                   </div>
                 </div>
-                <div className="p-3 bg-white border border-indigo-200/80 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-indigo-200/80 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider block">Utilisasi Ruang & Lab</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-indigo-700">{sarprasStats.terpakai} / {sarprasStats.total}</span>
@@ -1566,7 +1566,7 @@ export default function KepsekExecutiveDashboard({
                     onClick={() => setScheduleViewMode('teacher')}
                     className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       scheduleViewMode === 'teacher'
-                        ? 'bg-white text-slate-800 shadow-xs'
+                        ? 'bg-white text-slate-800'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -1578,7 +1578,7 @@ export default function KepsekExecutiveDashboard({
                     onClick={() => setScheduleViewMode('jam')}
                     className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       scheduleViewMode === 'jam'
-                        ? 'bg-white text-slate-800 shadow-xs'
+                        ? 'bg-white text-slate-800'
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
@@ -1596,7 +1596,7 @@ export default function KepsekExecutiveDashboard({
                       value={scheduleSearch}
                       onChange={(e) => setScheduleSearch(e.target.value)}
                       placeholder="Cari nama guru, mapel, kelas..."
-                      className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all shadow-2xs"
+                      className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition-all"
                     />
                     {scheduleSearch && (
                       <button
@@ -1620,7 +1620,7 @@ export default function KepsekExecutiveDashboard({
                       onClick={() => setSelectedJamFilter(slot.num)}
                       className={`p-2 rounded-lg text-center border transition-all cursor-pointer ${
                         selectedJamFilter === slot.num
-                          ? 'bg-amber-500 border-amber-600 text-white shadow-xs font-black scale-102'
+                          ? 'bg-amber-500 border-amber-600 text-white font-black scale-102'
                           : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 font-bold'
                       }`}
                     >
@@ -1648,7 +1648,7 @@ export default function KepsekExecutiveDashboard({
                       onClick={() => setScheduleStatusFilter(f.id)}
                       className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer whitespace-nowrap ${
                         scheduleStatusFilter === f.id
-                          ? 'bg-amber-500 text-white shadow-xs'
+                          ? 'bg-amber-500 text-white'
                           : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                       }`}
                     >
@@ -1665,7 +1665,7 @@ export default function KepsekExecutiveDashboard({
               
               {/* VIEW 1: REKAP PER GURU MENGAJAR */}
               {scheduleViewMode === 'teacher' && (
-                <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden shadow-2xs">
+                <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
                       <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
@@ -1767,7 +1767,7 @@ export default function KepsekExecutiveDashboard({
                     </span>
                   </div>
 
-                  <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden shadow-2xs">
+                  <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden">
                     <table className="w-full text-left border-collapse text-xs">
                       <thead>
                         <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
@@ -1853,7 +1853,7 @@ export default function KepsekExecutiveDashboard({
                 <button
                   type="button"
                   onClick={() => { setShowScheduleModal(false); gotoTab('generate'); }}
-                  className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                  className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
                 >
                   <Calendar size={13} />
                   <span>Buka Kelola Jadwal KBM →</span>
@@ -1868,12 +1868,12 @@ export default function KepsekExecutiveDashboard({
       {/* ═══════════════ MODAL MONITORING PERANGKAT AJAR GURU ═══════════════ */}
       {showSyllabusModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
             
             {/* Modal Header */}
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-teal-500/10 via-teal-50/50 to-white">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-teal-600 text-white flex items-center justify-center font-bold shadow-xs">
+                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-teal-600 text-white flex items-center justify-center font-bold">
                   <GraduationCap size={18} />
                 </div>
                 <div>
@@ -1893,7 +1893,7 @@ export default function KepsekExecutiveDashboard({
             {/* Quick KPI Overview */}
             <div className="p-4 sm:p-5 pb-2 bg-slate-50/50 border-b border-slate-100">
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="p-3 bg-white border border-emerald-200/90 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-emerald-200/90 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">Lengkap (100%)</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-emerald-700">
@@ -1902,7 +1902,7 @@ export default function KepsekExecutiveDashboard({
                     <span className="text-[11px] text-slate-500 font-medium">dari {syllabusStatsPerTeacher.length} Guru</span>
                   </div>
                 </div>
-                <div className="p-3 bg-white border border-amber-200/90 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-amber-200/90 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider block">Dalam Progres (50-99%)</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-amber-700">
@@ -1911,7 +1911,7 @@ export default function KepsekExecutiveDashboard({
                     <span className="text-[11px] text-slate-500 font-medium">Guru Mengunggah</span>
                   </div>
                 </div>
-                <div className="p-3 bg-white border border-rose-200/90 rounded-[var(--ui-radius-small)] shadow-2xs">
+                <div className="p-3 bg-white border border-rose-200/90 rounded-[var(--ui-radius-small)]">
                   <span className="text-[10px] text-rose-700 font-bold uppercase tracking-wider block">Perlu Dilengkapi (&lt;50%)</span>
                   <div className="flex items-baseline gap-1.5 mt-0.5">
                     <span className="text-lg font-black text-rose-700">
@@ -1931,7 +1931,7 @@ export default function KepsekExecutiveDashboard({
                     value={syllabusSearch}
                     onChange={(e) => setSyllabusSearch(e.target.value)}
                     placeholder="Cari nama guru, kode, mapel..."
-                    className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all shadow-2xs"
+                    className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 transition-all"
                   />
                   {syllabusSearch && (
                     <button
@@ -1956,7 +1956,7 @@ export default function KepsekExecutiveDashboard({
                       onClick={() => setSyllabusStatusFilter(f.id)}
                       className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer whitespace-nowrap ${
                         syllabusStatusFilter === f.id
-                          ? 'bg-teal-600 text-white shadow-xs'
+                          ? 'bg-teal-600 text-white'
                           : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                       }`}
                     >
@@ -1969,7 +1969,7 @@ export default function KepsekExecutiveDashboard({
 
             {/* Scrollable Table Area */}
             <div className="p-4 sm:p-5 overflow-y-auto flex-1">
-              <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden shadow-2xs">
+              <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
@@ -2050,7 +2050,7 @@ export default function KepsekExecutiveDashboard({
                 <button
                   type="button"
                   onClick={() => { setShowSyllabusModal(false); gotoTab('silabus'); }}
-                  className="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-black flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-95"
+                  className="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
                 >
                   <FileText size={13} />
                   <span>Buka Kelola Silabus & Modul Ajar →</span>

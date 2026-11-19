@@ -14,34 +14,34 @@ export const getClassBadge = (className) => {
   const upper = String(className).toUpperCase().trim();
 
   if (upper.includes('TKJ') || upper.includes('TJKT')) {
-    return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-xs';
+    return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold';
   }
   if (upper.includes('TKR') || upper.includes('TKRO') || upper.includes('OTOMOTIF')) {
-    return 'bg-orange-100/90 text-orange-800 border-orange-300 font-extrabold shadow-xs';
+    return 'bg-orange-100/90 text-orange-800 border-orange-300 font-extrabold';
   }
   if (upper.includes('MP') || upper.includes('MPLB') || upper.includes('OTKP') || upper.includes('PERKANTORAN')) {
-    return 'bg-emerald-100/90 text-emerald-800 border-emerald-300 font-extrabold shadow-xs';
+    return 'bg-emerald-100/90 text-emerald-800 border-emerald-300 font-extrabold';
   }
   if (upper.includes('AK') || upper.includes('AKL') || upper.includes('AKUNTANSI')) {
-    return 'bg-pink-100/90 text-pink-800 border-pink-300 font-extrabold shadow-xs';
+    return 'bg-pink-100/90 text-pink-800 border-pink-300 font-extrabold';
   }
   if (upper.includes('RPL') || upper.includes('PPLG')) {
-    return 'bg-cyan-100/90 text-cyan-800 border-cyan-300 font-extrabold shadow-xs';
+    return 'bg-cyan-100/90 text-cyan-800 border-cyan-300 font-extrabold';
   }
   if (upper.includes('DKV') || upper.includes('MM') || upper.includes('MULTIMEDIA')) {
-    return 'bg-purple-100/90 text-purple-800 border-purple-300 font-extrabold shadow-xs';
+    return 'bg-purple-100/90 text-purple-800 border-purple-300 font-extrabold';
   }
   if (upper.includes('PM') || upper.includes('BDP') || upper.includes('PEMASARAN')) {
-    return 'bg-amber-100/90 text-amber-800 border-amber-300 font-extrabold shadow-xs';
+    return 'bg-amber-100/90 text-amber-800 border-amber-300 font-extrabold';
   }
   if (upper.includes('TB') || upper.includes('BOGA')) {
-    return 'bg-rose-100/90 text-rose-800 border-rose-300 font-extrabold shadow-xs';
+    return 'bg-rose-100/90 text-rose-800 border-rose-300 font-extrabold';
   }
   if (upper.includes('BS') || upper.includes('BUSANA')) {
-    return 'bg-fuchsia-100/90 text-fuchsia-800 border-fuchsia-300 font-extrabold shadow-xs';
+    return 'bg-fuchsia-100/90 text-fuchsia-800 border-fuchsia-300 font-extrabold';
   }
 
-  return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold shadow-xs';
+  return 'bg-indigo-100/90 text-indigo-800 border-indigo-300 font-extrabold';
 };
 
 export const SharedDashboardLogs = ({ onLogsFetched }) => {
@@ -708,7 +708,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       <div key={index} className="flex justify-between items-center py-2 px-3 hover:bg-slate-50/80 transition-colors group">
         <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <div className="text-[10px] sm:text-[10.5px] font-black text-slate-500 w-4 text-right shrink-0">{absoluteIndex}.</div>
-          <div className={`w-8 h-8 rounded-full font-black text-xs flex items-center justify-center shrink-0 border shadow-xs ${avatarBg}`}>
+          <div className={`w-8 h-8 rounded-full font-black text-xs flex items-center justify-center shrink-0 border ${avatarBg}`}>
             {avatarChar}
           </div>
           <div className="min-w-0 flex flex-col justify-center">
@@ -722,10 +722,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           </div>
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
-          <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border uppercase block shadow-xs tracking-wider ${rightBadgeBg}`}>
+          <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border uppercase block tracking-wider ${rightBadgeBg}`}>
             {rightBadgeText}
           </span>
-          <span className="text-[9.5px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-0.5 inline-block text-center shadow-[var(--ui-shadow-control)] tracking-tight">
+          <span className="text-[9.5px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-0.5 inline-block text-center tracking-tight">
             {timeText}
           </span>
         </div>
@@ -747,7 +747,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[var(--ui-shadow-control)]"
+            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Prev
           </button>
@@ -755,7 +755,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[var(--ui-shadow-control)]"
+            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Next
           </button>
@@ -766,7 +766,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   if (logsLoading) {
     return (
-      <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xs p-8 flex flex-col items-center justify-center min-h-[380px] border border-slate-200/80">
+      <div className="bg-white rounded-[var(--ui-radius-card)] p-8 flex flex-col items-center justify-center min-h-[380px] border border-slate-200/80">
         <Loader2 className="animate-spin text-[var(--ui-primary)] mb-3" size={28} />
         <p className="text-xs font-bold text-slate-600">Memuat Log Monitor & Aktivitas...</p>
         <p className="text-[11px] text-slate-400 mt-1">Mengambil sinkronisasi terbaru dari sistem</p>
@@ -775,18 +775,18 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   }
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
 
       {/* Dynamic Header */}
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
             <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 LIVE
               </span>
@@ -830,7 +830,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               placeholder="Cari nama / NIS / kelas..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-[34px] pl-8 pr-7 bg-white border border-slate-200/90 rounded-lg shadow-2xs text-xs font-medium text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-slate-400 transition-all"
+              className="w-full h-[34px] pl-8 pr-7 bg-white border border-slate-200/90 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-primary placeholder:text-slate-400 transition-all"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold border-none bg-transparent cursor-pointer transition-colors p-1">×</button>
@@ -842,7 +842,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             <button
               type="button"
               onClick={() => setShowSuperAdminModal(true)}
-              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 border border-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border border-slate-700"
               title="Koreksi Jam Absensi (Khusus Super Admin)"
             >
               <Shield size={13} className="text-amber-400 shrink-0" />
@@ -862,10 +862,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
               className={cn(
-                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1",
+                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95",
                 isActive
-                  ? "bg-primary text-white border-primary shadow-2xs font-bold"
-                  : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs font-semibold"
+                  ? "bg-primary text-white border-primary font-bold"
+                  : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 font-semibold"
               )}
             >
               <div className="relative shrink-0 flex items-center justify-center">
@@ -879,7 +879,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                   style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
                 <span className={cn(
-                  "absolute -top-1.5 -right-3.5 px-1.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-2xs border",
+                  "absolute -top-1.5 -right-3.5 px-1.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none border",
                   isActive ? "bg-white text-slate-900 border-white" : "bg-slate-100 text-slate-700 border-slate-200"
                 )}>
                   {tab.count}

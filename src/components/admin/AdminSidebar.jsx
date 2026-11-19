@@ -378,9 +378,9 @@ export default function AdminSidebar({
             data-sidebar-group="true"
             aria-label={label}
             className={cn(
-              "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-9 h-9 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
+              "flex items-center justify-center rounded-lg border-none transition-all cursor-pointer w-9 h-9",
               hasActiveChild
-                ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                ? "bg-primary/10 text-primary font-bold"
                 : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
             )}
           >
@@ -757,7 +757,7 @@ export default function AdminSidebar({
       className={cn(
         "app-sidebar border-r border-slate-200/80 bg-white flex flex-col shrink-0 relative transition-all duration-300 ease-in-out rounded-none !rounded-none select-none h-full max-h-screen overflow-hidden",
         isCollapsed ? "w-[68px]" : "w-[264px]",
-        isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 shadow-sm translate-x-0" : "hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
+        isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 translate-x-0" : "hidden lg:flex z-30 -translate-x-full lg:translate-x-0"
       )}
     >
       {/* ─── 1. HEADER (Untitled UI Style) ─── */}
@@ -765,7 +765,7 @@ export default function AdminSidebar({
         {!isCollapsed ? (
           <div className="flex items-center justify-between w-full min-w-0 gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
                 <img
                   src={appSettings.logoWebUrl || appSettings.logoUrl || appSettings.faviconImage || "/favicon.svg"}
                   alt="Brand Logo"
@@ -795,7 +795,7 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={toggleSidebar}
-                className="w-8 h-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg hidden lg:flex border border-slate-200/80 shadow-2xs cursor-pointer items-center justify-center transition-all shrink-0"
+                className="w-8 h-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg hidden lg:flex border border-slate-200/80 cursor-pointer items-center justify-center transition-all shrink-0"
                 title="Sembunyikan Sidebar"
                 aria-label="Sembunyikan Sidebar"
               >
@@ -810,7 +810,7 @@ export default function AdminSidebar({
               onClick={toggleSidebar}
               data-sidebar-tooltip="Perluas Sidebar"
               aria-label="Perluas Sidebar"
-              className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/20 transition-all shadow-2xs group"
+              className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 cursor-pointer hover:border-primary/40 hover:bg-primary/20 transition-all group"
               title="Perluas Sidebar"
             >
               <img
@@ -835,7 +835,7 @@ export default function AdminSidebar({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari menu..."
-              className="w-full h-[34px] bg-slate-50/70 hover:bg-slate-50 focus:bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-14 text-[12.5px] rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
+              className="w-full h-[34px] bg-slate-50/70 hover:bg-slate-50 focus:bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-14 text-[12.5px] rounded-lg text-slate-800 placeholder-slate-400 transition-all font-medium"
             />
             <div className="absolute right-2 flex items-center gap-1">
               {searchQuery ? (
@@ -845,14 +845,14 @@ export default function AdminSidebar({
                     setSearchQuery("");
                     searchInputRef.current?.focus();
                   }}
-                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/60 cursor-pointer border-none bg-transparent transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
+                  className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-200/60 cursor-pointer border-none bg-transparent transition-colors flex items-center justify-center"
                   title="Hapus pencarian"
                   aria-label="Hapus pencarian"
                 >
                   <X size={12} strokeWidth={2.5} />
                 </button>
               ) : (
-                <kbd className="hidden sm:inline-flex items-center text-[10px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded-md shadow-2xs select-none">
+                <kbd className="hidden sm:inline-flex items-center text-[10px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded-md select-none">
                   {shortcutLabel}
                 </kbd>
               )}
@@ -868,7 +868,7 @@ export default function AdminSidebar({
               <button
                 type="button"
                 onClick={handleToggleAllGroups}
-                className="text-[11px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
+                className="text-[11px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95"
                 title={isAnyGroupOpen ? "Tutup semua sub-menu agar ringkas" : "Buka semua sub-menu"}
               >
                 <ChevronsUpDown size={12} strokeWidth={2.4} className="text-slate-400" />
@@ -887,7 +887,7 @@ export default function AdminSidebar({
             }}
             data-sidebar-tooltip={`Cari Menu (${shortcutLabel})`}
             aria-label="Cari Menu"
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-slate-200/60 shadow-2xs bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-slate-200/60 bg-white"
             title={`Cari Menu (${shortcutLabel})`}
           >
             <Search size={16} strokeWidth={2} />
@@ -932,7 +932,7 @@ export default function AdminSidebar({
                       className={cn(
                         "flex items-center justify-between px-3 py-2 text-[13px] font-medium rounded-lg text-left transition-colors cursor-pointer border-none",
                         isActive
-                          ? "bg-primary/10 text-primary font-semibold shadow-2xs"
+                          ? "bg-primary/10 text-primary font-semibold"
                           : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -980,7 +980,7 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: refToUse.current.scrollHeight, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full border border-slate-700 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
               title="Gulir ke menu paling bawah"
             >
               <ArrowDown size={12} strokeWidth={2.4} className="text-emerald-400 animate-bounce" />
@@ -997,7 +997,7 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full border border-slate-700 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200"
               title="Kembali ke menu paling atas"
             >
               <ArrowUp size={12} strokeWidth={2.4} className="text-emerald-400" />
@@ -1016,7 +1016,7 @@ export default function AdminSidebar({
               type="button"
               onClick={handleBackupExport}
               disabled={isBackingUp}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-lg transition-all cursor-pointer shadow-2xs disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-lg transition-all cursor-pointer disabled:opacity-50"
               title="Backup & Export Database"
             >
               {isBackingUp ? <RefreshCw size={13} className="animate-spin text-primary" /> : <DatabaseBackup size={13} className="text-slate-500" />}
@@ -1028,7 +1028,7 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full h-[38px] flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30"
+            className="w-full h-[38px] flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer active:scale-[0.98]"
             title="Keluar dari akun aplikasi"
           >
             <LogOut size={15} strokeWidth={2.4} />
@@ -1045,11 +1045,11 @@ export default function AdminSidebar({
                 </span>
                 <span className="text-[11.5px] font-bold text-slate-700 tracking-tight">Sistem Aktif</span>
               </div>
-              <span className="font-mono text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10.5px] shadow-2xs">
+              <span className="font-mono text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10.5px]">
                 {appVersion.version}
               </span>
             </div>
-            <div className="bg-white border border-slate-200/70 rounded-lg px-2.5 py-1.5 flex flex-col gap-0.5 shadow-2xs">
+            <div className="bg-white border border-slate-200/70 rounded-lg px-2.5 py-1.5 flex flex-col gap-0.5">
               <div className="flex items-center justify-between text-[10.5px]">
                 <span className="text-slate-400 font-medium">Versi Pembaruan:</span>
                 <span className="font-mono text-slate-700 font-bold">{appVersion.commit ? `#${appVersion.commit}` : 'Terbaru'}</span>
@@ -1068,7 +1068,7 @@ export default function AdminSidebar({
             onClick={handleLogout}
             data-sidebar-tooltip="Keluar Sistem"
             aria-label="Keluar Sistem"
-            className="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30"
+            className="w-9 h-9 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200/80 transition-all cursor-pointer active:scale-95"
             title="Keluar Sistem"
           >
             <LogOut size={16} strokeWidth={2.4} />
@@ -1077,7 +1077,7 @@ export default function AdminSidebar({
           {/* Detailed Version Status Indicator in Collapsed Mode */}
           <div
             data-sidebar-tooltip={`Versi ${appVersion.version} (${appVersion.commit ? '#' + appVersion.commit : 'Terbaru'})`}
-            className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center cursor-default shadow-2xs"
+            className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-center cursor-default"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -1104,7 +1104,7 @@ export default function AdminSidebar({
           <div className="absolute -left-3 top-0 bottom-0 w-3 bg-transparent pointer-events-auto" />
 
           {activeFlyout.type === 'group' && activeFlyout.subItems && activeFlyout.subItems.length > 0 ? (
-            <div className="relative bg-white text-slate-800 text-xs rounded-xl shadow-xl border border-slate-200/90 backdrop-blur-md overflow-hidden min-w-[210px] max-w-[280px] animate-in fade-in-0 zoom-in-95 duration-100 select-none">
+            <div className="relative bg-white text-slate-800 text-xs rounded-xl border border-slate-200/90 backdrop-blur-md overflow-hidden min-w-[210px] max-w-[280px] animate-in fade-in-0 zoom-in-95 duration-100 select-none">
               <div 
                 className="absolute -left-1.5 w-3 h-3 bg-white border-l border-b border-slate-200/90 rotate-45 pointer-events-none"
                 style={{ top: '22px' }}
@@ -1115,7 +1115,7 @@ export default function AdminSidebar({
                   {activeFlyout.icon && <activeFlyout.icon size={15} className="text-primary shrink-0" />}
                   <span className="truncate">{activeFlyout.label}</span>
                 </div>
-                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-full shrink-0 shadow-2xs">
+                <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200/80 px-1.5 py-0.5 rounded-full shrink-0">
                   {activeFlyout.subItems.length} menu
                 </span>
               </div>
@@ -1130,9 +1130,9 @@ export default function AdminSidebar({
                       setActiveFlyout(null);
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg text-left transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
+                      "w-full flex items-center justify-between px-2.5 py-1.5 text-xs rounded-lg text-left transition-all cursor-pointer",
                       item.isActive
-                        ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                        ? "bg-primary/10 text-primary font-bold"
                         : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium"
                     )}
                   >
@@ -1150,7 +1150,7 @@ export default function AdminSidebar({
               </div>
             </div>
           ) : (
-            <div className="relative bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl border border-slate-800 backdrop-blur-md whitespace-nowrap flex items-center gap-2 animate-in fade-in-0 zoom-in-95 duration-100 pointer-events-none select-none">
+            <div className="relative bg-slate-900 text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-800 backdrop-blur-md whitespace-nowrap flex items-center gap-2 animate-in fade-in-0 zoom-in-95 duration-100 pointer-events-none select-none">
               <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-slate-900 border-l border-b border-slate-800 rotate-45 pointer-events-none" />
               <span>{activeFlyout.label}</span>
             </div>

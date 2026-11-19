@@ -79,13 +79,13 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
   const peakHour = timeRange === 'yesterday' ? '06.40 - 06.55 WIB' : '06.45 - 07.00 WIB';
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3.5 sm:p-4 flex flex-col justify-between overflow-hidden h-full">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3.5 sm:p-4 flex flex-col justify-between overflow-hidden h-full">
       
       {/* ── Header ── */}
       <div>
         <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 mb-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 shadow-xs flex items-center justify-center text-emerald-600 shrink-0">
+            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
               <TrendingUp size={16} />
             </div>
             <div className="min-w-0">
@@ -115,14 +115,14 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
                 <button
                   type="button"
                   onClick={() => setTimeRange('today')}
-                  className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${timeRange === 'today' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'hover:text-slate-900'}`}
+                  className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${timeRange === 'today' ? 'bg-emerald-600 text-white font-black' : 'hover:text-slate-900'}`}
                 >
                   Hari Ini
                 </button>
                 <button
                   type="button"
                   onClick={() => setTimeRange('yesterday')}
-                  className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${timeRange === 'yesterday' ? 'bg-emerald-600 text-white font-black shadow-xs' : 'hover:text-slate-900'}`}
+                  className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${timeRange === 'yesterday' ? 'bg-emerald-600 text-white font-black' : 'hover:text-slate-900'}`}
                 >
                   Kemarin
                 </button>
@@ -136,7 +136,7 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
                 onClick={() => setChartMode('hourly')}
                 className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1 ${
                   chartMode === 'hourly'
-                    ? 'bg-white text-slate-900 shadow-xs'
+                    ? 'bg-white text-slate-900'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -148,7 +148,7 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
                 onClick={() => setChartMode('weekly')}
                 className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1 ${
                   chartMode === 'weekly'
-                    ? 'bg-white text-slate-900 shadow-xs'
+                    ? 'bg-white text-slate-900'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
