@@ -410,7 +410,7 @@ export default function AdminSidebar({
       }).filter(Boolean);
 
       return (
-        <div 
+        <div
           className="mb-1 w-full flex justify-center"
           onMouseEnter={(e) => {
             if (subItems.length > 0) {
@@ -476,8 +476,8 @@ export default function AdminSidebar({
             {Icon && (
               <div className={cn(
                 "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                hasActiveChild 
-                  ? "bg-primary/15 text-primary" 
+                hasActiveChild
+                  ? "bg-primary/15 text-primary"
                   : "bg-slate-100/90 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-800"
               )}>
                 <Icon
@@ -981,7 +981,7 @@ export default function AdminSidebar({
       )}
 
       {/* ─── 3. NAVIGATION LIST (Custom Animated Scrollbar on the Left) ─── */}
-      <div 
+      <div
         className="relative flex-1 flex flex-col min-h-0 overflow-hidden"
         onMouseEnter={() => setIsHoveringNav(true)}
         onMouseLeave={() => setIsHoveringNav(false)}
@@ -1185,7 +1185,7 @@ export default function AdminSidebar({
                 </span>
               </div>
 
-              <div className="flex flex-col gap-0.5 max-h-[min(520px,calc(100vh-100px))] popover-custom-scrollbar px-0.5">
+              <div className="flex flex-col gap-0.5 max-h-[min(480px,calc(100vh-100px))] overflow-y-auto scrollbar-none no-scrollbar px-0.5">
                 {activeFlyout.subItems.map(item => (
                   <button
                     key={item.id}
@@ -1210,11 +1210,11 @@ export default function AdminSidebar({
                           <item.icon size={13} strokeWidth={item.isActive ? 2.4 : 1.9} />
                         </div>
                       ) : (
-                        <span 
+                        <span
                           className={cn(
                             "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
                             item.isActive ? "bg-primary" : "bg-slate-300 group-hover:bg-slate-500"
-                          )} 
+                          )}
                           aria-hidden="true"
                         />
                       )}

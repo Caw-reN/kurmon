@@ -58,6 +58,7 @@ const getTabLabel = (tabId) => {
     jurnal_harian:"Jurnal Harian Guru",
     catatan_walikelas:"Catatan Wali Kelas",
     walas_report:"Laporan Wali Kelas",
+    laporan_rekap_walas:"Laporan Wali Kelas",
     kedisiplinan_absensi:"Izin Siswa",
     modul_ajar:"Perangkat Ajar",
     rpp_guru:"Silabus & Perangkat Guru",
@@ -130,6 +131,7 @@ const getParentGroupLabel = (tabId) => {
     // Wali Kelas group
     catatan_walikelas:"Wali Kelas",
     walas_report:"Wali Kelas",
+    laporan_rekap_walas:"Wali Kelas",
 
     // Hubungan Industri (PKL) group
     pkl_dashboard:"Hubungan Industri (PKL)",
@@ -183,6 +185,7 @@ const getTabIcon = (tabId) => {
     jurnal_harian: BookOpen,
     catatan_walikelas: MessageSquare,
     walas_report: FileText,
+    laporan_rekap_walas: FileText,
     kedisiplinan_absensi: CheckCircle2,
     modul_ajar: FileText,
     rpp_guru: FileSpreadsheet,

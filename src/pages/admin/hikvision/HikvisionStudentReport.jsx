@@ -1640,33 +1640,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in w-full pb-20 sm:pb-6">
-      {/* Mobile Unified Compact Header & Segmented Tabs */}
-      <div className="sm:hidden flex flex-col gap-2 p-2.5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
-        <div className="flex items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <button
-              type="button"
-              onClick={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
-              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-200/80 active:scale-95"
-              title="Kembali ke Dashboard"
-              aria-label="Kembali ke Dashboard"
-            >
-              <ChevronLeft size={18} strokeWidth={2.4} />
-            </button>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
-              <PieChart size={16} strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xs font-black text-slate-800 tracking-tight truncate leading-tight">
-                Laporan Kehadiran
-              </h2>
-              <p className="text-[10px] font-medium text-slate-400 truncate leading-tight mt-0.5">
-                {activeTab === 'matriks' ? 'Rekap kehadiran bulanan siswa' : activeTab === 'surat' ? 'Manajemen surat izin / sakit' : 'Keterangan massal absensi'}
-              </p>
-            </div>
-          </div>
-        </div>
-
+      {/* Mobile Segmented Tabs */}
+      <div className="sm:hidden p-1.5 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
         {/* Segmented Pill Tabs */}
         <div className="bg-slate-100/90 rounded-xl p-1 flex items-center gap-1 border border-slate-200/60">
           <button

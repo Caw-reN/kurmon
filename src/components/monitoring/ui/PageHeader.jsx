@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { HelpCircle, ChevronLeft } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import Button from './Button.jsx';
 import { useAppStore } from '../../../store/useAppStore.js';
 
@@ -28,46 +28,12 @@ export default function PageHeader({
 
   const isPlain = variant === "plain";
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else if (typeof window !== 'undefined' && window.__setActiveTab) {
-      window.__setActiveTab('dashboard');
-    }
-  };
-
   return (
     <div className={cn("relative z-20 flex flex-col gap-2.5", isPlain ? '-mb-2' : '')}>
-      {/* Mobile Unified Compact Header (Shown on Mobile screens when not plain) */}
-      {!isPlain && (
-        <div className="sm:hidden flex items-center justify-between gap-2.5 px-3 py-2 bg-white border border-slate-200/80 rounded-2xl shadow-2xs mb-0.5">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer shrink-0 border border-slate-200/80 active:scale-95"
-              title="Kembali ke Dashboard"
-              aria-label="Kembali ke Dashboard"
-            >
-              <ChevronLeft size={18} strokeWidth={2.4} />
-            </button>
-            {Icon && (
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/70 shadow-2xs">
-                <Icon size={16} strokeWidth={2.2} />
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xs font-black text-slate-800 tracking-tight truncate leading-tight">
-                {title}
-              </h2>
-              {description && (
-                <p className="text-[10px] font-medium text-slate-400 truncate leading-tight mt-0.5">
-                  {description}
-                </p>
-              )}
-            </div>
-          </div>
-          {actions && <div className="shrink-0 flex items-center">{actions}</div>}
+      {/* Mobile Actions Bar (Only if actions exist, without duplicating header title/icon with AdminHeader) */}
+      {!isPlain && actions && (
+        <div className="sm:hidden flex items-center justify-end gap-2 px-1 py-0.5">
+          {actions}
         </div>
       )}
 
