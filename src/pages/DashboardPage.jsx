@@ -2160,14 +2160,59 @@ export default function DashboardPage({
         </details>
       )}
 
-      {/* ======= TOP PARENT CONTAINER BOX ======= */}
-      <div className="hidden sm:flex ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3 sm:p-3.5 flex-col gap-2.5 sm:gap-3">
-        {/* Dashboard Messages Carousel */}
-        {dashboardMessages?.length > 0 && (
-          <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
-        )}
+      {/* ======= 1. STATISTIK UTAMA (4 STAT CARDS) ======= */}
+      <div className="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        {topCards.map((card, idx) => {
+          const cardThemes = [
+            { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/60' },
+            { iconBg: 'bg-sky-50 text-sky-600 border-sky-100', badge: 'bg-sky-50 text-sky-700 border-sky-200/60' },
+            { iconBg: 'bg-amber-50 text-amber-600 border-amber-100', badge: 'bg-amber-50 text-amber-700 border-amber-200/60' },
+            { iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/60' },
+          ];
+          const theme = cardThemes[idx % cardThemes.length];
 
-        {/* ======= KEHADIRAN HARI INI ======= */}
+          return (
+            <button 
+              key={idx} 
+              type="button"
+              onClick={() => setActiveTab(card.tab)} 
+              className="bg-white hover:bg-slate-50/50 p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-slate-300 flex flex-col justify-between active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
+            >
+              <div className="flex items-center justify-between w-full gap-1 mb-1.5">
+                <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
+                  {typeof card.icon === 'string' ? (
+                    <img src={card.icon} className="w-3.5 h-3.5 object-contain" alt="" />
+                  ) : (
+                    <card.icon size={13} strokeWidth={2.2} />
+                  )}
+                </div>
+                {card.sub && (
+                  <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded-md border truncate max-w-[105px] ${theme.badge}`}>
+                    {card.sub}
+                  </span>
+                )}
+              </div>
+
+              <div className="min-w-0 w-full flex flex-col">
+                <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none mb-0.5">
+                  {card.value}
+                </h3>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                  {card.label}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Dashboard Messages Carousel */}
+      {dashboardMessages?.length > 0 && (
+        <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
+      )}
+
+      {/* ======= 2. KEHADIRAN HARI INI ======= */}
+      <div className="hidden sm:block">
         <AttendanceTodaySection
           attendanceRecords={attendanceRecords}
           dashLogs={dashLogs}
@@ -2181,23 +2226,23 @@ export default function DashboardPage({
           activeDivision={activeDivision}
           setActiveTab={setActiveTab}
         />
-
-        {/* ======= JADWAL MENGAJAR & JURNAL KBM HARI INI (UNTUK WAKA) ======= */}
-        {isWaka && (
-          <div className="pt-2 border-t border-slate-100/80">
-            <TeachingScheduleCard
-              todayClasses={todayClasses}
-              selectedClass={selectedClass}
-              selectedTodayClassIdx={selectedTodayClassIdx}
-              setSelectedTodayClassIdx={setSelectedTodayClassIdx}
-              setActiveTab={setActiveTab}
-              isDesktop={true}
-            />
-          </div>
-        )}
       </div>
 
-      {/* Shared & Live Activity Logs */}
+      {/* ======= JADWAL MENGAJAR & JURNAL KBM HARI INI (UNTUK WAKA) ======= */}
+      {isWaka && (
+        <div className="hidden sm:block">
+          <TeachingScheduleCard
+            todayClasses={todayClasses}
+            selectedClass={selectedClass}
+            selectedTodayClassIdx={selectedTodayClassIdx}
+            setSelectedTodayClassIdx={setSelectedTodayClassIdx}
+            setActiveTab={setActiveTab}
+            isDesktop={true}
+          />
+        </div>
+      )}
+
+      {/* ======= 3. MONITOR & AKTIVITAS + LOG AKTIVITAS PENGGUNA ======= */}
       <div className="w-full flex flex-col xl:flex-row gap-3">
         {/* Monitor & Aktivitas (Lebih Besar & Kiri) */}
         <div className="flex-1 min-w-0">
@@ -2209,62 +2254,6 @@ export default function DashboardPage({
             <LiveUserActivityLog onNavigateTab={setActiveTab} />
           </div>
         )}
-      </div>
-
-
-      {/* ======= STATISTIK UTAMA (4 STAT CARDS) ======= */}
-      <div className="flex flex-col gap-2 text-left">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] inline-block"></span>
-            Statistik Utama
-          </h2>
-        </div>
-        
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
-          {topCards.map((card, idx) => {
-            const cardThemes = [
-              { iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/60' },
-              { iconBg: 'bg-sky-50 text-sky-600 border-sky-100', badge: 'bg-sky-50 text-sky-700 border-sky-200/60' },
-              { iconBg: 'bg-amber-50 text-amber-600 border-amber-100', badge: 'bg-amber-50 text-amber-700 border-amber-200/60' },
-              { iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/60' },
-            ];
-            const theme = cardThemes[idx % cardThemes.length];
-
-            return (
-              <button 
-                key={idx} 
-                type="button"
-                onClick={() => setActiveTab(card.tab)} 
-                className="bg-white hover:bg-slate-50/50 p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-slate-300 flex flex-col justify-between active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
-              >
-                <div className="flex items-center justify-between w-full gap-1 mb-1.5">
-                  <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
-                    {typeof card.icon === 'string' ? (
-                      <img src={card.icon} className="w-3.5 h-3.5 object-contain" alt="" />
-                    ) : (
-                      <card.icon size={13} strokeWidth={2.2} />
-                    )}
-                  </div>
-                  {card.sub && (
-                    <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded-md border truncate max-w-[105px] ${theme.badge}`}>
-                      {card.sub}
-                    </span>
-                  )}
-                </div>
-
-                <div className="min-w-0 w-full flex flex-col">
-                  <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none mb-0.5">
-                    {card.value}
-                  </h3>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate group-hover:text-[var(--ui-primary)] transition-colors">
-                    {card.label}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
 
@@ -2345,16 +2334,15 @@ export default function DashboardPage({
                     </div>
                   </div>
 
-                  {/* Micro Progress Bar */}
-                  <div className="w-full h-1 bg-slate-200/60 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ 
-                        width: `${row.progress}%`, 
-                        background: row.progress === 100 ? "#10b981" : row.progress > 0 ? "var(--ui-primary)" : "#cbd5e1" 
-                      }}
-                    />
-                  </div>
+                  {/* Micro Progress Bar - only shown when in progress to maintain clean minimalism */}
+                  {row.progress < 100 && row.progress > 0 && (
+                    <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 bg-amber-500"
+                        style={{ width: `${row.progress}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -3213,12 +3201,12 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   if (!canSeeTeacherAttendance && !canSeeStudentAttendance) return null;
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <CheckCircle2 size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
-        <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Kehadiran Hari Ini</h2>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-1.5 px-0.5">
+        <CheckCircle2 size={15} className="text-primary shrink-0" strokeWidth={2.4} />
+        <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">Kehadiran Hari Ini</h2>
       </div>
-      <div className={`grid gap-2 sm:gap-4 ${canSeeTeacherAttendance && canSeeStudentAttendance ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
+      <div className={`grid gap-2 sm:gap-2.5 ${canSeeTeacherAttendance && canSeeStudentAttendance ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1'}`}>
 
         {/* ── Panel Guru ── */}
         {canSeeTeacherAttendance && (

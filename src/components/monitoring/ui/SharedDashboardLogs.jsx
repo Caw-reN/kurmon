@@ -739,23 +739,23 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
 
     return (
-      <div className="flex items-center justify-between px-3 py-1.5 bg-slate-50/50 border-t border-slate-100 mt-auto">
-        <span className="text-[9.5px] text-slate-400 font-medium">
+      <div className="flex items-center justify-between px-3.5 py-2 bg-[var(--ui-surface-muted)] border-t border-[var(--ui-border-muted)] mt-auto">
+        <span className="text-[10px] text-slate-500 font-medium">
           Data {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems}
         </span>
         <div className="flex items-center gap-1.5">
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            className="px-2 py-0.5 rounded-md bg-white border border-slate-200/80 text-slate-600 text-[9.5px] font-bold hover:bg-slate-50 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Prev
           </button>
-          <span className="px-2 text-[9.5px] font-bold text-slate-600">{currentPage} / {totalPages}</span>
+          <span className="px-2.5 text-[10px] font-bold text-slate-700">{currentPage} / {totalPages}</span>
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            className="px-2 py-0.5 rounded-md bg-white border border-slate-200/80 text-slate-600 text-[9.5px] font-bold hover:bg-slate-50 hover:text-primary disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="px-2.5 py-1.5 rounded-[var(--ui-radius-control)] bg-white border border-[var(--ui-border-soft)] text-slate-600 text-[10px] font-bold hover:bg-[var(--ui-surface-muted)] hover:text-[var(--ui-primary)] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             Next
           </button>
@@ -778,15 +778,15 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
 
       {/* Dynamic Header */}
-      <div className="px-3.5 py-2 sm:py-2.5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
-            <img src="/icons/031-monitor.svg" alt="Monitor" className="w-3.5 h-3.5 object-contain" />
+      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
+            <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] sm:text-[8.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 LIVE
               </span>
@@ -807,7 +807,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                   { label: 'Karyawan', value: 'karyawan' }
                 ]}
                 searchable={false}
-                className="[&>[data-slot=select-trigger]]:h-[30px] [&>[data-slot=select-trigger]]:min-h-[30px] [&>[data-slot=select-trigger]]:py-0.5 [&>[data-slot=select-trigger]]:text-[11px]"
+                className="[&>[data-slot=select-trigger]]:h-[34px] [&>[data-slot=select-trigger]]:min-h-[34px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
               />
             </div>
           )}
@@ -818,18 +818,18 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                 onChange={setSubFilter}
                 options={uniqueSiswaOptions}
                 searchable={true}
-                className="[&>[data-slot=select-trigger]]:h-[30px] [&>[data-slot=select-trigger]]:min-h-[30px] [&>[data-slot=select-trigger]]:py-0.5 [&>[data-slot=select-trigger]]:text-[11px]"
+                className="[&>[data-slot=select-trigger]]:h-[34px] [&>[data-slot=select-trigger]]:min-h-[34px] [&>[data-slot=select-trigger]]:py-1 [&>[data-slot=select-trigger]]:text-xs"
               />
             </div>
           )}
-          <div className="relative w-full sm:w-52">
-            <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
+          <div className="relative w-full sm:w-56">
+            <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
             <input
               type="text"
               placeholder="Cari nama / NIS / kelas..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-[30px] pl-7 pr-6 bg-white border border-slate-200/90 rounded-md text-[11px] font-medium text-slate-700 focus:outline-none focus:border-primary placeholder:text-slate-400 transition-all"
+              className="w-full h-[34px] pl-8 pr-7 bg-white border border-slate-200/90 rounded-lg text-xs font-medium text-slate-700 focus:outline-none focus:border-primary placeholder:text-slate-400 transition-all"
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold border-none bg-transparent cursor-pointer transition-colors p-1">×</button>
@@ -841,10 +841,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             <button
               type="button"
               onClick={() => setShowSuperAdminModal(true)}
-              className="h-[30px] px-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border border-slate-700"
+              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border border-slate-700"
               title="Koreksi Jam Absensi (Khusus Super Admin)"
             >
-              <Shield size={12} className="text-amber-400 shrink-0" />
+              <Shield size={13} className="text-amber-400 shrink-0" />
               <span className="hidden xl:inline font-bold">Koreksi Jam</span>
             </button>
           )}
@@ -852,7 +852,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       </div>
 
       {/* Navigation Tabs Bar - Minimalist Segmented Tabs */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 p-2 sm:p-2.5 bg-slate-50/50 border-b border-slate-100 select-none">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3 bg-slate-50/50 border-b border-slate-100 select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -861,7 +861,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
               className={cn(
-                "py-1.5 px-1 sm:px-1.5 rounded-lg border flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer text-center w-full min-h-[46px] sm:min-h-[50px] relative touch-manipulation active:scale-95",
+                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95",
                 isActive
                   ? "bg-primary text-white border-primary font-bold"
                   : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 font-semibold"
@@ -872,20 +872,20 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                   src={tab.icon}
                   alt={tab.label}
                   className={cn(
-                    "w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain transition-transform duration-200",
+                    "w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-200",
                     isActive ? "scale-105" : "opacity-85"
                   )}
                   style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
                 <span className={cn(
-                  "absolute -top-1 -right-3 px-1 min-w-[15px] h-[15px] flex items-center justify-center rounded-full text-[8px] font-black leading-none border",
+                  "absolute -top-1.5 -right-3.5 px-1.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none border",
                   isActive ? "bg-white text-slate-900 border-white" : "bg-slate-100 text-slate-700 border-slate-200"
                 )}>
                   {tab.count}
                 </span>
               </div>
               <span className={cn(
-                "text-[9px] sm:text-[9.5px] leading-tight truncate max-w-full px-0.5",
+                "text-[10px] leading-tight truncate max-w-full px-0.5",
                 isActive ? "text-white font-bold" : "text-slate-600 font-semibold"
               )}>
                 <span className="sm:hidden">{tab.labelShort || tab.label}</span>
