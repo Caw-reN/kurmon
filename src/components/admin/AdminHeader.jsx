@@ -7,7 +7,7 @@ import { Clock, MessageSquare,
   CheckCircle2, Briefcase, Wand2, FileText, Settings,
   MonitorSmartphone, UserCog, User, HardDrive, KeyRound,
   HelpCircle, Bell, LogOut, Wrench, Activity, ClipboardList, Trophy, UserMinus, Shield, ShieldCheck,
-  Menu, ChevronsUpDown
+  Menu, ChevronsUpDown, ChevronDown
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
@@ -214,6 +214,11 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const notifBtnRef = useRef(null);
   const notifDropdownRef = useRef(null);
+
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileBtnRef = useRef(null);
+  const profileMenuRef = useRef(null);
+
   const [notifPermission, setNotifPermission] = useState(() => {
     return typeof window !=="undefined" &&"Notification" in window ? Notification.permission :"unsupported";
   });
@@ -223,18 +228,26 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
   // Close dropdown when clicking outside
   useEffect(() => {
-    if (!showNotifDropdown) return;
+    if (!showNotifDropdown && !showProfileMenu) return;
     const handleClickOutside = (e) => {
       if (
+        showNotifDropdown &&
         notifDropdownRef.current && !notifDropdownRef.current.contains(e.target) &&
         notifBtnRef.current && !notifBtnRef.current.contains(e.target)
       ) {
         setShowNotifDropdown(false);
       }
+      if (
+        showProfileMenu &&
+        profileMenuRef.current && !profileMenuRef.current.contains(e.target) &&
+        profileBtnRef.current && !profileBtnRef.current.contains(e.target)
+      ) {
+        setShowProfileMenu(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showNotifDropdown]);
+  }, [showNotifDropdown, showProfileMenu]);
 
   // Cek apakah permission sudah granted saat dropdown dibuka
   useEffect(() => {
@@ -464,19 +477,25 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <button
             ref={notifBtnRef}
             type="button"
-            onClick={() => setShowNotifDropdown(prev => !prev)}
+            onClick={() => {
+              setShowNotifDropdown(prev => !prev);
+              setShowProfileMenu(false);
+            }}
             className={cn(
-              "relative flex items-center justify-center w-9 h-9 rounded-lg transition-all shrink-0 cursor-pointer",
+              "relative flex items-center justify-center w-9 h-9 rounded-xl transition-all shrink-0 cursor-pointer shadow-xs active:scale-95",
               isPrimaryHeader
-                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25"
-                : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90"
+                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25 hover:border-white/40"
+                : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs"
             )}
             title="Pusat Pemberitahuan & Pengumuman"
             aria-label="Pusat Pemberitahuan"
           >
-            <Bell size={17} strokeWidth={2.2} />
+            <Bell size={16} strokeWidth={2.2} />
             {notifCount > 0 ? (
-              <span className="absolute -top-1 -right-1 px-1 min-w-[17px] h-[17px] rounded-full bg-rose-500 text-white text-[9.5px] font-black border-2 border-white flex items-center justify-center animate-in zoom-in-75">
+              <span className={cn(
+                "absolute -top-1 -right-1 px-1 min-w-[17px] h-[17px] rounded-full bg-rose-500 text-white text-[9.5px] font-black border-2 flex items-center justify-center shadow-xs animate-in zoom-in-75",
+                isPrimaryHeader ? "border-emerald-800" : "border-white"
+              )}>
                 {notifCount > 9 ? '9+' : notifCount}
               </span>
             ) : null}
@@ -650,69 +669,183 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
         {/* Subtle Vertical Divider */}
         <div className={cn(
-          "w-px h-6 shrink-0",
+          "w-px h-5 shrink-0 hidden sm:block mx-0.5",
           isPrimaryHeader ? "bg-white/20" : "bg-slate-200"
         )} />
 
-        {/* User Profile Pill Capsule */}
-        <div
-          onClick={onOpenProfile}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpenProfile?.(); }}
-          className={cn(
-            "flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 rounded-lg cursor-pointer min-w-0 transition-all select-none",
-            isPrimaryHeader
-              ? "bg-white/15 hover:bg-white/25 border border-white/25 text-white active:scale-[0.98]"
-              : "bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-800 active:scale-[0.98]"
-          )}
-          title="Profil Pengguna & Pengaturan Akun"
-        >
-          {/* Avatar (High Contrast & Crisp) */}
-          <div className={cn(
-            "w-7 h-7 rounded-md flex items-center justify-center font-black text-xs shrink-0 overflow-hidden transition-all",
-            isPrimaryHeader 
-              ? "bg-white text-emerald-900 border border-white/60" 
-              : "bg-primary/10 text-primary border border-primary/20"
-          )}>
-            {currentUser?.avatar ? (
-              <img src={currentUser.avatar} alt="User Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span>{getInitials(currentUser?.name)}</span>
-            )}
-          </div>
-
-          {/* User Name & Role */}
-          <div className="flex flex-col hidden sm:flex min-w-0 max-w-[200px] md:max-w-[280px] xl:max-w-[360px] text-left">
-            <span 
-              className={cn(
-                "text-[12.5px] font-bold leading-tight truncate",
-                isPrimaryHeader ? "text-white" : "text-slate-900"
-              )}
-              title={currentUser?.name || appSettings.appName}
-            >
-              {currentUser?.name || appSettings.appName}
-            </span>
-            <span 
-              className={cn(
-                "text-[10.5px] font-medium leading-tight mt-0.5 truncate",
-                isPrimaryHeader ? "text-emerald-100/90" : "text-slate-500"
-              )}
-              title={activeRoleLabel}
-            >
-              {activeRoleLabel}
-            </span>
-          </div>
-
-          {/* Interactive Chevron indicator */}
-          <ChevronsUpDown 
-            size={13} 
-            strokeWidth={2.4} 
+        {/* User Profile Pill Capsule with Interactive Popover */}
+        <div className="relative">
+          <div
+            ref={profileBtnRef}
+            onClick={() => {
+              setShowProfileMenu(prev => !prev);
+              setShowNotifDropdown(false);
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { 
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowProfileMenu(prev => !prev);
+              }
+            }}
             className={cn(
-              "shrink-0 ml-0.5 hidden sm:block",
-              isPrimaryHeader ? "text-white/70" : "text-slate-400"
-            )} 
-          />
+              "flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 rounded-xl cursor-pointer min-w-0 transition-all select-none shadow-xs border active:scale-[0.98]",
+              isPrimaryHeader
+                ? (showProfileMenu ? "bg-white/25 border-white/40 text-white ring-2 ring-white/20" : "bg-white/15 hover:bg-white/25 border-white/25 hover:border-white/40 text-white")
+                : (showProfileMenu ? "bg-slate-100 border-slate-300 text-slate-900 ring-2 ring-primary/20" : "bg-white hover:bg-slate-50 border-slate-200/90 text-slate-800")
+            )}
+            title="Profil Pengguna & Opsi Akun"
+          >
+            {/* Avatar with Status Dot */}
+            <div className="relative shrink-0">
+              <div className={cn(
+                "w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 overflow-hidden shadow-2xs transition-all",
+                isPrimaryHeader 
+                  ? "bg-white text-emerald-900 border border-white/80" 
+                  : "bg-primary/10 text-primary border border-primary/25"
+              )}>
+                {currentUser?.avatar ? (
+                  <img src={currentUser.avatar} alt="User Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{getInitials(currentUser?.name)}</span>
+                )}
+              </div>
+              {/* Online Indicator Dot */}
+              <span className={cn(
+                "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2",
+                isPrimaryHeader ? "border-emerald-800" : "border-white"
+              )} />
+            </div>
+
+            {/* User Name & Role */}
+            <div className="flex flex-col hidden sm:flex min-w-0 max-w-[180px] md:max-w-[240px] xl:max-w-[320px] text-left">
+              <span 
+                className={cn(
+                  "text-[12px] font-bold leading-tight truncate tracking-tight",
+                  isPrimaryHeader ? "text-white" : "text-slate-900"
+                )}
+                title={currentUser?.name || appSettings?.appName}
+              >
+                {currentUser?.name || appSettings?.appName}
+              </span>
+              <div className="flex items-center gap-1 mt-0.5 min-w-0">
+                <span className={cn(
+                  "w-1.5 h-1.5 rounded-full shrink-0",
+                  isPrimaryHeader ? "bg-emerald-300" : "bg-primary"
+                )} />
+                <span 
+                  className={cn(
+                    "text-[10px] font-medium leading-tight truncate",
+                    isPrimaryHeader ? "text-emerald-100/90" : "text-slate-500"
+                  )}
+                  title={activeRoleLabel}
+                >
+                  {activeRoleLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Interactive Chevron indicator */}
+            <div className={cn(
+              "w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-transform duration-200 hidden sm:flex ml-0.5",
+              isPrimaryHeader ? "bg-white/10 text-white/80" : "bg-slate-100 text-slate-500"
+            )}>
+              <ChevronDown 
+                size={12} 
+                strokeWidth={2.6} 
+                className={cn("transition-transform duration-200", showProfileMenu ? "rotate-180" : "")} 
+              />
+            </div>
+          </div>
+
+          {/* Profile Popover Dropdown */}
+          {showProfileMenu && (
+            <div
+              ref={profileMenuRef}
+              className="absolute right-0 top-12 w-72 bg-white text-slate-800 border border-slate-200/90 rounded-2xl shadow-xl p-2 z-[9999] animate-in fade-in-0 zoom-in-95 duration-150 flex flex-col gap-1.5"
+            >
+              {/* Header inside popover */}
+              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100/80 flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-black text-sm flex items-center justify-center shrink-0 overflow-hidden border border-emerald-200/70">
+                  {currentUser?.avatar ? (
+                    <img src={currentUser.avatar} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{getInitials(currentUser?.name)}</span>
+                  )}
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-xs font-black text-slate-900 truncate leading-tight">
+                    {currentUser?.name || "Pengguna"}
+                  </span>
+                  <div className="flex items-center gap-1 mt-1">
+                    <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-md truncate max-w-[140px]">
+                      {activeRoleLabel}
+                    </span>
+                  </div>
+                  {(currentUser?.nip || currentUser?.code || currentUser?.username) && (
+                    <span className="text-[9px] text-slate-400 font-medium mt-0.5 truncate">
+                      ID: {currentUser?.nip || currentUser?.code || currentUser?.username}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action list */}
+              <div className="flex flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    onOpenProfile?.();
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors text-xs font-semibold cursor-pointer border-none bg-transparent text-left"
+                >
+                  <UserCog size={15} className="text-slate-500 shrink-0" strokeWidth={2.2} />
+                  <div className="flex flex-col min-w-0">
+                    <span className="leading-tight">Edit Profil &amp; Akun</span>
+                    <span className="text-[9.5px] text-slate-400 font-normal leading-tight">Ganti nama, avatar, atau kata sandi</span>
+                  </div>
+                </button>
+
+                {workspaceGuide && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      onOpenGuide?.();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition-colors text-xs font-semibold cursor-pointer border-none bg-transparent text-left"
+                  >
+                    <HelpCircle size={15} className="text-slate-500 shrink-0" strokeWidth={2.2} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="leading-tight">Panduan Sistem</span>
+                      <span className="text-[9.5px] text-slate-400 font-normal leading-tight">Bantuan cara penggunaan fitur</span>
+                    </div>
+                  </button>
+                )}
+
+                <div className="h-px bg-slate-100 my-0.5" />
+
+                {typeof handleLogout === 'function' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors text-xs font-semibold cursor-pointer border-none bg-transparent text-left"
+                  >
+                    <LogOut size={15} className="text-rose-500 shrink-0" strokeWidth={2.2} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="leading-tight font-bold">Keluar Sistem</span>
+                      <span className="text-[9.5px] text-rose-400 font-normal leading-tight">Akhiri sesi login saat ini</span>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Quick Header Logout Button (Desktop & Mobile) */}
@@ -721,10 +854,10 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             type="button"
             onClick={handleLogout}
             className={cn(
-              "flex items-center justify-center w-9 h-9 rounded-lg transition-all cursor-pointer shrink-0",
+              "flex items-center justify-center w-9 h-9 rounded-xl transition-all cursor-pointer shrink-0 shadow-xs active:scale-95",
               isPrimaryHeader
-                ? "bg-rose-500/20 hover:bg-rose-500 text-rose-100 hover:text-white border border-rose-300/30 active:scale-95"
-                : "bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 active:scale-95"
+                ? "bg-white/15 hover:bg-rose-500 text-white border border-white/25 hover:border-rose-400"
+                : "bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200/90 hover:border-rose-200 shadow-2xs"
             )}
             title="Keluar Sistem"
             aria-label="Keluar Sistem"
