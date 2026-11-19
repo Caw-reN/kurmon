@@ -1296,7 +1296,7 @@ export default function DashboardPage({
                     <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center shrink-0 shadow-2xs transition-colors">
                       <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                     </div>
-                    <span className="text-[10px] sm:text-[10.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
+                    <span className="text-[11px] sm:text-[11.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
                       {shortcut.label}
                     </span>
                   </button>
@@ -1314,7 +1314,7 @@ export default function DashboardPage({
                 {teacherStatCards.map((stat, i) => (
                   <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 shadow-2xs transition-colors">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
+                      <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
                       <p className="text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
                     </div>
                     <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0 shadow-2xs">
@@ -1332,12 +1332,12 @@ export default function DashboardPage({
               <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
-                  <p className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">Daftar jam mengajar Anda</p>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Daftar jam mengajar Anda</p>
                 </div>
                 <button 
                   type="button"
                   onClick={() => setActiveTab('beban')}
-                  className="shrink-0 flex items-center gap-1 px-2 py-1 bg-white border border-slate-200/90 shadow-xs rounded-[var(--ui-radius-small)] text-[10px] font-bold text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)] transition-colors cursor-pointer active:scale-95"
+                  className="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 shadow-2xs rounded-lg text-[10.5px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)] transition-colors cursor-pointer active:scale-95"
                   title="Lihat rincian beban mengajar"
                 >
                   <Printer size={11} /> Export

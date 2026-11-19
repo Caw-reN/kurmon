@@ -312,8 +312,8 @@ export default function AdminSidebar({
   const SidebarSection = ({ label }) => {
     if (isCollapsed) return null;
     return (
-      <div className="mt-4 mb-1.5 px-3 flex items-center">
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+      <div className="mt-3.5 mb-1 px-3 flex items-center">
+        <span className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
           {label}
         </span>
       </div>
@@ -403,9 +403,9 @@ export default function AdminSidebar({
           type="button"
           className={cn(
             "group relative flex w-full items-center justify-between rounded-lg border-none",
-            "px-3 py-2 text-xs font-semibold transition-all cursor-pointer",
+            "px-3 py-2 text-[13px] font-medium transition-all cursor-pointer",
             hasActiveChild
-              ? "text-slate-900 font-bold bg-slate-50/90"
+              ? "text-slate-900 font-semibold bg-slate-50/90"
               : "text-slate-700 hover:bg-slate-100/70 hover:text-slate-900"
           )}
         >
@@ -773,10 +773,10 @@ export default function AdminSidebar({
                 />
               </div>
               <div className="flex flex-col min-w-0 select-none">
-                <span className="font-bold text-slate-900 text-xs tracking-tight truncate">
+                <span className="font-bold text-slate-900 text-[13.5px] leading-tight tracking-tight truncate">
                   {appSettings.appName || "KG2 School"}
                 </span>
-                <span className="text-[10px] font-medium text-slate-400 tracking-tight truncate">
+                <span className="text-[11px] font-medium text-slate-400 leading-tight tracking-tight truncate mt-0.5">
                   {appSettings.appSubtitle || appSettings.instansiName || "smkkg2.sch.id"}
                 </span>
               </div>
@@ -835,7 +835,7 @@ export default function AdminSidebar({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari menu..."
-              className="w-full bg-slate-50/70 hover:bg-slate-50 focus:bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-16 py-1.5 text-xs rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
+              className="w-full h-[34px] bg-slate-50/70 hover:bg-slate-50 focus:bg-white border border-slate-200/90 hover:border-slate-300 focus:border-primary pl-8 pr-14 text-[12.5px] rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/15 transition-all shadow-2xs font-medium"
             />
             <div className="absolute right-2 flex items-center gap-1">
               {searchQuery ? (
@@ -852,7 +852,7 @@ export default function AdminSidebar({
                   <X size={12} strokeWidth={2.5} />
                 </button>
               ) : (
-                <kbd className="hidden sm:inline-flex items-center text-[9.5px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded-md shadow-2xs select-none">
+                <kbd className="hidden sm:inline-flex items-center text-[10px] font-semibold text-slate-400 bg-white border border-slate-200/90 px-1.5 py-0.5 rounded-md shadow-2xs select-none">
                   {shortcutLabel}
                 </kbd>
               )}
@@ -861,17 +861,17 @@ export default function AdminSidebar({
 
           {/* Quick Collapse / Expand Micro Bar */}
           {!searchQuery.trim() && (
-            <div className="flex items-center justify-between px-1 pt-1 text-slate-400 select-none">
-              <span className="font-bold uppercase tracking-wider text-[9.5px] text-slate-400">
+            <div className="flex items-center justify-between px-1 pt-1.5 text-slate-400 select-none">
+              <span className="font-bold uppercase tracking-wider text-[10.5px] text-slate-400">
                 Daftar Menu
               </span>
               <button
                 type="button"
                 onClick={handleToggleAllGroups}
-                className="text-[10px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
+                className="text-[11px] font-semibold text-slate-500 hover:text-primary hover:bg-slate-100/90 px-1.5 py-0.5 rounded-md transition-colors flex items-center gap-1 cursor-pointer border-none bg-transparent active:scale-95 focus:outline-none focus-visible:ring-1 focus-visible:ring-primary/30"
                 title={isAnyGroupOpen ? "Tutup semua sub-menu agar ringkas" : "Buka semua sub-menu"}
               >
-                <ChevronsUpDown size={11} strokeWidth={2.4} className="text-slate-400" />
+                <ChevronsUpDown size={12} strokeWidth={2.4} className="text-slate-400" />
                 <span>{isAnyGroupOpen ? "Tutup Semua" : "Buka Semua"}</span>
               </button>
             </div>
@@ -915,7 +915,7 @@ export default function AdminSidebar({
         >
           {searchQuery.trim() ? (
             <div className="flex flex-col gap-1 py-1">
-              <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <div className="px-3 py-1 text-[10.5px] font-bold text-slate-400 uppercase tracking-wider">
                 Hasil Pencarian ({filteredSearchItems.length})
               </div>
               {filteredSearchItems.length > 0 ? (
@@ -930,9 +930,9 @@ export default function AdminSidebar({
                       }}
                       type="button"
                       className={cn(
-                        "flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
+                        "flex items-center justify-between px-3 py-2 text-[13px] font-medium rounded-lg text-left transition-colors cursor-pointer border-none",
                         isActive
-                          ? "bg-primary/10 text-primary font-bold shadow-2xs"
+                          ? "bg-primary/10 text-primary font-semibold shadow-2xs"
                           : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -942,7 +942,7 @@ export default function AdminSidebar({
                         </div>
                         <span className="truncate">{item.label}</span>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
+                      <span className="text-[10.5px] text-slate-400 font-medium shrink-0 ml-2">
                         {item.adminGroup || item.section || "Menu"}
                       </span>
                     </button>
@@ -980,10 +980,10 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: refToUse.current.scrollHeight, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Gulir ke menu paling bawah"
             >
-              <ArrowDown size={11} strokeWidth={2.5} className="text-primary animate-bounce" />
+              <ArrowDown size={12} strokeWidth={2.4} className="text-emerald-400 animate-bounce" />
               <span>Gulir ke Bawah</span>
             </button>
           </div>
@@ -997,10 +997,10 @@ export default function AdminSidebar({
               onClick={() => {
                 refToUse.current?.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 bg-white/95 hover:bg-white text-slate-700 hover:text-slate-900 text-[10.5px] font-semibold rounded-full shadow-md backdrop-blur-md border border-slate-200/90 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="pointer-events-auto flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-full shadow-md cursor-pointer transition-all hover:scale-105 active:scale-95 animate-in fade-in duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Kembali ke menu paling atas"
             >
-              <ArrowUp size={11} strokeWidth={2.5} className="text-primary" />
+              <ArrowUp size={12} strokeWidth={2.4} className="text-emerald-400" />
               <span>Kembali ke Atas</span>
             </button>
           </div>
@@ -1016,7 +1016,7 @@ export default function AdminSidebar({
               type="button"
               onClick={handleBackupExport}
               disabled={isBackingUp}
-              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-lg transition-all cursor-pointer shadow-2xs disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 rounded-lg transition-all cursor-pointer shadow-2xs disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Backup & Export Database"
             >
               {isBackingUp ? <RefreshCw size={13} className="animate-spin text-primary" /> : <DatabaseBackup size={13} className="text-slate-500" />}
@@ -1028,10 +1028,10 @@ export default function AdminSidebar({
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30"
+            className="w-full h-[38px] flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200/80 hover:border-rose-600 rounded-lg transition-all cursor-pointer shadow-2xs active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/30"
             title="Keluar dari akun aplikasi"
           >
-            <LogOut size={14} strokeWidth={2.4} />
+            <LogOut size={15} strokeWidth={2.4} />
             <span>Keluar Sistem</span>
           </button>
 
@@ -1043,18 +1043,18 @@ export default function AdminSidebar({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span className="text-[11px] font-bold text-slate-700 tracking-tight">Sistem Aktif</span>
+                <span className="text-[11.5px] font-bold text-slate-700 tracking-tight">Sistem Aktif</span>
               </div>
-              <span className="font-mono text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10px] shadow-2xs">
+              <span className="font-mono text-emerald-700 font-bold bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full text-[10.5px] shadow-2xs">
                 {appVersion.version}
               </span>
             </div>
             <div className="bg-white border border-slate-200/70 rounded-lg px-2.5 py-1.5 flex flex-col gap-0.5 shadow-2xs">
-              <div className="flex items-center justify-between text-[10px]">
+              <div className="flex items-center justify-between text-[10.5px]">
                 <span className="text-slate-400 font-medium">Versi Pembaruan:</span>
                 <span className="font-mono text-slate-700 font-bold">{appVersion.commit ? `#${appVersion.commit}` : 'Terbaru'}</span>
               </div>
-              <div className="text-[10px] text-slate-500 font-medium truncate" title={appVersion.detail}>
+              <div className="text-[10.5px] text-slate-500 font-medium truncate" title={appVersion.detail}>
                 {appVersion.date ? `${appVersion.date}, ${appVersion.time || ''}` : appVersion.detail}
               </div>
             </div>

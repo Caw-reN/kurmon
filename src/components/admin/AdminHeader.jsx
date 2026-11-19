@@ -407,7 +407,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             </div>
           )}
           {getParentGroupLabel(activeTab) !== getTabLabel(activeTab) ? (
-            <h1 className="text-sm md:text-base font-black flex items-center gap-1.5 select-none tracking-tight animate-in fade-in duration-200 min-w-0 truncate">
+            <h1 className="text-sm md:text-base font-bold flex items-center gap-1.5 select-none tracking-tight animate-in fade-in duration-200 min-w-0 truncate">
               <span className={cn(
                 "font-medium text-xs hidden sm:inline truncate",
                 isPrimaryHeader ? "text-white/70" : "text-slate-400"
@@ -419,7 +419,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                 isPrimaryHeader ? "text-white/40" : "text-slate-300"
               )}>/</span>
               <span className={cn(
-                "font-black truncate",
+                "font-bold truncate",
                 isPrimaryHeader ? "text-white" : "text-primary"
               )}>
                 {getTabLabel(activeTab)}
@@ -427,7 +427,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             </h1>
           ) : (
             <h1 className={cn(
-              "text-sm md:text-base font-black tracking-tight leading-tight animate-in fade-in duration-200 min-w-0 truncate",
+              "text-sm md:text-base font-bold tracking-tight leading-tight animate-in fade-in duration-200 min-w-0 truncate",
               isPrimaryHeader ? "text-white" : "text-primary"
             )}>
               {getTabLabel(activeTab)}
@@ -704,7 +704,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           <div className="flex flex-col hidden sm:flex min-w-0 max-w-[200px] md:max-w-[280px] xl:max-w-[360px] text-left">
             <span 
               className={cn(
-                "text-[12px] font-bold leading-tight truncate",
+                "text-[12.5px] font-bold leading-tight truncate",
                 isPrimaryHeader ? "text-white" : "text-slate-900"
               )}
               title={currentUser?.name || appSettings.appName}
@@ -713,7 +713,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             </span>
             <span 
               className={cn(
-                "text-[10px] font-medium leading-tight mt-0.5 truncate",
+                "text-[10.5px] font-medium leading-tight mt-0.5 truncate",
                 isPrimaryHeader ? "text-emerald-100/90" : "text-slate-500"
               )}
               title={activeRoleLabel}
