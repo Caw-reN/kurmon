@@ -538,7 +538,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               </div>
 
               {/* Scrollable Content Body with Sleek Scrollbar */}
-              <div className="overflow-y-auto max-h-[380px] p-3.5 flex flex-col gap-3.5 popover-custom-scrollbar">
+              <div className="overflow-y-auto max-h-[380px] p-3.5 flex flex-col gap-3.5 no-scrollbar sm:popover-custom-scrollbar">
                 {/* Realtime Notification Status / Prompt */}
                 {notifPermission === "granted" && (
                   <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-xl p-3 flex flex-col gap-2 shrink-0">

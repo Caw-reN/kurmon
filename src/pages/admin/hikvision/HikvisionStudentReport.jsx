@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from'react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { useAuthToken } from '../../../hooks/useAuthToken.js';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table } from 'lucide-react';
 import { useAppStore } from'../../../store/useAppStore';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { CustomSelect } from'../../../components/CustomSelect.jsx';
@@ -237,6 +237,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     return list.reverse();
   }, [viewMode, selectedWeek, daysInMonth, filter.month, filter.year]);
 
+  const [mobileViewMode, setMobileViewMode] = useState('card');
+  const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day }
   const [permissionForm, setPermissionForm] = useState({ status:"Sakit", keterangan:"", fileData: null, fileName: null, fileSizeKB: null });
   const [isSubmittingCell, setIsSubmittingCell] = useState(false);
@@ -1218,27 +1220,27 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
     if (totalLate >= 10 || totalAlpa >= 10) {
       level = 4; // Dark Red
-      bgClass = "bg-rose-900 text-white hover:bg-rose-950 border-rose-950 font-bold";
-      stickyBgClass = "bg-rose-900 border-rose-950 text-white shadow-xs";
-      textClass = "text-white font-extrabold";
-      subTextClass = "text-rose-200 font-semibold";
+      bgClass = "bg-rose-50/90 hover:bg-rose-100/90 border-rose-200 text-rose-950 font-medium";
+      stickyBgClass = "bg-rose-50 border-rose-200 text-rose-950 shadow-xs";
+      textClass = "text-rose-950 font-bold";
+      subTextClass = "text-rose-700 font-semibold";
     } else if (totalLate >= 7 || totalAlpa >= 8) {
       level = 3; // Red
-      bgClass = "bg-rose-100/90 hover:bg-rose-200/90 border-rose-300 font-semibold text-rose-950";
-      stickyBgClass = "bg-rose-100 border-rose-300 text-rose-950 shadow-[2px_0_5px_-2px_rgba(225,29,72,0.25)]";
-      textClass = "text-rose-950 font-extrabold";
+      bgClass = "bg-rose-50/60 hover:bg-rose-100/70 border-rose-200 text-rose-900 font-medium";
+      stickyBgClass = "bg-rose-50/80 border-rose-200 text-rose-900 shadow-xs";
+      textClass = "text-rose-900 font-bold";
       subTextClass = "text-rose-700 font-semibold";
     } else if (totalLate >= 5 || totalAlpa >= 6) {
       level = 2; // Orange
-      bgClass = "bg-orange-100/90 hover:bg-orange-200/90 border-orange-300 font-semibold text-orange-950";
-      stickyBgClass = "bg-orange-100 border-orange-300 text-orange-950 shadow-[2px_0_5px_-2px_rgba(234,88,12,0.25)]";
-      textClass = "text-orange-950 font-extrabold";
+      bgClass = "bg-orange-50/60 hover:bg-orange-100/70 border-orange-200 text-slate-800 font-medium";
+      stickyBgClass = "bg-orange-50/80 border-orange-200 text-slate-800 shadow-xs";
+      textClass = "text-slate-800 font-bold";
       subTextClass = "text-orange-700 font-semibold";
     } else if (isLateViolation || isAlpaViolation) {
       level = 1; // Yellow
-      bgClass = "bg-amber-100/90 hover:bg-amber-200/90 border-amber-300 font-semibold text-amber-950";
-      stickyBgClass = "bg-amber-100 border-amber-300 text-amber-950 shadow-[2px_0_5px_-2px_rgba(217,119,6,0.25)]";
-      textClass = "text-amber-950 font-extrabold";
+      bgClass = "bg-amber-50/40 hover:bg-amber-50/80 border-slate-100 text-slate-800 font-medium";
+      stickyBgClass = "bg-amber-50/60 border-slate-100 text-slate-800 shadow-xs";
+      textClass = "text-slate-800 font-bold";
       subTextClass = "text-amber-800 font-semibold";
     }
 
@@ -2487,11 +2489,43 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
       <div className="ui-card shadow-xs border border-slate-200/80 overflow-hidden relative z-10">
         <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-slate-200/80 bg-slate-50/80 flex flex-col xl:flex-row xl:items-center justify-between gap-1.5 sm:gap-2.5">
-           <div className="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-2">
-             <span className="text-[11px] sm:text-xs font-black text-slate-800">Matriks Kehadiran Siswa</span>
-             <span className="px-1.5 py-0.2 rounded-md bg-white border border-slate-200 text-slate-800 font-black text-[9.5px] sm:text-[10px] shadow-2xs">
-               {filteredData.length} Siswa
-             </span>
+           <div className="flex items-center justify-between w-full xl:w-auto gap-2">
+             <div className="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-2">
+               <span className="text-[11px] sm:text-xs font-black text-slate-800">Matriks Kehadiran Siswa</span>
+               <span className="px-1.5 py-0.2 rounded-md bg-white border border-slate-200 text-slate-800 font-black text-[9.5px] sm:text-[10px] shadow-2xs">
+                 {filteredData.length} Siswa
+               </span>
+             </div>
+
+             {/* Mobile View Mode Segmented Toggle (Kartu vs Tabel) */}
+             <div className="flex items-center gap-1 md:hidden shrink-0">
+               <div className="inline-flex p-0.5 rounded-lg bg-slate-200/80 border border-slate-300/60 shadow-2xs">
+                 <button
+                   type="button"
+                   onClick={() => setMobileViewMode('card')}
+                   className={`px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 transition-all ${
+                     mobileViewMode === 'card'
+                       ? 'bg-white text-emerald-800 shadow-2xs'
+                       : 'text-slate-600 hover:text-slate-900'
+                   }`}
+                 >
+                   <LayoutGrid size={11} strokeWidth={2.5} />
+                   <span>Kartu</span>
+                 </button>
+                 <button
+                   type="button"
+                   onClick={() => setMobileViewMode('table')}
+                   className={`px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 transition-all ${
+                     mobileViewMode === 'table'
+                       ? 'bg-white text-emerald-800 shadow-2xs'
+                       : 'text-slate-600 hover:text-slate-900'
+                   }`}
+                 >
+                   <Table size={11} strokeWidth={2.5} />
+                   <span>Tabel</span>
+                 </button>
+               </div>
+             </div>
            </div>
            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap xl:flex-wrap xl:overflow-visible">
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[9.5px] border border-emerald-200 shadow-2xs shrink-0">
@@ -2545,17 +2579,106 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            </div>
         </div>
          
-         <div className="overflow-x-auto relative">
+        {/* Mobile Compact Card View */}
+        {mobileViewMode === 'card' && (
+          <div className="md:hidden p-2.5 space-y-2 bg-slate-50/50">
+            {loading ? (
+              <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
+                Memuat data absen...
+              </div>
+            ) : paginatedData.length === 0 ? (
+              <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
+                Tidak ada data untuk filter ini.
+              </div>
+            ) : (
+              paginatedData.map((d, idx) => {
+                const v = checkViolation(d, daysToRender);
+                return (
+                  <div
+                    key={d.nis}
+                    onClick={() => setSelectedStudentDetail(d)}
+                    className={`p-3 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white hover:border-emerald-300 ${
+                      v.level === 4 ? 'border-rose-300 bg-rose-50/20' :
+                      v.level === 3 ? 'border-rose-200 bg-rose-50/10' :
+                      v.level === 2 ? 'border-orange-200 bg-orange-50/10' :
+                      v.level === 1 ? 'border-amber-200 bg-amber-50/10' :
+                      'border-slate-200/90'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-black text-slate-400">
+                            #{(currentPage - 1) * itemsPerPage + idx + 1}
+                          </span>
+                          <h4 className="font-black text-xs text-slate-900 truncate">
+                            {d.name}
+                          </h4>
+                          {d.is_mutasi && (
+                            <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-rose-100 text-rose-700 border border-rose-200">
+                              MUTASI
+                            </span>
+                          )}
+                          {v.level > 0 && (
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-50 text-amber-700 border border-amber-200">
+                              <AlertTriangle size={10} className="shrink-0 text-amber-600" />
+                              <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pelanggaran Berat' : v.level === 2 ? 'Pelanggaran Sedang' : 'Peringatan'}</span>
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-semibold text-slate-500 mt-0.5 truncate">
+                          {d.class_name || 'Tanpa Kelas'} {d.nis ? `• NIS ${d.nis}` : ''}
+                        </p>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70">
+                          Detail &rsaquo;
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 5 Compact Stat Badges */}
+                    <div className="grid grid-cols-5 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
+                      <div className="text-center bg-emerald-50/70 border border-emerald-100 rounded-lg py-1">
+                        <div className="text-[8px] font-black uppercase text-emerald-700">Hadir</div>
+                        <div className="text-xs font-black text-emerald-800">{d.total_hadir || 0}</div>
+                      </div>
+                      <div className="text-center bg-amber-50/70 border border-amber-100 rounded-lg py-1">
+                        <div className="text-[8px] font-black uppercase text-amber-700">Telat</div>
+                        <div className="text-xs font-black text-amber-800">{d.total_terlambat || 0}</div>
+                      </div>
+                      <div className="text-center bg-indigo-50/70 border border-indigo-100 rounded-lg py-1">
+                        <div className="text-[8px] font-black uppercase text-indigo-700">Izin</div>
+                        <div className="text-xs font-black text-indigo-800">{d.total_izin || 0}</div>
+                      </div>
+                      <div className="text-center bg-sky-50/70 border border-sky-100 rounded-lg py-1">
+                        <div className="text-[8px] font-black uppercase text-sky-700">Sakit</div>
+                        <div className="text-xs font-black text-sky-800">{d.total_sakit || 0}</div>
+                      </div>
+                      <div className="text-center bg-rose-50/70 border border-rose-100 rounded-lg py-1">
+                        <div className="text-[8px] font-black uppercase text-rose-700">Alpa</div>
+                        <div className="text-xs font-black text-rose-800">{d.total_alpa || 0}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        <div className={`${mobileViewMode === 'card' ? 'hidden md:block' : 'block'} overflow-x-auto relative`}>
            <table className="w-full text-left border-collapse min-w-max">
              <thead>
                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider">
-                 <th className="px-2.5 py-3 w-12 font-black text-center border-r border-slate-200">NO</th>
-                 <th className="px-4 py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200">NAMA SISWA</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">HDR</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">TLT</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">IZN</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">SKT</th>
-                 <th className="px-3 py-3 font-black text-center border-r border-slate-200">ALP</th>
+                 <th className="px-2 py-2.5 sm:px-2.5 sm:py-3 w-10 sm:w-12 font-black text-center border-r border-slate-200">NO</th>
+                 <th className="px-2.5 sm:px-4 py-2.5 sm:py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200 min-w-[125px] sm:min-w-[190px]">NAMA SISWA</th>
+                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">HDR</th>
+                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">TLT</th>
+                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">IZN</th>
+                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">SKT</th>
+                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">ALP</th>
                  {daysToRender.map((dayNum) => (
                     <th key={dayNum} className="px-2 py-3 font-black text-center min-w-[70px] border-r border-slate-200">
                       {dayNum}
@@ -2580,28 +2703,28 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                         key={d.nis} 
                         className={`border-b transition-colors ${v.bgClass}`}
                       >
-                         <td className="px-2.5 py-2.5 text-center text-slate-400 font-bold text-xs border-r border-slate-200">
+                         <td className="px-2 sm:px-2.5 py-2 sm:py-2.5 text-center text-slate-400 font-bold text-xs border-r border-slate-200">
                             {(currentPage - 1) * itemsPerPage + idx + 1}
                          </td>
-                         <td className={`px-3.5 py-2.5 sticky left-0 border-r z-10 min-w-[190px] ${v.stickyBgClass}`}>
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <span className={`font-bold text-xs truncate max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
+                         <td className={`px-2.5 sm:px-3.5 py-2 sm:py-2.5 sticky left-0 border-r z-10 min-w-[125px] sm:min-w-[190px] ${v.stickyBgClass}`}>
+                            <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+                              <span className={`font-bold text-xs truncate max-w-[95px] sm:max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
                               {d.is_mutasi && (
-                                <span className="px-1.5 py-0.5 text-[8.5px] font-black uppercase rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+                                <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
                                   MUTASI
                                 </span>
                               )}
                               {v.level > 0 && (
                                 <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa ≥3x)"}>
                                   <AlertTriangle 
-                                    size={13} 
-                                    className={`shrink-0 ${v.level === 4 ? "text-amber-300 animate-pulse" : v.level === 3 ? "text-rose-600" : v.level === 2 ? "text-orange-500" : "text-amber-500"}`} 
+                                    size={12} 
+                                    className={`shrink-0 ${v.level === 4 ? "text-amber-500 animate-pulse" : v.level === 3 ? "text-rose-600" : v.level === 2 ? "text-orange-500" : "text-amber-500"}`} 
                                   />
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center justify-between gap-1 mt-0.5">
-                              <div className={`text-[9px] ${v.subTextClass} font-semibold truncate`}>
+                              <div className={`text-[8.5px] sm:text-[9px] ${v.subTextClass} font-semibold truncate`}>
                                 {d.class_name || 'Tanpa Kelas'} {d.nis ? `• ${d.nis}` : ''}
                               </div>
                               {isKesiswaanOrAdmin && (
@@ -2616,13 +2739,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               )}
                             </div>
                          </td>
-                         <td className="px-3 py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
-                         <td className="px-3 py-3 text-center font-black text-amber-600 border-r border-slate-100">
+                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
+                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-amber-600 border-r border-slate-100">
                              <div>{d.total_terlambat || 0}</div>
                           </td>
-                         <td className="px-3 py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin || 0}</td>
-                         <td className="px-3 py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                         <td className="px-3 py-3 text-center font-black text-rose-600 border-r border-slate-100">
+                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin || 0}</td>
+                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
+                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-rose-600 border-r border-slate-100">
                              <div>{d.total_alpa || 0}</div>
                          </td>
                       {daysToRender.map((dayNum) => {
@@ -3112,6 +3235,112 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
            </div>
          </div>
        )}
+        {/* Modal Detail Siswa Bulanan (Mobile Friendly) */}
+        {selectedStudentDetail && (
+          <Modal 
+            isOpen={Boolean(selectedStudentDetail)} 
+            onClose={() => setSelectedStudentDetail(null)} 
+            title="Rekap Kehadiran Siswa" 
+            maxWidth="max-w-lg"
+          >
+            <div className="p-3 sm:p-4 flex flex-col gap-3.5">
+              {/* Student Header Card */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-black text-slate-900 truncate">
+                    {selectedStudentDetail.name}
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                    {selectedStudentDetail.class_name || 'Tanpa Kelas'} • NIS {selectedStudentDetail.nis}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-[10px] font-bold text-slate-400 block">Periode</span>
+                  <span className="text-xs font-black text-slate-700">
+                    Bulan {filter.month} / {filter.year}
+                  </span>
+                </div>
+              </div>
+
+              {/* 5 Stats Grid */}
+              <div className="grid grid-cols-5 gap-1.5">
+                <div className="bg-emerald-50 border border-emerald-200/70 rounded-xl p-2 text-center">
+                  <span className="text-[8.5px] font-black uppercase text-emerald-700 block">Hadir</span>
+                  <span className="text-sm font-black text-emerald-900">{selectedStudentDetail.total_hadir || 0}</span>
+                </div>
+                <div className="bg-amber-50 border border-amber-200/70 rounded-xl p-2 text-center">
+                  <span className="text-[8.5px] font-black uppercase text-amber-700 block">Telat</span>
+                  <span className="text-sm font-black text-amber-900">{selectedStudentDetail.total_terlambat || 0}</span>
+                </div>
+                <div className="bg-indigo-50 border border-indigo-200/70 rounded-xl p-2 text-center">
+                  <span className="text-[8.5px] font-black uppercase text-indigo-700 block">Izin</span>
+                  <span className="text-sm font-black text-indigo-900">{selectedStudentDetail.total_izin || 0}</span>
+                </div>
+                <div className="bg-sky-50 border border-sky-200/70 rounded-xl p-2 text-center">
+                  <span className="text-[8.5px] font-black uppercase text-sky-700 block">Sakit</span>
+                  <span className="text-sm font-black text-sky-900">{selectedStudentDetail.total_sakit || 0}</span>
+                </div>
+                <div className="bg-rose-50 border border-rose-200/70 rounded-xl p-2 text-center">
+                  <span className="text-[8.5px] font-black uppercase text-rose-700 block">Alpa</span>
+                  <span className="text-sm font-black text-rose-900">{selectedStudentDetail.total_alpa || 0}</span>
+                </div>
+              </div>
+
+              {/* Calendar Days Matrix (Grid of days) */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-black text-slate-800">Rincian Status Harian:</span>
+                  <span className="text-[10px] font-medium text-slate-400">Sentuh tanggal untuk edit/lihat</span>
+                </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-[300px] overflow-y-auto no-scrollbar p-0.5">
+                  {daysToRender.map((dayNum) => {
+                    const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                    const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, selectedStudentDetail.class_name);
+                    const dayData = selectedStudentDetail.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
+                    const cellStyle = dayData ? getCellStyle(dayData, selectedStudentDetail.class_name, dateStr) : null;
+                    
+                    return (
+                      <button
+                        key={dayNum}
+                        type="button"
+                        onClick={() => {
+                          const student = selectedStudentDetail;
+                          setSelectedStudentDetail(null);
+                          handleCellClick(student, dayNum);
+                        }}
+                        className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[54px] transition-all active:scale-95 cursor-pointer ${
+                          dayData ? `${cellStyle.bg} ${cellStyle.border || 'border-slate-200'}` : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-[10px] font-black text-slate-700">Tgl {dayNum}</span>
+                          {dayData?.check_in && (
+                            <span className="text-[8px] font-mono font-bold text-slate-500">
+                              {dayData.check_in.slice(0, 5)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-1">
+                          <span className={`text-[9px] font-black block truncate ${dayData ? cellStyle.text : 'text-slate-400'}`}>
+                            {dayData?.status || '-'}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="pt-2 border-t border-slate-100 flex justify-end">
+                <Button type="button" onClick={() => setSelectedStudentDetail(null)}>
+                  Tutup
+                </Button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
        {/* Modal Preview Surat / Foto */}
        {showPermissionPreviewModal && (
          <Modal isOpen={true} onClose={() => setShowPermissionPreviewModal(false)} title="Lihat Surat / Bukti" maxWidth="max-w-md">
