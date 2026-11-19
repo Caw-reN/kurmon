@@ -409,7 +409,7 @@ export default function AdminSidebar({
           />
         </button>
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-2.5 pl-2 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out pl-0 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
@@ -892,7 +892,7 @@ export default function AdminSidebar({
           }}
           className={cn(
             "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-6 relative z-10 transition-all focus:outline-none",
-            isCollapsed ? "px-2 no-scrollbar scrollbar-none" : "px-3 sidebar-scrollbar custom-scrollbar"
+            isCollapsed ? "px-2 no-scrollbar scrollbar-none" : "px-3 sidebar-scrollbar custom-scrollbar no-scrollbar scrollbar-none"
           )}
           title="Gunakan tombol panah keyboard atau scroll mouse untuk menggulir"
         >

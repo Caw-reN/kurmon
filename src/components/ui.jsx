@@ -317,29 +317,28 @@ export const SidebarNavItem = ({ id, icon, label, badge, isActive, onClick, coll
         title={collapsed ? label : undefined}
         className={cn(
           "group relative flex w-full items-center justify-between border-none text-left transition-all cursor-pointer",
-          "px-2 py-1.5 text-xs rounded-lg my-0.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
+          "px-2.5 py-1.5 text-xs rounded-lg my-0.5 font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
           isActive
             ? "text-primary font-bold bg-primary/10"
             : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
         )}
       >
-        <div className="flex items-center gap-2 min-w-0">
-          {icon ? (
-            <div className={cn(
-              "w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors",
-              isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-700"
-            )}>
-              {React.createElement(icon, { size: 14, strokeWidth: isActive ? 2.4 : 1.9 })}
-            </div>
-          ) : (
-            <span 
-              className={cn(
-                "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
-                isActive ? "bg-primary" : "bg-slate-300 group-hover:bg-slate-500"
-              )} 
-              aria-hidden="true"
-            />
-          )}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={cn(
+            "w-6 h-6 rounded-md flex items-center justify-center shrink-0 transition-colors",
+            isActive 
+              ? "bg-primary text-white" 
+              : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-800"
+          )}>
+            {icon ? (
+              React.createElement(icon, { size: 13, strokeWidth: isActive ? 2.4 : 2 })
+            ) : (
+              <span className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                isActive ? "bg-white" : "bg-slate-400"
+              )} />
+            )}
+          </div>
           <span className="truncate">{label}</span>
         </div>
         
