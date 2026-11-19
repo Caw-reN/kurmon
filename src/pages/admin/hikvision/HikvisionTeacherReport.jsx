@@ -1309,7 +1309,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
             .bg-terlambat { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: bold; }
             .bg-izin { background-color: #dbeafe !important; color: #1e3a8a !important; font-weight: bold; }
             .bg-sakit { background-color: #fef3c7 !important; color: #92400e !important; font-weight: bold; }
-            .bg-alpa { background-color: #4c0519 !important; color: #ffe4e6 !important; font-weight: bold; }
+            .bg-alpa { background-color: #fff1f2 !important; color: #be123c !important; font-weight: bold; }
             .row-warn-1 td { background-color: #fef3c7 !important; color: #92400e !important; }
             .row-warn-2 td { background-color: #ffedd5 !important; color: #c2410c !important; }
             .row-warn-3 td { background-color: #fee2e2 !important; color: #991b1b !important; }
@@ -1419,8 +1419,7 @@ export default function HikvisionTeacherReport({ isNested = false }) {
     if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)" || status === "Belum Scan") {
       return (
         <span 
-          className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-black uppercase bg-rose-950 text-rose-100 border border-rose-900 block truncate text-center shadow-2xs" 
-          style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}
+          className="px-1.5 py-1 rounded-[var(--ui-radius-small)] text-[8px] font-bold uppercase bg-rose-50 text-rose-700 border border-rose-200/90 block truncate text-center shadow-2xs" 
           title={dayData?.note || 'Alpa'}
         >
           ALPA
@@ -1908,8 +1907,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[9.5px] border border-amber-200 shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[9.5px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-[9.5px] border border-rose-200/90 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[9.5px] border border-rose-300 shadow-2xs">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur
@@ -2148,8 +2147,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[10px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/90 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Kalender Akademik

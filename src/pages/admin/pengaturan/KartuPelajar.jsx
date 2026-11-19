@@ -37,7 +37,7 @@ import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { useDataStore } from '../../../store/useDataStore.js';
 import { compressImage } from '../../../utils/imageUtils.js';
-import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
 import { Button, UISelect, Modal } from '../../../components/ui.jsx';
 
 const DEFAULT_CARD_CONFIG = {
@@ -1341,43 +1341,43 @@ export default function KartuPelajar({ students: propStudents = [] }) {
       />
 
       {/* Summary KPI Cards Header */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20 flex items-center justify-center shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <User size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none">{students.length} Siswa</p>
+            <p className="text-sm font-black text-slate-800 leading-none">{students.length} Siswa</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Total Siswa Terdaftar</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <CheckCircle2 size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none">{selectedStudents.length} Terpilih</p>
+            <p className="text-sm font-black text-slate-800 leading-none">{selectedStudents.length} Terpilih</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Siap Dicetak</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <Clock size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none">{pendingRequestsCount} Pengajuan</p>
+            <p className="text-sm font-black text-slate-800 leading-none">{pendingRequestsCount} Pengajuan</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Menunggu Persetujuan</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center shrink-0">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <Palette size={20} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 leading-none truncate">
+            <p className="text-sm font-black text-slate-800 leading-none truncate">
               {config.front_template ? 'Template Kustom' : 'Default Studio'}
             </p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Desain Kartu Aktif</p>
@@ -1408,9 +1408,9 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     <label
-                      className={`bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all ${
+                      className={`bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200/80 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all ${
                         isUploadingBatchPhotos ? 'opacity-70 pointer-events-none' : ''
                       }`}
                       title="Upload Banyak Foto Siswa Sekaligus (Nama file: NIS.jpg atau NIS.png)"
@@ -1430,7 +1430,7 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     <button
                       type="button"
                       onClick={() => setShowExcelModal(true)}
-                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                      className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
                       title="Upload File Excel / CSV Data Siswa & TTL"
                     >
                       <FileSpreadsheet size={14} className="text-emerald-600" />
@@ -1440,21 +1440,21 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                     <button
                       type="button"
                       onClick={handleOpenMassTtlModal}
-                      className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
                       title="Mass Update Tanggal Lahir / TTL Siswa"
                     >
                       <Calendar size={14} className="text-amber-600" />
                       <span>Mass Update TTL</span>
                     </button>
 
-                    <Button 
+                    <button 
                       type="button"
                       onClick={() => setEditForm({ isNew: true, data: { name: '', nis: '', ttl: '', major: '', class_name: '' } })} 
-                      className="bg-[var(--ui-primary-btn,var(--ui-primary))] hover:opacity-90 active:scale-98 text-white font-bold text-xs px-3 py-2 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                      className="bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
                     >
-                      <Plus size={14} />
+                      <Plus size={14} strokeWidth={2.5} />
                       <span>Buat Manual</span>
-                    </Button>
+                    </button>
                   </div>
                 </div>
 
@@ -1571,53 +1571,55 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                               />
                             </td>
                             <td className="p-3">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2.5">
                                 {student.photo || tempPhotos[student.nis] ? (
                                   <img 
                                     src={student.photo || tempPhotos[student.nis]} 
                                     alt="Foto" 
-                                    className="w-7 h-7 rounded-[var(--ui-radius-small)] object-cover shrink-0 border border-emerald-300 shadow-xs" 
+                                    className="w-8 h-8 rounded-xl object-cover shrink-0 border border-emerald-300 shadow-2xs" 
                                   />
                                 ) : (
-                                  <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-slate-200 text-slate-700 font-black text-[11px] flex items-center justify-center shrink-0">
-                                    {(student.namaSiswa || student.name || '?')[0].toUpperCase()}
-                                  </div>
+                                  <Avatar name={student.namaSiswa || student.name || 'Siswa'} size="xs" />
                                 )}
                                 <div className="min-w-0">
-                                  <p className="font-bold text-slate-800 truncate">{student.namaSiswa || student.name}</p>
+                                  <p className="font-bold text-slate-800 truncate text-xs">{student.namaSiswa || student.name}</p>
                                   {student.photo ? (
-                                    <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-0.5">
-                                      <Check size={9} /> Foto Tersimpan
+                                    <span className="text-[9px] font-bold text-emerald-600 flex items-center gap-0.5 mt-0.5">
+                                      <Check size={9} strokeWidth={2.5} /> Foto Tersimpan
                                     </span>
                                   ) : tempPhotos[student.nis] ? (
-                                    <span className="text-[9px] font-bold text-amber-600">Foto Ready (Memori)</span>
+                                    <span className="text-[9px] font-bold text-amber-600 mt-0.5">Foto Ready (Memori)</span>
                                   ) : null}
                                 </div>
                               </div>
                             </td>
-                            <td className="p-3 font-mono font-bold text-slate-600 text-[11px]">{student.nis}</td>
+                            <td className="p-3 font-mono font-bold text-slate-600 text-xs">{student.nis}</td>
                             <td className="p-3">
-                              <span className="font-semibold text-slate-700">{student.class_name || '-'}</span>
-                              <div className="mt-0.5">
-                                <span className="inline-block px-1.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-bold bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20">
+                              <span className="font-bold text-slate-700 text-xs">{student.class_name || '-'}</span>
+                              <div className="mt-1">
+                                <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
                                   {studentMajor}
                                 </span>
                               </div>
                             </td>
-                            <td className="p-3 font-medium text-slate-600 text-[11px]">
-                              {student.ttl || <span className="text-slate-400 italic">Belum diisi</span>}
+                            <td className="p-3 font-medium text-slate-600 text-xs">
+                              {student.ttl ? (
+                                <span className="font-semibold text-slate-700">{student.ttl}</span>
+                              ) : (
+                                <span className="text-slate-400 italic text-[11px]">Belum diisi</span>
+                              )}
                             </td>
-                            <td className="p-3">
-                              <div className="flex items-center justify-center gap-1">
+                            <td className="p-3 text-center">
+                              <div className="inline-flex items-center gap-1 bg-slate-50/90 p-1 rounded-xl border border-slate-200/70 shadow-2xs">
                                 <label 
-                                  className={`p-1.5 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer flex items-center justify-center ${
+                                  className={`p-1.5 rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
                                     (student.photo || tempPhotos[student.nis])
-                                      ? 'bg-emerald-50 text-emerald-600 border-emerald-300 shadow-xs'
-                                      : 'bg-slate-50 text-slate-500 hover:text-[var(--ui-primary)] border-slate-200/80 hover:bg-[var(--ui-primary)]/10'
+                                      ? 'bg-emerald-50 text-emerald-600 border-emerald-300 shadow-2xs'
+                                      : 'bg-white text-slate-500 hover:text-emerald-600 border-slate-200/80 hover:bg-emerald-50/50'
                                   }`}
-                                  title={(student.photo || tempPhotos[student.nis]) ? "Ubah Foto Siswa (Tersimpan Permanen ke DB)" : "Upload Foto Siswa (Tersimpan Permanen ke DB)"}
+                                  title={(student.photo || tempPhotos[student.nis]) ? "Ubah Foto Siswa" : "Upload Foto Siswa"}
                                 >
-                                  <Upload size={13} />
+                                  <Upload size={12} strokeWidth={2.2} />
                                   <input 
                                     type="file" 
                                     accept="image/*" 
@@ -1633,42 +1635,42 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                                 <button
                                   type="button"
                                   onClick={() => setPreviewStudent(previewStudent?.nis === student.nis ? null : student)}
-                                  className={`p-1.5 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer ${
+                                  className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                                     isPreviewing 
-                                      ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
-                                      : 'bg-slate-50 text-slate-500 hover:text-[var(--ui-primary)] border-slate-200/80 hover:bg-[var(--ui-primary)]/10'
+                                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs' 
+                                      : 'bg-white text-slate-500 hover:text-emerald-600 border-slate-200/80 hover:bg-emerald-50/50'
                                   }`}
                                   title="Pratinjau Kartu"
                                 >
-                                  <Eye size={13} />
+                                  <Eye size={12} strokeWidth={2.2} />
                                 </button>
                                 
                                 <button
                                   type="button"
                                   onClick={() => handleDownloadPDF(student)}
                                   disabled={isPrinting}
-                                  className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 hover:text-emerald-700 border border-slate-200/80 hover:bg-emerald-50 transition-all cursor-pointer"
+                                  className="p-1.5 rounded-lg bg-white text-slate-500 hover:text-emerald-700 border border-slate-200/80 hover:bg-emerald-50/50 transition-all cursor-pointer"
                                   title="Download PDF Kartu Siswa Ini"
                                 >
-                                  <Download size={13} />
+                                  <Download size={12} strokeWidth={2.2} />
                                 </button>
                                 
                                 <button
                                   type="button"
                                   onClick={() => setShowRequestModal(student)}
-                                  className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 hover:text-amber-600 border border-slate-200/80 hover:bg-amber-50 transition-all cursor-pointer"
+                                  className="p-1.5 rounded-lg bg-white text-slate-500 hover:text-amber-600 border border-slate-200/80 hover:bg-amber-50/50 transition-all cursor-pointer"
                                   title="Ajukan Cetak Ulang"
                                 >
-                                  <CreditCard size={13} />
+                                  <CreditCard size={12} strokeWidth={2.2} />
                                 </button>
                                 
                                 <button
                                   type="button"
                                   onClick={() => setEditForm({ isNew: false, data: student })}
-                                  className="p-1.5 rounded-[var(--ui-radius-small)] bg-slate-50 text-slate-500 hover:text-[var(--ui-primary)] border border-slate-200/80 hover:bg-[var(--ui-primary)]/10 transition-all cursor-pointer"
-                                  title="Edit Data"
+                                  className="p-1.5 rounded-lg bg-white text-slate-500 hover:text-emerald-600 border border-slate-200/80 hover:bg-emerald-50/50 transition-all cursor-pointer"
+                                  title="Edit Data TTL / Siswa"
                                 >
-                                  <Edit2 size={13} />
+                                  <Edit2 size={12} strokeWidth={2.2} />
                                 </button>
                               </div>
                             </td>

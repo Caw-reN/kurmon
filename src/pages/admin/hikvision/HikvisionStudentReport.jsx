@@ -497,8 +497,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
     if (status ==="Alpa") {
       return {
-        className:"bg-rose-950 text-rose-100 font-bold border border-rose-900 shadow-2xs",
-        style: { color:"#ffe4e6", backgroundColor: "#4c0519" },
+        className:"bg-rose-50 text-rose-700 font-bold border border-rose-200/90 shadow-2xs",
+        style: { color:"#be123c", backgroundColor: "#fff1f2" },
         hasCustomNote: Boolean(cleanNote),
         noteText: cleanNote
       };
@@ -1425,7 +1425,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 <td>-</td>
                 ${printDays.map(d => `<td>${dailyTotals.sakit[d] || 0}</td>`).join('')}
               </tr>
-              <tr class="bg-alpa" style="background-color: #4c0519; color: #ffe4e6;">
+              <tr class="bg-alpa" style="background-color: #fff1f2; color: #be123c;">
                 <td colspan="2" style="text-align: right; font-weight: bold; color: white;">TOTAL ALPA (ALP):</td>
                 <td style="color:white;">-</td><td style="color:white;">-</td><td style="color:white;">-</td><td style="color:white;">-</td>
                 <td style="color: #ef4444; font-weight: bold;">${filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
@@ -1460,7 +1460,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             .bg-terlambat { background-color: #fee2e2 !important; color: #991b1b !important; font-weight: bold; }
             .bg-izin { background-color: #dbeafe !important; color: #1e3a8a !important; font-weight: bold; }
             .bg-sakit { background-color: #fef3c7 !important; color: #92400e !important; font-weight: bold; }
-            .bg-alpa { background-color: #4c0519 !important; color: #ffe4e6 !important; font-weight: bold; }
+            .bg-alpa { background-color: #fff1f2 !important; color: #be123c !important; font-weight: bold; }
             .row-warn-1 td { background-color: #fef3c7 !important; color: #92400e !important; }
             .row-warn-2 td { background-color: #ffedd5 !important; color: #c2410c !important; }
             .row-warn-3 td { background-color: #fee2e2 !important; color: #991b1b !important; }
@@ -2524,8 +2524,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[9.5px] border border-amber-200 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[9.5px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-[9.5px] border border-rose-200/90 shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
               </span>
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[9.5px] border border-rose-300 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur
@@ -2921,8 +2921,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
             </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-950 text-rose-100 font-black text-[10px] border border-rose-900 shadow-2xs" style={{ backgroundColor: "#4c0519", color: "#ffe4e6" }}>
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-300"></span> Alpa (ALP)
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/90 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Kalender Akademik

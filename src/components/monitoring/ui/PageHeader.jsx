@@ -14,10 +14,11 @@ export default function PageHeader({
   guideText = "Panduan",
   variant = "default",
   onBack,
+  actions,
   children
 }) {
   const appSettings = useAppStore((state) => state.appSettings) || {};
-  const headerStyle = appSettings.headerStyle || 'solid';
+  const headerStyle = appSettings.headerStyle || 'primary';
 
   const mappedTabs = tabs.map(tab => ({
     ...tab,
@@ -58,11 +59,11 @@ export default function PageHeader({
       {/* Mobile Hero Header Card (Shown on Mobile screens when not plain) */}
       {!isPlain && (
         <div 
-          className="sm:hidden w-full rounded-xl p-3.5 flex items-center gap-3 relative overflow-hidden mb-1 transition-all bg-white border border-slate-200/80 text-slate-900"
+          className="sm:hidden w-full rounded-2xl p-3.5 flex items-center gap-3 relative overflow-hidden mb-1 transition-all bg-white border border-slate-200/80 text-slate-900 shadow-xs"
         >
           {Icon && (
             <div 
-              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10 text-primary border border-primary/20"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-2xs"
             >
               <Icon size={18} strokeWidth={2.2} />
             </div>
@@ -87,17 +88,12 @@ export default function PageHeader({
                   key={tab.id || tab.label}
                   onClick={tab.onClick}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px]",
+                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px] shadow-2xs",
                     isLastOdd ? "col-span-2" : "",
                     tab.isActive
-                      ? "bg-slate-900 text-white border-slate-900 font-black"
+                      ? "bg-emerald-600 text-white border-emerald-600 font-black shadow-xs"
                       : "bg-white text-slate-700 hover:text-slate-900 border-slate-200/90"
                   )}
-                  style={tab.isActive ? {
-                    background: "var(--ui-primary)",
-                    borderColor: "var(--ui-primary)",
-                    color: "#ffffff"
-                  } : {}}
                 >
                   {TabIcon && <TabIcon size={14} className="shrink-0" />}
                   <span className="leading-tight text-[10.5px] font-extrabold text-center line-clamp-2 break-words">{tab.label}</span>
@@ -113,42 +109,45 @@ export default function PageHeader({
         className={cn(
           !isPlain 
             ? headerStyle === 'primary'
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-xl w-full p-4 sm:p-5 text-white transition-all'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 text-white transition-all bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 border border-emerald-500/30 shadow-xs overflow-hidden'
               : headerStyle === 'glass'
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-xl w-full p-4 sm:p-5 border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 transition-all'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 shadow-xs transition-all'
               : headerStyle === 'minimal'
               ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-none w-full p-0 bg-transparent text-slate-900 border-none transition-all'
-              : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-xl w-full p-4 sm:p-5 border border-slate-200/80 bg-[var(--card,#ffffff)] text-slate-900 transition-all'
+              : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-slate-200/80 bg-[var(--card,#ffffff)] text-slate-900 shadow-xs transition-all'
             : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-lg w-full p-0'
         )}
-        style={!isPlain && headerStyle === 'primary' ? { backgroundColor: 'var(--ui-primary, #064e3b)' } : undefined}
       >
-        <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto">
+        <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto min-w-0">
           {Icon && (
             <div 
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border"
-              style={
+              className={cn(
+                "w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-all",
                 headerStyle === 'primary'
-                  ? { backgroundColor: "rgba(255, 255, 255, 0.2)", borderColor: "rgba(255, 255, 255, 0.3)", color: "#ffffff" }
-                  : !isPlain 
-                  ? { backgroundColor: "var(--ui-primary, #064e3b)", borderColor: "var(--ui-primary, #064e3b)", color: "#ffffff" } 
-                  : { backgroundColor: "color-mix(in srgb, var(--ui-primary, #064e3b) 12%, transparent)", borderColor: "color-mix(in srgb, var(--ui-primary, #064e3b) 20%, transparent)", color: "var(--ui-primary, #064e3b)" }
-              }
+                  ? "bg-white/15 text-white border-white/25 backdrop-blur-xs"
+                  : !isPlain
+                  ? "bg-emerald-50 text-emerald-600 border-emerald-200/80"
+                  : "bg-emerald-50 text-emerald-600 border-emerald-200/80"
+              )}
             >
               <Icon size={20} className="shrink-0" strokeWidth={2.2} />
             </div>
           )}
           <div className="min-w-0 flex-1">
             <h1 
-              className={cn("text-base md:text-lg font-black tracking-tight leading-tight truncate")}
-              style={headerStyle === 'primary' ? { color: '#ffffff' } : { color: 'var(--card-foreground, #0f172a)' }}
+              className={cn(
+                "text-base md:text-lg font-black tracking-tight leading-tight truncate",
+                headerStyle === 'primary' ? "text-white" : "text-slate-900"
+              )}
             >
               {title}
             </h1>
             {description && (
               <p 
-                className={cn("text-xs font-medium mt-0.5 line-clamp-2 md:line-clamp-none leading-relaxed")}
-                style={headerStyle === 'primary' ? { color: 'rgba(255, 255, 255, 0.85)' } : { color: 'var(--card-muted, #64748b)' }}
+                className={cn(
+                  "text-xs font-medium mt-0.5 line-clamp-2 md:line-clamp-none leading-relaxed",
+                  headerStyle === 'primary' ? "text-emerald-100/90" : "text-slate-500"
+                )}
               >
                 {description}
               </p>
@@ -156,63 +155,61 @@ export default function PageHeader({
           </div>
         </div>
 
-        {mappedTabs.length > 0 && (
-          <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10">
+        {/* Actions or Tabs */}
+        {(mappedTabs.length > 0 || actions || children) && (
+          <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10 shrink-0">
             <div className="flex items-center gap-2 w-max md:w-auto shrink-0">
-              
               {mappedTabs.map((tab) => {
                 const isActive = tab.isActive;
                 const isPrimaryHeader = headerStyle === 'primary';
                 
-                // Determine button variant based on header style and active state
-                let variant = "ghost";
-                if (isActive) {
-                  variant = isPrimaryHeader ? "secondary" : "primary";
-                }
-
                 return (
-                  <Button
+                  <button
                     key={tab.id || tab.label}
-                    variant={variant}
+                    type="button"
                     onClick={tab.onClick}
                     className={cn(
-                      "shrink-0",
-                      // Custom text colors for inactive state on primary header
-                      !isActive && isPrimaryHeader && "text-white/80 hover:text-white hover:bg-white/10",
-                      // Custom text colors for inactive state on default header
-                      !isActive && !isPrimaryHeader && "text-slate-500"
+                      "shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shadow-2xs",
+                      isActive
+                        ? isPrimaryHeader
+                          ? "bg-white text-emerald-900 border-white shadow-xs font-extrabold"
+                          : "bg-emerald-600 text-white border-emerald-600 font-extrabold shadow-xs"
+                        : isPrimaryHeader
+                        ? "bg-white/10 text-white hover:bg-white/20 border-white/15"
+                        : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/80 hover:bg-slate-50"
                     )}
                   >
                     {tab.icon && (
                       <tab.icon 
-                        size={15} 
-                        className={cn("shrink-0", isActive && isPrimaryHeader ? "text-slate-800" : "")} 
+                        size={14} 
+                        className={cn("shrink-0", isActive && isPrimaryHeader ? "text-emerald-800" : "")} 
                       />
                     )}
-                    <span className={isActive && isPrimaryHeader ? "text-slate-800" : ""}>{tab.label}</span>
-                  </Button>
+                    <span>{tab.label}</span>
+                  </button>
                 );
               })}
+
+              {actions}
+              {children}
 
               {onGuideClick && (
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   onClick={onGuideClick}
-                  title={guideText ||"Panduan"}
-                  className="shrink-0 rounded-[var(--ui-radius-control)] w-9 h-9 flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-white/80 border border-transparent"
+                  title={guideText || "Panduan"}
+                  className={cn(
+                    "shrink-0 rounded-xl w-9 h-9 flex items-center justify-center transition-colors border",
+                    headerStyle === 'primary'
+                      ? "text-white/80 hover:text-white hover:bg-white/15 border-white/20"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-100 border-slate-200/80"
+                  )}
                 >
                   <HelpCircle size={15} />
                 </Button>
               )}
             </div>
-          </div>
-        )}
-
-        {/* Children always rendered (e.g. action buttons like Tambah Mesin) */}
-        {children && (
-          <div className="flex items-center gap-2 relative z-10 shrink-0">
-            {children}
           </div>
         )}
       </div>

@@ -675,52 +675,52 @@ export default function ESurat({ initialTab = 'cetak', readOnly, appSettings: pr
       </div>
 
       {/* 4 Responsive Summary KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <FileText size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black text-slate-800 leading-tight">{templates.length} Format</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Template Aktif</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Template Aktif</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 border border-teal-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <User size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black text-slate-800 leading-tight truncate">
               {selectedStudent ? (selectedStudent.namaSiswa || selectedStudent.name || selectedStudent.nama) : 'Pilih Siswa'}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5 truncate">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 truncate">
               {selectedStudent ? `${selectedStudent.nis} • ${selectedStudent.class_name || selectedStudent.kelas}` : 'Penerima Surat'}
             </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 border border-purple-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <Bookmark size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black text-slate-800 leading-tight truncate">
               {selectedTemplate ? selectedTemplate.nama : 'Pilih Format'}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Format Surat Aktif</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Format Surat Aktif</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+        <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:shadow-sm transition-all flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-2xs">
             <Building2 size={20} strokeWidth={2.2} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-black text-slate-800 leading-tight truncate">
               {appSettings?.useKopSuratGambar ? 'Gambar Banner Kop' : 'Header Resmi Teks'}
             </p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               Margin: Samping {liveMargins.kopMarginSide}mm
             </p>
           </div>

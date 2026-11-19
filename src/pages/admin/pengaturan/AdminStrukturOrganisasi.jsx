@@ -42,25 +42,25 @@ const TeacherCombobox = ({ teachers = [], onSelect }) => {
   }, [teachers, search]);
 
   return (
-    <div className="relative w-full sm:w-72">
+    <div className="relative w-full sm:w-80">
       <div className="relative">
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
         <input 
           type="text"
-          placeholder="+ Cari & Tambah dari Guru / Staf..."
+          placeholder="Cari & tambah dari Guru / Staf..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setIsOpen(true);
           }}
           onFocus={() => setIsOpen(true)}
-          className="w-full py-2 pl-9 pr-3 text-xs font-bold bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all placeholder-slate-400"
+          className="w-full py-2.5 pl-9 pr-3 text-xs font-semibold bg-slate-50/80 hover:bg-white border border-slate-200/90 rounded-xl focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all placeholder-slate-400 shadow-2xs"
         />
       </div>
       
       {isOpen && (
         <>
-          <div className="absolute z-50 mt-1.5 w-full bg-white border border-slate-200/90 rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-modal)] max-h-60 overflow-y-auto">
+          <div className="absolute z-50 mt-1.5 w-full bg-white border border-slate-200/90 rounded-xl shadow-lg max-h-60 overflow-y-auto p-1 animate-in fade-in-0 zoom-in-95">
             {filtered.length > 0 ? (
               filtered.map(t => {
                 const name = t.name || t.nama;
@@ -68,7 +68,7 @@ const TeacherCombobox = ({ teachers = [], onSelect }) => {
                 return (
                   <div 
                     key={code}
-                    className="px-3.5 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors flex items-center gap-2.5"
+                    className="px-3 py-2 hover:bg-emerald-50/60 rounded-lg cursor-pointer transition-colors flex items-center gap-2.5"
                     onClick={() => {
                       onSelect(t);
                       setSearch('');
@@ -77,8 +77,8 @@ const TeacherCombobox = ({ teachers = [], onSelect }) => {
                   >
                     <Avatar name={name} size="xs" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-extrabold text-slate-800 truncate">{name}</div>
-                      <div className="text-[10px] font-bold text-slate-400 mt-0.5">Kode: {code} • {t.mapel || t.type || 'Guru'}</div>
+                      <div className="text-xs font-bold text-slate-800 truncate">{name}</div>
+                      <div className="text-[10px] font-medium text-slate-400 mt-0.5">Kode: {code} • {t.mapel || t.type || 'Guru'}</div>
                     </div>
                   </div>
                 );
@@ -280,37 +280,37 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
       />
 
       {/* Unified Tab Switcher Bar */}
-      <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2.5">
-        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-lg border border-[var(--ui-border-muted)] w-full sm:w-auto">
+      <div className="bg-white p-2 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center p-1 bg-slate-100/80 rounded-xl border border-slate-200/60 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab('kelola')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'kelola'
-                ? 'bg-white text-slate-800'
+                ? 'bg-white text-slate-800 shadow-xs font-black'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <ListOrdered size={14} />
-            <span>Kelola & Susun Pengurus ({struktur.length})</span>
+            <ListOrdered size={14} className={activeTab === 'kelola' ? 'text-emerald-600' : ''} />
+            <span>Kelola &amp; Susun Pengurus ({struktur.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('preview')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'preview'
-                ? 'bg-white text-slate-800'
+                ? 'bg-white text-slate-800 shadow-xs font-black'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            <Network size={14} />
+            <Network size={14} className={activeTab === 'preview' ? 'text-emerald-600' : ''} />
             <span>Pratinjau Diagram Pohon (Org Chart)</span>
           </button>
         </div>
 
-        <span className="text-[11px] font-bold text-slate-400 pr-3 hidden sm:inline">
-          {struktur.length} Anggota Terdaftar
+        <span className="text-[11px] font-bold text-slate-500 pr-3 hidden sm:inline">
+          <span className="font-extrabold text-slate-700">{struktur.length}</span> Anggota Terdaftar
         </span>
       </div>
 
@@ -318,26 +318,24 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
       {activeTab === "kelola" && (
         <div className="space-y-3.5">
           {/* Action Toolbar Card */}
-          <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <TeacherCombobox teachers={teachers} onSelect={handleAddFromTeacher} />
 
             <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
+              <button 
                 type="button" 
                 onClick={handleAdd} 
-                className="flex items-center gap-1.5 font-bold w-full sm:w-auto justify-center"
+                className="px-3.5 py-2 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer transition-all hover:border-slate-300 w-full sm:w-auto"
               >
-                <Plus size={14} strokeWidth={2.5} />
-                <span>+ Tambah Manual</span>
-              </Button>
+                <Plus size={14} strokeWidth={2.5} className="text-emerald-600" />
+                <span>Tambah Manual</span>
+              </button>
             </div>
           </div>
 
           {/* Members List */}
           {struktur.length === 0 ? (
-            <div className="bg-white rounded-xl p-12 text-center border border-slate-200/80">
+            <div className="bg-white rounded-2xl p-12 text-center border border-slate-200/80 shadow-xs">
               <Users size={36} className="mx-auto text-slate-300 mb-2" />
               <h4 className="text-sm font-bold text-slate-700">Belum ada pengurus organisasi</h4>
               <p className="text-xs text-slate-400 mt-1 mb-4">Tambahkan pengurus pertama dari daftar guru atau secara manual.</p>
@@ -346,7 +344,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
               </Button>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {struktur.map((item, index) => {
                 const isPucuk = !item.parentId;
                 const parentObj = struktur.find(s => s.id === item.parentId);
@@ -359,13 +357,13 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, index)}
                     onDragEnd={() => setDraggedIndex(null)}
-                    className={`bg-white rounded-xl p-3.5 sm:p-4 border transition-all duration-200 flex flex-col md:flex-row items-start md:items-center gap-3.5 ${
-                      draggedIndex === index ? 'opacity-40 border-indigo-300 bg-indigo-50/50' : 'border-slate-200/80 hover:border-slate-300'
+                    className={`bg-white rounded-2xl p-4 border transition-all duration-200 shadow-xs hover:shadow-sm flex flex-col md:flex-row items-start md:items-center gap-3.5 ${
+                      draggedIndex === index ? 'opacity-40 border-emerald-300 bg-emerald-50/50' : 'border-slate-200/80 hover:border-slate-300'
                     }`}
                   >
                     {/* Drag Handle & Mobile Ordering Controls */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-indigo-600 p-1 hidden md:block" title="Tarik untuk mengubah urutan">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-emerald-600 p-1 hidden md:block transition-colors" title="Tarik untuk mengubah urutan">
                         <GripVertical size={18} />
                       </div>
                       
@@ -375,30 +373,30 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                           type="button"
                           disabled={index === 0}
                           onClick={() => handleMove(index, -1)}
-                          className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer bg-slate-100 hover:bg-slate-200 border-none"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer bg-slate-100 hover:bg-slate-200 border-none transition-colors"
                           title="Pindah ke Atas"
                         >
-                          <ChevronUp size={14} />
+                          <ChevronUp size={13} strokeWidth={2.4} />
                         </button>
                         <button
                           type="button"
                           disabled={index === struktur.length - 1}
                           onClick={() => handleMove(index, 1)}
-                          className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer bg-slate-100 hover:bg-slate-200 border-none"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer bg-slate-100 hover:bg-slate-200 border-none transition-colors"
                           title="Pindah ke Bawah"
                         >
-                          <ChevronDown size={14} />
+                          <ChevronDown size={13} strokeWidth={2.4} />
                         </button>
                       </div>
 
-                      <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-500 font-mono font-bold text-[10px] flex items-center justify-center ml-1">
+                      <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold text-[11px] flex items-center justify-center border border-slate-200/60 shadow-2xs">
                         {index + 1}
                       </span>
                     </div>
 
                     {/* Member Avatar / Photo Upload */}
                     <div className="relative group/avatar shrink-0">
-                      <div className="w-12 h-12 rounded-lg bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] flex items-center justify-center overflow-hidden">
+                      <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-center overflow-hidden shadow-2xs">
                         {item.photoUrl ? (
                           <img src={item.photoUrl} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
@@ -406,10 +404,10 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                         )}
                       </div>
                       <label 
-                        className="absolute inset-0 bg-black/60 rounded-lg text-white opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[8.5px] font-bold p-1 text-center"
-                        title="Upload Foto"
+                        className="absolute inset-0 bg-slate-900/70 rounded-xl text-white opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[8.5px] font-bold p-1 text-center backdrop-blur-2xs"
+                        title="Upload Foto Profil"
                       >
-                        <ImageIcon size={12} className="mb-0.5" />
+                        <ImageIcon size={13} className="mb-0.5 text-emerald-400" />
                         <span>Foto</span>
                         <input 
                           type="file" 
@@ -424,22 +422,22 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                     <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                       {/* Name */}
                       <div>
-                        <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                          NAMA LENGKAP
+                        <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Nama Lengkap
                         </label>
                         <input 
                           type="text" 
                           placeholder="Nama Pengurus & Gelar..." 
                           value={item.name} 
                           onChange={(e) => handleUpdate(index, 'name', e.target.value)} 
-                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-extrabold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                          className="w-full px-3 py-2 bg-slate-50/70 hover:bg-white border border-slate-200/90 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-2xs"
                         />
                       </div>
 
                       {/* Position / Jabatan with preset suggestions */}
                       <div>
-                        <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                          JABATAN / STRUKTUR
+                        <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Jabatan / Struktur
                         </label>
                         <input 
                           type="text" 
@@ -447,7 +445,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                           placeholder="Pilih atau ketik jabatan..." 
                           value={item.position} 
                           onChange={(e) => handleUpdate(index, 'position', e.target.value)} 
-                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                          className="w-full px-3 py-2 bg-slate-50/70 hover:bg-white border border-slate-200/90 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-2xs"
                         />
                         <datalist id={`preset-jabatan-${index}`}>
                           {PRESET_JABATAN.map(j => <option key={j} value={j} />)}
@@ -456,8 +454,8 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
                       {/* Parent / Atasan */}
                       <div>
-                        <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                          ATASAN LANGSUNG (PARENT)
+                        <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Atasan Langsung (Parent)
                         </label>
                         <CustomSelect 
                           value={item.parentId || ""}
@@ -478,15 +476,15 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
                       {/* Description / NIP / Contact */}
                       <div>
-                        <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">
-                          KETERANGAN / NIP
+                        <label className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Keterangan / NIP
                         </label>
                         <input 
                           type="text" 
                           placeholder="NIP / No. Kontak / Kode..." 
                           value={item.description} 
                           onChange={(e) => handleUpdate(index, 'description', e.target.value)} 
-                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                          className="w-full px-3 py-2 bg-slate-50/70 hover:bg-white border border-slate-200/90 rounded-xl text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -496,7 +494,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                       <button
                         type="button"
                         onClick={() => handleRemove(index)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded bg-slate-100 hover:bg-rose-50 border border-slate-200 cursor-pointer transition-colors"
+                        className="p-2 text-slate-400 hover:text-rose-600 rounded-xl bg-slate-50 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 cursor-pointer transition-all shadow-2xs"
                         title="Hapus dari Struktur"
                       >
                         <Trash2 size={15} />
