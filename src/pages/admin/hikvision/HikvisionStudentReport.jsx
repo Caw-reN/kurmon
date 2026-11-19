@@ -3297,7 +3297,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                     const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, selectedStudentDetail.class_name);
                     const dayData = selectedStudentDetail.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
-                    const cellStyle = dayData ? getCellStyle(dayData, selectedStudentDetail.class_name, dateStr) : null;
+                    const cellColors = dayData ? getCellStyle(dayData, selectedStudentDetail.class_name, dateStr) : null;
                     
                     return (
                       <button
@@ -3308,20 +3308,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           setSelectedStudentDetail(null);
                           handleCellClick(student, dayNum);
                         }}
-                        className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[54px] transition-all active:scale-95 cursor-pointer ${
-                          dayData ? `${cellStyle.bg} ${cellStyle.border || 'border-slate-200'}` : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                        className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[54px] transition-all active:scale-95 cursor-pointer shadow-2xs ${
+                          dayData ? `${cellColors.className}` : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
                         }`}
+                        style={cellColors?.style}
                       >
                         <div className="flex items-center justify-between w-full">
-                          <span className="text-[10px] font-black text-slate-700">Tgl {dayNum}</span>
+                          <span className="text-[10px] font-black">Tgl {dayNum}</span>
                           {dayData?.check_in && (
-                            <span className="text-[8px] font-mono font-bold text-slate-500">
+                            <span className="text-[8px] font-mono font-bold">
                               {dayData.check_in.slice(0, 5)}
                             </span>
                           )}
                         </div>
                         <div className="mt-1">
-                          <span className={`text-[9px] font-black block truncate ${dayData ? cellStyle.text : 'text-slate-400'}`}>
+                          <span className="text-[9.5px] font-black block truncate">
                             {dayData?.status || '-'}
                           </span>
                         </div>
