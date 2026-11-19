@@ -732,6 +732,11 @@ a[class*="active:scale"]:active {
 }
 
 /* WebKit / Chromium custom scrollbars */
+.custom-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
 ::-webkit-scrollbar,
 *::-webkit-scrollbar,
 .custom-scrollbar::-webkit-scrollbar {

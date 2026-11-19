@@ -505,163 +505,171 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           {showNotifDropdown && (
             <div
               ref={notifDropdownRef}
-              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-11 sm:w-80 max-h-[70vh] sm:max-h-[420px] overflow-y-auto bg-card border border-slate-200/80 rounded-xl p-4 z-[999] flex flex-col gap-3.5 animate-in fade-in slide-in-from-top-2 duration-200 custom-scrollbar"
+              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-12 sm:w-84 max-h-[75vh] sm:max-h-[460px] bg-white border border-slate-200/90 rounded-2xl shadow-xl z-[999] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
             >
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5 shrink-0">
-                <span className="font-extrabold text-xs text-slate-800 tracking-tight">Notifikasi &amp; Informasi</span>
+              {/* Fixed Popover Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/70 shrink-0">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200/60">
+                    <Bell size={13} strokeWidth={2.4} />
+                  </div>
+                  <span className="font-extrabold text-xs text-slate-800 tracking-tight">Notifikasi &amp; Informasi</span>
+                </div>
                 <button 
                   onClick={() => setShowNotifDropdown(false)} 
-                  className="text-slate-400 hover:text-slate-600 text-[10px] font-black bg-transparent border-none p-0 cursor-pointer uppercase tracking-wider"
+                  className="text-slate-400 hover:text-slate-700 text-[10px] font-bold bg-transparent border-none px-2 py-1 rounded-md hover:bg-slate-100 cursor-pointer uppercase tracking-wider transition-colors"
                 >
                   Tutup
                 </button>
               </div>
 
-              {/* Realtime Notification Status / Prompt */}
-              {notifPermission === "granted" && (
-                <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-lg p-3 flex flex-col gap-2 shrink-0">
-                  <div className="flex items-start gap-2.5">
-                    <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                      <CheckCircle2 size={14} />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[11px] font-black text-emerald-950 leading-tight">Push Notifikasi HP Aktif</span>
+              {/* Scrollable Content Body with Sleek Scrollbar */}
+              <div className="overflow-y-auto max-h-[380px] p-3.5 flex flex-col gap-3.5 popover-custom-scrollbar">
+                {/* Realtime Notification Status / Prompt */}
+                {notifPermission === "granted" && (
+                  <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-xl p-3 flex flex-col gap-2 shrink-0">
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                        <CheckCircle2 size={14} />
                       </div>
-                      <span className="text-[9.5px] font-semibold text-emerald-800/80 mt-0.5 leading-snug">
-                        Pengingat jam mengajar otomatis akan masuk ke HP Anda saat waktu KBM tiba.
-                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[11px] font-black text-emerald-950 leading-tight">Push Notifikasi HP Aktif</span>
+                        </div>
+                        <span className="text-[9.5px] font-semibold text-emerald-800/80 mt-0.5 leading-snug">
+                          Pengingat jam mengajar otomatis akan masuk ke HP Anda saat waktu KBM tiba.
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <button
+                        type="button"
+                        disabled={isTestingPush}
+                        onClick={handleTestGenericPush}
+                        className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-md text-emerald-900 text-[10px] font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                      >
+                        {isTestingPush ? 'Mengirim...' : 'Tes Notif HP'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isTestingPush}
+                        onClick={handleTestSchedulePush}
+                        className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-black transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                      >
+                        {isTestingPush ? 'Mengirim...' : 'Uji Pengingat Jadwal'}
+                      </button>
+                    </div>
+
+                    {testFeedback && (
+                      <div className={`text-[9.5px] font-bold px-2 py-1 rounded-md ${testFeedback.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-800'}`}>
+                        {testFeedback.message}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {notifPermission === "default" && (
+                  <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-3 flex flex-col gap-2 shrink-0">
+                    <div className="flex items-start gap-2.5">
+                      <Bell className="text-emerald-600 w-4 h-4 shrink-0 mt-0.5" />
+                      <div className="flex flex-col">
+                        <span className="text-[11px] font-black text-slate-800 leading-tight">Aktifkan Notifikasi Realtime</span>
+                        <span className="text-[9.5px] font-semibold text-slate-500 mt-0.5 leading-tight">Terima pengingat jadwal mengajar &amp; info absensi langsung di HP Anda.</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={requestPushPermission}
+                      className="w-full py-1.5 text-white font-bold text-[10px] rounded-lg active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      <span>Izinkan Sekarang</span>
+                    </button>
+                  </div>
+                )}
+
+                {notifPermission === "denied" && (
+                  <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex flex-col gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
+                      <Bell size={13} className="text-amber-600 shrink-0" />
+                      <span>Izin Notifikasi Diblokir Browser</span>
+                    </div>
+                    <span className="text-[9.5px] text-amber-800 leading-snug">
+                      Klik ikon gembok di sebelah kiri alamat web browser, ubah Notifikasi menjadi Izinkan (Allow), lalu klik tombol di bawah.
+                    </span>
                     <button
                       type="button"
-                      disabled={isTestingPush}
-                      onClick={handleTestGenericPush}
-                      className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-md text-emerald-900 text-[10px] font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                      onClick={requestPushPermission}
+                      className="mt-1 w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-lg transition-all cursor-pointer border-none"
                     >
-                      {isTestingPush ? 'Mengirim...' : 'Tes Notif HP'}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isTestingPush}
-                      onClick={handleTestSchedulePush}
-                      className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-black transition-all active:scale-95 cursor-pointer disabled:opacity-50"
-                    >
-                      {isTestingPush ? 'Mengirim...' : 'Uji Pengingat Jadwal'}
+                      Coba Aktifkan Ulang
                     </button>
                   </div>
+                )}
 
-                  {testFeedback && (
-                    <div className={`text-[9.5px] font-bold px-2 py-1 rounded-md ${testFeedback.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-800'}`}>
-                      {testFeedback.message}
+                {/* TODAY'S CLASS REMINDERS */}
+                <div className="flex flex-col gap-2 shrink-0">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Jadwal Mengajar Hari Ini
+                  </span>
+                  {todayClasses.length === 0 ? (
+                    <div className="text-[11px] font-bold text-slate-400 py-2.5 text-center bg-slate-50 rounded-xl border border-slate-100">
+                      Tidak ada jadwal mengajar hari ini.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1.5">
+                      {todayClasses.map((item, idx) => (
+                        <div key={idx} className="flex gap-2.5 p-2.5 bg-emerald-50/40 border border-emerald-100/80 rounded-xl">
+                          <Clock className="text-emerald-600 w-4 h-4 mt-0.5 shrink-0" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[11px] font-extrabold text-slate-800 truncate">
+                              {item.subject}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500 mt-0.5">
+                              Kelas: {item.className} • Jam Ke-{item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart} - ${item.jamEnd}`}
+                            </span>
+                            {item.room && (
+                              <span className="text-[9px] font-semibold text-slate-400 mt-0.5">
+                                Ruang: {item.room}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
-              )}
 
-              {notifPermission === "default" && (
-                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex flex-col gap-2 shrink-0">
-                  <div className="flex items-start gap-2.5">
-                    <Bell className="text-primary w-4 h-4 shrink-0 mt-0.5" />
-                    <div className="flex flex-col">
-                      <span className="text-[11px] font-black text-slate-800 leading-tight">Aktifkan Notifikasi Realtime</span>
-                      <span className="text-[9.5px] font-semibold text-slate-500 mt-0.5 leading-tight">Terima pengingat jadwal mengajar &amp; info absensi langsung di HP Anda.</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={requestPushPermission}
-                    className="w-full py-1.5 text-white font-bold text-[10px] rounded-md active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5"
-                    style={{ backgroundColor: appSettings?.primaryColor || "var(--ui-primary)" }}
-                  >
-                    <span>Izinkan Sekarang</span>
-                  </button>
-                </div>
-              )}
-
-              {notifPermission === "denied" && (
-                <div className="bg-amber-50/80 border border-amber-200 rounded-lg p-3 flex flex-col gap-1.5 shrink-0">
-                  <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
-                    <Bell size={13} className="text-amber-600 shrink-0" />
-                    <span>Izin Notifikasi Diblokir Browser</span>
-                  </div>
-                  <span className="text-[9.5px] text-amber-800 leading-snug">
-                    Klik ikon gembok di sebelah kiri alamat web browser, ubah Notifikasi menjadi Izinkan (Allow), lalu klik tombol di bawah.
+                {/* ANNOUNCEMENTS / MESSAGES */}
+                <div className="flex flex-col gap-2 shrink-0">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Pengumuman Terbaru
                   </span>
-                  <button
-                    type="button"
-                    onClick={requestPushPermission}
-                    className="mt-1 w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-md transition-all cursor-pointer border-none"
-                  >
-                    Coba Aktifkan Ulang
-                  </button>
-                </div>
-              )}
-
-              {/* TODAY'S CLASS REMINDERS */}
-              <div className="flex flex-col gap-2 shrink-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  Jadwal Mengajar Hari Ini
-                </span>
-                {todayClasses.length === 0 ? (
-                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-md">
-                    Tidak ada jadwal mengajar hari ini.
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-2.5 p-2.5 bg-primary/5 border border-primary/10 rounded-lg">
-                        <Clock className="text-primary w-4 h-4 mt-0.5 shrink-0" />
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[11px] font-extrabold text-slate-800 truncate">
-                            {item.subject}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-500 mt-0.5">
-                            Kelas: {item.className} • Jam Ke-{item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart} - ${item.jamEnd}`}
-                          </span>
-                          {item.room && (
-                            <span className="text-[9px] font-semibold text-slate-400 mt-0.5">
-                              Ruang: {item.room}
+                  {!dashboardMessages || dashboardMessages.length === 0 ? (
+                    <div className="text-[11px] font-bold text-slate-400 py-2.5 text-center bg-slate-50 rounded-xl border border-slate-100">
+                      Belum ada pengumuman terbaru.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-1.5">
+                      {dashboardMessages.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+                          <MessageSquare className="text-slate-500 w-4 h-4 mt-0.5 shrink-0" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[11px] font-extrabold text-slate-800 truncate">
+                              {item.title}
                             </span>
-                          )}
+                            <span className="text-[10px] font-bold text-slate-500 mt-0.5 line-clamp-2">
+                              {item.content}
+                            </span>
+                            <span className="text-[9px] font-semibold text-slate-400 mt-0.5">
+                              {item.author ||"Administrator"}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* ANNOUNCEMENTS / MESSAGES */}
-              <div className="flex flex-col gap-2 shrink-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  Pengumuman Terbaru
-                </span>
-                {!dashboardMessages || dashboardMessages.length === 0 ? (
-                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-md">
-                    Belum ada pengumuman terbaru.
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-lg">
-                        <MessageSquare className="text-slate-500 w-4 h-4 mt-0.5 shrink-0" />
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[11px] font-extrabold text-slate-800 truncate">
-                            {item.title}
-                          </span>
-                          <span className="text-[10px] font-bold text-slate-500 mt-0.5 line-clamp-2">
-                            {item.content}
-                          </span>
-                          <span className="text-[9px] font-semibold text-slate-400 mt-0.5">
-                            {item.author ||"Administrator"}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
