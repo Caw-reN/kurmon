@@ -275,25 +275,25 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   if (!isAllowed) return null;
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full overflow-hidden">
       {/* ── Header ── */}
       <div>
-        <div className="flex flex-col justify-between gap-3 pb-3 border-b border-slate-100">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex items-center justify-center shrink-0">
-              <Activity size={16} className="text-[var(--ui-primary)]" />
+        <div className="flex flex-col justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
+              <Activity size={14} className="text-primary" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight truncate">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight truncate">
                   Log Aktivitas Pengguna
                 </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[8px] sm:text-[8.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                   LIVE
                 </span>
                 {onlineStats.totalUsers > 0 && (
-                  <span className="text-[9.5px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/80 whitespace-nowrap shrink-0">
+                  <span className="text-[9px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/80 whitespace-nowrap shrink-0">
                     <span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
                   </span>
                 )}
@@ -302,7 +302,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
           </div>
 
           {/* Filter Pills & Refresh Button */}
-          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar pb-1 shrink-0 w-full">
+          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar pb-0.5 shrink-0 w-full">
             {[
               { id: 'all', label: 'Semua', count: categoryCounts.all },
               { id: 'login', label: 'Login', count: categoryCounts.login },
@@ -314,14 +314,14 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                 key={f.id}
                 type="button"
                 onClick={() => { setFilterType(f.id); setCurrentPage(1); }}
-                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`whitespace-nowrap px-2 py-0.5 text-[9.5px] font-bold rounded-md border transition-all cursor-pointer flex items-center gap-1 ${
                   filterType === f.id
-                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-white'
                 }`}
               >
                 <span>{f.label}</span>
-                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black ${
+                <span className={`px-1.5 py-0.2 rounded-full text-[8.5px] font-bold ${
                   filterType === f.id ? 'bg-white/25 text-white' : 'bg-slate-200/80 text-slate-700'
                 }`}>
                   {f.count}
@@ -332,9 +332,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
               type="button"
               onClick={fetchAuditLogs}
               title="Perbarui data aktivitas"
-              className="p-1.5 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-[var(--ui-primary)] cursor-pointer transition-colors"
+              className="p-1 rounded-md bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-primary cursor-pointer transition-colors"
             >
-              <RefreshCw size={12} className={loading ? 'animate-spin text-[var(--ui-primary)]' : ''} />
+              <RefreshCw size={11} className={loading ? 'animate-spin text-primary' : ''} />
             </button>
           </div>
         </div>
@@ -373,48 +373,48 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
               return (
                 <div 
                   key={item.id || idx}
-                  className="py-2.5 flex items-center justify-between gap-3 group hover:bg-slate-50/80 -mx-2 px-2 rounded-lg transition-colors"
+                  className="py-1.5 sm:py-2 flex items-center justify-between gap-2.5 group hover:bg-slate-50/80 -mx-1.5 px-1.5 rounded-lg transition-colors"
                 >
                   {/* Kiri: Avatar & Info */}
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 shrink-0 group-hover:bg-white transition-colors">
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center font-bold text-[10px] text-slate-700 shrink-0 group-hover:bg-white transition-colors">
                       {userInitial}
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-black text-slate-800 tracking-tight truncate max-w-[150px] sm:max-w-[200px]">
+                        <span className="text-[11.5px] font-bold text-slate-800 tracking-tight truncate max-w-[140px] sm:max-w-[190px]">
                           {userName}
                         </span>
                         
-                        <span className={`text-[9px] font-extrabold px-1.5 py-[0.5px] rounded-md border ${roleMeta.bg}`}>
+                        <span className={`text-[8.5px] font-bold px-1.5 py-0.2 rounded-md border ${roleMeta.bg}`}>
                           {roleMeta.label}
                         </span>
 
                         {isWaliKelas && (
-                          <span className="text-[9px] font-black px-1.5 py-[0.5px] rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="text-[8.5px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                             {waliKelasLabel}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5" title={item.detail}>
+                      <p className="text-[10px] text-slate-400 font-medium truncate mt-0.5" title={item.detail}>
                         {item.detail}
                       </p>
                     </div>
                   </div>
 
                   {/* Kanan: Badge Aksi & Timestamp */}
-                  <div className="flex flex-col items-end gap-1 shrink-0 text-right">
-                    <span className={`inline-flex items-center gap-1 text-[9px] font-black px-2 py-0.5 rounded-full border whitespace-nowrap ${meta.bg}`}>
-                      <Icon size={10} className={meta.color} />
+                  <div className="flex flex-col items-end gap-0.5 shrink-0 text-right">
+                    <span className={`inline-flex items-center gap-1 text-[8.5px] font-bold px-1.5 py-0.2 rounded-md border whitespace-nowrap ${meta.bg}`}>
+                      <Icon size={9} className={meta.color} />
                       {meta.label}
                     </span>
-                    <div className="flex items-center gap-1 text-[9.5px] text-slate-400 font-semibold whitespace-nowrap">
+                    <div className="flex items-center gap-1 text-[9px] text-slate-400 font-medium whitespace-nowrap">
                       <span>{formatLogTime(item.timestamp)}</span>
                       {getDuration(item.timestamp) && (
-                        <span className="text-[9px] text-slate-400 font-normal">
-                          · Aktif: {getDuration(item.timestamp)}
+                        <span className="text-[8.5px] text-slate-400 font-normal">
+                          · {getDuration(item.timestamp)}
                         </span>
                       )}
                     </div>
@@ -427,30 +427,30 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
       </div>
 
       {/* ── Footer Pagination & Audit Log Link ── */}
-      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs mt-1">
-        <span className="text-[10px] font-bold text-slate-400">
+      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9.5px] mt-0.5">
+        <span className="text-[9.5px] font-medium text-slate-400">
           Menampilkan {paginatedLogs.length} dari {filteredLogs.length} aktivitas
         </span>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {totalPages > 1 && (
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-2 py-0.5 text-[10px] font-bold rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="px-1.5 py-0.5 text-[9px] font-bold rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Prev
               </button>
-              <span className="text-[10px] font-bold text-slate-500 px-1">
+              <span className="text-[9px] font-bold text-slate-500 px-1">
                 {currentPage} / {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-2 py-0.5 text-[10px] font-bold rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="px-1.5 py-0.5 text-[9px] font-bold rounded-md border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 Next
               </button>
@@ -461,9 +461,9 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
             <button
               type="button"
               onClick={() => onNavigateTab('keamanan')}
-              className="text-[10.5px] font-black text-[var(--ui-primary)] hover:underline flex items-center gap-0.5 cursor-pointer ml-1"
+              className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5 cursor-pointer ml-1"
             >
-              Audit Log Lengkap <ChevronRight size={12} />
+              Audit Log Lengkap <ChevronRight size={11} />
             </button>
           )}
         </div>

@@ -1234,39 +1234,39 @@ export default function DashboardPage({
               setActiveTab={setActiveTab}
             />
 
-            <div className="ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 flex flex-col">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-2">
-                  <Megaphone size={16} className="text-rose-500" /> Pengumuman Baru
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3 sm:p-3.5 flex flex-col">
+              <div className="flex items-center justify-between mb-2.5">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
+                  <Megaphone size={14} className="text-rose-500" /> Pengumuman Baru
                 </h3>
                 {dashboardMessages && dashboardMessages.length > 0 && (
-                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200/80">
+                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded-md border border-slate-200/80">
                     {dashboardMessages.length}
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-2 overflow-y-auto max-h-[340px] pr-1 custom-scrollbar">
+              <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[260px] pr-1 custom-scrollbar">
                 {(!dashboardMessages || dashboardMessages.length === 0) ? (
-                  <div className="flex flex-col items-center justify-center text-center py-6 px-4 bg-slate-50/50 rounded-[var(--ui-radius-small)] border border-dashed border-slate-200/80">
-                    <MessageSquare size={24} className="text-slate-300 mb-1.5" />
-                    <span className="text-xs font-semibold text-slate-500">Belum ada pengumuman baru</span>
-                    <span className="text-[10.5px] text-slate-400 mt-0.5">Informasi dari sekolah akan tampil di sini</span>
+                  <div className="flex flex-col items-center justify-center text-center py-5 px-3 bg-slate-50/50 rounded-lg border border-dashed border-slate-200/80">
+                    <MessageSquare size={20} className="text-slate-300 mb-1" />
+                    <span className="text-[11px] font-semibold text-slate-500">Belum ada pengumuman</span>
+                    <span className="text-[9.5px] text-slate-400 mt-0.5">Informasi dari sekolah akan tampil di sini</span>
                   </div>
                 ) : (
                   dashboardMessages.map((msg, idx) => (
                     <div 
                       key={idx} 
                       onClick={() => setActiveAnnouncementDetail(msg)}
-                      className="bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border border-slate-200/70 hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all"
+                      className="bg-slate-50 p-2 sm:p-2.5 rounded-lg border border-slate-200/70 hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all"
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="bg-rose-100 text-rose-700 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase">
                           {msg.priority === 'high' ? 'PENTING' : 'INFO'}
                         </span>
-                        <span className="text-[9px] font-medium text-slate-400 truncate">{msg.date || 'Hari ini'}</span>
+                        <span className="text-[8.5px] font-medium text-slate-400 truncate">{msg.date || 'Hari ini'}</span>
                       </div>
-                      <h4 className="text-[11px] font-black text-slate-800 truncate leading-tight mb-0.5">{msg.title}</h4>
-                      <p className="text-[10px] text-slate-500 font-medium line-clamp-2 leading-snug">{msg.content || msg.body}</p>
+                      <h4 className="text-[10.5px] font-bold text-slate-800 truncate leading-tight mb-0.5">{msg.title}</h4>
+                      <p className="text-[9.5px] text-slate-500 font-medium line-clamp-2 leading-snug">{msg.content || msg.body}</p>
                     </div>
                   ))
                 )}
@@ -1275,25 +1275,25 @@ export default function DashboardPage({
           </div>
 
           {/* KOLOM TENGAH (col-span-6): Menu Utama & Statistik */}
-          <div className="lg:col-span-6 flex flex-col gap-4">
+          <div className="lg:col-span-6 flex flex-col gap-3">
             {/* MENU UTAMA Section */}
-            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap size={15} className="text-primary shrink-0" strokeWidth={2.4} />
-                <h2 className="text-sm font-bold text-slate-800 tracking-tight">Menu Utama</h2>
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3 sm:p-3.5">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <Zap size={14} className="text-primary shrink-0" strokeWidth={2.4} />
+                <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">Menu Utama</h2>
               </div>
-              <div className="grid grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-4 gap-2">
                 {teacherShortcuts.map((shortcut, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => setActiveTab(shortcut.tab)}
-                    className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-2 transition-all duration-150 cursor-pointer text-center active:scale-[0.98]"
+                    className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-lg p-2 sm:p-2.5 flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center active:scale-[0.98]"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center shrink-0 transition-colors">
-                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
+                    <div className="w-7 h-7 rounded-md bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center shrink-0 transition-colors">
+                      <img src={shortcut.icon} className="w-4 h-4 object-contain" alt="" />
                     </div>
-                    <span className="text-[11px] sm:text-[11.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
+                    <span className="text-[10px] sm:text-[10.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
                       {shortcut.label}
                     </span>
                   </button>
@@ -1302,20 +1302,20 @@ export default function DashboardPage({
             </div>
 
             {/* DATA & INFORMASI STATISTIK Section */}
-            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
-              <div className="flex items-center gap-2 mb-3">
-                <Activity size={15} className="text-primary shrink-0" strokeWidth={2.4} />
-                <h2 className="text-sm font-bold text-slate-800 tracking-tight">Statistik Saya</h2>
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3 sm:p-3.5 flex-1 flex flex-col justify-between">
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <Activity size={14} className="text-primary shrink-0" strokeWidth={2.4} />
+                <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">Statistik Saya</h2>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 {teacherStatCards.map((stat, i) => (
-                  <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 transition-colors">
+                  <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-lg p-2 sm:p-2.5 flex items-center justify-between gap-2 transition-colors">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
-                      <p className="text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
+                      <p className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
+                      <p className="text-base sm:text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
                     </div>
-                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
-                      <img src={stat.icon} className="w-5 h-5 object-contain" alt="" />
+                    <div className="w-7 h-7 rounded-md bg-white border border-slate-200/80 flex items-center justify-center shrink-0">
+                      <img src={stat.icon} className="w-4 h-4 object-contain" alt="" />
                     </div>
                   </div>
                 ))}
@@ -1324,60 +1324,60 @@ export default function DashboardPage({
           </div>
 
           {/* KOLOM KANAN (col-span-3): Beban Mengajar */}
-          <div className="lg:col-span-3 flex flex-col gap-4">
-            <div className="ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col overflow-hidden">
-              <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
+          <div className="lg:col-span-3 flex flex-col gap-3">
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl flex flex-col overflow-hidden">
+              <div className="p-2.5 px-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
                 </div>
                 <button 
                   type="button"
                   onClick={() => setActiveTab('beban')}
-                  className="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200/90 rounded-lg text-[10.5px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-[var(--ui-primary)] transition-colors cursor-pointer active:scale-95"
+                  className="shrink-0 flex items-center gap-1 px-2 py-0.5 bg-white border border-slate-200/90 rounded-md text-[10px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors cursor-pointer active:scale-95"
                   title="Lihat rincian beban mengajar"
                 >
-                  <Printer size={11} /> Export
+                  <Printer size={10} /> Export
                 </button>
               </div>
               {myTeachingLoads.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-8 bg-white">
-                  <GraduationCap size={26} className="text-slate-300 mx-auto mb-2" />
-                  <p className="text-[11px] font-bold text-slate-400 max-w-[160px] text-center">Belum ada beban mengajar ditugaskan.</p>
+                <div className="flex flex-col items-center justify-center py-6 bg-white">
+                  <GraduationCap size={22} className="text-slate-300 mx-auto mb-1.5" />
+                  <p className="text-[10.5px] font-medium text-slate-400 max-w-[160px] text-center">Belum ada beban mengajar ditugaskan.</p>
                 </div>
               ) : (
                 <>
-                  <div className="overflow-y-auto custom-scrollbar max-h-[300px]">
+                  <div className="overflow-y-auto custom-scrollbar max-h-[260px]">
                     <table className="w-full text-left">
                       <thead className="sticky top-0 bg-white z-10 border-b border-slate-100">
                         <tr className="border-b border-slate-100">
-                          <th className="py-2 px-3 font-bold text-slate-400 text-[9px] uppercase tracking-wider">Pelajaran</th>
-                          <th className="py-2 px-2.5 font-bold text-slate-400 text-[9px] uppercase tracking-wider text-right">Durasi</th>
+                          <th className="py-1.5 px-3 font-bold text-slate-400 text-[8.5px] uppercase tracking-wider">Pelajaran</th>
+                          <th className="py-1.5 px-2.5 font-bold text-slate-400 text-[8.5px] uppercase tracking-wider text-right">Durasi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
                         {myTeachingLoads.map((load, i) => (
                           <tr key={i} className="hover:bg-slate-50/60 transition-colors">
-                            <td className="py-2 px-3">
+                            <td className="py-1.5 px-3">
                               <div className="flex flex-col min-w-0">
-                                <span className="font-bold text-[10.5px] text-slate-700 leading-tight truncate">{load.subject}</span>
+                                <span className="font-bold text-[10px] text-slate-700 leading-tight truncate">{load.subject}</span>
                                 <div className="flex gap-1 items-center mt-0.5">
-                                  <span className="text-[10px] text-slate-400 font-medium">
+                                  <span className="text-[9px] text-slate-400 font-medium">
                                     {load.targetGrade !== "All" ? load.targetGrade : "Semua"} {load.targetMajor !== "All" ? load.targetMajor : ""}
                                   </span>
                                 </div>
                               </div>
                             </td>
-                            <td className="py-2 px-2.5 text-right whitespace-nowrap align-middle">
-                               <span className="font-black text-[11px] text-[var(--ui-primary)]">{load.duration} JP</span>
+                            <td className="py-1.5 px-2.5 text-right whitespace-nowrap align-middle">
+                               <span className="font-bold text-[10.5px] text-primary">{load.duration} JP</span>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                  <div className="p-2.5 px-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-700 shrink-0">
-                    <span className="text-slate-500 font-semibold text-[10.5px]">Total Jam Mengajar:</span>
-                    <span className="text-[var(--ui-primary)] font-black text-xs bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 px-2 py-0.5 rounded-full">
+                  <div className="p-2 px-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold text-slate-700 shrink-0">
+                    <span className="text-slate-400 font-medium text-[9.5px]">Total Jam:</span>
+                    <span className="text-primary font-bold text-[11px] bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
                       {totalBebanJam || myTeachingLoads.reduce((s, l) => s + (Number(l.duration) || 0), 0)} JP
                     </span>
                   </div>
@@ -2160,8 +2160,8 @@ export default function DashboardPage({
         </details>
       )}
 
-      {/* ======= TOP PARENT CONTAINER BOX (MATCHES MONITOR & AKTIVITAS BOX) ======= */}
-      <div className="hidden sm:flex ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 flex-col gap-3.5 sm:gap-4.5">
+      {/* ======= TOP PARENT CONTAINER BOX ======= */}
+      <div className="hidden sm:flex ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3 sm:p-3.5 flex-col gap-2.5 sm:gap-3">
         {/* Dashboard Messages Carousel */}
         {dashboardMessages?.length > 0 && (
           <DashboardMessageCarousel dashboardMessages={dashboardMessages} />
@@ -2236,28 +2236,28 @@ export default function DashboardPage({
                 key={idx} 
                 type="button"
                 onClick={() => setActiveTab(card.tab)} 
-                className="bg-white hover:bg-slate-50/50 p-2.5 sm:p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-slate-300 flex flex-col justify-between active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
+                className="bg-white hover:bg-slate-50/50 p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-slate-300 flex flex-col justify-between active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
               >
-                <div className="flex items-center justify-between w-full gap-1 mb-2">
-                  <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
+                <div className="flex items-center justify-between w-full gap-1 mb-1.5">
+                  <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
                     {typeof card.icon === 'string' ? (
-                      <img src={card.icon} className="w-4 h-4 object-contain" alt="" />
+                      <img src={card.icon} className="w-3.5 h-3.5 object-contain" alt="" />
                     ) : (
-                      <card.icon size={14} strokeWidth={2.2} />
+                      <card.icon size={13} strokeWidth={2.2} />
                     )}
                   </div>
                   {card.sub && (
-                    <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border truncate max-w-[105px] ${theme.badge}`}>
+                    <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded-md border truncate max-w-[105px] ${theme.badge}`}>
                       {card.sub}
                     </span>
                   )}
                 </div>
 
                 <div className="min-w-0 w-full flex flex-col">
-                  <h3 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none mb-1">
+                  <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none mb-0.5">
                     {card.value}
                   </h3>
-                  <p className="text-[9.5px] font-bold text-slate-500 uppercase tracking-wider truncate group-hover:text-[var(--ui-primary)] transition-colors">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate group-hover:text-[var(--ui-primary)] transition-colors">
                     {card.label}
                   </p>
                 </div>
@@ -2272,15 +2272,15 @@ export default function DashboardPage({
       <div className="w-full flex flex-col gap-3">
         
         {/* Full-width Ringkasan & Grafik Card */}
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3 sm:p-4 flex flex-col">
+        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 flex flex-col">
           
           {/* Header Bar: Tabs Navigation */}
-          <div className="flex items-center justify-between gap-2 mb-3 pb-2.5 border-b border-slate-100">
+          <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
             <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
               <button
                 type="button"
                 onClick={() => setActiveMiddleTab('ringkasan')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${
                   activeMiddleTab === 'ringkasan'
                     ? 'bg-white text-slate-900 border border-slate-200/60'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
@@ -2293,7 +2293,7 @@ export default function DashboardPage({
               <button
                 type="button"
                 onClick={() => setActiveMiddleTab('statistik')}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[11px] font-bold transition-all cursor-pointer border-none ${
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${
                   activeMiddleTab === 'statistik'
                     ? 'bg-white text-slate-900 border border-slate-200/60'
                     : 'text-slate-500 hover:text-slate-700 bg-transparent'
@@ -2304,7 +2304,7 @@ export default function DashboardPage({
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+            <div className="flex items-center gap-1.5 text-[9.5px] font-bold text-slate-400">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
               <span className="hidden min-[420px]:inline">{summaryRows.length} Modul Terpantau</span>
             </div>
@@ -2312,23 +2312,23 @@ export default function DashboardPage({
 
           {/* TAB CONTENT: Ringkasan Sistem Sekolah */}
           {activeMiddleTab === 'ringkasan' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 animate-in fade-in duration-200">
               {summaryRows.map((row, i) => (
                 <div 
                   key={i} 
-                  className="p-2 sm:p-2.5 rounded-[var(--ui-radius-small)] bg-slate-50/60 hover:bg-slate-50 border border-slate-100/90 hover:border-slate-200/80 transition-all flex flex-col gap-1.5"
+                  className="p-1.5 sm:p-2 rounded-[var(--ui-radius-small)] bg-slate-50/60 hover:bg-slate-50 border border-slate-100/90 hover:border-slate-200/80 transition-all flex flex-col gap-1"
                 >
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2">
                     {/* Icon Box */}
-                    <div className={`w-7 h-7 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
-                      <row.icon size={13} strokeWidth={2.2} />
+                    <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
+                      <row.icon size={12} strokeWidth={2.2} />
                     </div>
                     
                     {/* Title & Count */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <span className="font-extrabold text-slate-800 text-[11px] truncate">{row.label}</span>
-                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[8.5px] font-black uppercase tracking-wider border shrink-0 ${
+                        <span className="font-bold text-slate-800 text-[10.5px] truncate">{row.label}</span>
+                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[8px] font-bold uppercase tracking-wider border shrink-0 ${
                           row.statusLabel === 'Selesai' 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70' 
                             : row.statusLabel === 'In Progress' 
@@ -3224,30 +3224,30 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
-            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
+            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
           >
-            <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
-                  <img src="/icons/045-account.svg" alt="Guru" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
+            <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <img src="/icons/045-account.svg" alt="Guru" className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-85" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
+                  <h3 className="text-xs sm:text-[13px] font-bold text-slate-800 flex items-center gap-1 truncate">
                     Kehadiran Guru
-                    <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    <ArrowRight size={12} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </h3>
-                  <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">
                     {guruStats.totalMasuk}/{guruStats.totalGuru} guru terdata
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] sm:text-xs font-black text-indigo-700 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-indigo-100/80 whitespace-nowrap shrink-0">
+              <span className="text-[9.5px] sm:text-[10.5px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/80 whitespace-nowrap shrink-0">
                 {guruPercent}% Hadir
               </span>
             </div>
 
             {/* Segmented Progress Bar */}
-            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
+            <div className="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
               <div style={{ width: `${(guruStats.Hadir / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
               <div style={{ width: `${(guruStats.Terlambat / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
               <div style={{ width: `${(guruStats.Izin / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
@@ -3257,9 +3257,9 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             </div>
 
             {/* Micro Metric List (Clean Text) */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 pt-1.5 border-t border-slate-100">
+            <div className="flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-0.5 text-[9px] sm:text-[9.5px] font-medium text-slate-500 pt-1 border-t border-slate-100">
               <span className="inline-flex items-center gap-1 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu: <b className="text-slate-800 font-bold">{guruStats.Hadir}</b>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat: <b className="text-slate-800 font-bold">{guruStats.Hadir}</b>
               </span>
               <span className="inline-flex items-center gap-1 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat: <b className="text-slate-800 font-bold">{guruStats.Terlambat}</b>
@@ -3284,30 +3284,30 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
-            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+            className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
           >
-            <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
-                  <img src="/icons/045-account.svg" alt="Karyawan" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
+            <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
+                  <img src="/icons/045-account.svg" alt="Karyawan" className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
+                  <h3 className="text-xs sm:text-[13px] font-bold text-slate-800 flex items-center gap-1 truncate">
                     Kehadiran Karyawan
-                    <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                    <ArrowRight size={12} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </h3>
-                  <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">
                     {karyawanStats.totalMasuk}/{karyawanStats.totalKaryawan} karyawan terdata
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] sm:text-xs font-black text-teal-700 bg-teal-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-teal-100/80 whitespace-nowrap shrink-0">
+              <span className="text-[9.5px] sm:text-[10.5px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100/80 whitespace-nowrap shrink-0">
                 {karyawanStats.totalKaryawan > 0 ? Math.round(((karyawanStats.Hadir + karyawanStats.Terlambat) / karyawanStats.totalKaryawan) * 100) : 0}% Hadir
               </span>
             </div>
 
             {/* Segmented Progress Bar */}
-            <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
+            <div className="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
               <div style={{ width: `${(karyawanStats.Hadir / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
               <div style={{ width: `${(karyawanStats.Terlambat / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
               <div style={{ width: `${(karyawanStats.Izin / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
@@ -3317,9 +3317,9 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             </div>
 
             {/* Micro Metric List (Clean Text) */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 pt-1.5 border-t border-slate-100">
+            <div className="flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-0.5 text-[9px] sm:text-[9.5px] font-medium text-slate-500 pt-1 border-t border-slate-100">
               <span className="inline-flex items-center gap-1 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu: <b className="text-slate-800 font-bold">{karyawanStats.Hadir}</b>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat: <b className="text-slate-800 font-bold">{karyawanStats.Hadir}</b>
               </span>
               <span className="inline-flex items-center gap-1 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat: <b className="text-slate-800 font-bold">{karyawanStats.Terlambat}</b>
@@ -3343,19 +3343,19 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           return (
             <button
               onClick={() => setActiveTab(isSuperAdmin || isWaka || isKepsek ? 'kedisiplinan_absensi' : (isTU || isKaryawan ? 'laporan_absensi' : 'absensi'))}
-              className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-4 flex flex-col gap-2 sm:gap-3 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
+              className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
             >
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                    <img src="/icons/066-education.svg" alt="Siswa" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 w-full">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                    <img src="/icons/066-education.svg" alt="Siswa" className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-85" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
+                    <h3 className="text-xs sm:text-[13px] font-bold text-slate-800 flex items-center gap-1 truncate">
                       Kehadiran Siswa
-                      <ArrowRight size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                      <ArrowRight size={12} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </h3>
-                    <p className="text-[9.5px] sm:text-xs text-slate-500 font-medium truncate">
+                    <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">
                       {siswaStats.totalSiswaInSchool > 0 
                         ? `${siswaStats.total}/${siswaStats.totalSiswaInSchool} siswa terdata` 
                         : (dashLogs?.hikvisionStudentToday ? `${siswaStats.total} record mesin` : 'Absensi Hikvision')
@@ -3363,13 +3363,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                     </p>
                   </div>
                 </div>
-                <span className="text-[9px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-100/80 whitespace-nowrap shrink-0">
+                <span className="text-[9.5px] sm:text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100/80 whitespace-nowrap shrink-0">
                   {siswaPercent}% Hadir
                 </span>
               </div>
 
               {/* Segmented Progress Bar */}
-              <div className="w-full h-1.5 sm:h-2 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
+              <div className="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden flex gap-0.5">
                 <div style={{ width: `${(siswaStats.Hadir / totalSiswaDenominator) * 100}%` }} className="bg-emerald-500 h-full" title="Hadir" />
                 <div style={{ width: `${(siswaStats.Terlambat / totalSiswaDenominator) * 100}%` }} className="bg-amber-500 h-full" title="Terlambat" />
                 <div style={{ width: `${(siswaStats.Izin / totalSiswaDenominator) * 100}%` }} className="bg-indigo-500 h-full" title="Izin" />
@@ -3378,9 +3378,9 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               </div>
 
               {/* Micro Metric List (Clean Text) */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 pt-1.5 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-x-2.5 sm:gap-x-3 gap-y-0.5 text-[9px] sm:text-[9.5px] font-medium text-slate-500 pt-1 border-t border-slate-100">
                 <span className="inline-flex items-center gap-1 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu: <b className="text-slate-800 font-bold">{siswaStats.Hadir}</b>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat: <b className="text-slate-800 font-bold">{siswaStats.Hadir}</b>
                 </span>
                 <span className="inline-flex items-center gap-1 shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat: <b className="text-slate-800 font-bold">{siswaStats.Terlambat}</b>
