@@ -61,6 +61,13 @@ const messageTone = (priority) => {
   return 'bg-indigo-50 text-indigo-600';
 };
 
+const getInitials = (name = "Pengguna") => {
+  const words = String(name || '').trim().split(/\s+/);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  if (words[0]?.length >= 2) return words[0].slice(0, 2).toUpperCase();
+  return (name ? String(name).slice(0, 2) : "GR").toUpperCase();
+};
+
 export const getShortcutIcon = (tab) => {
   switch (tab) {
     case 'jurnal_harian':
@@ -936,7 +943,7 @@ export default function DashboardPage({
     return (
       <div className="max-w-[1800px] mx-auto w-full flex-1 flex flex-col gap-2.5 sm:gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-8">
         {/* ======= MOBILE APP HERO GREETING CARD ======= */}
-        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80">
+        <div className="ui-card sm:hidden flex items-center justify-between gap-3 p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="relative flex-1 min-w-0">
             <button
               type="button"
@@ -949,7 +956,7 @@ export default function DashboardPage({
                   className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center border-2 border-white group-active:scale-95 transition-transform"
                   style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
                 >
-                  {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
+                  {getInitials(currentUser?.name || currentUser?.username)}
                 </div>
                 <span
                   className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500"
@@ -972,11 +979,11 @@ export default function DashboardPage({
             {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
             {showMobileProfileModal && (
               <div
-                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
+                className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/80 rounded-2xl shadow-xl p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 shrink-0">
-                  <span className="font-black text-xs text-slate-800 tracking-tight">Profil & Pengaturan</span>
+                  <span className="font-black text-xs text-slate-800 tracking-tight">Profil &amp; Pengaturan</span>
                   <button
                     type="button"
                     onClick={() => setShowMobileProfileModal(false)}
@@ -986,12 +993,12 @@ export default function DashboardPage({
                   </button>
                 </div>
 
-                <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex items-center gap-3">
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200/70 flex items-center gap-3">
                   <div
                     className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center border-2 border-white shrink-0"
                     style={{ background: "var(--ui-primary)" }}
                   >
-                    {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
+                    {getInitials(currentUser?.name || currentUser?.username)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{currentUser?.name || currentUser?.username || 'Guru'}</h4>

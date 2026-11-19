@@ -237,13 +237,17 @@
     background-color: var(--ui-card-bg, #ffffff) !important;
     color: var(--ui-text, #0f172a) !important;
     border-bottom: 1px solid var(--ui-border-soft, #e2e8f0) !important;
-    box-shadow: none !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
   }
   .header-primary header h1,
   .header-primary header p,
   .header-primary .app-header h1,
   .header-primary .app-header p {
     color: var(--ui-text, #0f172a) !important;
+  }
+  .header-primary .app-header button:not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-primary"]):not(.bg-primary),
+  .header-primary .app-header [role="button"]:not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-primary"]) {
+    color: var(--ui-text, #1e293b);
   }
 }
 .header-minimal header,

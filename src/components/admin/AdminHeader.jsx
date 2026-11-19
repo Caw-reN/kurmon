@@ -378,24 +378,24 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             type="button"
             onClick={onOpenMobileMenu}
             className={cn(
-              "lg:hidden p-2 rounded-lg cursor-pointer flex items-center justify-center transition-colors shrink-0",
+              "lg:hidden p-2 rounded-xl cursor-pointer flex items-center justify-center transition-colors shrink-0 shadow-2xs active:scale-95",
               isPrimaryHeader
-                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25"
+                ? "bg-slate-100 sm:bg-white/15 hover:bg-slate-200 sm:hover:bg-white/25 text-slate-700 sm:text-white border border-slate-200/90 sm:border-white/25"
                 : "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80"
             )}
             title="Buka Menu"
             aria-label="Buka Menu"
           >
-            <Menu size={18} strokeWidth={2} />
+            <Menu size={18} strokeWidth={2.4} />
           </button>
         )}
         
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           {IconComponent && (
             <div className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-all",
+              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-all shadow-2xs",
               isPrimaryHeader
-                ? "bg-white/15 text-white border-white/25"
+                ? "bg-emerald-50 sm:bg-white/15 text-emerald-700 sm:text-white border-emerald-200/70 sm:border-white/25"
                 : "bg-primary/10 text-primary border-primary/20"
             )}>
               <IconComponent size={16} strokeWidth={2.4} />
@@ -415,7 +415,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               )}>/</span>
               <span className={cn(
                 "font-bold truncate",
-                isPrimaryHeader ? "text-white" : "text-primary"
+                isPrimaryHeader ? "text-slate-900 sm:text-white" : "text-primary"
               )}>
                 {getTabLabel(activeTab)}
               </span>
@@ -423,7 +423,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           ) : (
             <h1 className={cn(
               "text-sm md:text-base font-bold tracking-tight leading-tight animate-in fade-in duration-200 min-w-0 truncate",
-              isPrimaryHeader ? "text-white" : "text-primary"
+              isPrimaryHeader ? "text-slate-900 sm:text-white" : "text-primary"
             )}>
               {getTabLabel(activeTab)}
             </h1>
@@ -460,9 +460,9 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             variant="ghost"
             onClick={onOpenGuide}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-all w-fit",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 transition-all w-fit shadow-2xs",
               isPrimaryHeader
-                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25"
+                ? "bg-slate-100 sm:bg-white/15 hover:bg-slate-200 sm:hover:bg-white/25 text-slate-700 sm:text-white border border-slate-200/90 sm:border-white/25"
                 : "bg-white hover:bg-primary/10 text-slate-600 hover:text-primary border border-slate-200/80"
             )}
             title="Bantuan / Panduan Penggunaan"
@@ -482,9 +482,9 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               setShowProfileMenu(false);
             }}
             className={cn(
-              "relative flex items-center justify-center w-9 h-9 rounded-xl transition-all shrink-0 cursor-pointer shadow-xs active:scale-95",
+              "relative flex items-center justify-center w-9 h-9 rounded-xl transition-all shrink-0 cursor-pointer shadow-2xs active:scale-95",
               isPrimaryHeader
-                ? "bg-white/15 hover:bg-white/25 text-white border border-white/25 hover:border-white/40"
+                ? "bg-slate-100 sm:bg-white/15 hover:bg-slate-200 sm:hover:bg-white/25 text-slate-700 sm:text-white border border-slate-200/90 sm:border-white/25 sm:hover:border-white/40"
                 : "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 shadow-2xs"
             )}
             title="Pusat Pemberitahuan & Pengumuman"
@@ -494,7 +494,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             {notifCount > 0 ? (
               <span className={cn(
                 "absolute -top-1 -right-1 px-1 min-w-[17px] h-[17px] rounded-full bg-rose-500 text-white text-[9.5px] font-black border-2 flex items-center justify-center shadow-xs animate-in zoom-in-75",
-                isPrimaryHeader ? "border-emerald-800" : "border-white"
+                isPrimaryHeader ? "border-white sm:border-emerald-800" : "border-white"
               )}>
                 {notifCount > 9 ? '9+' : notifCount}
               </span>
@@ -698,9 +698,11 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               }
             }}
             className={cn(
-              "flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 rounded-xl cursor-pointer min-w-0 transition-all select-none shadow-xs border active:scale-[0.98]",
+              "flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 rounded-xl cursor-pointer min-w-0 transition-all select-none shadow-2xs border active:scale-[0.98]",
               isPrimaryHeader
-                ? (showProfileMenu ? "bg-white/25 border-white/40 text-white ring-2 ring-white/20" : "bg-white/15 hover:bg-white/25 border-white/25 hover:border-white/40 text-white")
+                ? (showProfileMenu 
+                    ? "bg-slate-200 sm:bg-white/25 border-slate-300 sm:border-white/40 text-slate-900 sm:text-white ring-2 ring-primary/20 sm:ring-white/20" 
+                    : "bg-slate-100 sm:bg-white/15 hover:bg-slate-200 sm:hover:bg-white/25 border-slate-200/90 sm:border-white/25 sm:hover:border-white/40 text-slate-800 sm:text-white")
                 : (showProfileMenu ? "bg-slate-100 border-slate-300 text-slate-900 ring-2 ring-primary/20" : "bg-white hover:bg-slate-50 border-slate-200/90 text-slate-800")
             )}
             title="Profil Pengguna & Opsi Akun"
@@ -710,7 +712,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               <div className={cn(
                 "w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs shrink-0 overflow-hidden shadow-2xs transition-all",
                 isPrimaryHeader 
-                  ? "bg-white text-emerald-900 border border-white/80" 
+                  ? "bg-emerald-100 sm:bg-white text-emerald-800 sm:text-emerald-900 border border-emerald-300/80 sm:border-white/80" 
                   : "bg-primary/10 text-primary border border-primary/25"
               )}>
                 {currentUser?.avatar ? (
@@ -722,7 +724,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               {/* Online Indicator Dot */}
               <span className={cn(
                 "absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2",
-                isPrimaryHeader ? "border-emerald-800" : "border-white"
+                isPrimaryHeader ? "border-white sm:border-emerald-800" : "border-white"
               )} />
             </div>
 
@@ -771,7 +773,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
           {showProfileMenu && (
             <div
               ref={profileMenuRef}
-              className="absolute right-0 top-12 w-72 bg-white text-slate-800 border border-slate-200/90 rounded-2xl shadow-xl p-2 z-[9999] animate-in fade-in-0 zoom-in-95 duration-150 flex flex-col gap-1.5"
+              className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[60px] sm:top-12 sm:w-72 bg-white text-slate-800 border border-slate-200/90 rounded-2xl shadow-xl p-2 z-[9999] animate-in fade-in-0 zoom-in-95 duration-150 flex flex-col gap-1.5"
             >
               {/* Header inside popover */}
               <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100/80 flex items-center gap-2.5">
@@ -862,9 +864,9 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             type="button"
             onClick={handleLogout}
             className={cn(
-              "flex items-center justify-center w-9 h-9 rounded-xl transition-all cursor-pointer shrink-0 shadow-xs active:scale-95",
+              "flex items-center justify-center w-9 h-9 rounded-xl transition-all cursor-pointer shrink-0 shadow-2xs active:scale-95",
               isPrimaryHeader
-                ? "bg-white/15 hover:bg-rose-500 text-white border border-white/25 hover:border-rose-400"
+                ? "bg-slate-100 sm:bg-white/15 hover:bg-rose-50 sm:hover:bg-rose-500 text-slate-600 sm:text-white hover:text-rose-600 sm:hover:text-white border border-slate-200/90 sm:border-white/25 hover:border-rose-200 sm:hover:border-rose-400"
                 : "bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200/90 hover:border-rose-200 shadow-2xs"
             )}
             title="Keluar Sistem"
