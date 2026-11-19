@@ -293,14 +293,11 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                   LIVE
                 </span>
                 {onlineStats.totalUsers > 0 && (
-                  <span className="text-[9.5px] font-bold text-slate-500 bg-slate-100 px-1.5 py-[1px] rounded-[var(--ui-radius-small)] border border-slate-200 whitespace-nowrap shrink-0">
-                    <span className="text-indigo-600">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
+                  <span className="text-[9.5px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200/80 whitespace-nowrap shrink-0">
+                    <span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)
                   </span>
                 )}
               </div>
-              <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
-                Pantau riwayat aksi navigasi, isi jurnal, dan berkas guru/staf
-              </p>
             </div>
           </div>
 
@@ -390,12 +387,12 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
                           {userName}
                         </span>
                         
-                        <span className={`text-[9px] font-extrabold px-1.5 py-[0.5px] rounded border ${roleMeta.bg}`}>
+                        <span className={`text-[9px] font-extrabold px-1.5 py-[0.5px] rounded-md border ${roleMeta.bg}`}>
                           {roleMeta.label}
                         </span>
 
                         {isWaliKelas && (
-                          <span className="text-[9px] font-black px-1.5 py-[0.5px] rounded bg-amber-50 text-amber-700 border border-amber-200">
+                          <span className="text-[9px] font-black px-1.5 py-[0.5px] rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                             {waliKelasLabel}
                           </span>
                         )}

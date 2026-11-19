@@ -662,7 +662,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       }
     } else {
       subtitleBadge = className && className !== '-' ? (
-        <span className={`font-black uppercase px-2 py-0.5 rounded-[4px] text-[9px] tracking-wide whitespace-nowrap shrink-0 border ${getClassBadge(className)}`}>
+        <span className={`font-black uppercase px-2 py-0.5 rounded-md text-[9px] tracking-wide whitespace-nowrap shrink-0 border ${getClassBadge(className)}`}>
           {className}
         </span>
       ) : null;
@@ -722,10 +722,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           </div>
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
-          <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border uppercase block tracking-wider ${rightBadgeBg}`}>
+          <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-md border uppercase block tracking-wider ${rightBadgeBg}`}>
             {rightBadgeText}
           </span>
-          <span className="text-[9.5px] font-mono font-bold text-slate-600 bg-[var(--ui-surface-muted)] px-1.5 py-0.5 rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] mt-0.5 inline-block text-center tracking-tight">
+          <span className="text-[10px] text-slate-400 font-medium tracking-tight mt-0.5">
             {timeText}
           </span>
         </div>
@@ -791,7 +791,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                 LIVE
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5 hidden sm:block">Pemantauan log kehadiran dan aktivitas terpadu</p>
           </div>
         </div>
 

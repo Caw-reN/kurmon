@@ -1190,16 +1190,13 @@ export default function DashboardPage({
               <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
                 Selamat Datang, <span className="text-primary font-black">{currentUser?.name || teacherData.name || currentUser?.username}</span>!
               </h1>
-              <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-                Ringkasan jadwal, data presensi & aktivitas KBM Anda hari ini.
-              </p>
             </div>
-            <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+            <div className="flex items-center gap-2.5 shrink-0 sm:ml-auto">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
                 <LayoutGrid size={12} strokeWidth={2.4} /> Guru / Pengajar
               </span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-full">
-                <Calendar size={12} strokeWidth={2} /> {todayShort}
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+                <Calendar size={13} strokeWidth={2} className="text-slate-400" /> {todayShort}
               </span>
             </div>
           </div>
@@ -1332,7 +1329,6 @@ export default function DashboardPage({
               <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate mt-0.5">Daftar jam mengajar Anda</p>
                 </div>
                 <button 
                   type="button"
@@ -1365,7 +1361,7 @@ export default function DashboardPage({
                               <div className="flex flex-col min-w-0">
                                 <span className="font-bold text-[10.5px] text-slate-700 leading-tight truncate">{load.subject}</span>
                                 <div className="flex gap-1 items-center mt-0.5">
-                                  <span className="bg-slate-100 text-slate-500 px-1 py-0.2 rounded text-[8.5px] font-bold">
+                                  <span className="text-[10px] text-slate-400 font-medium">
                                     {load.targetGrade !== "All" ? load.targetGrade : "Semua"} {load.targetMajor !== "All" ? load.targetMajor : ""}
                                   </span>
                                 </div>
@@ -2103,16 +2099,13 @@ export default function DashboardPage({
             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
               Selamat Datang, <span className="text-primary font-bold">{currentUser?.name || currentUser?.username || "Pengguna"}</span>!
             </h1>
-            <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
-              Ringkasan pemantauan sistem, operasional sekolah & aktivitas terpadu.
-            </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+          <div className="flex items-center gap-2.5 shrink-0 sm:ml-auto">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
               <LayoutGrid size={12} strokeWidth={2.4} /> {dashboardMode.badge}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-full">
-              <Calendar size={12} strokeWidth={2} /> {todayShort}
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+              <Calendar size={13} strokeWidth={2} className="text-slate-400" /> {todayShort}
             </span>
           </div>
         </div>
@@ -2202,165 +2195,6 @@ export default function DashboardPage({
             />
           </div>
         )}
-
-        {/* ======= QUICK SHORTCUTS ======= */}
-        <div className="flex flex-col gap-2.5 text-left pt-2 border-t border-slate-100/80">
-          <div className="flex items-center gap-2 ml-0.5">
-            <Zap size={18} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
-            <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Pintasan Cepat</h2>
-          </div>
-          <div className="grid grid-cols-2 min-[380px]:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
-            {/* Quick Shortcuts */}
-            {ensureFourOrEightShortcuts((() => {
-              const activeSubrole = (currentUser?.subrole || '').toLowerCase().trim();
-              if (isTU) {
-                if (activeSubrole === 'sekretaris_tu') return [
-                  { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
-                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
-                  { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
-                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-sky-50 text-sky-600", tab:"kedisiplinan_absensi" },
-                  { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
-                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-indigo-50 text-indigo-600", tab:"absensi" },
-                  { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa_keluar" },
-                  { label:"Data Pegawai", icon:"/icons/066-education.svg", color:"bg-rose-50 text-rose-600", tab:"data_pegawai" },
-                ];
-                if (activeSubrole === 'bendahara') return [
-                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
-                  { label:"Data Pegawai", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"data_pegawai" },
-                  { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-amber-50 text-amber-600", tab:"laporan_absensi" },
-                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-sky-50 text-sky-600", tab:"absensi" },
-                  { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"siswa_keluar" },
-                ];
-                return [
-                  { label:"Laporan Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
-                  { label:"E-Surat", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"esurat" },
-                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"siswa" },
-                  { label:"Kartu Pelajar", icon:"/icons/045-account.svg", color:"bg-amber-50 text-amber-600", tab:"kartu_pelajar" },
-                  { label:"Absensi Mesin", icon:"/icons/013-shield.svg", color:"bg-sky-50 text-sky-600", tab:"absensi" },
-                  { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-indigo-50 text-indigo-600", tab:"kedisiplinan_absensi" },
-                  { label:"Data Pegawai", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"data_pegawai" },
-                  { label:"Mutasi Siswa", icon:"/icons/045-account.svg", color:"bg-rose-50 text-rose-600", tab:"siswa_keluar" },
-                ];
-              }
-              if (isKepsek) return [
-                { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"absensi" },
-                { label:"Dashboard PKL", icon:"/icons/035-graph bar.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_dashboard" },
-                { label:"Catatan Kelas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
-                { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"walas_report" },
-                { label:"Absensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
-                { label:"Rekap BK", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_bpbk" },
-                { label:"Prestasi Siswa", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"riwayat_prestasi" },
-                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
-              ];
-              if (isWaka) {
-                if (activeDivision === 'kurikulum') return [
-                  { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
-                  { label:"Beban Mengajar", icon:"/icons/035-graph bar.svg", color:"bg-amber-50 text-amber-600", tab:"beban" },
-                  { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"modul_ajar" },
-                  { label:"Ketersediaan", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"ketersediaan" },
-                  { label:"Kelola Mapel", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"mapel" },
-                  { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-sky-50 text-sky-600", tab:"kelas" },
-                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
-                  { label:"Data Pegawai", icon:"/icons/066-education.svg", color:"bg-rose-50 text-rose-600", tab:"data_pegawai" },
-                ];
-                if (activeDivision === 'kesiswaan') return [
-                  { label:"Presensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
-                  { label:"Izin & Sakit", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
-                  { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
-                  { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
-                  { label:"Poin Tatib", icon:"/icons/013-shield.svg", color:"bg-amber-50 text-amber-600", tab:"tatib_skor" },
-                  { label:"Riwayat Prestasi", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"riwayat_prestasi" },
-                  { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-sky-50 text-sky-600", tab:"catatan_walikelas" },
-                  { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
-                ];
-                if (activeDivision === 'hubin') return [
-                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
-                  { label:"Siswa PKL", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"pkl_data_siswa" },
-                  { label:"Mitra DUDI", icon:"/icons/008-warehouse.svg", color:"bg-amber-50 text-amber-600", tab:"pkl_data_perusahaan" },
-                  { label:"Penugasan", icon:"/icons/066-education.svg", color:"bg-indigo-50 text-indigo-600", tab:"pkl_penugasan" },
-                  { label:"Jurnal PKL", icon:"/icons/092-file.svg", color:"bg-emerald-50 text-emerald-600", tab:"pkl_jurnal" },
-                  { label:"Administrasi", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"pkl_administrasi" },
-                  { label:"Laporan PKL", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"pkl_laporan" },
-                  { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
-                ];
-                if (activeDivision === 'sarpras') return [
-                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
-                  { label:"Data Ruangan", icon:"/icons/016-map pin.svg", color:"bg-amber-50 text-amber-600", tab:"ruangan" },
-                  { label:"Denah Sekolah", icon:"/icons/008-warehouse.svg", color:"bg-emerald-50 text-emerald-600", tab:"denah" },
-                  { label:"Data Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
-                  { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa" },
-                  { label:"Pantau Jadwal", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"generate" },
-                  { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-teal-50 text-teal-600", tab:"walas_report" },
-                  { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
-                ];
-                if (activeDivision === 'humas') return [
-                  { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
-                  { label:"Pesan Dashboard", icon:"/icons/087-chat.svg", color:"bg-amber-50 text-amber-600", tab:"pesan" },
-                  { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-emerald-50 text-emerald-600", tab:"tampilan" },
-                  { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-indigo-50 text-indigo-600", tab:"akademik" },
-                  { label:"Modul Ajar", icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-600", tab:"modul_ajar" },
-                  { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-teal-50 text-teal-600", tab:"catatan_walikelas" },
-                  { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-sky-50 text-sky-600", tab:"walas_report" },
-                  { label:"Silabus", icon:"/icons/092-file.svg", color:"bg-rose-50 text-rose-600", tab:"silabus" },
-                ];
-              }
-              if (isBK) return [
-                { label:"Layanan BK", icon:"/icons/045-account.svg", color:"bg-purple-50 text-purple-600", tab:"kedisiplinan_bpbk" },
-                { label:"Izin & Sakit", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
-                { label:"Presensi Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
-                { label:"Piket & Tatib", icon:"/icons/013-shield.svg", color:"bg-rose-50 text-rose-600", tab:"kedisiplinan_piket" },
-                { label:"Prestasi Siswa", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"riwayat_prestasi" },
-                { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
-                { label:"Data Siswa", icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-600", tab:"siswa" },
-                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-rose-50 text-rose-600", tab:"pesan" },
-              ];
-              if (isWalas) return [
-                { label:"Catatan Walas", icon:"/icons/023-pencil.svg", color:"bg-amber-50 text-amber-600", tab:"catatan_walikelas" },
-                { label:"Laporan Walas", icon:"/icons/063-follow.svg", color:"bg-indigo-50 text-indigo-600", tab:"walas_report" },
-                { label:"Kehadiran Siswa", icon:"/icons/079-checklist.svg", color:"bg-emerald-50 text-emerald-600", tab:"hikvision_report_siswa" },
-                { label:"Izin & Sakit", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"kedisiplinan_absensi" },
-                { label:"Jurnal KBM", icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-600", tab:"jurnal_harian" },
-                { label:"Modul Ajar", icon:"/icons/066-education.svg", color:"bg-purple-50 text-purple-600", tab:"silabusguru" },
-                { label:"Jadwal KBM", icon:"/icons/086-calendar.svg", color:"bg-sky-50 text-sky-600", tab:"generate" },
-                { label:"Pesan", icon:"/icons/087-chat.svg", color:"bg-indigo-50 text-indigo-600", tab:"pesan" },
-              ];
-              if (activeRole === 'karyawan') return [
-                { label:"Absen Pegawai", icon:"/icons/045-account.svg", color:"bg-indigo-50 text-indigo-600", tab:"absensiguru" },
-                { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-600", tab:"laporan_absensi" },
-                { label:"Kalender", icon:"/icons/086-calendar.svg", color:"bg-amber-50 text-amber-600", tab:"akademik" },
-                { label:"Pengumuman", icon:"/icons/087-chat.svg", color:"bg-purple-50 text-purple-600", tab:"pesan" },
-              ];
-              
-              return [
-                { label:"Jadwal Baru", icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]", tab:"generate" },
-                { label:"Kelola Guru", icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-600", tab:"guru" },
-                { label:"Kelola Kelas", icon:"/icons/008-warehouse.svg", color:"bg-purple-50 text-purple-600", tab:"kelas" },
-                { label:"Kelola Ruangan", icon:"/icons/016-map pin.svg", color:"bg-sky-50 text-sky-600", tab:"ruangan" },
-                { label:"Kontrol Fitur", icon:"/icons/098-setting.svg", color:"bg-amber-50 text-amber-600", tab:"fitur" },
-                { label:"Hak Akses", icon:"/icons/033-padlock.svg", color:"bg-indigo-50 text-indigo-600", tab:"hak_akses" },
-                { label:"Tampilan Web", icon:"/icons/058-website.svg", color:"bg-teal-50 text-teal-600", tab:"tampilan" },
-                { label:"Rekap Absensi", icon:"/icons/079-checklist.svg", color:"bg-rose-50 text-rose-600", tab:"absensi" },
-              ];
-            })(), checkIsAllowed).map((shortcut, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setActiveTab(shortcut.tab)}
-                className="group relative flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 lg:p-3.5 rounded-[var(--ui-radius-card)] bg-white hover:bg-slate-50/80 border border-slate-200/80 hover:border-slate-300 transition-all duration-200 cursor-pointer overflow-hidden isolate h-full z-10"
-              >
-                {/* Background Hover Effect */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-200 pointer-events-none bg-current" />
-                
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-[var(--ui-radius-control)] ${shortcut.color} border border-slate-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 mb-1.5 pointer-events-none`}>
-                  <img src={shortcut.icon} className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 lg:w-5.5 lg:h-5.5 object-contain pointer-events-none" alt="" />
-                </div>
-                <span className="text-[10px] sm:text-[11px] md:text-xs lg:text-[12.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5 pointer-events-none">
-                  {shortcut.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Shared & Live Activity Logs */}
@@ -2385,7 +2219,6 @@ export default function DashboardPage({
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--ui-primary)] inline-block"></span>
             Statistik Utama
           </h2>
-          <span className="text-[9px] font-bold text-slate-400">Ringkasan Real-time</span>
         </div>
         
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
@@ -3408,7 +3241,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] sm:text-xs font-black text-indigo-700 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-indigo-100/80 whitespace-nowrap shrink-0">
+              <span className="text-[9px] sm:text-xs font-black text-indigo-700 bg-indigo-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-indigo-100/80 whitespace-nowrap shrink-0">
                 {guruPercent}% Hadir
               </span>
             </div>
@@ -3423,26 +3256,26 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               <div style={{ width: `${(guruStats.Alpa / Math.max(guruStats.totalGuru, 1)) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
             </div>
 
-            {/* Micro Metric Chips */}
-            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu:</span> <b className="text-slate-800">{guruStats.Hadir}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{guruStats.Terlambat}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin:</span> <b className="text-slate-800">{guruStats.Izin}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{guruStats.Sakit}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Dinas:</span> <b className="text-slate-800">{guruStats['Dinas Luar']}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{guruStats.Alpa}</b>
-              </div>
+            {/* Micro Metric List (Clean Text) */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 pt-1.5 border-t border-slate-100">
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu: <b className="text-slate-800 font-bold">{guruStats.Hadir}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat: <b className="text-slate-800 font-bold">{guruStats.Terlambat}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin: <b className="text-slate-800 font-bold">{guruStats.Izin}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit: <b className="text-slate-800 font-bold">{guruStats.Sakit}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" /> Dinas: <b className="text-slate-800 font-bold">{guruStats['Dinas Luar']}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa: <b className="text-slate-800 font-bold">{guruStats.Alpa}</b>
+              </span>
             </div>
           </button>
         )}
@@ -3468,7 +3301,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] sm:text-xs font-black text-teal-700 bg-teal-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-teal-100/80 whitespace-nowrap shrink-0">
+              <span className="text-[9px] sm:text-xs font-black text-teal-700 bg-teal-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-teal-100/80 whitespace-nowrap shrink-0">
                 {karyawanStats.totalKaryawan > 0 ? Math.round(((karyawanStats.Hadir + karyawanStats.Terlambat) / karyawanStats.totalKaryawan) * 100) : 0}% Hadir
               </span>
             </div>
@@ -3483,23 +3316,23 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               <div style={{ width: `${(karyawanStats.Alpa / Math.max(karyawanStats.totalKaryawan, 1)) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
             </div>
 
-            {/* Micro Metric Chips */}
-            <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu:</span> <b className="text-slate-800">{karyawanStats.Hadir}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{karyawanStats.Terlambat}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin:</span> <b className="text-slate-800">{karyawanStats.Izin}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{karyawanStats.Sakit}</b>
-              </div>
-              <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{karyawanStats.Alpa}</b>
-              </div>
+            {/* Micro Metric List (Clean Text) */}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 pt-1.5 border-t border-slate-100">
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu: <b className="text-slate-800 font-bold">{karyawanStats.Hadir}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat: <b className="text-slate-800 font-bold">{karyawanStats.Terlambat}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin: <b className="text-slate-800 font-bold">{karyawanStats.Izin}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit: <b className="text-slate-800 font-bold">{karyawanStats.Sakit}</b>
+              </span>
+              <span className="inline-flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa: <b className="text-slate-800 font-bold">{karyawanStats.Alpa}</b>
+              </span>
             </div>
           </button>
         )}
@@ -3530,7 +3363,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                     </p>
                   </div>
                 </div>
-                <span className="text-[9px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-[var(--ui-radius-small)] border border-emerald-100/80 whitespace-nowrap shrink-0">
+                <span className="text-[9px] sm:text-xs font-black text-emerald-700 bg-emerald-50 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md border border-emerald-100/80 whitespace-nowrap shrink-0">
                   {siswaPercent}% Hadir
                 </span>
               </div>
@@ -3544,23 +3377,23 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                 <div style={{ width: `${(siswaStats.Alpa / totalSiswaDenominator) * 100}%` }} className="bg-rose-500 h-full" title="Alpa" />
               </div>
 
-              {/* Micro Metric Chips */}
-              <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 pt-1.5 border-t border-slate-100">
-                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu:</span> <b className="text-slate-800">{siswaStats.Hadir}</b>
-                </div>
-                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat:</span> <b className="text-slate-800">{siswaStats.Terlambat}</b>
-                </div>
-                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin:</span> <b className="text-slate-800">{siswaStats.Izin}</b>
-                </div>
-                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit:</span> <b className="text-slate-800">{siswaStats.Sakit}</b>
-                </div>
-                <div className="text-[9px] sm:text-[10px] font-bold text-slate-600 bg-slate-50 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-slate-200/60 flex items-center gap-1 shrink-0">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa:</span> <b className="text-slate-800">{siswaStats.Alpa}</b>
-                </div>
+              {/* Micro Metric List (Clean Text) */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9.5px] sm:text-[10.5px] font-medium text-slate-500 pt-1.5 border-t border-slate-100">
+                <span className="inline-flex items-center gap-1 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu: <b className="text-slate-800 font-bold">{siswaStats.Hadir}</b>
+                </span>
+                <span className="inline-flex items-center gap-1 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Telat: <b className="text-slate-800 font-bold">{siswaStats.Terlambat}</b>
+                </span>
+                <span className="inline-flex items-center gap-1 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> Izin: <b className="text-slate-800 font-bold">{siswaStats.Izin}</b>
+                </span>
+                <span className="inline-flex items-center gap-1 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400" /> Sakit: <b className="text-slate-800 font-bold">{siswaStats.Sakit}</b>
+                </span>
+                <span className="inline-flex items-center gap-1 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Alpa: <b className="text-slate-800 font-bold">{siswaStats.Alpa}</b>
+                </span>
               </div>
             </button>
           );
