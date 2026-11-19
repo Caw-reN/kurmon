@@ -39,7 +39,8 @@ const BASE_GURU_PERMISSIONS = {
   jurnal_harian: "otomatis", absensi: "nonaktif", catatan_walikelas: "nonaktif",
   modul_ajar: "otomatis", beban: "otomatis", pesan: "otomatis",
   rpp_guru: "otomatis",
-  kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif"
+  kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
+  keterangan_massal: "nonaktif", riwayat_prestasi: "nonaktif"
 };
 
 export const DEFAULT_ROLE_PERMISSIONS = {
@@ -54,6 +55,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     rpp_guru: "otomatis",
     hikvision_report_siswa: "view",
+    keterangan_massal: "nonaktif",
+    riwayat_prestasi: "nonaktif",
   },
   walikelas: {
     ...BASE_GURU_PERMISSIONS,
@@ -65,10 +68,10 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     rekap_jurnal_kelas: "otomatis",
     kedisiplinan_piket: "nonaktif", tatib_skor: "nonaktif", kedisiplinan_bpbk: "nonaktif", kedisiplinan_hub: "nonaktif",
     hikvision_report_siswa: "otomatis",
-    keterangan_massal: "otomatis",
-    riwayat_prestasi: "view",
+    keterangan_massal: "nonaktif",
+    riwayat_prestasi: "nonaktif",
     siswa: "view",
-    laporan_absensi: "view"
+    laporan_absensi: "nonaktif"
   },
 
   // ─── KARYAWAN & TU ──────────────────────────────────────────────────────────

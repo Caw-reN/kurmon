@@ -756,9 +756,12 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
 
           // SECURITY-FIX K-03: Endpoint prestasi harus memerlukan autentikasi
           // (requireAuthenticated sudah dipanggil di atas untuk seluruh blok non-public)
-          // Tambahan: siswa hanya bisa lihat prestasi miliknya sendiri
+          // Siswa hanya bisa lihat prestasi miliknya sendiri.
+          // Guru biasa dan Walikelas DILARANG mengakses riwayat prestasi.
           const prestasiSession = getSession(req);
-          const prestasiRole = String(prestasiSession?.role || '').toLowerCase();
+          const prestasiRole = String(prestasiSession?.role || '').toLowerCase().trim();
+          const prestasiSubrole = String(prestasiSession?.subrole || '').toLowerCase().trim();
+          const prestasiDiv = String(prestasiSession?.division || '').toLowerCase().trim();
           const isSiswaReq = prestasiRole === 'siswa';
 
           let prestasiRows;
@@ -770,6 +773,16 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             );
             prestasiRows = res2.rows;
           } else {
+            const canViewPrestasi = ['admin', 'superadmin', 'super_admin', 'kepsek', 'tu', 'tata_usaha'].includes(prestasiRole) ||
+              isKesiswaanStaff || isBkStaffRole ||
+              prestasiRole === 'kesiswaan' || prestasiRole === 'waka_kesiswaan' ||
+              prestasiSubrole.includes('kesiswaan') || prestasiSubrole.includes('osis') || prestasiSubrole.includes('bk') ||
+              prestasiDiv.includes('kesiswaan') || prestasiDiv.includes('osis') || prestasiDiv.includes('bk') ||
+              Boolean(prestasiSession?.isSuperAdmin) || Boolean(prestasiSession?.isAdmin) || Boolean(prestasiSession?.isKesiswaan) || Boolean(prestasiSession?.isBK);
+
+            if (!canViewPrestasi) {
+              return send(req, res, 403, { ok: false, error: "Akses ditolak: Anda tidak memiliki wewenang untuk melihat data riwayat prestasi." });
+            }
             const res2 = await dbPool.query("SELECT * FROM kesiswaan_prestasi ORDER BY tanggal_prestasi DESC, id DESC");
             prestasiRows = res2.rows;
           }
@@ -777,7 +790,16 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
           return;
         }
         if (req.method === "POST" && url.pathname === "/api/kesiswaan/prestasi") {
-          if (!isSchoolStaff) return send(req, res, 403, { ok: false, error: "Akses ditolak. Hanya Staf/Guru/Kesiswaan yang dapat mengelola data prestasi." });
+          const canManagePrestasi = ['admin', 'superadmin', 'super_admin'].includes(role) ||
+            isKesiswaanStaff || isBkStaffRole ||
+            role === 'kesiswaan' || role === 'waka_kesiswaan' ||
+            subrole.includes('kesiswaan') || subrole.includes('osis') || subrole.includes('bk') ||
+            division.includes('kesiswaan') || division.includes('osis') || division.includes('bk') ||
+            Boolean(session?.isSuperAdmin) || Boolean(session?.isAdmin) || Boolean(session?.isKesiswaan) || Boolean(session?.isBK);
+
+          if (!canManagePrestasi) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak: Hanya Tim Kesiswaan/BK atau Admin yang berhak mengelola data prestasi." });
+          }
           const body = await readJsonBody(req);
           const currentUserId = session?.id || session?.username || null;
           const currentUserName = session?.name || session?.username || 'Petugas Kesiswaan';

@@ -331,6 +331,10 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           if (bpbkDefaultTabs.includes(activeTab)) return true;
         }
         if (roleKey === "guru" || roleKey === "walas" || roleKey === "walikelas") {
+          // Strict Role Security: Guru dan Walikelas DILARANG mengakses keterangan_massal dan riwayat_prestasi
+          if (activeTab === "keterangan_massal" || activeTab === "riwayat_prestasi") {
+            return false;
+          }
           if (level === "edit" || level === "view" || level === "otomatis" || level === "full") return true;
           const guruDefaultTabs = [
             "dashboard","generate","akademik","absensi","jurnal_harian",
@@ -342,7 +346,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           }
           const guruPermissionedTabs = [
             "silabus","rpp_guru","siswa_keluar","tatib_skor","laporan_rekap_walas",
-            "siswa","riwayat_prestasi","hikvision_report_siswa"
+            "siswa","hikvision_report_siswa"
           ];
           if (guruDefaultTabs.includes(activeTab)) return true;
           if (guruPermissionedTabs.includes(activeTab)) {

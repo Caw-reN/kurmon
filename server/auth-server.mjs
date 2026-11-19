@@ -2358,9 +2358,13 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const sRole = normalizeServerRole(session.role);
-      const canCreateRemark = ['admin', 'superadmin', 'kepsek', 'walas', 'waka', 'guru', 'tu', 'kesiswaan', 'kurikulum', 'bpbk', 'bk'].includes(sRole) || sRole.startsWith('waka') || sRole.startsWith('custom_');
+      const subrole = String(session.subrole || '').toLowerCase().trim();
+      const div = String(session.division || '').toLowerCase().trim();
+      const isKesiswaan = Boolean(session.isKesiswaan) || sRole === 'kesiswaan' || sRole === 'waka_kesiswaan' || subrole.includes('kesiswaan') || subrole.includes('osis') || div === 'kesiswaan' || div === 'osis';
+      const isBK = Boolean(session.isBK || session.isBPBK) || sRole === 'bpbk' || sRole === 'bk' || subrole.includes('bk') || subrole.includes('bpbk') || div.includes('bk');
+      const canCreateRemark = ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(sRole) || isKesiswaan || isBK || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
       if (!canCreateRemark) {
-        return send(req, res, 403, { ok: false, error: 'Hanya staf sekolah yang dapat membuat keterangan massal.' });
+        return send(req, res, 403, { ok: false, error: 'Akses ditolak: Hanya Tim Kesiswaan/BK atau Admin yang berhak membuat keterangan massal.' });
       }
       try {
         const body = await readJsonBody(req);
@@ -2437,10 +2441,14 @@ const server = createServer(async (req, res) => {
       const session = requireAuthenticated(req, res);
       if (!session) return;
       const sRole = normalizeServerRole(session.role);
-      const canDeleteRemark = ['admin', 'superadmin', 'kepsek', 'waka', 'kesiswaan', 'tu'].includes(sRole) ||
-        Boolean(session.isSuperAdmin) || Boolean(session.isAdmin) || Boolean(session.isKesiswaan);
+      const subrole = String(session.subrole || '').toLowerCase().trim();
+      const div = String(session.division || '').toLowerCase().trim();
+      const isKesiswaan = Boolean(session.isKesiswaan) || sRole === 'kesiswaan' || sRole === 'waka_kesiswaan' || subrole.includes('kesiswaan') || subrole.includes('osis') || div === 'kesiswaan' || div === 'osis';
+      const isBK = Boolean(session.isBK || session.isBPBK) || sRole === 'bpbk' || sRole === 'bk' || subrole.includes('bk') || subrole.includes('bpbk') || div.includes('bk');
+      const canDeleteRemark = ['admin', 'superadmin', 'kepsek', 'tu', 'tata_usaha'].includes(sRole) ||
+        isKesiswaan || isBK || Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
       if (!canDeleteRemark) {
-        return send(req, res, 403, { ok: false, error: 'Hanya admin / kepala sekolah / tim manajemen yang dapat menghapus keterangan massal.' });
+        return send(req, res, 403, { ok: false, error: 'Akses ditolak: Hanya Tim Kesiswaan/BK atau Admin yang berhak menghapus keterangan massal.' });
       }
       try {
         const remarkId = url.pathname.split('/').pop();

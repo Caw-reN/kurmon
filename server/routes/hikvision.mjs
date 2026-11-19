@@ -1602,6 +1602,22 @@ export async function handleHikvisionRoutes(req, res, url, ctx) {
           return send(req, res, 400, { ok: false, error: "Pilih person/pegawai, tanggal, dan status terlebih dahulu." });
         }
 
+        // VALIDASI KEAMANAN HAK AKSES INPUT:
+        // 1. Karyawan: Hanya Staf Tata Usaha (TU) atau Admin/Superadmin yang berhak menginput surat izin/sakit karyawan
+        if (personType === 'karyawan') {
+          if (!canApproveKaryawan && !isSuperAdmin) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak: Hanya Staf Tata Usaha (TU) atau Admin yang berhak menginput surat izin/sakit karyawan." });
+          }
+        }
+
+        // 2. Guru: Hanya Tim Kurikulum atau Admin/Superadmin yang berhak menginput untuk guru lain
+        if (personType === 'guru') {
+          const isSelf = String(teacherCode) === String(session.code || session.id);
+          if (!canApproveGuru && !isSuperAdmin && !isSelf) {
+            return send(req, res, 403, { ok: false, error: "Akses ditolak: Hanya Tim Kurikulum atau Admin yang berhak menginput surat izin/sakit untuk guru lain." });
+          }
+        }
+
         const isApproverForThisType = personType === 'karyawan' ? canApproveKaryawan : canApproveGuru;
         const gdriveUrl = gdrive_url || fileData || null;
         const approvalStatus = isApproverForThisType ? 'approved' : 'pending';

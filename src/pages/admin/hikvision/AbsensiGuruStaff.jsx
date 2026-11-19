@@ -66,6 +66,9 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
     return isKaryawan ? canApproveKaryawan : canApproveGuru;
   };
 
+  const canInputForGuru = isSuperAdmin || canApproveGuru;
+  const canInputForKaryawan = isSuperAdmin || canApproveKaryawan;
+
   const getApproverRoleName = (itemOrType) => {
     const pType = typeof itemOrType === 'string' ? itemOrType : itemOrType?.person_type;
     return pType === 'karyawan' ? 'Tata Usaha' : 'Kurikulum';
@@ -821,24 +824,27 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
               <span>Export Excel</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setFormPersonType(activePersonType === 'karyawan' ? 'karyawan' : 'guru');
-                setSelectedPersonCode('');
-                setPersonSearchQuery('');
-                setFormNote('');
-                setFormFileData('');
-                setFormFileName('');
-                setFormError('');
-                setFormDateMode('single');
-                setShowInputModal(true);
-              }}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer border-none"
-            >
-              <Plus size={15} strokeWidth={2.5} />
-              <span>Input Surat Izin/Sakit</span>
-            </button>
+            {(activePersonType === 'karyawan' ? canInputForKaryawan : canInputForGuru) && (
+              <button
+                type="button"
+                onClick={() => {
+                  const initCat = activePersonType === 'karyawan' ? (canInputForKaryawan ? 'karyawan' : 'guru') : (canInputForGuru ? 'guru' : 'karyawan');
+                  setFormPersonType(initCat);
+                  setSelectedPersonCode('');
+                  setPersonSearchQuery('');
+                  setFormNote('');
+                  setFormFileData('');
+                  setFormFileName('');
+                  setFormError('');
+                  setFormDateMode('single');
+                  setShowInputModal(true);
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer border-none"
+              >
+                <Plus size={15} strokeWidth={2.5} />
+                <span>Input Surat Izin/Sakit</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -1240,16 +1246,21 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                     <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/80">
                       <button
                         type="button"
+                        disabled={!canInputForGuru}
+                        title={!canInputForGuru ? "Wewenang khusus Tim Kurikulum & Admin" : ""}
                         onClick={() => {
+                          if (!canInputForGuru) return;
                           setFormPersonType('guru');
                           setSelectedPersonCode('');
                           setPersonSearchQuery('');
                           setIsSelectingPerson(true);
                         }}
-                        className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          formPersonType === 'guru'
-                            ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200/70'
-                            : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                        className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                          !canInputForGuru
+                            ? 'opacity-40 cursor-not-allowed bg-transparent text-slate-400'
+                            : formPersonType === 'guru'
+                              ? 'bg-white text-emerald-700 shadow-xs border border-emerald-200/70 cursor-pointer'
+                              : 'text-slate-600 hover:text-slate-900 border border-transparent cursor-pointer'
                         }`}
                       >
                         <BookOpen size={14} className={formPersonType === 'guru' ? 'text-emerald-600' : 'text-slate-400'} />
@@ -1257,16 +1268,21 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
                       </button>
                       <button
                         type="button"
+                        disabled={!canInputForKaryawan}
+                        title={!canInputForKaryawan ? "Wewenang khusus Bagian Tata Usaha (TU) & Admin" : ""}
                         onClick={() => {
+                          if (!canInputForKaryawan) return;
                           setFormPersonType('karyawan');
                           setSelectedPersonCode('');
                           setPersonSearchQuery('');
                           setIsSelectingPerson(true);
                         }}
-                        className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                          formPersonType === 'karyawan'
-                            ? 'bg-white text-teal-700 shadow-xs border border-teal-200/70'
-                            : 'text-slate-600 hover:text-slate-900 border border-transparent'
+                        className={`py-2 px-3 rounded-[var(--ui-radius-small)] text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                          !canInputForKaryawan
+                            ? 'opacity-40 cursor-not-allowed bg-transparent text-slate-400'
+                            : formPersonType === 'karyawan'
+                              ? 'bg-white text-teal-700 shadow-xs border border-teal-200/70 cursor-pointer'
+                              : 'text-slate-600 hover:text-slate-900 border border-transparent cursor-pointer'
                         }`}
                       >
                         <Briefcase size={14} className={formPersonType === 'karyawan' ? 'text-teal-600' : 'text-slate-400'} />

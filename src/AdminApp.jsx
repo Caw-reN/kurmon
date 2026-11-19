@@ -1850,7 +1850,19 @@ export default function App() {
       const wLevel = isWalasUser ? getRoleLevel('walikelas') : null;
       const gLevel = (role === 'guru' || effectiveKey === 'guru') ? getRoleLevel('guru') : null;
 
-      // 1. Explicitly enabled by subrole / role / walas
+      // 0. Strict Role Integrity: Keterangan Massal & Riwayat Prestasi
+      // Regular Guru and Walikelas MUST NOT access Keterangan Massal or Riwayat Prestasi
+      if (tabId === 'keterangan_massal' || tabId === 'riwayat_prestasi') {
+        if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') {
+          return true;
+        }
+        if (isKesiswaanTeam || isBKTeam || ['tu', 'tata_usaha'].includes(role) || effectiveKey === 'tu') {
+          return spLevel !== 'nonaktif';
+        }
+        return false;
+      }
+
+    // 1. Explicitly enabled by subrole / role / walas
       if (spLevel === 'edit' || spLevel === 'view' || spLevel === 'otomatis' || spLevel === 'full') return true;
       if (rLevel === 'edit' || rLevel === 'view' || rLevel === 'otomatis' || rLevel === 'full') return true;
       if (wLevel === 'edit' || wLevel === 'view' || wLevel === 'otomatis' || wLevel === 'full') return true;
@@ -2958,6 +2970,15 @@ export default function App() {
       subrole.includes('kesiswaan') || subrole.includes('osis') || (role === 'guru' && division === 'kesiswaan') || division === 'kesiswaan' || division === 'osis'
     );
 
+    if (tab === 'keterangan_massal' || tab === 'riwayat_prestasi') {
+      if (role === 'kepsek') return 'view';
+      if (isKesiswaanTeam || isBKTeam) return 'edit';
+      if (role === 'tu' || role === 'tata_usaha' || effectiveRoleKey === 'tu') {
+        return tab === 'riwayat_prestasi' ? 'view' : 'edit';
+      }
+      return 'none';
+    }
+
     if (tab === 'kedisiplinan_bpbk' || tab === 'kedisiplinan_hub') {
       if (role === 'kepsek') return 'view';
       if (isBKTeam || (role === 'waka' && division === 'kesiswaan') || role === 'kesiswaan' || role === 'waka_kesiswaan') return 'edit';
@@ -3244,6 +3265,18 @@ export default function App() {
     const rLevel = (activeRole && activeRole !== effectiveKey && activeRole !== 'guru' && activeRole !== 'walikelas') ? getRoleLevel(activeRole) : null;
     const wLevel = isWalasUser ? getRoleLevel('walikelas') : null;
     const gLevel = (activeRole === 'guru' || effectiveKey === 'guru') ? getRoleLevel('guru') : null;
+
+    // 0. Strict Role Integrity: Keterangan Massal & Riwayat Prestasi
+    // Regular Guru and Walikelas MUST NOT access Keterangan Massal or Riwayat Prestasi
+    if (id === 'keterangan_massal' || id === 'riwayat_prestasi') {
+      if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
+        return true;
+      }
+      if (isKesiswaanTeam || isBKTeam || ['tu', 'tata_usaha'].includes(activeRole) || effectiveKey === 'tu') {
+        return spLevel !== 'nonaktif';
+      }
+      return false;
+    }
 
     // 1. Explicitly enabled by subrole / role / walas
     if (spLevel === 'edit' || spLevel === 'view' || spLevel === 'otomatis' || spLevel === 'full') {

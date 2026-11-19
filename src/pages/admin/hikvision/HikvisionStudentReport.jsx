@@ -80,16 +80,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const isKesiswaanOrAdmin = 
     ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek'].includes(roleStr) ||
-    roleStr.startsWith('waka') ||
-    roleStr.includes('kesiswaan') || roleStr.includes('bk') || roleStr.includes('bpbk') ||
+    roleStr === 'kesiswaan' || roleStr === 'waka_kesiswaan' ||
+    roleStr.includes('bk') || roleStr.includes('bpbk') ||
     subroleStr.includes('kesiswaan') || subroleStr.includes('bk') || subroleStr.includes('bpbk') || subroleStr.includes('osis') ||
+    (roleStr === 'waka' && (divisionStr.includes('kesiswaan') || divisionStr.includes('bk'))) ||
     divisionStr.includes('kesiswaan') || divisionStr.includes('bk') || divisionStr.includes('bpbk') || divisionStr.includes('osis') ||
     Boolean(user?.isBK || user?.isBPBK || user?.isKesiswaan);
 
-  const canManageBulkRemarks = 
-    isKesiswaanOrAdmin ||
-    ['walas', 'walikelas'].includes(roleStr) || 
-    Boolean(user?.isWalas || user?.walasClass);
+  const canManageBulkRemarks = isKesiswaanOrAdmin;
 
   const defaultClassName = 
     (routeTab === "walas_report" && user?.walasClass) 

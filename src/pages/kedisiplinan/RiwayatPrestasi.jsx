@@ -12,6 +12,21 @@ import { Modal, Button, TablePagination } from '../../components/ui.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 export default function RiwayatPrestasi({ students = [], classes = [] }) {
+  const currentUser = useAuthStore(state => state.user) || {};
+  const userRole = String(currentUser?.role || '').toLowerCase().trim();
+  const userSubrole = String(currentUser?.subrole || '').toLowerCase().trim();
+  const userDiv = String(currentUser?.division || '').toLowerCase().trim();
+
+  const isSuperAdmin = ['admin', 'superadmin', 'super_admin'].includes(userRole) || currentUser?.username === 'admin' || Boolean(currentUser?.isSuperAdmin);
+  const isKesiswaanOrBK = isSuperAdmin ||
+    userRole.includes('kesiswaan') || userRole.includes('bk') || userRole.includes('bpbk') ||
+    userSubrole.includes('kesiswaan') || userSubrole.includes('bk') || userSubrole.includes('bpbk') || userSubrole.includes('osis') ||
+    userDiv.includes('kesiswaan') || userDiv.includes('bk') || userDiv.includes('bpbk') || userDiv.includes('osis') ||
+    Boolean(currentUser?.isBK || currentUser?.isBPBK || currentUser?.isKesiswaan);
+
+  const canEditPrestasi = isKesiswaanOrBK;
+  const canViewPrestasi = isKesiswaanOrBK || ['kepsek', 'tu', 'tata_usaha'].includes(userRole) || userSubrole.includes('tu') || userDiv.includes('tu');
+
   const [prestasiList, setPrestasiList] = useState([]);
   const [search, setSearch] = useState("");
   const [filterTingkat, setFilterTingkat] = useState("all");
@@ -244,6 +259,18 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
     }
   };
 
+  if (!canViewPrestasi) {
+    return (
+      <div className="p-8 max-w-xl mx-auto my-12 bg-white rounded-[var(--ui-radius-card)] border border-rose-200 shadow-sm text-center">
+        <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3">
+          <AlertTriangle size={24} />
+        </div>
+        <h3 className="text-base font-black text-slate-800">Akses Ditolak</h3>
+        <p className="text-xs text-slate-500 mt-1">Halaman Riwayat Prestasi hanya dapat diakses oleh Tim Kesiswaan, BK, Tata Usaha, dan Pimpinan Sekolah.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
       
@@ -261,14 +288,16 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
           <FileSpreadsheet size={15} />
           <span>Export Excel</span>
         </button>
-        <button
-          type="button"
-          onClick={() => { setIsEditing(null); setFormData({ siswa_nis: "", nama_prestasi: "", peringkat: "", tingkat: "Kabupaten/Kota", penyelenggara: "", tanggal_prestasi: new Date().toISOString().slice(0, 10), keterangan: "" }); setShowModal(true); }}
-          className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-accent text-slate-950 hover:bg-amber-300 flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer active:scale-95 border-none"
-        >
-          <Plus size={16} strokeWidth={2.5} />
-          <span>Tambah Prestasi</span>
-        </button>
+        {canEditPrestasi && (
+          <button
+            type="button"
+            onClick={() => { setIsEditing(null); setFormData({ siswa_nis: "", nama_prestasi: "", peringkat: "", tingkat: "Kabupaten/Kota", penyelenggara: "", tanggal_prestasi: new Date().toISOString().slice(0, 10), keterangan: "" }); setShowModal(true); }}
+            className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-accent text-slate-950 hover:bg-amber-300 flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer active:scale-95 border-none"
+          >
+            <Plus size={16} strokeWidth={2.5} />
+            <span>Tambah Prestasi</span>
+          </button>
+        )}
       </PageHeader>
 
       {/* STAT CARDS */}
@@ -409,24 +438,26 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleEdit(item)}
-                        className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
-                        title="Edit Prestasi"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteTarget(item)}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
-                        title="Hapus Prestasi"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
+                    {canEditPrestasi && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleEdit(item)}
+                          className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
+                          title="Edit Prestasi"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(item)}
+                          className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
+                          title="Hapus Prestasi"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Log Penginput (Mobile View) */}
@@ -551,24 +582,28 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
                         )}
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <div className="flex justify-end gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleEdit(item)}
-                            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
-                            title="Edit Data"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(item)}
-                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
-                            title="Hapus Data"
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                        {canEditPrestasi ? (
+                          <div className="flex justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleEdit(item)}
+                              className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
+                              title="Edit Data"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteTarget(item)}
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer"
+                              title="Hapus Data"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-medium italic">Read-only</span>
+                        )}
                       </td>
                     </tr>
                   );
