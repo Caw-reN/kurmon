@@ -607,6 +607,7 @@ export default function AdminSidebar({
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       if (item.adminOnly) continue;
+      if (item.id === 'dashboard') continue; // Rendered explicitly at the top of menu
       if (item.specialCondition === 'walas_only') {
         if (isPureWalas) continue;
         if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
@@ -718,7 +719,16 @@ export default function AdminSidebar({
       }
     }
 
-    return renderedGroups;
+    return (
+      <>
+        {renderNavItem({
+          id: 'dashboard',
+          icon: MENU_REGISTRY.find(m => m.id === 'dashboard')?.icon || LayoutDashboard,
+          label: 'Dashboard',
+        })}
+        {renderedGroups}
+      </>
+    );
   };
 
   const renderAdminMenu = () => {
