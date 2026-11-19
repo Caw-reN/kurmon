@@ -1902,10 +1902,10 @@ export default function App() {
       }
 
       if (["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(tabId)) {
-        if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek') return true;
+        if (isSuperAdminRole(role) || role === 'admin' || role === 'superadmin' || role === 'kepsek' || role.includes('kepala') || subrole.includes('kepala')) return true;
         if (isWalasUser) return true;
         if (tabId === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser || isKesiswaanTeam)) return true;
-        if (["catatan_walikelas", "walas_report"].includes(tabId) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam)) return true;
+        if (["catatan_walikelas", "walas_report"].includes(tabId) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam || subrole.includes('sekretaris') || role.includes('sekretaris') || div === 'sekretaris')) return true;
         if (spLevel === "edit" || spLevel === "view" || spLevel === "otomatis" || spLevel === "full") return true;
         return false;
       }
@@ -3363,12 +3363,12 @@ export default function App() {
     }
 
     if (["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(id)) {
-      if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
+      if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek' || activeRole.includes('kepala') || activeSubrole.includes('kepala')) {
         return true;
       }
       if (isWalasUser) return true;
       if (id === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser || isKesiswaanTeam)) return true;
-      if (["catatan_walikelas", "walas_report"].includes(id) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam)) return true;
+      if (["catatan_walikelas", "walas_report"].includes(id) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam || activeSubrole.includes('sekretaris') || activeRole.includes('sekretaris') || div === 'sekretaris')) return true;
       if (spLevel === "edit" || spLevel === "view" || spLevel === "otomatis" || spLevel === "full") return true;
       return false;
     }

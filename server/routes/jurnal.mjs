@@ -249,19 +249,26 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
   }
 
   // === CATATAN WALI KELAS ===
-  const checkIsKesiswaanStaff = (session) => {
-    const role = String(session?.role || '').toLowerCase();
-    const subrole = String(session?.subrole || '').toLowerCase();
-    const division = String(session?.division || '').toLowerCase();
-    return ['admin', 'superadmin', 'super_admin', 'waka', 'waka_kesiswaan', 'kesiswaan', 'kepsek'].includes(role) ||
+  // Siapa yang bisa melihat semua data catatan (Admin, Kepala Sekolah, Waka, Tim Kesiswaan, Sekretaris, dan BK)
+  const checkCanViewAllCatatan = (session) => {
+    if (!session) return false;
+    const role = String(session.role || '').toLowerCase();
+    const subrole = String(session.subrole || '').toLowerCase();
+    const division = String(session.division || '').toLowerCase();
+
+    return ['admin', 'superadmin', 'super_admin', 'kepsek', 'kepala_sekolah', 'kepala', 'headmaster', 'principal'].includes(role) ||
       role.includes('admin') ||
-      role.includes('kesiswaan') ||
-      subrole.includes('kesiswaan') ||
-      subrole.includes('osis') ||
-      division.includes('kesiswaan') ||
-      Boolean(session?.isSuperAdmin) ||
-      Boolean(session?.isAdmin);
+      role.includes('kepala') || subrole.includes('kepala') ||
+      role.includes('waka') || subrole.includes('waka') ||
+      role.includes('kesiswaan') || subrole.includes('kesiswaan') || division.includes('kesiswaan') ||
+      role.includes('osis') || subrole.includes('osis') || division.includes('osis') ||
+      role.includes('sekretaris') || subrole.includes('sekretaris') || division.includes('sekretaris') ||
+      role === 'bk' || role === 'bpbk' || role.includes('bk') || subrole.includes('bk') || subrole.includes('bpbk') || division === 'bk' || division === 'bpbk' ||
+      Boolean(session.isBK) || Boolean(session.isBPBK) || Boolean(session.isKesiswaan) ||
+      Boolean(session.isSuperAdmin) || Boolean(session.isAdmin);
   };
+
+  const checkIsKesiswaanStaff = checkCanViewAllCatatan;
 
   if (url.pathname.startsWith('/api/kesiswaan/catatan-walikelas')) {
     if (!requireAuthenticated(req, res)) return;
@@ -270,21 +277,39 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
     try {
       // GET — ambil catatan (filter by siswa, kelas, teacher)
       if (req.method === 'GET') {
-        const isKesiswaan = checkIsKesiswaanStaff(session);
+        const canViewAll = checkCanViewAllCatatan(session);
         const filterSiswa = url.searchParams.get('siswa_nis') || '';
         const filterKelas = url.searchParams.get('kelas') || '';
         const filterTeacher = url.searchParams.get('teacher_code') || '';
         const filterJenis = url.searchParams.get('jenis') || '';
 
+        const walasClass = session?.walasClass || '';
+        const isWalas = Boolean(session?.isWalas || walasClass);
+        const teacherCode = String(session?.code || session?.username || session?.id || '').trim();
+
         let query = 'SELECT cw.*, krp.poin, krp.jenis AS poin_jenis, krp.tindakan_nama FROM catatan_walikelas cw LEFT JOIN kedisiplinan_riwayat_poin krp ON cw.poin_pelanggaran_id = krp.id WHERE 1=1';
         const params = [];
 
-        if (!isKesiswaan) {
-          // Walikelas hanya lihat catatan milik sendiri
-          params.push(session?.code || session?.id || '');
-          query += ` AND cw.teacher_code = $${params.length}`;
-        } else if (filterTeacher) {
-          params.push(filterTeacher);
+        if (canViewAll) {
+          // Kesiswaan dan timnya (termasuk kepala, sekretaris, dan BK) bisa melihat semuanya
+          if (filterKelas && filterKelas !== 'all') {
+            params.push(filterKelas);
+            query += ` AND LOWER(TRIM(cw.kelas)) = LOWER(TRIM($${params.length}))`;
+          }
+          if (filterTeacher) {
+            params.push(filterTeacher);
+            query += ` AND (cw.teacher_code = $${params.length} OR cw.teacher_code = '' OR cw.teacher_code IS NULL)`;
+          }
+        } else if (isWalas && walasClass) {
+          // Wali kelas melihat data perwaliannya masing-masing ATAU catatan yang dibuatnya sendiri
+          params.push(walasClass);
+          const pWalas = `$${params.length}`;
+          params.push(teacherCode);
+          const pCode = `$${params.length}`;
+          query += ` AND (LOWER(TRIM(cw.kelas)) = LOWER(TRIM(${pWalas})) OR cw.teacher_code = ${pCode} OR cw.teacher_code = '' OR cw.teacher_code IS NULL)`;
+        } else {
+          // Guru biasa non-walas hanya lihat catatan miliknya
+          params.push(teacherCode);
           query += ` AND cw.teacher_code = $${params.length}`;
         }
 
@@ -292,16 +317,12 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
           params.push(filterSiswa);
           query += ` AND cw.siswa_nis = $${params.length}`;
         }
-        if (filterKelas) {
-          params.push(filterKelas);
-          query += ` AND cw.kelas = $${params.length}`;
-        }
-        if (filterJenis) {
+        if (filterJenis && filterJenis !== 'all') {
           params.push(filterJenis);
           query += ` AND cw.jenis_catatan = $${params.length}`;
         }
 
-        const limit = Math.min(parseInt(url.searchParams.get('limit') || '50', 10), 200);
+        const limit = Math.min(parseInt(url.searchParams.get('limit') || '500', 10), 2000);
         const offset = parseInt(url.searchParams.get('offset') || '0', 10);
         
         query += ` ORDER BY cw.tanggal DESC, cw.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
@@ -315,47 +336,51 @@ export async function handleJurnalRoutes(req, res, url, ctx) {
       // POST — tambah / update / delete catatan
       if (req.method === 'POST') {
         const body = await readJsonBody(req);
-        const teacherCode = session?.code || session?.id || '';
-        const teacherName = session?.name || '';
+        const teacherCode = String(session?.code || session?.username || session?.id || 'admin').trim();
+        const teacherName = session?.name || session?.username || 'Wali Kelas / Guru';
+        const walasClass = session?.walasClass || '';
+        const canManageAll = checkCanViewAllCatatan(session);
 
         if (body.action === 'delete') {
-          const isAdmin = checkIsKesiswaanStaff(session);
-          if (isAdmin) {
+          if (canManageAll) {
             await dbPool.query('DELETE FROM catatan_walikelas WHERE id = $1', [body.id]);
           } else {
-            await dbPool.query('DELETE FROM catatan_walikelas WHERE id = $1 AND teacher_code = $2', [body.id, teacherCode]);
+            // Walas bisa hapus catatan di kelas perwaliannya atau yang dibuat sendiri
+            await dbPool.query(
+              'DELETE FROM catatan_walikelas WHERE id = $1 AND (teacher_code = $2 OR LOWER(TRIM(kelas)) = LOWER(TRIM($3)))',
+              [body.id, teacherCode, walasClass]
+            );
           }
         } else if (body.id) {
           // Update
-          // BUG-A FIX: Tambahkan cek kepemilikan record (BOLA) — walikelas hanya bisa
-          // edit catatan miliknya sendiri. Admin/Kesiswaan bisa edit semua.
-          const isAdminEdit = checkIsKesiswaanStaff(session);
           const updateResult = await dbPool.query(`
             UPDATE catatan_walikelas
             SET siswa_nis = $1, siswa_name = $2, tanggal = $3, jenis_catatan = $4,
                 isi_catatan = $5, tindak_lanjut = $6, poin_pelanggaran_id = $7,
+                kelas = COALESCE($8, kelas),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $8 AND ($9::boolean OR teacher_code = $10)
+            WHERE id = $9 AND ($10::boolean OR teacher_code = $11 OR LOWER(TRIM(kelas)) = LOWER(TRIM($12)))
           `, [
             body.siswa_nis, body.siswa_name || '', body.tanggal || new Date().toISOString().split('T')[0],
             body.jenis_catatan || 'umum', body.isi_catatan, body.tindak_lanjut || null,
-            body.poin_pelanggaran_id || null, body.id, isAdminEdit, teacherCode
+            body.poin_pelanggaran_id || null, body.kelas || null,
+            body.id, canManageAll, teacherCode, walasClass
           ]);
-          if (updateResult.rowCount === 0 && !isAdminEdit) {
+          if (updateResult.rowCount === 0 && !canManageAll) {
             send(req, res, 403, { ok: false, error: 'Anda tidak memiliki izin untuk mengedit catatan ini.' });
             return;
           }
         } else {
           // Insert baru
-          // Dapatkan nama kelas dari walikelas session jika ada
-          const kelasWalikelas = session?.walasClass || body.kelas || '';
+          // Utamakan kelas siswa dari body, jika tidak ada fallback ke walasClass
+          const kelasCatatan = body.kelas || walasClass || '';
           await dbPool.query(`
             INSERT INTO catatan_walikelas
             (teacher_code, teacher_name, kelas, siswa_nis, siswa_name, tanggal,
              jenis_catatan, isi_catatan, tindak_lanjut, poin_pelanggaran_id)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
           `, [
-            teacherCode, teacherName, kelasWalikelas,
+            teacherCode, teacherName, kelasCatatan,
             body.siswa_nis, body.siswa_name || '', 
             body.tanggal || new Date().toISOString().split('T')[0],
             body.jenis_catatan || 'umum', body.isi_catatan,

@@ -304,17 +304,28 @@ export default function CatatanWaliKelas({
   const hasPermEdit = permLevel === 'edit' || permLevel === 'full' || permLevel === 'otomatis';
 
   const isKesiswaan = isSuperAdmin ||
+    role === 'kepsek' ||
+    role.includes('kepala') ||
+    subrole.includes('kepala') ||
+    role.includes('sekretaris') ||
+    subrole.includes('sekretaris') ||
+    division.includes('sekretaris') ||
     role === 'waka_kesiswaan' ||
     role === 'kesiswaan' ||
     role === 'bpbk' ||
     role === 'bk' ||
     subrole === 'waka_kesiswaan' ||
     subrole.includes('kesiswaan') ||
+    subrole.includes('osis') ||
+    division.includes('osis') ||
     subrole.includes('bk') ||
     subrole.includes('bpbk') ||
     (role === 'waka' && division === 'kesiswaan') ||
     division === 'kesiswaan' ||
     division === 'bk' ||
+    Boolean(user?.isBK) ||
+    Boolean(user?.isBPBK) ||
+    Boolean(user?.isKesiswaan) ||
     hasPermEdit;
 
   const canAdd = isWalas || isKesiswaan;
@@ -376,6 +387,7 @@ export default function CatatanWaliKelas({
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
+      params.set('limit', '1000');
       if (!isKesiswaan && walasClass) params.set('kelas', walasClass);
       const res = await fetch(`/api/kesiswaan/catatan-walikelas?${params}`, {
         headers: { Authorization: `Bearer ${authToken}` }
@@ -583,18 +595,18 @@ export default function CatatanWaliKelas({
   // === FILTER CATATAN WALI KELAS (PANEL KANAN) ===
   const filteredCatatan = useMemo(() => {
     let list = catatanList.filter(c => {
-      const student = students.find(s => String(getStudentNis(s)) === String(c.siswa_nis));
-      if (!student) return false; // Abaikan catatan siswa yang sudah tidak ada
-      
       // Filter siswa jika sedang memilih siswa spesifik
       if (selectedSiswa && String(c.siswa_nis) !== String(getStudentNis(selectedSiswa))) {
         return false;
       }
 
-      // Filter Kelas Catatan
+      // Filter Kelas Catatan:
+      // Walas terkunci ke kelas perwaliannya, Kesiswaan/BK/Kepala/Sekretaris bisa filter bebas
       if (!isKesiswaan && isWalas && walasClass) {
-        if (c.kelas !== walasClass) return false;
-      } else if (filterCatatanKelas !== 'all' && c.kelas !== filterCatatanKelas) {
+        if (c.kelas && String(c.kelas).trim().toLowerCase() !== String(walasClass).trim().toLowerCase()) {
+          return false;
+        }
+      } else if (filterCatatanKelas !== 'all' && c.kelas && String(c.kelas).trim().toLowerCase() !== String(filterCatatanKelas).trim().toLowerCase()) {
         return false;
       }
 
@@ -640,14 +652,19 @@ export default function CatatanWaliKelas({
     });
 
     return list;
-  }, [catatanList, selectedSiswa, filterCatatanKelas, filterCatatanJenis, filterCatatanWaktu, searchCatatan, sortCatatan, students]);
+  }, [catatanList, selectedSiswa, filterCatatanKelas, filterCatatanJenis, filterCatatanWaktu, searchCatatan, sortCatatan, isKesiswaan, isWalas, walasClass]);
 
   // === PEMETAAN STATS & KPI ===
   const kpiStats = useMemo(() => {
     const totalSiswa = filteredStudents.length;
-    const siswaWithNotes = filteredStudents.filter(s => catatanList.some(c => String(c.siswa_nis) === String(getStudentNis(s)))).length;
+    const isNisEqual = (n1, n2) => {
+      const s1 = String(n1 || '').trim();
+      const s2 = String(n2 || '').trim();
+      return Boolean(s1 && s2 && (s1 === s2 || (s1.length === 9 && s2.length === 8 && s1.endsWith(s2)) || (s1.length === 8 && s2.length === 9 && s2.endsWith(s1))));
+    };
+    const siswaWithNotes = filteredStudents.filter(s => catatanList.some(c => isNisEqual(c.siswa_nis, getStudentNis(s)))).length;
     const siswaNoNotes = totalSiswa - siswaWithNotes;
-    const siswaWithViolations = filteredStudents.filter(s => riwayatPoin.some(p => String(p.siswa_nis) === String(getStudentNis(s)))).length;
+    const siswaWithViolations = filteredStudents.filter(s => riwayatPoin.some(p => isNisEqual(p.siswa_nis, getStudentNis(s)))).length;
     const totalCatatan = filteredCatatan.length;
 
     return {
