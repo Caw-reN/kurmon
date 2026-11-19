@@ -535,7 +535,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Guru/Karyawan',
         labelShort: 'Guru/Staf',
         count: guruKaryawanLogs.length,
-        lucideIcon: Users,
         icon: '/icons/045-account.svg',
         badgeBg: 'bg-indigo-100/90 text-indigo-800'
       },
@@ -544,7 +543,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Guru/Karyawan Terlambat',
         labelShort: 'Guru Telat',
         count: terlambatGuruLogs.length,
-        lucideIcon: Clock,
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-orange-100/90 text-orange-800'
       },
@@ -553,7 +551,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Kehadiran Siswa',
         labelShort: 'Siswa Hadir',
         count: kehadiranSiswaLogs.length,
-        lucideIcon: GraduationCap,
         icon: '/icons/066-education.svg',
         badgeBg: 'bg-purple-100/90 text-purple-800'
       },
@@ -562,7 +559,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Siswa Terlambat',
         labelShort: 'Siswa Telat',
         count: terlambatSiswaLogs.length,
-        lucideIcon: Clock,
         icon: '/icons/039-time.svg',
         badgeBg: 'bg-amber-100/90 text-amber-800'
       },
@@ -571,7 +567,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Siswa Bermasalah',
         labelShort: 'Bermasalah',
         count: bermasalahLogs.length,
-        lucideIcon: AlertTriangle,
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-rose-100/90 text-rose-800'
       },
@@ -580,7 +575,6 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Siswa Berprestasi',
         labelShort: 'Prestasi',
         count: siswaPrestasiLogs.length,
-        lucideIcon: Trophy,
         icon: '/icons/063-follow.svg',
         badgeBg: 'bg-emerald-100/90 text-emerald-800'
       }
@@ -786,13 +780,13 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       {/* Dynamic Header */}
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center shrink-0 text-primary">
-            <Tv size={16} strokeWidth={2.2} />
+          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center shrink-0">
+            <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 LIVE
               </span>
@@ -830,7 +824,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             </div>
           )}
           <div className="relative w-full sm:w-56">
-            <Search size={14} className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
             <input
               type="text"
               placeholder="Cari nama / NIS / kelas..."
@@ -848,7 +842,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             <button
               type="button"
               onClick={() => setShowSuperAdminModal(true)}
-              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 border border-slate-700"
+              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 border border-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25"
               title="Koreksi Jam Absensi (Khusus Super Admin)"
             >
               <Shield size={13} className="text-amber-400 shrink-0" />
@@ -862,24 +856,27 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3 bg-slate-50/50 border-b border-slate-100 select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
-          const TabIcon = tab.lucideIcon || Users;
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
               className={cn(
-                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95",
+                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1",
                 isActive
                   ? "bg-primary text-white border-primary shadow-2xs font-bold"
                   : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs font-semibold"
               )}
             >
               <div className="relative shrink-0 flex items-center justify-center">
-                <TabIcon
-                  size={18}
-                  strokeWidth={isActive ? 2.5 : 2}
-                  className={isActive ? "text-white" : "text-slate-500"}
+                <img
+                  src={tab.icon}
+                  alt={tab.label}
+                  className={cn(
+                    "w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-200",
+                    isActive ? "scale-105" : "opacity-85"
+                  )}
+                  style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
                 <span className={cn(
                   "absolute -top-1.5 -right-3.5 px-1.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-2xs border",

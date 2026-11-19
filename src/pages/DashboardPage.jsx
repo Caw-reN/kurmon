@@ -911,10 +911,10 @@ export default function DashboardPage({
   }, [isTeacher, students, currentUser?.walasClass]);
 
   const teacherStatCards = useMemo(() => [
-    { label: "Siswa Saya", value: myStudentsCount, icon: Users, color: "text-blue-600 bg-blue-50" },
-    { label: "Kelas Saya", value: myClasses || 4, icon: Building2, color: "text-amber-600 bg-amber-50" },
-    { label: "JP Aktual/Minggu", value: `${totalBebanJam || 36} JP`, icon: Clock, color: "text-emerald-600 bg-emerald-50" },
-    { label: "Modul Ajar", value: mySyllabuses || 0, icon: BookOpen, color: "text-indigo-600 bg-indigo-50" },
+    { label: "Siswa Saya", value: myStudentsCount, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600" },
+    { label: "Kelas Saya", value: myClasses || 4, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600" },
+    { label: "JP Aktual/Minggu", value: `${totalBebanJam || 36} JP`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600" },
+    { label: "Modul Ajar", value: mySyllabuses || 0, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600" },
   ], [myStudentsCount, myClasses, totalBebanJam, mySyllabuses]);
 
   // ===================== GURU VIEW (early return) =====================
@@ -1286,24 +1286,21 @@ export default function DashboardPage({
                 <h2 className="text-sm font-bold text-slate-800 tracking-tight">Menu Utama</h2>
               </div>
               <div className="grid grid-cols-4 gap-2.5">
-                {teacherShortcuts.map((shortcut, i) => {
-                  const ShortcutIcon = getShortcutIcon(shortcut.tab);
-                  return (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setActiveTab(shortcut.tab)}
-                      className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-2 shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer text-center"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center text-slate-600 group-hover:text-primary transition-colors shrink-0 shadow-2xs">
-                        <ShortcutIcon size={16} strokeWidth={2.2} />
-                      </div>
-                      <span className="text-[10.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
-                        {shortcut.label}
-                      </span>
-                    </button>
-                  );
-                })}
+                {teacherShortcuts.map((shortcut, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setActiveTab(shortcut.tab)}
+                    className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-2 shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-1 active:scale-[0.98]"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center shrink-0 shadow-2xs transition-colors">
+                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
+                    </div>
+                    <span className="text-[10px] sm:text-[10.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
+                      {shortcut.label}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -1314,20 +1311,17 @@ export default function DashboardPage({
                 <h2 className="text-sm font-bold text-slate-800 tracking-tight">Statistik Saya</h2>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
-                {teacherStatCards.map((stat, i) => {
-                  const StatIcon = stat.icon || Users;
-                  return (
-                    <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 transition-colors">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
-                        <p className="text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
-                      </div>
-                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-slate-500 shrink-0 shadow-2xs">
-                        <StatIcon size={16} strokeWidth={2.2} />
-                      </div>
+                {teacherStatCards.map((stat, i) => (
+                  <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 shadow-2xs transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
+                      <p className="text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
                     </div>
-                  );
-                })}
+                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                      <img src={stat.icon} className="w-5 h-5 object-contain" alt="" />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -3402,7 +3396,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-2xs">
-                  <Users size={18} strokeWidth={2.2} className="text-indigo-600" />
+                  <img src="/icons/045-account.svg" alt="Guru" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
@@ -3462,7 +3456,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-2xs">
-                  <UserCheck size={18} strokeWidth={2.2} className="text-teal-600" />
+                  <img src="/icons/045-account.svg" alt="Karyawan" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
@@ -3521,7 +3515,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
-                    <GraduationCap size={18} strokeWidth={2.2} className="text-emerald-600" />
+                    <img src="/icons/066-education.svg" alt="Siswa" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
