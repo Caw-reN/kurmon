@@ -50,8 +50,32 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const isSiswa = user?.role === 'siswa';
 
   const [activeLogTab, setActiveLogTab] = useState(isSiswa ? 'kehadiran_siswa' : 'siswa_terlambat');
-  const [dashLogs, setDashLogs] = useState(null);
-  const [logsLoading, setLogsLoading] = useState(true);
+  const [dashLogs, setDashLogs] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('kurmon_shared_dash_logs');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        if (parsed && parsed._cachedDate === todayStr && parsed.data) {
+          return parsed.data;
+        }
+      }
+    } catch {}
+    return null;
+  });
+  const [logsLoading, setLogsLoading] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem('kurmon_shared_dash_logs');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+        if (parsed && parsed._cachedDate === todayStr && parsed.data) {
+          return false;
+        }
+      }
+    } catch {}
+    return true;
+  });
   const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -128,34 +152,28 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const isVisibleForStudent = isFiturAktif('show_dashboard_logs_siswa') ?? true;
 
   const fetchLogs = useCallback(() => {
-    const token = JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
+    const token = user?.authToken
+      || JSON.parse(sessionStorage.getItem('school_schedule_session_v1') || '{}')?.authToken
+      || JSON.parse(localStorage.getItem('school_schedule_session_v1') || '{}')?.authToken;
 
-    Promise.all([
-      fetch('/api/dashboard/logs', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false })),
-      fetch('/api/hikvision/dashboard', { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(r => r.json()).catch(() => ({ ok: false }))
-    ])
-      .then(([d1, d2]) => {
-        let combined = {};
-        if (d1.ok) combined = { ...combined, ...d1.data };
-        if (d2.ok) {
-          combined.recentLogs = d2.recentLogs || [];
-          if (d2.staffLogs) {
-            combined.staffLogs = combined.staffLogs
-              ? [...combined.staffLogs, ...d2.staffLogs]
-              : d2.staffLogs;
-          }
-          if (d2.teacherLogs) {
-            combined.teacherLogs = combined.teacherLogs
-              ? [...combined.teacherLogs, ...d2.teacherLogs]
-              : d2.teacherLogs;
-          }
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    fetch('/api/dashboard/logs', { headers })
+      .then(r => r.json())
+      .then(res => {
+        if (res && res.ok && res.data) {
+          const payload = res.data;
+          setDashLogs(payload);
+          if (onLogsFetched) onLogsFetched(payload);
+          try {
+            const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+            sessionStorage.setItem('kurmon_shared_dash_logs', JSON.stringify({ _cachedDate: todayStr, data: payload }));
+          } catch {}
         }
-        setDashLogs(combined);
-        if (onLogsFetched) onLogsFetched(combined);
       })
       .catch(() => { })
       .finally(() => setLogsLoading(false));
-  }, [onLogsFetched]);
+  }, [user?.authToken, onLogsFetched]);
 
   useEffect(() => {
     fetchLogs();
@@ -772,12 +790,12 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     );
   };
 
-  if (logsLoading) {
+  if (logsLoading && !dashLogs) {
     return (
-      <div className="bg-white rounded-xl p-8 flex flex-col items-center justify-center min-h-[380px] border border-slate-200/80">
-        <Loader2 className="animate-spin text-[var(--ui-primary)] mb-3" size={28} />
-        <p className="text-xs font-bold text-slate-600">Memuat Log Monitor & Aktivitas...</p>
-        <p className="text-[11px] text-slate-400 mt-1">Mengambil sinkronisasi terbaru dari sistem</p>
+      <div className="bg-white rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center min-h-[260px] border border-slate-200/80 shadow-2xs">
+        <Loader2 className="animate-spin text-emerald-600 mb-3" size={26} strokeWidth={2.4} />
+        <p className="text-xs font-black text-slate-700">Memuat Log Monitor & Aktivitas...</p>
+        <p className="text-[11px] font-medium text-slate-400 mt-0.5">Mengambil sinkronisasi terbaru dari sistem</p>
       </div>
     );
   }

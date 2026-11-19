@@ -3489,107 +3489,105 @@ const server = createServer(async (req, res) => {
           const karyawanMasukLate = (hConfig?.karyawan?.masuk_late || hConfig?.masuk_late || "07:01") + ":00";
           const karyawanMasukClose = (hConfig?.karyawan?.masuk_end || hConfig?.karyawan?.masuk_close || hConfig?.masuk_close || "11:00") + ":00";
 
-          const todayLogsRes = await dbPool.query(`
-            SELECT l.*, d.ip_address, d.device_type,
-              COALESCE(
-                (SELECT payload->>'nis' FROM mst_students 
-                 WHERE payload->>'nis' = l.employee_id 
-                    OR payload->>'code' = l.employee_id 
-                    OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
-                 LIMIT 1),
-                (SELECT nis FROM hikvision_students 
-                 WHERE nis = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
-                 LIMIT 1),
-                l.employee_id
-              ) as canonical_nis,
+          // Fast parallel fetch: hikvision_students lookup + clean logs without Cartesian subqueries
+          const [hsRes, logsRawRes] = await Promise.all([
+            dbPool.query("SELECT nis, name, class_name FROM hikvision_students").catch(() => ({ rows: [] })),
+            dbPool.query(`
+              SELECT l.*, d.ip_address, d.device_type, d.location
+              FROM hikvision_logs l 
+              JOIN hikvision_devices d ON l.device_id = d.id 
+              WHERE CAST(l.timestamp AS DATE) = $1::date
+              ORDER BY l.timestamp DESC
+            `, [todayJktDate])
+          ]);
 
-              COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
-                 WHERE payload->>'nis' = l.employee_id 
-                    OR payload->>'code' = l.employee_id 
-                    OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
-                 LIMIT 1),
-                (SELECT name FROM hikvision_students 
-                 WHERE nis = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
-                 LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR payload->>'id' = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
-                l.employee_id
-              ) as student_name,
+          // Build rapid in-memory O(1) lookup maps
+          const studentMap = new Map();
+          for (const s of (students || [])) {
+            const nis = String(s.nis || s.code || s.id || '').trim().toLowerCase();
+            const name = String(s.name || s.nama || '').trim();
+            const className = String(s.class_name || s.kelas || '-').trim();
+            if (nis) {
+              const obj = { nis: s.nis || nis, name, class_name: className };
+              studentMap.set(nis, obj);
+              if (nis.length >= 6) {
+                studentMap.set(nis.slice(-8), obj);
+              }
+            }
+          }
+          for (const hs of (hsRes.rows || [])) {
+            const nis = String(hs.nis || '').trim().toLowerCase();
+            const name = String(hs.name || '').trim();
+            const className = String(hs.class_name || '-').trim();
+            if (nis && !studentMap.has(nis)) {
+              const obj = { nis: hs.nis, name, class_name: className };
+              studentMap.set(nis, obj);
+              if (nis.length >= 6) {
+                studentMap.set(nis.slice(-8), obj);
+              }
+            }
+          }
 
-              COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
-                 WHERE payload->>'nis' = l.employee_id 
-                    OR payload->>'code' = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))
-                 LIMIT 1),
-                (SELECT name FROM hikvision_students 
-                 WHERE nis = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
-                 LIMIT 1),
-                NULL
-              ) as true_name,
-              COALESCE(
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_teachers 
-                 WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_staffs 
-                 WHERE (payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}' LIMIT 1),
-                (SELECT COALESCE(payload->>'name', payload->>'nama') FROM mst_students 
-                 WHERE payload->>'nis' = l.employee_id 
-                    OR payload->>'code' = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))
-                 LIMIT 1),
-                (SELECT name FROM hikvision_students 
-                 WHERE nis = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis))
-                 LIMIT 1),
-                l.employee_id
-              ) as name,
+          const teacherMap = new Map();
+          for (const t of (teachers || [])) {
+            const code = String(t.code || t.nip || t.id || '').trim().toLowerCase();
+            if (code) teacherMap.set(code, { name: t.name || t.nama || code });
+          }
 
-              COALESCE(
-                (SELECT NULLIF(NULLIF(COALESCE(payload->>'kelas', payload->>'class_name'), 'siswa'), '-') FROM mst_students 
-                 WHERE payload->>'nis' = l.employee_id 
-                    OR payload->>'code' = l.employee_id 
-                    OR id = l.employee_id 
-                    OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || (payload->>'nis')))
-                 LIMIT 1),
-                (SELECT NULLIF(NULLIF(class_name, 'siswa'), '-') FROM hikvision_students 
-                 WHERE (nis = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (nis LIKE '%' || l.employee_id OR l.employee_id LIKE '%' || nis)))
-                 LIMIT 1),
-                '-'
-              ) as class_name,
+          const staffMap = new Map();
+          for (const st of (staffs || [])) {
+            const code = String(st.staff_code || st.code || st.id || '').trim().toLowerCase();
+            if (code) staffMap.set(code, { name: st.name || st.nama || code });
+          }
 
-              l.employee_id as username,
-              CASE 
-                WHEN EXISTS(SELECT 1 FROM mst_teachers WHERE (payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id) AND l.employee_id !~* '^[0-9]{7,}') THEN 'guru'
-                WHEN EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id) THEN 'karyawan'
-                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id AND class_name = 'guru') THEN 'guru'
-                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id AND class_name IN ('karyawan', 'staff')) THEN 'karyawan'
-                WHEN l.employee_id ~* '^k[0-9a-z]+' THEN 'karyawan'
-                WHEN EXISTS(SELECT 1 FROM mst_students WHERE payload->>'nis' = l.employee_id OR (CHAR_LENGTH(l.employee_id) >= 6 AND (payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (payload->>'nis'))))) THEN 'siswa'
-                WHEN EXISTS(SELECT 1 FROM hikvision_students WHERE nis = l.employee_id AND class_name NOT IN ('guru', 'karyawan', 'staff')) THEN 'siswa'
-                WHEN d.device_type IN ('karyawan', 'staff') THEN 'karyawan'
-                WHEN d.device_type = 'guru' THEN 'guru'
-                ELSE 'siswa'
-              END as true_person_type
-            FROM hikvision_logs l 
-            JOIN hikvision_devices d ON l.device_id = d.id 
-            WHERE CAST(l.timestamp AS DATE) = $1::date
-            ORDER BY l.timestamp DESC
-          `, [todayJktDate]);
+          // Map rows with rapid O(1) memory lookup
+          const todayLogsRows = [];
+          for (const l of logsRawRes.rows) {
+            const rawId = String(l.employee_id || '').trim().toLowerCase();
+            let personType = 'siswa';
+            let canonicalNis = l.employee_id;
+            let name = l.employee_id;
+            let className = '-';
+            let trueName = null;
 
-          // Cari jam scan PERTAMA (earliest) untuk setiap orang hari ini
-          const firstScanMap = new Map();
+            if (teacherMap.has(rawId) && !/^[0-9]{7,}$/.test(rawId)) {
+              personType = 'guru';
+              const t = teacherMap.get(rawId);
+              name = t.name;
+              trueName = t.name;
+            } else if (staffMap.has(rawId) && !/^[0-9]{7,}$/.test(rawId)) {
+              personType = 'karyawan';
+              const st = staffMap.get(rawId);
+              name = st.name;
+              trueName = st.name;
+            } else if (studentMap.has(rawId)) {
+              personType = 'siswa';
+              const s = studentMap.get(rawId);
+              canonicalNis = s.nis;
+              name = s.name;
+              trueName = s.name;
+              className = s.class_name;
+            } else if (rawId.startsWith('k')) {
+              personType = 'karyawan';
+            } else if (l.device_type === 'guru') {
+              personType = 'guru';
+            } else if (l.device_type === 'karyawan' || l.device_type === 'staff') {
+              personType = 'karyawan';
+            }
+
+            todayLogsRows.push({
+              ...l,
+              canonical_nis: canonicalNis,
+              student_name: name,
+              true_name: trueName,
+              name,
+              class_name: className,
+              username: l.employee_id,
+              true_person_type: personType
+            });
+          }
+
+          const todayLogsRes = { rows: todayLogsRows };
           todayLogsRes.rows.forEach(r => {
             const empId = String(r.canonical_nis || r.employee_id || '').trim().toLowerCase();
             if (!empId) return;
