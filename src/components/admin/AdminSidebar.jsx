@@ -994,57 +994,17 @@ export default function AdminSidebar({
           <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white to-transparent z-20 pointer-events-none" />
         )}
 
-        {/* Custom Animated Draggable Scrollbar on the LEFT */}
-        {!isCollapsed && hasOverflow && (
-          <div 
-            ref={trackRef}
-            onClick={handleTrackClick}
-            className={cn(
-              "absolute left-0.5 top-2 bottom-2 w-2 z-30 transition-all duration-300 cursor-pointer select-none",
-              (isScrolling || isHoveringNav) ? "opacity-100" : "opacity-0"
-            )}
-            title="Klik atau seret untuk menggulir"
-          >
-            {/* Track line */}
-            <div className="w-1 h-full mx-auto bg-slate-200/40 hover:bg-slate-200/70 rounded-full relative transition-colors">
-              {/* Animated Glowing Thumb */}
-              <div 
-                onMouseDown={handleThumbMouseDown}
-                onClick={(e) => e.stopPropagation()}
-                className={cn(
-                  "absolute left-0 right-0 rounded-full transition-all duration-100 ease-out cursor-grab active:cursor-grabbing",
-                  isScrolling
-                    ? "bg-gradient-to-b from-emerald-500 via-teal-500 to-emerald-600 shadow-sm shadow-emerald-500/50 scale-x-125"
-                    : "bg-slate-400 hover:bg-slate-600 hover:scale-x-125"
-                )}
-                style={{
-                  height: `${thumbHeight}px`,
-                  top: `${scrollProgress * (trackRef.current ? (trackRef.current.clientHeight - thumbHeight) : 0)}px`,
-                }}
-              >
-                {/* Micro Animated Pulse Dot inside the thumb */}
-                <div className="w-full h-full flex items-center justify-center pointer-events-none">
-                  <span className={cn(
-                    "w-0.5 h-2 rounded-full transition-colors",
-                    isScrolling ? "bg-white/80 animate-pulse" : "bg-white/40"
-                  )} />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         <nav
           ref={refToUse}
           tabIndex={0}
           onKeyDown={handleNavKeyDown}
           onScroll={handleScroll}
           className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-6 relative z-10 transition-all focus:outline-none scrollbar-none no-scrollbar",
-            isCollapsed ? "px-2" : "pl-3 pr-2.5"
+            "flex-1 sidebar-scroll-left pt-1.5 pb-6 relative z-10 transition-all focus:outline-none",
+            isCollapsed ? "px-2" : "pl-2.5 pr-2.5"
           )}
           style={{ scrollBehavior: 'smooth' }}
-          title="Gunakan tombol panah keyboard atau scroll mouse untuk menggulir"
+          title="Gunakan scroll mouse atau seret scrollbar di kiri untuk menggulir"
         >
           <div className="w-full flex flex-col min-w-0" style={{ direction: 'ltr' }}>
             {searchQuery.trim() ? (
@@ -1225,7 +1185,7 @@ export default function AdminSidebar({
                 </span>
               </div>
 
-              <div className="flex flex-col gap-0.5 max-h-[min(480px,calc(100vh-100px))] overflow-y-auto scrollbar-none no-scrollbar px-0.5">
+              <div className="flex flex-col gap-0.5 max-h-[min(520px,calc(100vh-100px))] popover-custom-scrollbar px-0.5">
                 {activeFlyout.subItems.map(item => (
                   <button
                     key={item.id}

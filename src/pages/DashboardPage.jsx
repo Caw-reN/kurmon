@@ -1257,10 +1257,10 @@ export default function DashboardPage({
                   </span>
                 )}
               </div>
-              <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[260px] pr-1 custom-scrollbar">
+              <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[160px] pr-1 custom-scrollbar">
                 {(!dashboardMessages || dashboardMessages.length === 0) ? (
-                  <div className="flex flex-col items-center justify-center text-center py-5 px-3 bg-slate-50/50 rounded-lg border border-dashed border-slate-200/80">
-                    <MessageSquare size={20} className="text-slate-300 mb-1" />
+                  <div className="flex flex-col items-center justify-center text-center py-4 px-3 bg-slate-50/50 rounded-lg border border-dashed border-slate-200/80">
+                    <MessageSquare size={18} className="text-slate-300 mb-1" />
                     <span className="text-[11px] font-semibold text-slate-500">Belum ada pengumuman</span>
                     <span className="text-[9.5px] text-slate-400 mt-0.5">Informasi dari sekolah akan tampil di sini</span>
                   </div>
@@ -1282,6 +1282,58 @@ export default function DashboardPage({
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+
+            {/* Jam Kerja & Akses Presensi Cepat (Mengisi Space Kosong Kolom Kiri) */}
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3 sm:p-3.5 flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
+                  <Clock size={14} className="text-emerald-600" /> Jam Kerja &amp; Presensi
+                </h3>
+                <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.2 rounded-md">
+                  Aktif
+                </span>
+              </div>
+
+              {/* Grid 3 Kolom Jam Kerja */}
+              <div className="grid grid-cols-3 gap-1.5">
+                <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-2 text-center flex flex-col justify-center">
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Masuk</span>
+                  <span className="text-[11px] font-extrabold text-slate-800 mt-0.5">07:00</span>
+                  <span className="text-[8px] text-slate-400">WIB</span>
+                </div>
+                <div className="bg-amber-50/70 border border-amber-200/60 rounded-lg p-2 text-center flex flex-col justify-center">
+                  <span className="text-[8.5px] font-bold text-amber-700 uppercase tracking-wider">Toleransi</span>
+                  <span className="text-[11px] font-extrabold text-amber-900 mt-0.5">07:15</span>
+                  <span className="text-[8px] text-amber-600/80">WIB</span>
+                </div>
+                <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-2 text-center flex flex-col justify-center">
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Pulang</span>
+                  <span className="text-[11px] font-extrabold text-slate-800 mt-0.5">15:30</span>
+                  <span className="text-[8px] text-slate-400">WIB</span>
+                </div>
+              </div>
+
+              {/* Tombol Akses Cepat Presensi Mandiri / Kalender */}
+              <div className="flex items-center gap-1.5 pt-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('absen_mandiri_guru')}
+                  className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] rounded-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <CheckCircle2 size={12} strokeWidth={2.4} />
+                  <span>Presensi Mandiri</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('akademik')}
+                  className="py-1.5 px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-[10.5px] border border-slate-200/80 rounded-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                  title="Buka Kalender Akademik"
+                >
+                  <CalendarDays size={12} strokeWidth={2.2} />
+                  <span>Kalender</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1335,7 +1387,7 @@ export default function DashboardPage({
             </div>
           </div>
 
-          {/* KOLOM KANAN (col-span-3): Beban Mengajar */}
+          {/* KOLOM KANAN (col-span-3): Beban Mengajar & Jadwal Hari Ini */}
           <div className="lg:col-span-3 flex flex-col gap-3">
             <div className="ui-card bg-white border border-slate-200/80 rounded-xl flex flex-col overflow-hidden">
               <div className="p-2.5 px-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
@@ -1344,11 +1396,11 @@ export default function DashboardPage({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('beban')}
+                  onClick={() => window.print()}
                   className="shrink-0 flex items-center gap-1 px-2 py-0.5 bg-white border border-slate-200/90 rounded-md text-[10px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors cursor-pointer active:scale-95"
-                  title="Lihat rincian beban mengajar"
+                  title="Cetak Beban Mengajar"
                 >
-                  <Printer size={10} /> Export
+                  <Printer size={10} /> Cetak
                 </button>
               </div>
               {myTeachingLoads.length === 0 ? (
@@ -1358,7 +1410,7 @@ export default function DashboardPage({
                 </div>
               ) : (
                 <>
-                  <div className="overflow-y-auto custom-scrollbar max-h-[260px]">
+                  <div className="overflow-y-auto custom-scrollbar max-h-[160px]">
                     <table className="w-full text-left">
                       <thead className="sticky top-0 bg-white z-10 border-b border-slate-100">
                         <tr className="border-b border-slate-100">
@@ -1395,6 +1447,73 @@ export default function DashboardPage({
                   </div>
                 </>
               )}
+            </div>
+
+            {/* Widget Jadwal Mengajar Hari Ini (Mengisi Space Kosong Kolom Kanan) */}
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl flex flex-col overflow-hidden">
+              <div className="p-2.5 px-3 border-b border-slate-100 flex justify-between items-center bg-slate-50/40">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5 truncate">
+                    <CalendarDays size={14} className="text-indigo-600 shrink-0" /> Jadwal Mengajar Hari Ini
+                  </h3>
+                </div>
+                <span className="shrink-0 text-[9.5px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200/70 px-1.5 py-0.2 rounded-md">
+                  {todayClasses.length > 0 ? `${todayClasses.length} Sesi` : 'Libur'}
+                </span>
+              </div>
+
+              <div className="p-2.5 flex flex-col gap-2 max-h-[175px] overflow-y-auto custom-scrollbar">
+                {todayClasses.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-4 px-2 text-center bg-slate-50/50 rounded-lg border border-dashed border-slate-200/80">
+                    <CheckCircle2 size={18} className="text-emerald-500 mb-1" />
+                    <span className="text-[11px] font-bold text-slate-700">Tidak Ada Jam Mengajar</span>
+                    <span className="text-[9px] text-slate-400 mt-0.5">Hari ini bebas dari jadwal tatap muka.</span>
+                  </div>
+                ) : (
+                  todayClasses.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setActiveTab('jurnal_harian')}
+                      className="p-2 bg-slate-50/80 hover:bg-indigo-50/40 border border-slate-200/70 hover:border-indigo-200 rounded-lg transition-all cursor-pointer flex items-center justify-between gap-2"
+                      title="Klik untuk buka Jurnal KBM kelas ini"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10.5px] font-bold text-slate-800 truncate leading-tight">
+                            {item.subject}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[9px] font-semibold text-slate-500 mt-0.5">
+                          <span className="bg-white border border-slate-200/80 px-1.5 py-0.2 rounded text-slate-700">
+                            {item.className}
+                          </span>
+                          <span>•</span>
+                          <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
+                          {item.room && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate">R. {item.room}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <ChevronRight size={13} className="text-slate-400 shrink-0" />
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Action Footer: Link to Jurnal KBM */}
+              <div className="p-2 px-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('jurnal_harian')}
+                  className="w-full py-1.5 px-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-md text-[10px] font-bold text-slate-700 hover:text-indigo-600 transition-colors flex items-center justify-center gap-1 cursor-pointer active:scale-95"
+                >
+                  <FileText size={11} className="text-indigo-600" />
+                  <span>Buka Jurnal KBM &amp; Absensi</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

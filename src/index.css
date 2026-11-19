@@ -815,6 +815,92 @@ a[class*="active:scale"]:active {
   background: transparent;
 }
 
+/* Sidebar dedicated scrollbar on the LEFT with Modern Custom Styling */
+.sidebar-scroll-left {
+  direction: rtl !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.sidebar-scroll-left:hover {
+  scrollbar-color: var(--ui-primary, #059669) transparent !important;
+}
+
+.sidebar-scroll-left > * {
+  direction: ltr !important;
+}
+
+.sidebar-scroll-left::-webkit-scrollbar {
+  width: 5px !important;
+  height: 5px !important;
+  background: transparent !important;
+}
+
+.sidebar-scroll-left::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.sidebar-scroll-left::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  border-radius: 9999px !important;
+  border: 1px solid transparent !important;
+  background-clip: padding-box !important;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-scroll-left::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ui-primary, #059669) !important;
+}
+
+.sidebar-scroll-left::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.sidebar-scroll-left::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* Submenu Popover / Flyout Sleek Scrollbar */
+.popover-custom-scrollbar {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.popover-custom-scrollbar:hover {
+  scrollbar-color: var(--ui-primary, #059669) transparent !important;
+}
+
+.popover-custom-scrollbar::-webkit-scrollbar {
+  width: 4px !important;
+  height: 4px !important;
+  background: transparent !important;
+}
+
+.popover-custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.popover-custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1 !important;
+  border-radius: 9999px !important;
+}
+
+.popover-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--ui-primary, #059669) !important;
+}
+
+.popover-custom-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 /* Sidebar dedicated slim draggable scrollbar */
 .sidebar-scrollbar-left {
   scrollbar-width: none !important;
