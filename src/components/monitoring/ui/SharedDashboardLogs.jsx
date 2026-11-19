@@ -55,7 +55,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 8;
 
   const [subFilter, setSubFilter] = useState('all');
   const [showSuperAdminModal, setShowSuperAdminModal] = useState(false);
@@ -705,27 +705,27 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     }
 
     return (
-      <div key={index} className="flex justify-between items-center py-1.5 px-3 hover:bg-slate-50/80 transition-colors group">
-        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-          <div className="text-[10px] sm:text-[10.5px] font-black text-slate-400 w-4 text-right shrink-0">{absoluteIndex}.</div>
+      <div key={index} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg border border-slate-100 bg-slate-50/40 hover:bg-slate-50/90 transition-colors group">
+        <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
+          <div className="text-[10px] font-black text-slate-400 w-3.5 text-right shrink-0">{absoluteIndex}.</div>
           <div className={`w-7 h-7 rounded-full font-black text-[11px] flex items-center justify-center shrink-0 border ${avatarBg}`}>
             {avatarChar}
           </div>
-          <div className="min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-              <p className="text-xs font-bold text-slate-800 truncate uppercase tracking-tight">{name}</p>
+          <div className="min-w-0 flex flex-col justify-center flex-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <p className="text-[11.5px] font-bold text-slate-800 truncate uppercase tracking-tight">{name}</p>
               {subtitleBadge}
             </div>
-            <p className="text-[9.5px] text-slate-400 font-medium mt-0.5 truncate flex items-center gap-1.5">
-              {subtitleText && <span className="font-semibold text-slate-500">{subtitleText}</span>}
+            <p className="text-[9.5px] text-slate-400 font-medium mt-0.5 truncate">
+              {subtitleText}
             </p>
           </div>
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-0.5">
-          <span className={`text-[8.5px] font-black px-1.5 py-0.5 rounded-md border uppercase block tracking-wider ${rightBadgeBg}`}>
+          <span className={`text-[8.5px] font-bold px-1.5 py-0.2 rounded-md border uppercase tracking-wider ${rightBadgeBg}`}>
             {rightBadgeText}
           </span>
-          <span className="text-[10px] text-slate-400 font-medium tracking-tight mt-0.5">
+          <span className="text-[9.5px] text-slate-400 font-medium tracking-tight">
             {timeText}
           </span>
         </div>
@@ -910,7 +910,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 ">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 flex-1 content-start mb-2">
                   {guruKaryawanLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'guru_karyawan', i))}
                 </div>
                 {renderPagination(guruKaryawanLogs.length)}
@@ -930,7 +930,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1 ">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 flex-1 content-start mb-2">
                   {kehadiranSiswaLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'kehadiran_siswa', i))}
                 </div>
                 {renderPagination(kehadiranSiswaLogs.length)}
@@ -950,7 +950,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 flex-1 content-start mb-2">
                   {terlambatSiswaLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_terlambat', i))}
                 </div>
                 {renderPagination(terlambatSiswaLogs.length)}
@@ -970,7 +970,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 flex-1 content-start mb-2">
                   {terlambatGuruLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'guru_terlambat', i))}
                 </div>
                 {renderPagination(terlambatGuruLogs.length)}
@@ -990,7 +990,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 flex-1 content-start mb-2">
                   {bermasalahLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_bermasalah', i))}
                 </div>
                 {renderPagination(bermasalahLogs.length)}
@@ -1010,7 +1010,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="flex flex-col border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5 flex-1 content-start mb-2">
                   {siswaPrestasiLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, i) => renderListItem(item, 'siswa_prestasi', i))}
                 </div>
                 {renderPagination(siswaPrestasiLogs.length)}

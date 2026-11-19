@@ -1,6 +1,7 @@
 import { Button } from '../components/ui.jsx';
-/*  */import React, { lazy, Suspense, useMemo, useState, useEffect, useCallback } from"react";
-import {  Users, HelpCircle, X, X as CloseIcon, FileText,
+/*  */import React, { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
+import {
+  Users, HelpCircle, X, X as CloseIcon, FileText,
   BookOpen,
   Calendar,
   CalendarDays,
@@ -33,8 +34,9 @@ import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   Edit3,
   UserCheck,
   Search,
-  Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, BellRing, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
-import { useAppStore } from"../store/useAppStore";
+  Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, BellRing, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User
+} from 'lucide-react';
+import { useAppStore } from "../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
 import { SharedDashboardLogs } from "../components/monitoring/ui/index.js";
 import { getAttendanceStatusTone } from "../utils/adminHelpers.js";
@@ -296,11 +298,10 @@ function TeachingScheduleCard({
                     key={cIdx}
                     type="button"
                     onClick={() => setSelectedTodayClassIdx && setSelectedTodayClassIdx(cIdx)}
-                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${
-                      isSelected
-                        ? 'bg-white text-slate-900 border border-slate-200/80'
-                        : 'text-slate-500 hover:text-slate-700'
-                    }`}
+                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer truncate ${isSelected
+                      ? 'bg-white text-slate-900 border border-slate-200/80'
+                      : 'text-slate-500 hover:text-slate-700'
+                      }`}
                   >
                     {itemOngoing && (
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
@@ -407,9 +408,9 @@ export default function DashboardPage({
   const isGenerated = Boolean(_isGenerated || (schedule && schedule.length > 0));
   const teachingLoads = _teachingLoads || [];
   const subjectComposition = _subjectComposition || [];
-  const today = useMemo(() => new Date().toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' }), []);
-  const todayShort = useMemo(() => new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' }), []);
-  const todayLong = useMemo(() => new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' }), []);
+  const today = useMemo(() => new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), []);
+  const todayShort = useMemo(() => new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }), []);
+  const todayLong = useMemo(() => new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }), []);
 
   const {
     majorCount,
@@ -419,25 +420,26 @@ export default function DashboardPage({
     roomUsagePercent,
     roomCapacityData,
     scheduleSlots } = useMemo(() => {
-    const mCount = new Set((classes || []).map((item) => item?.major).filter(Boolean)).size;
-    const pTeachers = (teachers || []).filter((teacher) => teacher?.type ==="Jurusan").length;
-    const nTeachers = (teachers || []).length - pTeachers;
-    const prSubjects = (subjects || []).filter((subject) => subject?.isBlock).length;
-    const uRooms = new Set((schedule || []).map((item) => item?.roomId).filter(Boolean));
-    const ruPercent = (rooms || []).length > 0 ? Math.round((uRooms.size / (rooms || []).length) * 100) : 0;
-    return {
-      majorCount: mCount,
-      productiveTeachers: pTeachers,
-      normativeTeachers: nTeachers,
-      practiceSubjects: prSubjects,
-      usedRooms: uRooms,
-      roomUsagePercent: ruPercent,
-      roomCapacityData: [
-        { name:"Terpakai", value: uRooms.size },
-        { name:"Kosong", value: (rooms || []).length - uRooms.size }
-      ],
-      scheduleSlots: (schedule || []).length };
-  }, [classes, teachers, subjects, schedule, rooms]);
+      const mCount = new Set((classes || []).map((item) => item?.major).filter(Boolean)).size;
+      const pTeachers = (teachers || []).filter((teacher) => teacher?.type === "Jurusan").length;
+      const nTeachers = (teachers || []).length - pTeachers;
+      const prSubjects = (subjects || []).filter((subject) => subject?.isBlock).length;
+      const uRooms = new Set((schedule || []).map((item) => item?.roomId).filter(Boolean));
+      const ruPercent = (rooms || []).length > 0 ? Math.round((uRooms.size / (rooms || []).length) * 100) : 0;
+      return {
+        majorCount: mCount,
+        productiveTeachers: pTeachers,
+        normativeTeachers: nTeachers,
+        practiceSubjects: prSubjects,
+        usedRooms: uRooms,
+        roomUsagePercent: ruPercent,
+        roomCapacityData: [
+          { name: "Terpakai", value: uRooms.size },
+          { name: "Kosong", value: (rooms || []).length - uRooms.size }
+        ],
+        scheduleSlots: (schedule || []).length
+      };
+    }, [classes, teachers, subjects, schedule, rooms]);
 
   const rawRole = (currentUser?.role || "").toLowerCase().trim();
   const subrole = (currentUser?.subrole || "").toLowerCase().trim();
@@ -456,12 +458,12 @@ export default function DashboardPage({
   const isWakaHumas = rawRole === "waka_humas" || rawRole === "humas" || (rawRole === "waka" && division === "humas") || subrole === "waka_humas";
 
   const isWaka = isWakaKurikulum || isWakaKesiswaan || isWakaSarpras || isWakaHubin || isWakaHumas || rawRole === "waka" || rawRole.startsWith("waka_");
-  
+
   const activeDivision = isWakaKesiswaan ? "kesiswaan"
     : isWakaHubin ? "hubin"
-    : isWakaSarpras ? "sarpras"
-    : isWakaHumas ? "humas"
-    : (rawRole === "waka" ? (division || "kurikulum") : (rawRole.startsWith("waka_") ? rawRole.replace("waka_", "") : "kurikulum"));
+      : isWakaSarpras ? "sarpras"
+        : isWakaHumas ? "humas"
+          : (rawRole === "waka" ? (division || "kurikulum") : (rawRole.startsWith("waka_") ? rawRole.replace("waka_", "") : "kurikulum"));
 
   const isBK = rawRole === "bpbk" || rawRole === "bk" || subrole === "bpbk" || subrole === "bk" || division === "bk" || division === "bpbk" || Boolean(currentUser?.isBK);
   const isWalas = Boolean(currentUser?.isWalas || currentUser?.walasClass || rawRole === 'walikelas' || subrole === 'walikelas');
@@ -497,95 +499,107 @@ export default function DashboardPage({
 
   const wakaProfiles = {
     kurikulum: {
-      label:"Waka Kurikulum",
-      subtitle:"Fokus pada jadwal, kalender akademik, silabus, dan beban mengajar.",
+      label: "Waka Kurikulum",
+      subtitle: "Fokus pada jadwal, kalender akademik, silabus, dan beban mengajar.",
       actions: [
-        { label:"Pantau Jadwal", tab:"generate", icon: Calendar, tone:"primary" },
-        { label:"Beban Mengajar", tab:"beban", icon: Activity, tone:"white" },
-        { label:"Silabus & Modul", tab:"silabus", icon: BookOpen, tone:"white" },
-      ] },
+        { label: "Pantau Jadwal", tab: "generate", icon: Calendar, tone: "primary" },
+        { label: "Beban Mengajar", tab: "beban", icon: Activity, tone: "white" },
+        { label: "Silabus & Modul", tab: "silabus", icon: BookOpen, tone: "white" },
+      ]
+    },
     kesiswaan: {
-      label:"Waka Kesiswaan",
-      subtitle:"Fokus pada presensi siswa, surat izin & sakit, kedisiplinan, dan prestasi.",
+      label: "Waka Kesiswaan",
+      subtitle: "Fokus pada presensi siswa, surat izin & sakit, kedisiplinan, dan prestasi.",
       actions: [
-        { label:"Presensi Siswa", tab:"hikvision_report_siswa", icon: CheckCircle2, tone:"primary" },
-        { label:"Izin & Sakit", tab:"kedisiplinan_absensi", icon: FileSpreadsheet, tone:"white" },
-        { label:"Piket & Tatib", tab:"kedisiplinan_piket", icon: Shield, tone:"white" },
-      ] },
+        { label: "Presensi Siswa", tab: "hikvision_report_siswa", icon: CheckCircle2, tone: "primary" },
+        { label: "Izin & Sakit", tab: "kedisiplinan_absensi", icon: FileSpreadsheet, tone: "white" },
+        { label: "Piket & Tatib", tab: "kedisiplinan_piket", icon: Shield, tone: "white" },
+      ]
+    },
     sarpras: {
-      label:"Waka Sarpras",
-      subtitle:"Fokus pada ruangan, denah, fasilitas, dan pemakaian ruang.",
+      label: "Waka Sarpras",
+      subtitle: "Fokus pada ruangan, denah, fasilitas, dan pemakaian ruang.",
       actions: [
-        { label:"Data Ruangan", tab:"ruangan", icon: DoorOpen, tone:"primary" },
-        { label:"Denah Bangunan", tab:"denah", icon: School, tone:"white" },
-        { label:"Pantau Jadwal", tab:"generate", icon: Calendar, tone:"white" },
-      ] },
+        { label: "Data Ruangan", tab: "ruangan", icon: DoorOpen, tone: "primary" },
+        { label: "Denah Bangunan", tab: "denah", icon: School, tone: "white" },
+        { label: "Pantau Jadwal", tab: "generate", icon: Calendar, tone: "white" },
+      ]
+    },
     humas: {
-      label:"Waka Humas",
-      subtitle:"Fokus pada informasi publik, pesan dashboard, dan tampilan web.",
+      label: "Waka Humas",
+      subtitle: "Fokus pada informasi publik, pesan dashboard, dan tampilan web.",
       actions: [
-        { label:"Pesan & Info", tab:"pesan", icon: Activity, tone:"primary" },
-        { label:"Tampilan Web", tab:"tampilan", icon: TrendingUp, tone:"white" },
-        { label:"Kalender", tab:"akademik", icon: Calendar, tone:"white" },
-      ] },
+        { label: "Pesan & Info", tab: "pesan", icon: Activity, tone: "primary" },
+        { label: "Tampilan Web", tab: "tampilan", icon: TrendingUp, tone: "white" },
+        { label: "Kalender", tab: "akademik", icon: Calendar, tone: "white" },
+      ]
+    },
     hubin: {
-      label:"Waka Hubin",
-      subtitle:"Fokus pada Manajemen PKL, Data Siswa Praktik, dan Mitra DUDI.",
+      label: "Waka Hubin",
+      subtitle: "Fokus pada Manajemen PKL, Data Siswa Praktik, dan Mitra DUDI.",
       actions: [
-        { label:"Data Siswa PKL", tab:"pkl_data_siswa", icon: Users, tone:"primary" },
-        { label:"Jurnal & Logbook", tab:"pkl_jurnal", icon: BookOpen, tone:"white" },
-        { label:"Mitra DUDI", tab:"pkl_data_perusahaan", icon: Building2, tone:"white" },
-      ] } };
+        { label: "Data Siswa PKL", tab: "pkl_data_siswa", icon: Users, tone: "primary" },
+        { label: "Jurnal & Logbook", tab: "pkl_jurnal", icon: BookOpen, tone: "white" },
+        { label: "Mitra DUDI", tab: "pkl_data_perusahaan", icon: Building2, tone: "white" },
+      ]
+    }
+  };
   const wakaProfile = wakaProfiles[activeDivision] || wakaProfiles.kurikulum;
 
   const dashboardMode = (() => {
     if (isTU) return {
-      label:"Dashboard Tata Usaha",
-      subtitle:"Ringkasan administrasi sekolah, rekap absensi, persuratan, dan data siswa.",
-      badge:"Tata Usaha",
+      label: "Dashboard Tata Usaha",
+      subtitle: "Ringkasan administrasi sekolah, rekap absensi, persuratan, dan data siswa.",
+      badge: "Tata Usaha",
       actions: [
-        { label:"Data Siswa", tab:"siswa", icon: Users },
-        { label:"Laporan Absensi", tab:"laporan_absensi", icon: CheckCircle2 },
-        { label:"E-Surat", tab:"esurat", icon: FileText },
-      ] };
+        { label: "Data Siswa", tab: "siswa", icon: Users },
+        { label: "Laporan Absensi", tab: "laporan_absensi", icon: CheckCircle2 },
+        { label: "E-Surat", tab: "esurat", icon: FileText },
+      ]
+    };
     if (isKepsek) return {
-      label:"Dashboard Kepala Sekolah",
-      subtitle:"Pantau kondisi sekolah, jadwal, rekap absensi, dan aktivitas terbaru.",
-      badge:"Level 2 · Monitoring",
+      label: "Dashboard Kepala Sekolah",
+      subtitle: "Pantau kondisi sekolah, jadwal, rekap absensi, dan aktivitas terbaru.",
+      badge: "Level 2 · Monitoring",
       actions: [
-        { label:"Pantau Jadwal", tab:"generate", icon: Calendar },
-        { label:"Rekap Kehadiran", tab:"laporan_absensi", icon: CheckCircle2 },
-        { label:"Pesan Dashboard", tab:"pesan", icon: Activity },
-      ] };
+        { label: "Pantau Jadwal", tab: "generate", icon: Calendar },
+        { label: "Rekap Kehadiran", tab: "laporan_absensi", icon: CheckCircle2 },
+        { label: "Pesan Dashboard", tab: "pesan", icon: Activity },
+      ]
+    };
     if (isWaka) return {
       label: `Dashboard ${wakaProfile.label}`,
       subtitle: wakaProfile.subtitle,
-      badge:"Level 3 · Bidang",
-      actions: wakaProfile.actions };
+      badge: "Level 3 · Bidang",
+      actions: wakaProfile.actions
+    };
     if (isBK) return {
-      label:"Dashboard Bimbingan Konseling (BK)",
-      subtitle:"Monitoring kedisiplinan siswa, konseling, buku pembinaan, dan rekap prestasi.",
-      badge:"Layanan Siswa",
+      label: "Dashboard Bimbingan Konseling (BK)",
+      subtitle: "Monitoring kedisiplinan siswa, konseling, buku pembinaan, dan rekap prestasi.",
+      badge: "Layanan Siswa",
       actions: [
-        { label:"Layanan BK", tab:"kedisiplinan_bpbk", icon: Shield },
-        { label:"Izin & Sakit", tab:"kedisiplinan_absensi", icon: CheckCircle2 },
-        { label:"Prestasi Siswa", tab:"riwayat_prestasi", icon: Activity },
-      ] };
+        { label: "Layanan BK", tab: "kedisiplinan_bpbk", icon: Shield },
+        { label: "Izin & Sakit", tab: "kedisiplinan_absensi", icon: CheckCircle2 },
+        { label: "Prestasi Siswa", tab: "riwayat_prestasi", icon: Activity },
+      ]
+    };
     if (isSuperAdmin) return {
-      label:"Dashboard Admin (Terpadu)",
-      subtitle:"Ringkasan sistem terpadu (Kurikulum, Kesiswaan, Sarpras, & Humas). Kelola jadwal, fasilitas, SDM, dan konfigurasi utama.",
-      badge:"Level 1 · Akses Penuh",
+      label: "Dashboard Admin (Terpadu)",
+      subtitle: "Ringkasan sistem terpadu (Kurikulum, Kesiswaan, Sarpras, & Humas). Kelola jadwal, fasilitas, SDM, dan konfigurasi utama.",
+      badge: "Level 1 · Akses Penuh",
       actions: [
-        { label:"Buat Jadwal", tab:"generate", icon: Calendar },
-        { label:"Rekap Absensi", tab:"absensi", icon: CheckCircle2 },
-        { label:"Kelola Ruangan", tab:"ruangan", icon: DoorOpen },
-        { label:"Tampilan Web", tab:"tampilan", icon: TrendingUp },
-      ] };
+        { label: "Buat Jadwal", tab: "generate", icon: Calendar },
+        { label: "Rekap Absensi", tab: "absensi", icon: CheckCircle2 },
+        { label: "Kelola Ruangan", tab: "ruangan", icon: DoorOpen },
+        { label: "Tampilan Web", tab: "tampilan", icon: TrendingUp },
+      ]
+    };
     return {
-      label:"Dashboard",
-      subtitle:"Ringkasan aktivitas dan data yang tersedia untuk akun Anda.",
-      badge:"Akses Pengguna",
-      actions: [] };
+      label: "Dashboard",
+      subtitle: "Ringkasan aktivitas dan data yang tersedia untuk akun Anda.",
+      badge: "Akses Pengguna",
+      actions: []
+    };
   })();
 
   const teacherCode = currentUser?.code;
@@ -687,7 +701,7 @@ export default function DashboardPage({
 
   const mySyllabuses = useMemo(() => {
     if (!isTeacher) return 0;
-    return syllabuses.filter((s) => String(s.teacherCode ||"").split(",").map((c) => c.trim()).includes(teacherCode)).length;
+    return syllabuses.filter((s) => String(s.teacherCode || "").split(",").map((c) => c.trim()).includes(teacherCode)).length;
   }, [isTeacher, syllabuses, teacherCode]);
 
   const timeSlots = useDataStore((state) => state.timeSlots) || {};
@@ -772,7 +786,7 @@ export default function DashboardPage({
     if (!todayClasses.length) return 0;
     const now = new Date();
     const curHhMm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
+
     for (let i = 0; i < todayClasses.length; i++) {
       const tc = todayClasses[i];
       if (tc.timeLabel && tc.timeLabel.includes('-')) {
@@ -931,13 +945,13 @@ export default function DashboardPage({
               title="Lihat Profil & Pengaturan"
             >
               <div className="relative shrink-0">
-                <div 
+                <div
                   className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center border-2 border-white group-active:scale-95 transition-transform"
                   style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
                 >
                   {(currentUser?.name || currentUser?.username || 'GR').slice(0, 2).toUpperCase()}
                 </div>
-                <span 
+                <span
                   className="w-3 h-3 rounded-full border-2 border-white absolute bottom-0 right-0 bg-emerald-500"
                 />
               </div>
@@ -957,15 +971,15 @@ export default function DashboardPage({
 
             {/* ======= TOP-LEFT DROPDOWN PROFILE POPOVER ======= */}
             {showMobileProfileModal && (
-              <div 
+              <div
                 className="absolute left-0 top-14 w-[calc(100vw-32px)] max-w-[320px] bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 z-[999999] flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 duration-200 text-left"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2 shrink-0">
                   <span className="font-black text-xs text-slate-800 tracking-tight">Profil & Pengaturan</span>
-                  <button 
+                  <button
                     type="button"
-                    onClick={() => setShowMobileProfileModal(false)} 
+                    onClick={() => setShowMobileProfileModal(false)}
                     className="text-slate-400 hover:text-slate-600 text-[10px] font-black bg-transparent border-none p-0 cursor-pointer uppercase tracking-wider"
                   >
                     TUTUP
@@ -973,7 +987,7 @@ export default function DashboardPage({
                 </div>
 
                 <div className="bg-slate-50 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex items-center gap-3">
-                  <div 
+                  <div
                     className="w-11 h-11 rounded-full text-white font-black text-xs flex items-center justify-center border-2 border-white shrink-0"
                     style={{ background: "var(--ui-primary)" }}
                   >
@@ -1000,9 +1014,8 @@ export default function DashboardPage({
                         localStorage.setItem('kurmon_tabbar_style', 'floating');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1 shrink-0 ${
-                        (localStorage.getItem('kurmon_tabbar_style') || 'floating') !== 'floating' ? 'text-slate-500' : ''
-                      }`}
+                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1 shrink-0 ${(localStorage.getItem('kurmon_tabbar_style') || 'floating') !== 'floating' ? 'text-slate-500' : ''
+                        }`}
                     >
                       <Layers size={13} strokeWidth={2.2} /> Mengambang
                     </Button>
@@ -1012,9 +1025,8 @@ export default function DashboardPage({
                         localStorage.setItem('kurmon_tabbar_style', 'stay');
                         window.dispatchEvent(new Event('kurmon_tabbar_style_changed'));
                       }}
-                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1.5 shrink-0 ${
-                        localStorage.getItem('kurmon_tabbar_style') !== 'stay' ? 'text-slate-500' : ''
-                      }`}
+                      className={`py-1.5 px-2 text-[10.5px] flex items-center justify-center gap-1.5 shrink-0 ${localStorage.getItem('kurmon_tabbar_style') !== 'stay' ? 'text-slate-500' : ''
+                        }`}
                     >
                       <Pin size={13} strokeWidth={2.2} /> Menempel
                     </Button>
@@ -1048,7 +1060,7 @@ export default function DashboardPage({
               </div>
             )}
           </div>
-          
+
           <div className="shrink-0 flex items-center gap-1.5">
             <span className="text-[10px] font-extrabold text-slate-600 bg-slate-100/90 border border-[var(--ui-border-soft)] px-2.5 py-1.5 rounded-[var(--ui-radius-control)]">
               {todayShort}
@@ -1063,7 +1075,7 @@ export default function DashboardPage({
           <div className="flex flex-col gap-2 text-left">
             {dashboardMessages && dashboardMessages.length > 2 && (
               <div className="flex items-center justify-end px-0.5">
-                <button 
+                <button
                   type="button"
                   onClick={handleLihatSemuaPengumuman}
                   className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
@@ -1085,12 +1097,12 @@ export default function DashboardPage({
               </div>
             ) : (
               dashboardMessages.slice(0, 2).map((msg, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   role="button"
                   tabIndex="0"
                   onClick={() => setActiveAnnouncementDetail(msg)}
-                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
                   className="ui-card bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3 cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all touch-manipulation relative z-10"
                 >
                   <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
@@ -1202,7 +1214,7 @@ export default function DashboardPage({
           </div>
 
           <div className="flex items-center shrink-0">
-            <button 
+            <button
               type="button"
               onClick={() => setShowPanduan(true)}
               title="Panduan Guru"
@@ -1216,7 +1228,7 @@ export default function DashboardPage({
 
         {/* ======= DESKTOP GRID LAYOUT (GURU) ======= */}
         <div className="hidden sm:grid grid-cols-1 lg:grid-cols-12 gap-4">
-          
+
           {/* KOLOM KIRI (col-span-3): Pengumuman */}
           <div className="lg:col-span-3 flex flex-col gap-4">
             {/* Kehadiran Hari Ini (Penting untuk absensi guru) */}
@@ -1254,8 +1266,8 @@ export default function DashboardPage({
                   </div>
                 ) : (
                   dashboardMessages.map((msg, idx) => (
-                    <div 
-                      key={idx} 
+                    <div
+                      key={idx}
                       onClick={() => setActiveAnnouncementDetail(msg)}
                       className="bg-slate-50 p-2 sm:p-2.5 rounded-lg border border-slate-200/70 hover:bg-slate-100 hover:border-slate-300 cursor-pointer transition-all"
                     >
@@ -1330,7 +1342,7 @@ export default function DashboardPage({
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight truncate">Beban Mengajar</h2>
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={() => setActiveTab('beban')}
                   className="shrink-0 flex items-center gap-1 px-2 py-0.5 bg-white border border-slate-200/90 rounded-md text-[10px] font-semibold text-slate-600 hover:bg-slate-50 hover:text-primary transition-colors cursor-pointer active:scale-95"
@@ -1386,239 +1398,239 @@ export default function DashboardPage({
             </div>
           </div>
         </div>
-        
+
         {/* ─────── Shared Activity Logs ─────── */}
         <div className="w-full">
           <SharedDashboardLogs onLogsFetched={setDashLogs} />
         </div>
 
         {/* Mobile Notification Modal (Desktop Style) */}
-      {showMobileNotif && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
-            
-            {/* Header (Sticky) */}
-            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
-              <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
-                   <Bell size={18} strokeWidth={2.5} />
-                 </div>
-                 <div className="flex flex-col">
-                   <h3 className="font-extrabold text-sm text-slate-800 tracking-tight leading-none">Notifikasi</h3>
-                   <p className="text-[10px] text-slate-500 font-medium mt-1">Info & Pembaruan Sistem</p>
-                 </div>
-              </div>
-              <button 
-                onClick={() => setShowMobileNotif(false)} 
-                className="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer active:scale-95"
-              >
-                <X size={16} strokeWidth={2.5} />
-              </button>
-            </div>
+        {showMobileNotif && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
 
-            {/* Scrollable Content */}
-            <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
-              
-              {/* Realtime Notification Consent Prompt */}
-              <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 relative overflow-hidden">
-                <div className="flex items-start gap-3 relative z-10">
-                  <div className="bg-white p-1.5 rounded-full text-[var(--ui-primary)] shrink-0">
-                    <BellRing className="w-4 h-4" strokeWidth={2.5} />
+              {/* Header (Sticky) */}
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                    <Bell size={18} strokeWidth={2.5} />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[13px] font-black text-slate-800 leading-tight">Notifikasi Realtime</span>
-                    <span className="text-[11px] font-medium text-slate-500 mt-1 leading-snug">Terima info absensi & piket langsung di layar Anda secara instan.</span>
+                    <h3 className="font-extrabold text-sm text-slate-800 tracking-tight leading-none">Notifikasi</h3>
+                    <p className="text-[10px] text-slate-500 font-medium mt-1">Info & Pembaruan Sistem</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => {
-                    if ("Notification" in window) {
-                      Notification.requestPermission().then(p => {
-                        if (p === 'granted') alert('Notifikasi realtime diaktifkan!');
-                      });
-                    }
-                  }}
-                  className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 relative z-10"
-                  style={{ backgroundColor: "var(--ui-primary)" }}
+                  onClick={() => setShowMobileNotif(false)}
+                  className="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer active:scale-95"
                 >
-                  <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
+                  <X size={16} strokeWidth={2.5} />
                 </button>
               </div>
 
-              {/* TODAY'S CLASS REMINDERS */}
-              <div className="flex flex-col gap-3 shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-4 rounded-full bg-indigo-500" />
-                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
-                    Jadwal Mengajar
-                  </span>
-                </div>
-                {!todayClasses || todayClasses.length === 0 ? (
-                  <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
-                    Tidak ada jadwal mengajar hari ini.
+              {/* Scrollable Content */}
+              <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
+
+                {/* Realtime Notification Consent Prompt */}
+                <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 relative overflow-hidden">
+                  <div className="flex items-start gap-3 relative z-10">
+                    <div className="bg-white p-1.5 rounded-full text-[var(--ui-primary)] shrink-0">
+                      <BellRing className="w-4 h-4" strokeWidth={2.5} />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[13px] font-black text-slate-800 leading-tight">Notifikasi Realtime</span>
+                      <span className="text-[11px] font-medium text-slate-500 mt-1 leading-snug">Terima info absensi & piket langsung di layar Anda secara instan.</span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl hover:border-indigo-200 transition-all cursor-pointer group">
-                        <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                          <Clock3 className="w-5 h-5" strokeWidth={2.5} />
-                        </div>
-                        <div className="flex flex-col min-w-0 text-left justify-center">
-                          <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-indigo-600 transition-colors">
-                            {item.subject}
-                          </span>
-                          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-slate-600">{item.className}</span>
-                            <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
+                  <button
+                    onClick={() => {
+                      if ("Notification" in window) {
+                        Notification.requestPermission().then(p => {
+                          if (p === 'granted') alert('Notifikasi realtime diaktifkan!');
+                        });
+                      }
+                    }}
+                    className="w-full py-2.5 text-white font-bold text-xs rounded-2xl active:scale-95 transition-all border-none cursor-pointer flex items-center justify-center gap-2 relative z-10"
+                    style={{ backgroundColor: "var(--ui-primary)" }}
+                  >
+                    <CheckCircle2 size={16} strokeWidth={2.5} /> Izinkan Sekarang
+                  </button>
+                </div>
+
+                {/* TODAY'S CLASS REMINDERS */}
+                <div className="flex flex-col gap-3 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-indigo-500" />
+                    <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
+                      Jadwal Mengajar
+                    </span>
+                  </div>
+                  {!todayClasses || todayClasses.length === 0 ? (
+                    <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                      Tidak ada jadwal mengajar hari ini.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {todayClasses.map((item, idx) => (
+                        <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl hover:border-indigo-200 transition-all cursor-pointer group">
+                          <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <Clock3 className="w-5 h-5" strokeWidth={2.5} />
+                          </div>
+                          <div className="flex flex-col min-w-0 text-left justify-center">
+                            <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-indigo-600 transition-colors">
+                              {item.subject}
+                            </span>
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                              <span className="bg-slate-100 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-slate-600">{item.className}</span>
+                              <span>Jam {item.jamStart === item.jamEnd ? item.jamStart : `${item.jamStart}-${item.jamEnd}`}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* ANNOUNCEMENTS / MESSAGES */}
+                <div className="flex flex-col gap-3 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-4 rounded-full bg-rose-500" />
+                    <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
+                      Pengumuman Terbaru
+                    </span>
                   </div>
-                )}
+                  {!dashboardMessages || dashboardMessages.length === 0 ? (
+                    <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                      Belum ada pengumuman terbaru.
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {dashboardMessages.slice(0, 3).map((item, idx) => (
+                        <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
+                          <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
+                          </div>
+                          <div className="flex flex-col min-w-0 justify-center">
+                            <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-rose-600 transition-colors">
+                              {item.title}
+                            </span>
+                            <span className="text-[10px] font-medium text-slate-500 truncate">
+                              {item.sender} • {item.date || 'Hari ini'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Spacer comment */}
+        {showAllAnnouncementsModal && (
+          <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+            <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+              <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+              <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                    <Megaphone size={16} strokeWidth={2.5} />
+                  </div>
+                  <h3 className="text-sm font-black text-slate-800">Semua Pemberitahuan</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAllAnnouncementsModal(false)}
+                  className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
               </div>
 
-              {/* ANNOUNCEMENTS / MESSAGES */}
-              <div className="flex flex-col gap-3 shrink-0">
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-4 rounded-full bg-rose-500" />
-                  <span className="text-[11px] font-black text-slate-700 uppercase tracking-widest">
-                    Pengumuman Terbaru
-                  </span>
-                </div>
-                {!dashboardMessages || dashboardMessages.length === 0 ? (
-                  <div className="text-xs font-bold text-slate-400 py-4 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
-                    Belum ada pengumuman terbaru.
+              <div className="p-5 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
+                {(!dashboardMessages || dashboardMessages.length === 0) ? (
+                  <div className="text-center py-8 text-xs font-bold text-slate-400">
+                    Belum ada informasi terbaru saat ini.
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2">
-                    {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl text-left cursor-pointer hover:bg-slate-50 hover:border-rose-200 transition-all group" onClick={() => { setShowMobileNotif(false); setActiveAnnouncementDetail(item); }}>
-                        <div className="w-10 h-10 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                          <MessageSquare className="w-5 h-5" strokeWidth={2.5} />
-                        </div>
-                        <div className="flex flex-col min-w-0 justify-center">
-                          <span className="text-xs font-extrabold text-slate-800 truncate mb-0.5 group-hover:text-rose-600 transition-colors">
-                            {item.title}
-                          </span>
-                          <span className="text-[10px] font-medium text-slate-500 truncate">
-                            {item.sender} • {item.date || 'Hari ini'}
-                          </span>
-                        </div>
+                  dashboardMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => { setShowAllAnnouncementsModal(false); setActiveAnnouncementDetail(msg); }}
+                      className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 transition-all cursor-pointer flex flex-col gap-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-2 py-0.5 rounded uppercase">
+                          {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
                       </div>
-                    ))}
-                  </div>
+                      <h4 className="text-xs font-black text-slate-800">{msg.title}</h4>
+                      <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{msg.content || msg.body}</p>
+                    </div>
+                  ))
                 )}
               </div>
-
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Spacer comment */}
-      {showAllAnnouncementsModal && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-lg overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
-            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
-                  <Megaphone size={16} strokeWidth={2.5} />
-                </div>
-                <h3 className="text-sm font-black text-slate-800">Semua Pemberitahuan</h3>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setShowAllAnnouncementsModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            </div>
+        )}
 
-            <div className="p-5 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
-              {(!dashboardMessages || dashboardMessages.length === 0) ? (
-                <div className="text-center py-8 text-xs font-bold text-slate-400">
-                  Belum ada informasi terbaru saat ini.
-                </div>
-              ) : (
-                dashboardMessages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => { setShowAllAnnouncementsModal(false); setActiveAnnouncementDetail(msg); }}
-                    className="p-4 rounded-[var(--ui-radius-card)] border border-slate-100 bg-slate-50 hover:bg-white hover:border-[var(--ui-primary)]/30 transition-all cursor-pointer flex flex-col gap-1.5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-2 py-0.5 rounded uppercase">
-                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
-                    </div>
-                    <h4 className="text-xs font-black text-slate-800">{msg.title}</h4>
-                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{msg.content || msg.body}</p>
+        {/* Modal Detail Single Announcement */}
+        {activeAnnouncementDetail && (
+          <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
+            <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+              <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
+              <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <Megaphone size={16} strokeWidth={2.5} />
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal Detail Single Announcement */}
-      {activeAnnouncementDetail && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
-          <div className="bg-white rounded-t-2xl sm:rounded-[var(--ui-radius-card)] border-t sm:border border-slate-200/80 w-full sm:max-w-md overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-300 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-            <div className="w-full flex justify-center pt-3 pb-1 sm:hidden"><div className="w-12 h-1.5 rounded-full bg-slate-200"></div></div>
-            <div className="px-4 pb-4 pt-1 sm:pt-4 border-b border-slate-100 flex items-center justify-between bg-white">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center">
-                  <Megaphone size={16} strokeWidth={2.5} />
+                  <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
                 </div>
-                <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
+                <button
+                  type="button"
+                  onClick={() => setActiveAnnouncementDetail(null)}
+                  className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
               </div>
-              <button 
-                type="button"
-                onClick={() => setActiveAnnouncementDetail(null)}
-                className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
-              >
-                <X size={14} />
-              </button>
-            </div>
 
-            <div className="p-5 overflow-y-auto flex flex-col gap-3">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="bg-rose-100 text-rose-700 text-[9px] font-black px-2 py-0.5 rounded uppercase">
-                  {activeAnnouncementDetail.priority === 'high' ? 'PENTING' : 'INFO'}
-                </span>
-                <span className="text-xs text-slate-400 font-semibold">{activeAnnouncementDetail.date || 'Hari ini'}</span>
+              <div className="p-5 overflow-y-auto flex flex-col gap-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="bg-rose-100 text-rose-700 text-[9px] font-black px-2 py-0.5 rounded uppercase">
+                    {activeAnnouncementDetail.priority === 'high' ? 'PENTING' : 'INFO'}
+                  </span>
+                  <span className="text-xs text-slate-400 font-semibold">{activeAnnouncementDetail.date || 'Hari ini'}</span>
+                </div>
+                <h2 className="text-base font-black text-slate-900 leading-snug">
+                  {activeAnnouncementDetail.title}
+                </h2>
+                <div className="text-xs text-slate-700 font-normal leading-relaxed whitespace-pre-line pt-2 border-t border-slate-100">
+                  {activeAnnouncementDetail.content || activeAnnouncementDetail.body}
+                </div>
               </div>
-              <h2 className="text-base font-black text-slate-900 leading-snug">
-                {activeAnnouncementDetail.title}
-              </h2>
-              <div className="text-xs text-slate-700 font-normal leading-relaxed whitespace-pre-line pt-2 border-t border-slate-100">
-                {activeAnnouncementDetail.content || activeAnnouncementDetail.body}
-              </div>
-            </div>
 
-            <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setActiveAnnouncementDetail(null)}
-                className="px-4 py-2 bg-slate-800 text-white rounded-[var(--ui-radius-small)] text-xs font-bold border-none cursor-pointer"
-              >
-                Tutup
-              </button>
+              <div className="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setActiveAnnouncementDetail(null)}
+                  className="px-4 py-2 bg-slate-800 text-white rounded-[var(--ui-radius-small)] text-xs font-bold border-none cursor-pointer"
+                >
+                  Tutup
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role ||"admin"} division={currentUser?.division ||""} />
+        <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role || "admin"} division={currentUser?.division || ""} />
       </div>
     );
-}
+  }
   // ===================== ADMIN / KEPSEK / WAKA VIEW =====================
   // Summary data for table
   const summaryRows = (() => {
@@ -1626,93 +1638,102 @@ export default function DashboardPage({
     const scheduleProgress = hasSchedule ? 100 : 0;
 
     const defaultRows = [
-    {
-      icon: School, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-indigo-500",
-      label:"Data Kelas", date: todayShort, count: `${classes.length} Kelas`,
-      note:"Rombongan belajar aktif", progress: classes.length > 0 ? 100 : 5, type:"kelas",
-      statusLabel: classes.length > 0 ?"Selesai" :"Belum Ada",
-      statusCls: classes.length > 0 ?"bg-emerald-50 text-emerald-600 border-emerald-100" :"bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: classes.length > 0 ?"bg-emerald-500" :"bg-slate-300" },
-    {
-      icon: Users, iconBg:"bg-emerald-50", iconColor:"text-emerald-500",
-      label:"Data Guru", date: todayShort, count: `${teachers.length} Guru`,
-      note:"SDM pengajar terdaftar", progress: teachers.length > 0 ? 100 : 5, type:"guru",
-      statusLabel: teachers.length > 0 ?"Selesai" :"Belum Ada",
-      statusCls: teachers.length > 0 ?"bg-emerald-50 text-emerald-600 border-emerald-100" :"bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: teachers.length > 0 ?"bg-emerald-500" :"bg-slate-300" },
-    {
-      icon: BookOpen, iconBg:"bg-purple-50", iconColor:"text-purple-500",
-      label:"Mata Pelajaran", date: todayShort, count: `${subjects.length} Mapel`,
-      note:"Struktur kurikulum", progress: subjects.length > 0 ? 100 : 5, type:"mapel",
-      statusLabel: subjects.length > 0 ?"Selesai" :"Belum Ada",
-      statusCls: subjects.length > 0 ?"bg-emerald-50 text-emerald-600 border-emerald-100" :"bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: subjects.length > 0 ?"bg-emerald-500" :"bg-slate-300" },
-    {
-      icon: Calendar, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-[var(--ui-primary)]",
-      label:"Jadwal Pelajaran", date: todayShort, count: `${scheduleSlots} Slot`,
-      note: hasSchedule ? "Total slot jadwal aktif terisi" : "Jadwal belum disusun",
-      progress: scheduleProgress,
-      type:"jadwal",
-      statusLabel: hasSchedule ? "Selesai" : "Belum Ada",
-      statusCls: hasSchedule ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: hasSchedule ? "bg-emerald-500" : "bg-slate-300" },
-    {
-      icon: DoorOpen, iconBg:"bg-amber-50", iconColor:"text-amber-500",
-      label:"Data Ruangan", date: todayShort, count: `${rooms.length} Ruang`,
-      note:"Kapasitas & Fasilitas (Sarpras)", progress: rooms.length > 0 ? 100 : 5, type:"ruangan",
-      statusLabel: rooms.length > 0 ?"Selesai" :"Belum Ada",
-      statusCls: rooms.length > 0 ?"bg-emerald-50 text-emerald-600 border-emerald-100" :"bg-slate-50 text-slate-400 border-slate-100",
-      statusDot: rooms.length > 0 ?"bg-emerald-500" :"bg-slate-300" },
-    {
-      icon: CheckCircle2, iconBg:"bg-teal-50", iconColor:"text-teal-500",
-      label:"Rekap Kehadiran", date: todayShort, count:"Pemantauan Aktif",
-      note:"Absensi harian (Kesiswaan)", progress: 100, type:"absensi",
-      statusLabel:"Selesai",
-      statusCls:"bg-emerald-50 text-emerald-600 border-emerald-100",
-      statusDot:"bg-emerald-500" },
-    {
-      icon: Users, iconBg:"bg-sky-50", iconColor:"text-sky-500",
-      label:"Data Siswa PKL", date: todayShort, count: `0 Siswa`,
-      note:"Peserta Praktik Kerja Lapangan", progress: 100, type:"pkl_siswa",
-      statusLabel:"Selesai",
-      statusCls:"bg-emerald-50 text-emerald-600 border-emerald-100",
-      statusDot:"bg-emerald-500" },
-    {
-      icon: BookOpen, iconBg:"bg-[var(--ui-primary)]/10", iconColor:"text-indigo-500",
-      label:"Jurnal Harian PKL", date: todayShort, count: `Tersedia`,
-      note:"Laporan kegiatan PKL siswa", progress: 100, type:"pkl_jurnal",
-      statusLabel:"Selesai",
-      statusCls:"bg-emerald-50 text-emerald-600 border-emerald-100",
-      statusDot:"bg-emerald-500" },
-  ];
-    if (isTU) return defaultRows.filter(r => ['absensi','kelas','guru','pkl_siswa'].includes(r.type));
+      {
+        icon: School, iconBg: "bg-[var(--ui-primary)]/10", iconColor: "text-indigo-500",
+        label: "Data Kelas", date: todayShort, count: `${classes.length} Kelas`,
+        note: "Rombongan belajar aktif", progress: classes.length > 0 ? 100 : 5, type: "kelas",
+        statusLabel: classes.length > 0 ? "Selesai" : "Belum Ada",
+        statusCls: classes.length > 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
+        statusDot: classes.length > 0 ? "bg-emerald-500" : "bg-slate-300"
+      },
+      {
+        icon: Users, iconBg: "bg-emerald-50", iconColor: "text-emerald-500",
+        label: "Data Guru", date: todayShort, count: `${teachers.length} Guru`,
+        note: "SDM pengajar terdaftar", progress: teachers.length > 0 ? 100 : 5, type: "guru",
+        statusLabel: teachers.length > 0 ? "Selesai" : "Belum Ada",
+        statusCls: teachers.length > 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
+        statusDot: teachers.length > 0 ? "bg-emerald-500" : "bg-slate-300"
+      },
+      {
+        icon: BookOpen, iconBg: "bg-purple-50", iconColor: "text-purple-500",
+        label: "Mata Pelajaran", date: todayShort, count: `${subjects.length} Mapel`,
+        note: "Struktur kurikulum", progress: subjects.length > 0 ? 100 : 5, type: "mapel",
+        statusLabel: subjects.length > 0 ? "Selesai" : "Belum Ada",
+        statusCls: subjects.length > 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
+        statusDot: subjects.length > 0 ? "bg-emerald-500" : "bg-slate-300"
+      },
+      {
+        icon: Calendar, iconBg: "bg-[var(--ui-primary)]/10", iconColor: "text-[var(--ui-primary)]",
+        label: "Jadwal Pelajaran", date: todayShort, count: `${scheduleSlots} Slot`,
+        note: hasSchedule ? "Total slot jadwal aktif terisi" : "Jadwal belum disusun",
+        progress: scheduleProgress,
+        type: "jadwal",
+        statusLabel: hasSchedule ? "Selesai" : "Belum Ada",
+        statusCls: hasSchedule ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
+        statusDot: hasSchedule ? "bg-emerald-500" : "bg-slate-300"
+      },
+      {
+        icon: DoorOpen, iconBg: "bg-amber-50", iconColor: "text-amber-500",
+        label: "Data Ruangan", date: todayShort, count: `${rooms.length} Ruang`,
+        note: "Kapasitas & Fasilitas (Sarpras)", progress: rooms.length > 0 ? 100 : 5, type: "ruangan",
+        statusLabel: rooms.length > 0 ? "Selesai" : "Belum Ada",
+        statusCls: rooms.length > 0 ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100",
+        statusDot: rooms.length > 0 ? "bg-emerald-500" : "bg-slate-300"
+      },
+      {
+        icon: CheckCircle2, iconBg: "bg-teal-50", iconColor: "text-teal-500",
+        label: "Rekap Kehadiran", date: todayShort, count: "Pemantauan Aktif",
+        note: "Absensi harian (Kesiswaan)", progress: 100, type: "absensi",
+        statusLabel: "Selesai",
+        statusCls: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        statusDot: "bg-emerald-500"
+      },
+      {
+        icon: Users, iconBg: "bg-sky-50", iconColor: "text-sky-500",
+        label: "Data Siswa PKL", date: todayShort, count: `0 Siswa`,
+        note: "Peserta Praktik Kerja Lapangan", progress: 100, type: "pkl_siswa",
+        statusLabel: "Selesai",
+        statusCls: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        statusDot: "bg-emerald-500"
+      },
+      {
+        icon: BookOpen, iconBg: "bg-[var(--ui-primary)]/10", iconColor: "text-indigo-500",
+        label: "Jurnal Harian PKL", date: todayShort, count: `Tersedia`,
+        note: "Laporan kegiatan PKL siswa", progress: 100, type: "pkl_jurnal",
+        statusLabel: "Selesai",
+        statusCls: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        statusDot: "bg-emerald-500"
+      },
+    ];
+    if (isTU) return defaultRows.filter(r => ['absensi', 'kelas', 'guru', 'pkl_siswa'].includes(r.type));
     if (isKepsek) return defaultRows;
     return defaultRows;
   })();
 
   // Define role-specific cards to ensure different content per role
   const allStatCards = {
-    siswa: { label:"Total Siswa", value: students.length, icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-500", sub: "Siswa Aktif", subIcon: Users, tab:"siswa" },
-    kelas: { label:"Total Kelas", value: classes.length, icon:"/icons/008-warehouse.svg", color:"bg-[var(--ui-primary)]/10 text-indigo-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab:"kelas" },
-    guru: { label:"Total Guru", value: teachers.length, icon:"/icons/066-education.svg", color:"bg-emerald-50 text-emerald-500", sub: `${productiveTeachers} Produktif`, subIcon: TrendingUp, tab:"guru" },
-    mapel: { label:"Total Mapel", value: subjects.length, icon:"/icons/092-file.svg", color:"bg-purple-50 text-purple-500", sub: `${practiceSubjects} Praktik`, subIcon: Activity, tab:"mapel" },
-    ruangan: { label:"Total Ruangan", value: rooms.length, icon:"/icons/016-map pin.svg", color:"bg-amber-50 text-amber-500", sub: `${roomUsagePercent}% Terpakai`, subIcon: TrendingUp, tab:"ruangan" },
-    jadwal: { label:"Slot Jadwal", value: scheduleSlots, icon:"/icons/086-calendar.svg", color:"bg-[var(--ui-primary)]/10 text-indigo-500", sub:"Aktif", subIcon: CheckCircle2, tab:"generate" },
-    absen: { label:"Kehadiran", value:"98%", icon:"/icons/079-checklist.svg", color:"bg-teal-50 text-teal-500", sub:"Hari Ini", subIcon: Activity, tab:"absensi" },
-    beban: { label:"Total JP", value: teachingLoads.reduce((sum, load) => sum + (Number(load.duration) || 0), 0), icon:"/icons/035-graph bar.svg", color:"bg-rose-50 text-rose-500", sub:"Beban Mengajar", subIcon: BookOpen, tab:"beban" },
-    pklSiswa: { label:"Siswa PKL", value: dashLogs ? (dashLogs.latestStudentLogs?.length || 0) : 0, icon:"/icons/045-account.svg", color:"bg-sky-50 text-sky-500", sub:"Aktif", subIcon: Activity, tab:"pkl_data_siswa" },
-    pklMitra: { label:"Mitra DUDI", value: 0, icon:"/icons/008-warehouse.svg", color:"bg-amber-50 text-amber-500", sub:"Terdaftar", subIcon: TrendingUp, tab:"pkl_data_perusahaan" },
-    pklJurnal: { label:"Jurnal PKL", value: 0, icon:"/icons/092-file.svg", color:"bg-teal-50 text-teal-500", sub:"Pending", subIcon: AlertTriangle, tab:"pkl_jurnal" } };
+    siswa: { label: "Total Siswa", value: students.length, icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Siswa Aktif", subIcon: Users, tab: "siswa" },
+    kelas: { label: "Total Kelas", value: classes.length, icon: "/icons/008-warehouse.svg", color: "bg-[var(--ui-primary)]/10 text-indigo-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab: "kelas" },
+    guru: { label: "Total Guru", value: teachers.length, icon: "/icons/066-education.svg", color: "bg-emerald-50 text-emerald-500", sub: `${productiveTeachers} Produktif`, subIcon: TrendingUp, tab: "guru" },
+    mapel: { label: "Total Mapel", value: subjects.length, icon: "/icons/092-file.svg", color: "bg-purple-50 text-purple-500", sub: `${practiceSubjects} Praktik`, subIcon: Activity, tab: "mapel" },
+    ruangan: { label: "Total Ruangan", value: rooms.length, icon: "/icons/016-map pin.svg", color: "bg-amber-50 text-amber-500", sub: `${roomUsagePercent}% Terpakai`, subIcon: TrendingUp, tab: "ruangan" },
+    jadwal: { label: "Slot Jadwal", value: scheduleSlots, icon: "/icons/086-calendar.svg", color: "bg-[var(--ui-primary)]/10 text-indigo-500", sub: "Aktif", subIcon: CheckCircle2, tab: "generate" },
+    absen: { label: "Kehadiran", value: "98%", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-500", sub: "Hari Ini", subIcon: Activity, tab: "absensi" },
+    beban: { label: "Total JP", value: teachingLoads.reduce((sum, load) => sum + (Number(load.duration) || 0), 0), icon: "/icons/035-graph bar.svg", color: "bg-rose-50 text-rose-500", sub: "Beban Mengajar", subIcon: BookOpen, tab: "beban" },
+    pklSiswa: { label: "Siswa PKL", value: dashLogs ? (dashLogs.latestStudentLogs?.length || 0) : 0, icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Aktif", subIcon: Activity, tab: "pkl_data_siswa" },
+    pklMitra: { label: "Mitra DUDI", value: 0, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-500", sub: "Terdaftar", subIcon: TrendingUp, tab: "pkl_data_perusahaan" },
+    pklJurnal: { label: "Jurnal PKL", value: 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-500", sub: "Pending", subIcon: AlertTriangle, tab: "pkl_jurnal" }
+  };
 
   const topCards = isKepsek ? [allStatCards.guru, allStatCards.pklSiswa, allStatCards.absen, allStatCards.jadwal]
-                 : isWaka ? (
-                    activeDivision ==="kurikulum" ? [allStatCards.jadwal, allStatCards.beban, allStatCards.mapel, allStatCards.guru]
-                    : activeDivision ==="sarpras" ? [allStatCards.ruangan, allStatCards.kelas, allStatCards.jadwal, allStatCards.guru]
-                    : activeDivision ==="hubin" ? [allStatCards.pklSiswa, allStatCards.pklMitra, allStatCards.pklJurnal, allStatCards.guru]
-                    : [allStatCards.siswa, allStatCards.absen, allStatCards.kelas, allStatCards.jadwal]
-                 )
-                 : isTU ? [allStatCards.absen, allStatCards.kelas, allStatCards.guru, allStatCards.jadwal]
-                 : [allStatCards.jadwal, allStatCards.pklSiswa, allStatCards.ruangan, allStatCards.guru];
+    : isWaka ? (
+      activeDivision === "kurikulum" ? [allStatCards.jadwal, allStatCards.beban, allStatCards.mapel, allStatCards.guru]
+        : activeDivision === "sarpras" ? [allStatCards.ruangan, allStatCards.kelas, allStatCards.jadwal, allStatCards.guru]
+          : activeDivision === "hubin" ? [allStatCards.pklSiswa, allStatCards.pklMitra, allStatCards.pklJurnal, allStatCards.guru]
+            : [allStatCards.siswa, allStatCards.absen, allStatCards.kelas, allStatCards.jadwal]
+    )
+      : isTU ? [allStatCards.absen, allStatCards.kelas, allStatCards.guru, allStatCards.jadwal]
+        : [allStatCards.jadwal, allStatCards.pklSiswa, allStatCards.ruangan, allStatCards.guru];
 
   if (isKepsek) {
     return (
@@ -1745,7 +1766,7 @@ export default function DashboardPage({
       {/* ======= MOBILE REFINED GREETING BAR ======= */}
       <div className="sm:hidden flex items-center justify-between gap-3 pt-1 pb-0.5">
         <div className="flex items-center gap-3 min-w-0">
-          <div 
+          <div
             className="w-10 h-10 rounded-full text-white font-extrabold text-xs flex items-center justify-center shrink-0"
             style={{ background: "var(--ui-primary)" }}
           >
@@ -1768,329 +1789,329 @@ export default function DashboardPage({
         </div>
       </div>
 
-        {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (ADMIN/MANAGEMENT) (< sm) ======= */}
-        <div className="sm:hidden flex flex-col gap-3 text-left mb-2">
+      {/* ======= MOBILE REFERENCE DASHBOARD LAYOUT (ADMIN/MANAGEMENT) (< sm) ======= */}
+      <div className="sm:hidden flex flex-col gap-3 text-left mb-2">
 
-          {/* 1. STATUS PEMANTAAN / HERO CARD (Disembunyikan untuk Waka sesuai request) */}
-          {!isWaka && (
-            <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80">
-              <div className="flex items-center justify-between gap-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  <span>Sistem Terpantau Aktif</span>
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 border border-slate-200">
-                  {activeRole}
-                </span>
+        {/* 1. STATUS PEMANTAAN / HERO CARD (Disembunyikan untuk Waka sesuai request) */}
+        {!isWaka && (
+          <div className="ui-card p-4 relative overflow-hidden flex flex-col gap-3 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80">
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-pill)] bg-primary/10 text-primary border border-primary/20 text-[10.5px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                <span>Sistem Terpantau Aktif</span>
               </div>
-
-              <div className="flex flex-col gap-0.5">
-                <h2 className="text-base font-extrabold text-slate-800 tracking-tight leading-snug">
-                  {dashboardMode.label || "Kurikulum & KBM Sekolah"}
-                </h2>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
-                  className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
-                >
-                  <CheckCircle2 size={14} strokeWidth={2.5} />
-                  <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
-                </button>
-              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-600 border border-slate-200">
+                {activeRole}
+              </span>
             </div>
-          )}
 
-          {/* PENGUMUMAN SEKOLAH (Ringkas & Nyaman) */}
-          {(!dashboardMessages || dashboardMessages.length === 0) ? (
-            <div className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-slate-50/90 border border-slate-200/80 text-slate-500 text-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <Megaphone size={13} className="text-slate-400 shrink-0" strokeWidth={2.2} />
-                <span className="text-[11px] font-semibold text-slate-500 truncate">Tidak ada pengumuman baru hari ini</span>
-              </div>
-              <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">Info Sekolah</span>
+            <div className="flex flex-col gap-0.5">
+              <h2 className="text-base font-extrabold text-slate-800 tracking-tight leading-snug">
+                {dashboardMode.label || "Kurikulum & KBM Sekolah"}
+              </h2>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                {dashboardMode.subtitle || `Total ${classes.length} Kelas • ${teachers.length} Guru Terdaftar`}
+              </p>
             </div>
-          ) : (
-            <div className="flex flex-col gap-2 text-left">
-              <div className="flex items-center justify-between px-0.5">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-1.5">
-                  <Megaphone size={14} className="text-rose-500 shrink-0" strokeWidth={2.4} />
-                  <span>Pemberitahuan & Informasi</span>
-                </h3>
-                <button 
-                  type="button"
-                  onClick={handleLihatSemuaPengumuman}
-                  className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
-                >
-                  Lihat Semua
-                </button>
-              </div>
 
-              {dashboardMessages.slice(0, 2).map((msg, idx) => (
-                <div 
-                  key={idx} 
-                  role="button"
-                  tabIndex="0"
-                  onClick={() => setActiveAnnouncementDetail(msg)}
-                  onKeyDown={(e) => { if(e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
-                  className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
-                >
-                  <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                    <Megaphone size={16} strokeWidth={2.2} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
-                        {msg.priority === 'high' ? 'PENTING' : 'INFO'}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
-                    </div>
-                    <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{msg.title}</h4>
-                    <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
+                className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
+              >
+                <CheckCircle2 size={14} strokeWidth={2.5} />
+                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ======= JADWAL MENGAJAR & JURNAL KBM HARI INI (UNTUK WAKA) ======= */}
-          {isWaka && (
-            <TeachingScheduleCard
-              todayClasses={todayClasses}
-              selectedClass={selectedClass}
-              selectedTodayClassIdx={selectedTodayClassIdx}
-              setSelectedTodayClassIdx={setSelectedTodayClassIdx}
-              setActiveTab={setActiveTab}
-            />
-          )}
-
-          {/* 2. PINTASAN CEPAT (8 DYNAMIC PASTEL SVG ICON CARDS - TAILORED PER ROLE) */}
+        {/* PENGUMUMAN SEKOLAH (Ringkas & Nyaman) */}
+        {(!dashboardMessages || dashboardMessages.length === 0) ? (
+          <div className="flex items-center justify-between px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-slate-50/90 border border-slate-200/80 text-slate-500 text-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <Megaphone size={13} className="text-slate-400 shrink-0" strokeWidth={2.2} />
+              <span className="text-[11px] font-semibold text-slate-500 truncate">Tidak ada pengumuman baru hari ini</span>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">Info Sekolah</span>
+          </div>
+        ) : (
           <div className="flex flex-col gap-2 text-left">
-            <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Pintasan Cepat</h3>
-            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
-              {(() => {
-                let dynamicShortcuts = [];
+            <div className="flex items-center justify-between px-0.5">
+              <h3 className="text-sm font-black text-slate-800 tracking-tight flex items-center gap-1.5">
+                <Megaphone size={14} className="text-rose-500 shrink-0" strokeWidth={2.4} />
+                <span>Pemberitahuan & Informasi</span>
+              </h3>
+              <button
+                type="button"
+                onClick={handleLihatSemuaPengumuman}
+                className="text-xs font-bold text-[var(--ui-primary)] hover:underline cursor-pointer bg-transparent border-none p-0 touch-manipulation"
+              >
+                Lihat Semua
+              </button>
+            </div>
 
-                if (isTU) {
+            {dashboardMessages.slice(0, 2).map((msg, idx) => (
+              <div
+                key={idx}
+                role="button"
+                tabIndex="0"
+                onClick={() => setActiveAnnouncementDetail(msg)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveAnnouncementDetail(msg) }}
+                className="ui-card bg-white p-3 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3 cursor-pointer hover:bg-slate-50 transition-colors relative z-10 active:scale-[0.99]"
+              >
+                <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
+                  <Megaphone size={16} strokeWidth={2.2} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="bg-rose-100 text-rose-700 text-[8.5px] font-black px-1.5 py-0.2 rounded uppercase">
+                      {msg.priority === 'high' ? 'PENTING' : 'INFO'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-semibold">{msg.date || 'Hari ini'}</span>
+                  </div>
+                  <h4 className="text-xs font-black text-slate-800 truncate leading-snug">{msg.title}</h4>
+                  <p className="text-[10.5px] text-slate-500 font-medium truncate mt-0.5">{msg.content || msg.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ======= JADWAL MENGAJAR & JURNAL KBM HARI INI (UNTUK WAKA) ======= */}
+        {isWaka && (
+          <TeachingScheduleCard
+            todayClasses={todayClasses}
+            selectedClass={selectedClass}
+            selectedTodayClassIdx={selectedTodayClassIdx}
+            setSelectedTodayClassIdx={setSelectedTodayClassIdx}
+            setActiveTab={setActiveTab}
+          />
+        )}
+
+        {/* 2. PINTASAN CEPAT (8 DYNAMIC PASTEL SVG ICON CARDS - TAILORED PER ROLE) */}
+        <div className="flex flex-col gap-2 text-left">
+          <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Pintasan Cepat</h3>
+          <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
+            {(() => {
+              let dynamicShortcuts = [];
+
+              if (isTU) {
+                dynamicShortcuts = [
+                  { label: "Laporan Absensi", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
+                  { label: "E-Surat", icon: "/icons/092-file.svg", tab: "esurat" },
+                  { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                  { label: "Kartu Pelajar", icon: "/icons/045-account.svg", tab: "kartu_pelajar" },
+                  { label: "Data Pegawai", icon: "/icons/035-graph bar.svg", tab: "data_pegawai" },
+                  { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
+                  { label: "Siswa Keluar", icon: "/icons/045-account.svg", tab: "siswa_keluar" },
+                  { label: "Rekap Presensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
+                ];
+              } else if (isSuperAdmin) {
+                dynamicShortcuts = [
+                  { label: "Pegawai", icon: "/icons/045-account.svg", tab: "data_pegawai" },
+                  { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                  { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                  { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                  { label: "Absensi", icon: "/icons/092-file.svg", tab: "absensi" },
+                  { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                  { label: "Hak Akses", icon: "/icons/013-shield.svg", tab: "hak_akses" },
+                  { label: "Pengaturan", icon: "/icons/063-follow.svg", tab: "pengaturan" },
+                ];
+              } else if (isKepsek) {
+                dynamicShortcuts = [
+                  { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
+                  { label: "Rekap Absensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
+                  { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
+                  { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
+                  { label: "Data Pegawai", icon: "/icons/045-account.svg", tab: "data_pegawai" },
+                  { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                  { label: "Modul Ajar", icon: "/icons/092-file.svg", tab: "silabus" },
+                  { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                ];
+              } else if (isWaka) {
+                if (activeDivision === 'kurikulum') {
                   dynamicShortcuts = [
-                    { label: "Laporan Absensi", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
-                    { label: "E-Surat", icon: "/icons/092-file.svg", tab: "esurat" },
-                    { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
-                    { label: "Kartu Pelajar", icon: "/icons/045-account.svg", tab: "kartu_pelajar" },
-                    { label: "Data Pegawai", icon: "/icons/035-graph bar.svg", tab: "data_pegawai" },
-                    { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
-                    { label: "Siswa Keluar", icon: "/icons/045-account.svg", tab: "siswa_keluar" },
-                    { label: "Rekap Presensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
-                  ];
-                } else if (isSuperAdmin) {
-                  dynamicShortcuts = [
-                    { label: "Pegawai", icon: "/icons/045-account.svg", tab: "data_pegawai" },
                     { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
-                    { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
-                    { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                    { label: "Absensi", icon: "/icons/092-file.svg", tab: "absensi" },
-                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
-                    { label: "Hak Akses", icon: "/icons/013-shield.svg", tab: "hak_akses" },
-                    { label: "Pengaturan", icon: "/icons/063-follow.svg", tab: "pengaturan" },
-                  ];
-                } else if (isKepsek) {
-                  dynamicShortcuts = [
-                    { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
-                    { label: "Rekap Absensi", icon: "/icons/079-checklist.svg", tab: "absensi" },
-                    { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
-                    { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
+                    { label: "Beban KBM", icon: "/icons/035-graph bar.svg", tab: "beban" },
+                    { label: "Modul Ajar", icon: "/icons/092-file.svg", tab: "modul_ajar" },
+                    { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
+                    { label: "Mapel", icon: "/icons/092-file.svg", tab: "mapel" },
+                    { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
                     { label: "Data Pegawai", icon: "/icons/045-account.svg", tab: "data_pegawai" },
-                    { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
-                    { label: "Modul Ajar", icon: "/icons/092-file.svg", tab: "silabus" },
-                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                    { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                   ];
-                } else if (isWaka) {
-                  if (activeDivision === 'kurikulum') {
-                    dynamicShortcuts = [
-                      { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
-                      { label: "Beban KBM", icon: "/icons/035-graph bar.svg", tab: "beban" },
-                      { label: "Modul Ajar", icon: "/icons/092-file.svg", tab: "modul_ajar" },
-                      { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
-                      { label: "Mapel", icon: "/icons/092-file.svg", tab: "mapel" },
-                      { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
-                      { label: "Data Pegawai", icon: "/icons/045-account.svg", tab: "data_pegawai" },
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                    ];
-                  } else if (activeDivision === 'kesiswaan') {
-                    dynamicShortcuts = [
-                      { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
-                      { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
-                      { label: "Piket & Tatib", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
-                      { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
-                      { label: "Poin Tatib", icon: "/icons/013-shield.svg", tab: "tatib_skor" },
-                      { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
-                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                      { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
-                    ];
-                  } else if (activeDivision === 'hubin') {
-                    dynamicShortcuts = [
-                      { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
-                      { label: "Mitra DUDI", icon: "/icons/008-warehouse.svg", tab: "pkl_data_perusahaan" },
-                      { label: "Penugasan", icon: "/icons/066-education.svg", tab: "pkl_penugasan" },
-                      { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
-                      { label: "Administrasi", icon: "/icons/092-file.svg", tab: "pkl_administrasi" },
-                      { label: "Laporan PKL", icon: "/icons/063-follow.svg", tab: "pkl_laporan" },
-                      { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
-                      { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
-                    ];
-                  } else if (activeDivision === 'sarpras') {
-                    dynamicShortcuts = [
-                      { label: "Data Ruangan", icon: "/icons/016-map pin.svg", tab: "ruangan" },
-                      { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
-                      { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
-                      { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
-                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                      { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                      { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                    ];
-                  } else if (activeDivision === 'humas') {
-                    dynamicShortcuts = [
-                      { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
-                      { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
-                      { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                      { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
-                      { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
-                      { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                      { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                      { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                    ];
-                  }
-                } else if (isBK) {
+                } else if (activeDivision === 'kesiswaan') {
                   dynamicShortcuts = [
-                    { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
                     { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
                     { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
-                    { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                    { label: "Piket & Tatib", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                    { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
+                    { label: "Poin Tatib", icon: "/icons/013-shield.svg", tab: "tatib_skor" },
                     { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
                     { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                    { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
                     { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                   ];
-                } else if (isWalas) {
+                } else if (activeDivision === 'hubin') {
                   dynamicShortcuts = [
+                    { label: "Siswa PKL", icon: "/icons/045-account.svg", tab: "pkl_data_siswa" },
+                    { label: "Mitra DUDI", icon: "/icons/008-warehouse.svg", tab: "pkl_data_perusahaan" },
+                    { label: "Penugasan", icon: "/icons/066-education.svg", tab: "pkl_penugasan" },
+                    { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
+                    { label: "Administrasi", icon: "/icons/092-file.svg", tab: "pkl_administrasi" },
+                    { label: "Laporan PKL", icon: "/icons/063-follow.svg", tab: "pkl_laporan" },
+                    { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                    { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                  ];
+                } else if (activeDivision === 'sarpras') {
+                  dynamicShortcuts = [
+                    { label: "Data Ruangan", icon: "/icons/016-map pin.svg", tab: "ruangan" },
+                    { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
+                    { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
+                    { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
                     { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
                     { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                    { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
-                    { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
                     { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                    { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
-                    { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                  ];
+                } else if (activeDivision === 'humas') {
+                  dynamicShortcuts = [
                     { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
-                  ];
-                } else if (activeRole === 'karyawan') {
-                  dynamicShortcuts = [
-                    { label: "Absen Pegawai", icon: "/icons/045-account.svg", tab: "absensiguru" },
-                    { label: "Rekap Kehadiran", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
+                    { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
                     { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                    { label: "Pengumuman", icon: "/icons/087-chat.svg", tab: "pesan" },
-                  ];
-                } else {
-                  dynamicShortcuts = [
-                    { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
-                    { label: "Jurnal", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                    { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
-                    { label: "Catatan", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                    { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
-                    { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                    { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                    { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
+                    { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                    { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
                     { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                    { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                   ];
                 }
+              } else if (isBK) {
+                dynamicShortcuts = [
+                  { label: "Layanan BK", icon: "/icons/045-account.svg", tab: "kedisiplinan_bpbk" },
+                  { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                  { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                  { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                  { label: "Prestasi", icon: "/icons/063-follow.svg", tab: "riwayat_prestasi" },
+                  { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                  { label: "Data Siswa", icon: "/icons/045-account.svg", tab: "siswa" },
+                  { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                ];
+              } else if (isWalas) {
+                dynamicShortcuts = [
+                  { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                  { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                  { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                  { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                  { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
+                  { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                  { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                ];
+              } else if (activeRole === 'karyawan') {
+                dynamicShortcuts = [
+                  { label: "Absen Pegawai", icon: "/icons/045-account.svg", tab: "absensiguru" },
+                  { label: "Rekap Kehadiran", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
+                  { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                  { label: "Pengumuman", icon: "/icons/087-chat.svg", tab: "pesan" },
+                ];
+              } else {
+                dynamicShortcuts = [
+                  { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
+                  { label: "Jurnal", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                  { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
+                  { label: "Catatan", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                  { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                  { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
+                  { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
+                  { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                ];
+              }
 
-                const allowedShortcuts = ensureFourOrEightShortcuts(dynamicShortcuts, checkIsAllowed);
+              const allowedShortcuts = ensureFourOrEightShortcuts(dynamicShortcuts, checkIsAllowed);
 
-                return allowedShortcuts.map((shortcut, idx) => {
-                  const pastelBgs = [
-                    "bg-emerald-50 text-emerald-600 border-emerald-100",
-                    "bg-teal-50 text-teal-600 border-teal-100",
-                    "bg-indigo-50 text-indigo-600 border-indigo-100",
-                    "bg-amber-50 text-amber-600 border-amber-100",
-                    "bg-rose-50 text-rose-600 border-rose-100",
-                    "bg-purple-50 text-purple-600 border-purple-100",
-                    "bg-cyan-50 text-cyan-600 border-cyan-100",
-                    "bg-indigo-50 text-indigo-600 border-indigo-100"
-                  ];
-                  const bg = pastelBgs[idx % pastelBgs.length];
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setActiveTab(shortcut.tab)}
-                      className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
-                    >
-                      <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center group-active:scale-95 transition-transform`}>
-                        <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
-                      </div>
-                      <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
-                        {shortcut.label}
-                      </span>
-                    </button>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-
-          {/* 3. RINGKASAN SISTEM (PASTEL SVG STAT CARDS - MATCHING ROLE VIEW) */}
-          <div className="flex flex-col gap-2 text-left">
-            <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Ringkasan Sistem</h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              {(() => {
-                let dynamicStatCards = [];
-                const storeData = useDataStore.getState() || {};
-                
-                if (isTU) {
-                  dynamicStatCards = [
-                    { label: "TOTAL SISWA", value: `${storeData.students?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
-                    { label: "GURU AKTIF", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
-                    { label: "STAF KARYAWAN", value: `${storeData.staffs?.length || 0} Staf`, icon: "/icons/035-graph bar.svg", color: "bg-teal-50 text-teal-600 border-teal-100" },
-                    { label: "TOTAL KELAS", value: `${classes.length} Kelas`, icon: "/icons/008-warehouse.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-                  ];
-                } else if (isWaka && activeDivision === 'hubin') {
-                  dynamicStatCards = [
-                    { label: "SISWA PKL", value: `${storeData.pklStudents?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
-                    { label: "MITRA DUDI", value: `${storeData.companies?.length || 0} DUDI`, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
-                    { label: "PEMBIMBING", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
-                    { label: "LOGBOOK PKL", value: `${storeData.pklLogs?.length || 0} Record`, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-                  ];
-                } else {
-                  dynamicStatCards = [
-                    { label: "TOTAL KELAS", value: `${classes.length} Kelas`, icon: "/icons/066-education.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
-                    { label: "GURU AKTIF", value: `${teachers.length} Guru`, icon: "/icons/045-account.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
-                    { label: "SLOT JADWAL", value: `${scheduleSlots} Slot`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
-                    { label: "TOTAL RUANGAN", value: `${rooms.length} Ruang`, icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
-                  ];
-                }
-
-                return dynamicStatCards.map((stat, idx) => (
-                  <div key={idx} className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-[var(--ui-radius-card)] ${stat.color} border flex items-center justify-center shrink-0`}>
-                      <img src={stat.icon} className="w-5.5 h-5.5 object-contain" alt="" />
+              return allowedShortcuts.map((shortcut, idx) => {
+                const pastelBgs = [
+                  "bg-emerald-50 text-emerald-600 border-emerald-100",
+                  "bg-teal-50 text-teal-600 border-teal-100",
+                  "bg-indigo-50 text-indigo-600 border-indigo-100",
+                  "bg-amber-50 text-amber-600 border-amber-100",
+                  "bg-rose-50 text-rose-600 border-rose-100",
+                  "bg-purple-50 text-purple-600 border-purple-100",
+                  "bg-cyan-50 text-cyan-600 border-cyan-100",
+                  "bg-indigo-50 text-indigo-600 border-indigo-100"
+                ];
+                const bg = pastelBgs[idx % pastelBgs.length];
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveTab(shortcut.tab)}
+                    className="flex flex-col items-center gap-1 group cursor-pointer border-none bg-transparent p-0 focus:outline-none"
+                  >
+                    <div className={`w-10 h-10 rounded-[var(--ui-radius-control)] ${bg} border flex items-center justify-center group-active:scale-95 transition-transform`}>
+                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-black text-slate-800 leading-tight">{stat.value}</h4>
-                      <p className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5 truncate">{stat.label}</p>
-                    </div>
-                  </div>
-                ));
-              })()}
-            </div>
+                    <span className="text-[9.5px] font-bold text-slate-700 text-center leading-tight line-clamp-2 px-0.5">
+                      {shortcut.label}
+                    </span>
+                  </button>
+                );
+              });
+            })()}
           </div>
-
-
-
         </div>
+
+        {/* 3. RINGKASAN SISTEM (PASTEL SVG STAT CARDS - MATCHING ROLE VIEW) */}
+        <div className="flex flex-col gap-2 text-left">
+          <h3 className="text-sm font-black text-slate-800 tracking-tight px-0.5">Ringkasan Sistem</h3>
+          <div className="grid grid-cols-2 gap-2.5">
+            {(() => {
+              let dynamicStatCards = [];
+              const storeData = useDataStore.getState() || {};
+
+              if (isTU) {
+                dynamicStatCards = [
+                  { label: "TOTAL SISWA", value: `${storeData.students?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                  { label: "GURU AKTIF", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                  { label: "STAF KARYAWAN", value: `${storeData.staffs?.length || 0} Staf`, icon: "/icons/035-graph bar.svg", color: "bg-teal-50 text-teal-600 border-teal-100" },
+                  { label: "TOTAL KELAS", value: `${classes.length} Kelas`, icon: "/icons/008-warehouse.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                ];
+              } else if (isWaka && activeDivision === 'hubin') {
+                dynamicStatCards = [
+                  { label: "SISWA PKL", value: `${storeData.pklStudents?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                  { label: "MITRA DUDI", value: `${storeData.companies?.length || 0} DUDI`, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                  { label: "PEMBIMBING", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
+                  { label: "LOGBOOK PKL", value: `${storeData.pklLogs?.length || 0} Record`, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                ];
+              } else {
+                dynamicStatCards = [
+                  { label: "TOTAL KELAS", value: `${classes.length} Kelas`, icon: "/icons/066-education.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                  { label: "GURU AKTIF", value: `${teachers.length} Guru`, icon: "/icons/045-account.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                  { label: "SLOT JADWAL", value: `${scheduleSlots} Slot`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
+                  { label: "TOTAL RUANGAN", value: `${rooms.length} Ruang`, icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                ];
+              }
+
+              return dynamicStatCards.map((stat, idx) => (
+                <div key={idx} className="bg-white p-3.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-[var(--ui-radius-card)] ${stat.color} border flex items-center justify-center shrink-0`}>
+                    <img src={stat.icon} className="w-5.5 h-5.5 object-contain" alt="" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-black text-slate-800 leading-tight">{stat.value}</h4>
+                    <p className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider mt-0.5 truncate">{stat.label}</p>
+                  </div>
+                </div>
+              ));
+            })()}
+          </div>
+        </div>
+
+
+
+      </div>
 
       {/* ======= MINIMALIST DESKTOP HERO BANNER (ADMIN/UMUM) ======= */}
       <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1">
@@ -2111,7 +2132,7 @@ export default function DashboardPage({
         </div>
 
         <div className="flex items-center shrink-0">
-          <button 
+          <button
             type="button"
             onClick={() => setShowPanduan(true)}
             title="Panduan Aplikasi"
@@ -2142,7 +2163,7 @@ export default function DashboardPage({
               </div>
             </div>
             <div className="w-8 h-8 rounded-full bg-rose-100/80 flex items-center justify-center text-rose-500 group-open:rotate-180 transition-transform duration-300 shrink-0">
-               <ChevronDown size={16} strokeWidth={2.5} />
+              <ChevronDown size={16} strokeWidth={2.5} />
             </div>
           </summary>
           <div className="px-4 pb-1">
@@ -2176,31 +2197,31 @@ export default function DashboardPage({
               key={idx} 
               type="button"
               onClick={() => setActiveTab(card.tab)} 
-              className="bg-white hover:bg-slate-50/50 p-2 sm:p-2.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-slate-300 flex flex-col justify-between active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
+              className="bg-white hover:bg-slate-50/70 p-2.5 sm:p-3 rounded-xl border border-slate-200/80 hover:border-slate-300 flex items-center justify-between gap-3 active:scale-[0.98] transition-all duration-200 group cursor-pointer text-left w-full"
             >
-              <div className="flex items-center justify-between w-full gap-1 mb-1.5">
-                <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 border ${theme.iconBg}`}>
                   {typeof card.icon === 'string' ? (
-                    <img src={card.icon} className="w-3.5 h-3.5 object-contain" alt="" />
+                    <img src={card.icon} className="w-4 h-4 sm:w-4.5 sm:h-4.5 object-contain" alt="" />
                   ) : (
-                    <card.icon size={13} strokeWidth={2.2} />
+                    <card.icon size={16} strokeWidth={2.2} />
                   )}
                 </div>
-                {card.sub && (
-                  <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded-md border truncate max-w-[105px] ${theme.badge}`}>
-                    {card.sub}
+                <div className="min-w-0 flex flex-col">
+                  <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate group-hover:text-primary transition-colors">
+                    {card.label}
                   </span>
-                )}
+                  <span className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none mt-0.5">
+                    {card.value}
+                  </span>
+                </div>
               </div>
 
-              <div className="min-w-0 w-full flex flex-col">
-                <h3 className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none mb-0.5">
-                  {card.value}
-                </h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate group-hover:text-[var(--ui-primary)] transition-colors">
-                  {card.label}
-                </p>
-              </div>
+              {card.sub && (
+                <span className={`text-[8.5px] font-bold px-2 py-0.5 rounded-md border shrink-0 ${theme.badge}`}>
+                  {card.sub}
+                </span>
+              )}
             </button>
           );
         })}
@@ -2259,21 +2280,20 @@ export default function DashboardPage({
 
       {/* ======= MIDDLE SECTION: UNIFIED RINGKASAN & STATISTIK ======= */}
       <div className="w-full flex flex-col gap-3">
-        
+
         {/* Full-width Ringkasan & Grafik Card */}
         <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 flex flex-col">
-          
+
           {/* Header Bar: Tabs Navigation */}
           <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-100">
             <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-[var(--ui-radius-small)] border border-slate-200/60">
               <button
                 type="button"
                 onClick={() => setActiveMiddleTab('ringkasan')}
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${
-                  activeMiddleTab === 'ringkasan'
-                    ? 'bg-white text-slate-900 border border-slate-200/60'
-                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                }`}
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${activeMiddleTab === 'ringkasan'
+                  ? 'bg-white text-slate-900 border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                  }`}
               >
                 <img src="/icons/046-report.svg" alt="Ringkasan" className="w-3.5 h-3.5 opacity-85" />
                 <span>Ringkasan Sistem</span>
@@ -2282,11 +2302,10 @@ export default function DashboardPage({
               <button
                 type="button"
                 onClick={() => setActiveMiddleTab('statistik')}
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${
-                  activeMiddleTab === 'statistik'
-                    ? 'bg-white text-slate-900 border border-slate-200/60'
-                    : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                }`}
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer border-none ${activeMiddleTab === 'statistik'
+                  ? 'bg-white text-slate-900 border border-slate-200/60'
+                  : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                  }`}
               >
                 <img src="/icons/035-graph bar.svg" alt="Statistik" className="w-3.5 h-3.5 opacity-85" />
                 <span>Statistik & Visualisasi</span>
@@ -2301,33 +2320,32 @@ export default function DashboardPage({
 
           {/* TAB CONTENT: Ringkasan Sistem Sekolah */}
           {activeMiddleTab === 'ringkasan' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 animate-in fade-in duration-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 animate-in fade-in duration-200">
               {summaryRows.map((row, i) => (
-                <div 
-                  key={i} 
-                  className="p-1.5 sm:p-2 rounded-[var(--ui-radius-small)] bg-slate-50/60 hover:bg-slate-50 border border-slate-100/90 hover:border-slate-200/80 transition-all flex flex-col gap-1"
+                <div
+                  key={i}
+                  className="p-2 sm:p-2.5 rounded-lg bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/80 hover:border-slate-300 transition-all flex flex-col justify-between gap-1.5"
                 >
                   <div className="flex items-center gap-2">
                     {/* Icon Box */}
-                    <div className={`w-6 h-6 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
+                    <div className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border border-slate-100 ${row.iconBg} ${row.iconColor}`}>
                       <row.icon size={12} strokeWidth={2.2} />
                     </div>
-                    
+
                     {/* Title & Count */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
                         <span className="font-bold text-slate-800 text-[10.5px] truncate">{row.label}</span>
-                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[8px] font-bold uppercase tracking-wider border shrink-0 ${
-                          row.statusLabel === 'Selesai' 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70' 
-                            : row.statusLabel === 'In Progress' 
-                            ? 'bg-amber-50 text-amber-700 border-amber-200/70' 
+                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded-md text-[8px] font-bold uppercase tracking-wider border shrink-0 ${row.statusLabel === 'Selesai'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
+                          : row.statusLabel === 'In Progress'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200/70'
                             : 'bg-slate-100 text-slate-600 border-slate-200/70'
-                        }`}>
+                          }`}>
                           {row.statusLabel}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-medium mt-0.5">
+                      <div className="flex items-center justify-between text-[9px] text-slate-400 font-medium mt-0.5">
                         <span className="truncate">{row.note}</span>
                         <span className="font-bold text-slate-600 shrink-0 ml-1">{row.count}</span>
                       </div>
@@ -2402,20 +2420,20 @@ export default function DashboardPage({
       {showMobileNotif && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] w-full max-w-sm max-h-[85vh] flex flex-col animate-in zoom-in-95 duration-300 overflow-hidden">
-            
+
             {/* Header (Sticky) */}
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 backdrop-blur-md px-5 py-4 shrink-0">
               <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
-                   <Bell size={18} strokeWidth={2.5} />
-                 </div>
-                 <div className="flex flex-col">
-                   <h3 className="font-extrabold text-sm text-slate-800 tracking-tight leading-none">Notifikasi</h3>
-                   <p className="text-[10px] text-slate-500 font-medium mt-1">Info & Pembaruan Sistem</p>
-                 </div>
+                <div className="w-9 h-9 rounded-full bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
+                  <Bell size={18} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col">
+                  <h3 className="font-extrabold text-sm text-slate-800 tracking-tight leading-none">Notifikasi</h3>
+                  <p className="text-[10px] text-slate-500 font-medium mt-1">Info & Pembaruan Sistem</p>
+                </div>
               </div>
-              <button 
-                onClick={() => setShowMobileNotif(false)} 
+              <button
+                onClick={() => setShowMobileNotif(false)}
                 className="w-8 h-8 rounded-full bg-slate-200/60 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors border-none cursor-pointer active:scale-95"
               >
                 <X size={16} strokeWidth={2.5} />
@@ -2424,7 +2442,7 @@ export default function DashboardPage({
 
             {/* Scrollable Content */}
             <div className="flex flex-col gap-6 p-5 overflow-y-auto custom-scrollbar">
-              
+
               {/* Realtime Notification Consent Prompt */}
               <div className="bg-[var(--ui-primary)]/10 border border-[var(--ui-primary)]/20 rounded-[16px] p-4 flex flex-col gap-3 shrink-0 relative overflow-hidden">
                 <div className="flex items-start gap-3 relative z-10">
@@ -2522,7 +2540,7 @@ export default function DashboardPage({
           </div>
         </div>
       )}
-      
+
       {/* Spacer comment */}
       {showAllAnnouncementsModal && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/50 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200 sm:p-4 sm:items-center sm:justify-center">
@@ -2535,7 +2553,7 @@ export default function DashboardPage({
                 </div>
                 <h3 className="text-sm font-black text-slate-800">Semua Pemberitahuan</h3>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowAllAnnouncementsModal(false)}
                 className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
@@ -2584,7 +2602,7 @@ export default function DashboardPage({
                 </div>
                 <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setActiveAnnouncementDetail(null)}
                 className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
@@ -2621,7 +2639,7 @@ export default function DashboardPage({
         </div>
       )}
 
-      <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role ||"admin"} division={currentUser?.division ||""} />
+      <PanduanModal isOpen={showPanduan} onClose={() => setShowPanduan(false)} role={currentUser?.role || "admin"} division={currentUser?.division || ""} />
     </div>
   );
 }
@@ -2657,7 +2675,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
             Pengumuman Baru
           </h2>
         </div>
-        
+
         <div className="flex items-center gap-1.5">
           {totalMsgs > 1 && (
             <span className="text-[11px] font-bold text-[var(--ui-primary)] bg-[var(--ui-primary)]/10 px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] border border-[var(--ui-primary)]/20">
@@ -2688,7 +2706,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
       </div>
 
       {/* Card matching reference mockup — Ultra Compact & Slim */}
-      <article 
+      <article
         onClick={() => setSelectedMsg(activeMsg)}
         className="rounded-[var(--ui-radius-small)] border border-slate-200/80 p-2.5 sm:p-3 relative overflow-hidden transition-all duration-300 bg-white hover:border-[var(--ui-primary)]/40 cursor-pointer group"
       >
@@ -2728,7 +2746,7 @@ function DashboardMessageCarousel({ dashboardMessages }) {
                 </div>
                 <h3 className="text-sm font-black text-slate-800">Detail Pengumuman</h3>
               </div>
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); setSelectedMsg(null); }}
                 className="w-8 h-8 rounded-full bg-slate-200/70 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border-none cursor-pointer"
               >
@@ -3084,7 +3102,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       const empId = String(r.employee_id || r.nis || r.username || '');
       if (empId.toUpperCase().startsWith('K')) return false;
       if (type.includes('guru') || type.includes('karyawan')) return false;
-      
+
       const logDate = r?.timestamp || r?.created_at || r?.date || '';
       if (!logDate) return false;
       return extractJktDate(logDate) === todayStrJkt;
@@ -3095,13 +3113,13 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
       if (!logDate) return false;
       return extractJktDate(logDate) === todayStrJkt;
     });
-    
+
     // Combine logs
     let allLogs = [...hikLogs];
     if (allLogs.length === 0 && recentLogs.length > 0) {
       allLogs = [...recentLogs];
     }
-    
+
     allLogs = [...allLogs, ...manualAbsenceLogs];
 
     // Build student lookup map for robust deduplication to canonical student NIS
@@ -3171,7 +3189,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     Object.values(uniqueSiswa).forEach(r => {
       let s = String(r.status || 'Hadir').toLowerCase();
       if (s === 'late') s = 'terlambat';
-      
+
       if (s.includes('hadir')) statuses.Hadir++;
       else if (s.includes('terlambat')) statuses.Terlambat++;
       else if (s.includes('izin')) statuses.Izin++;
@@ -3190,7 +3208,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
     return { ...statuses, total: Object.keys(uniqueSiswa).length, totalSiswaInSchool };
   }, [dashLogs, storeStudents, isWeekendOrHoliday, todayStr, isPastOrCutoff]);
 
-  const guruPercent = guruStats.totalGuru > 0 
+  const guruPercent = guruStats.totalGuru > 0
     ? Math.min(100, Math.round(((guruStats.Hadir + guruStats.Terlambat) / guruStats.totalGuru) * 100))
     : 0;
 
@@ -3344,8 +3362,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                       <ArrowRight size={12} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                     </h3>
                     <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium truncate">
-                      {siswaStats.totalSiswaInSchool > 0 
-                        ? `${siswaStats.total}/${siswaStats.totalSiswaInSchool} siswa terdata` 
+                      {siswaStats.totalSiswaInSchool > 0
+                        ? `${siswaStats.total}/${siswaStats.totalSiswaInSchool} siswa terdata`
                         : (dashLogs?.hikvisionStudentToday ? `${siswaStats.total} record mesin` : 'Absensi Hikvision')
                       }
                     </p>
@@ -3396,75 +3414,75 @@ const PanduanModal = ({ isOpen, onClose, role, division }) => {
 
   const roleGuides = {
     admin: [
-      { title:"Data Master", desc:"Kelola data Guru, Siswa, Kelas, Mata Pelajaran, Ruangan, dan Jurusan sebagai pondasi utama sistem." },
-      { title:"Manajemen Kalender & Silabus", desc:"Atur Kalender Akademik, Data Silabus, dan Struktur Organisasi sekolah melalui menu Akademik." },
-      { title:"Manajemen Jadwal", desc:"Tentukan beban mengajar, batasan ketersediaan waktu guru, dan gunakan fitur'Generate Jadwal' otomatis." },
-      { title:"Manajemen PKL", desc:"Pantau penuh data perusahaan, penempatan siswa, jurnal harian, serta kelola administrasi surat PKL." },
-      { title:"Manajemen Keamanan & Sistem", desc:"Atur device Hikvision, edit profil admin, radius absensi, dan kontrol seluruh modul sistem." },
+      { title: "Data Master", desc: "Kelola data Guru, Siswa, Kelas, Mata Pelajaran, Ruangan, dan Jurusan sebagai pondasi utama sistem." },
+      { title: "Manajemen Kalender & Silabus", desc: "Atur Kalender Akademik, Data Silabus, dan Struktur Organisasi sekolah melalui menu Akademik." },
+      { title: "Manajemen Jadwal", desc: "Tentukan beban mengajar, batasan ketersediaan waktu guru, dan gunakan fitur'Generate Jadwal' otomatis." },
+      { title: "Manajemen PKL", desc: "Pantau penuh data perusahaan, penempatan siswa, jurnal harian, serta kelola administrasi surat PKL." },
+      { title: "Manajemen Keamanan & Sistem", desc: "Atur device Hikvision, edit profil admin, radius absensi, dan kontrol seluruh modul sistem." },
     ],
     guru: [
-      { title:"Dashboard Personal", desc:"Pantau jadwal mengajar hari ini, jumlah jam pelajaran, serta pengumuman terbaru dari sekolah secara langsung." },
-      { title:"Absensi & Kehadiran", desc:"Gunakan menu'Absen Kelas' untuk mencatat kehadiran siswa (Hadir, Izin, Sakit, Alpa) pada jam pelajaran Anda." },
-      { title:"Manajemen Pembelajaran", desc:"Akses'Kelola Silabus' untuk mengunggah dan mendistribusikan Modul Ajar/Materi kepada siswa." },
-      { title:"Wali Kelas (Khusus)", desc:"Jika Anda Wali Kelas, akses menu'Laporan Wali Kelas' untuk memantau rekap kehadiran seluruh siswa di kelas Anda." },
+      { title: "Dashboard Personal", desc: "Pantau jadwal mengajar hari ini, jumlah jam pelajaran, serta pengumuman terbaru dari sekolah secara langsung." },
+      { title: "Absensi & Kehadiran", desc: "Gunakan menu'Absen Kelas' untuk mencatat kehadiran siswa (Hadir, Izin, Sakit, Alpa) pada jam pelajaran Anda." },
+      { title: "Manajemen Pembelajaran", desc: "Akses'Kelola Silabus' untuk mengunggah dan mendistribusikan Modul Ajar/Materi kepada siswa." },
+      { title: "Wali Kelas (Khusus)", desc: "Jika Anda Wali Kelas, akses menu'Laporan Wali Kelas' untuk memantau rekap kehadiran seluruh siswa di kelas Anda." },
     ],
     waka_kurikulum: [
-      { title:"Monitoring Akademik", desc:"Pantau status Kalender Akademik, progres pengisian Silabus, dan struktur kelas secara keseluruhan." },
-      { title:"Otomatisasi Jadwal", desc:"Akses menu Generate Jadwal, tentukan waktu istirahat, beban mengajar, dan atur waktu luang guru." },
-      { title:"Manajemen Data Sekolah", desc:"Akses lengkap ke Data Guru, Siswa, Kelas, dan Mapel untuk memastikan kesiapan KBM." },
+      { title: "Monitoring Akademik", desc: "Pantau status Kalender Akademik, progres pengisian Silabus, dan struktur kelas secara keseluruhan." },
+      { title: "Otomatisasi Jadwal", desc: "Akses menu Generate Jadwal, tentukan waktu istirahat, beban mengajar, dan atur waktu luang guru." },
+      { title: "Manajemen Data Sekolah", desc: "Akses lengkap ke Data Guru, Siswa, Kelas, dan Mapel untuk memastikan kesiapan KBM." },
     ],
     waka_kesiswaan: [
-      { title:"Monitoring Kehadiran", desc:"Pantau persentase kehadiran seluruh siswa secara real-time melalui menu Rekap Absensi Siswa." },
-      { title:"Sistem Kedisiplinan", desc:"Gunakan fitur Poin Kedisiplinan (Pelanggaran/Prestasi) dan atur Jadwal Guru Piket harian." },
-      { title:"Media Informasi", desc:"Buat Pengumuman (Pesan Dashboard) yang akan muncul langsung di beranda seluruh pengguna aplikasi." },
+      { title: "Monitoring Kehadiran", desc: "Pantau persentase kehadiran seluruh siswa secara real-time melalui menu Rekap Absensi Siswa." },
+      { title: "Sistem Kedisiplinan", desc: "Gunakan fitur Poin Kedisiplinan (Pelanggaran/Prestasi) dan atur Jadwal Guru Piket harian." },
+      { title: "Media Informasi", desc: "Buat Pengumuman (Pesan Dashboard) yang akan muncul langsung di beranda seluruh pengguna aplikasi." },
     ],
     waka_sarpras: [
-      { title:"Manajemen Ruangan", desc:"Kelola daftar ruangan, kapasitas, dan peruntukan ruangan (Teori/Praktik) di lingkungan sekolah." },
-      { title:"Visualisasi Denah", desc:"Gunakan fitur Denah Kelas untuk memetakan penempatan zona kelas secara visual." },
+      { title: "Manajemen Ruangan", desc: "Kelola daftar ruangan, kapasitas, dan peruntukan ruangan (Teori/Praktik) di lingkungan sekolah." },
+      { title: "Visualisasi Denah", desc: "Gunakan fitur Denah Kelas untuk memetakan penempatan zona kelas secara visual." },
     ],
     waka_humas: [
-      { title:"Komunikasi Publik", desc:"Buat Pengumuman/Pesan Dashboard untuk menyebarkan informasi resmi dari sekolah." },
-      { title:"Pengaturan Tampilan", desc:"Kelola visualisasi sistem dan kalender akademik yang dapat diakses oleh civitas akademika." },
+      { title: "Komunikasi Publik", desc: "Buat Pengumuman/Pesan Dashboard untuk menyebarkan informasi resmi dari sekolah." },
+      { title: "Pengaturan Tampilan", desc: "Kelola visualisasi sistem dan kalender akademik yang dapat diakses oleh civitas akademika." },
     ],
     waka_hubin: [
-      { title:"Data Industri (DUDI)", desc:"Kelola daftar Perusahaan/Mitra Industri tempat pelaksanaan Praktik Kerja Lapangan." },
-      { title:"Manajemen Siswa PKL", desc:"Lakukan plotting penempatan Siswa PKL ke berbagai perusahaan menggunakan sistem zonasi/jarak." },
-      { title:"Administrasi PKL", desc:"Proses permohonan Surat Pengantar dan Mutasi PKL yang diajukan oleh siswa secara digital." },
-      { title:"Monitoring Jurnal", desc:"Pantau laporan jurnal harian yang diisi oleh siswa PKL beserta absensi radius GPS." },
+      { title: "Data Industri (DUDI)", desc: "Kelola daftar Perusahaan/Mitra Industri tempat pelaksanaan Praktik Kerja Lapangan." },
+      { title: "Manajemen Siswa PKL", desc: "Lakukan plotting penempatan Siswa PKL ke berbagai perusahaan menggunakan sistem zonasi/jarak." },
+      { title: "Administrasi PKL", desc: "Proses permohonan Surat Pengantar dan Mutasi PKL yang diajukan oleh siswa secara digital." },
+      { title: "Monitoring Jurnal", desc: "Pantau laporan jurnal harian yang diisi oleh siswa PKL beserta absensi radius GPS." },
     ],
     kepsek: [
-      { title:"Executive Dashboard", desc:"Pantau ringkasan statistik sekolah (Jumlah Siswa, Guru, Kehadiran, dan status Jadwal) secara terpusat." },
-      { title:"Monitoring Absensi & PKL", desc:"Akses laporan kehadiran seluruh jenjang kelas, serta laporan akhir pelaksanaan PKL." },
-      { title:"Siaran Pengumuman", desc:"Terbitkan pesan instruksi atau pengumuman penting yang akan tampil di seluruh dashboard civitas akademika." },
+      { title: "Executive Dashboard", desc: "Pantau ringkasan statistik sekolah (Jumlah Siswa, Guru, Kehadiran, dan status Jadwal) secara terpusat." },
+      { title: "Monitoring Absensi & PKL", desc: "Akses laporan kehadiran seluruh jenjang kelas, serta laporan akhir pelaksanaan PKL." },
+      { title: "Siaran Pengumuman", desc: "Terbitkan pesan instruksi atau pengumuman penting yang akan tampil di seluruh dashboard civitas akademika." },
     ],
     siswa: [
-      { title:"Sistem Absensi (GPS)", desc:"Buka menu Presensi untuk mencatat kehadiran harian PKL (Wajib berada di dalam radius lokasi perusahaan)." },
-      { title:"Pengisian Jurnal", desc:"Akses menu Jurnal Harian untuk melaporkan kegiatan PKL setiap harinya dengan foto kegiatan." },
-      { title:"Administrasi Digital", desc:"Ajukan permohonan Surat Pengantar atau perpindahan lokasi PKL langsung melalui menu Administrasi." },
+      { title: "Sistem Absensi (GPS)", desc: "Buka menu Presensi untuk mencatat kehadiran harian PKL (Wajib berada di dalam radius lokasi perusahaan)." },
+      { title: "Pengisian Jurnal", desc: "Akses menu Jurnal Harian untuk melaporkan kegiatan PKL setiap harinya dengan foto kegiatan." },
+      { title: "Administrasi Digital", desc: "Ajukan permohonan Surat Pengantar atau perpindahan lokasi PKL langsung melalui menu Administrasi." },
     ]
   };
 
   const getGuide = () => {
-    if (role ==='admin' || role ==='superadmin') return roleGuides.admin;
-    if (role ==='kepsek') return roleGuides.kepsek;
-    if (role ==='waka') {
-       if (division ==='kurikulum') return roleGuides.waka_kurikulum;
-       if (division ==='kesiswaan') return roleGuides.waka_kesiswaan;
-       if (division ==='sarpras') return roleGuides.waka_sarpras;
-       if (division ==='humas') return roleGuides.waka_humas;
-       if (division ==='hubin') return roleGuides.waka_hubin;
-       return roleGuides.waka_kurikulum; // default
+    if (role === 'admin' || role === 'superadmin') return roleGuides.admin;
+    if (role === 'kepsek') return roleGuides.kepsek;
+    if (role === 'waka') {
+      if (division === 'kurikulum') return roleGuides.waka_kurikulum;
+      if (division === 'kesiswaan') return roleGuides.waka_kesiswaan;
+      if (division === 'sarpras') return roleGuides.waka_sarpras;
+      if (division === 'humas') return roleGuides.waka_humas;
+      if (division === 'hubin') return roleGuides.waka_hubin;
+      return roleGuides.waka_kurikulum; // default
     }
-    if (role ==='siswa') return roleGuides.siswa;
+    if (role === 'siswa') return roleGuides.siswa;
     return roleGuides.guru; // default to guru
   };
 
-  const currentRoleName = role ==='waka' ? `WAKA ${String(division ||'KURIKULUM').toUpperCase()}` : String(role).toUpperCase();
+  const currentRoleName = role === 'waka' ? `WAKA ${String(division || 'KURIKULUM').toUpperCase()}` : String(role).toUpperCase();
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white rounded-[var(--ui-radius-small)] w-full max-w-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-200">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50/70">
           <div className="flex items-center gap-3">
@@ -3489,7 +3507,7 @@ const PanduanModal = ({ isOpen, onClose, role, division }) => {
               {currentRoleName}
             </span>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {getGuide().map((item, idx) => (
               <div key={idx} className="flex gap-4 bg-white p-5 rounded-[var(--ui-radius-card)] border border-slate-200/80 hover:border-[var(--ui-primary)]/40 transition-colors group">
