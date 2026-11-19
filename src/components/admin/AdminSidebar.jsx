@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import {
-  ChevronDown, X, RefreshCw, LogOut, PanelLeftClose, PanelLeftOpen, DatabaseBackup, Settings, Shield,
+  ChevronDown, X, RefreshCw, LogOut, ChevronsLeft, ChevronsRight, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
   CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User,
   BookOpen, Clock, Cpu, HardDrive, Palette, Database, FolderOpen
@@ -409,7 +409,7 @@ export default function AdminSidebar({
           />
         </button>
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-4 pl-3.5 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-2.5 pl-2 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
@@ -780,10 +780,10 @@ export default function AdminSidebar({
                 type="button"
                 onClick={toggleSidebar}
                 className="w-8 h-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg hidden lg:flex border border-slate-200/80 cursor-pointer items-center justify-center transition-all shrink-0"
-                title="Sembunyikan Sidebar"
-                aria-label="Sembunyikan Sidebar"
+                title="Ciutkan Sidebar"
+                aria-label="Ciutkan Sidebar"
               >
-                <PanelLeftClose size={16} strokeWidth={2} />
+                <ChevronsLeft size={16} strokeWidth={2.4} />
               </button>
             )}
           </div>
@@ -802,7 +802,7 @@ export default function AdminSidebar({
                 alt="Brand Logo"
                 className="w-5 h-5 object-contain group-hover:hidden transition-all"
               />
-              <PanelLeftOpen size={16} strokeWidth={2.2} className="text-primary hidden group-hover:block transition-all" />
+              <ChevronsRight size={16} strokeWidth={2.4} className="text-primary hidden group-hover:block transition-all" />
             </button>
           </div>
         )}
@@ -1090,13 +1090,22 @@ export default function AdminSidebar({
                     )}
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <span 
-                        className={cn(
-                          "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
-                          item.isActive ? "bg-primary" : "bg-slate-300 group-hover:bg-slate-500"
-                        )} 
-                        aria-hidden="true"
-                      />
+                      {item.icon ? (
+                        <div className={cn(
+                          "w-4 h-4 flex items-center justify-center shrink-0 transition-colors",
+                          item.isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-700"
+                        )}>
+                          <item.icon size={13} strokeWidth={item.isActive ? 2.4 : 1.9} />
+                        </div>
+                      ) : (
+                        <span 
+                          className={cn(
+                            "w-1.5 h-1.5 rounded-full shrink-0 transition-colors",
+                            item.isActive ? "bg-primary" : "bg-slate-300 group-hover:bg-slate-500"
+                          )} 
+                          aria-hidden="true"
+                        />
+                      )}
                       <span className="truncate">{item.label}</span>
                     </div>
                     {item.badge && (
