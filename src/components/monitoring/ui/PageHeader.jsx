@@ -47,6 +47,7 @@ export default function PageHeader({
               return (
                 <button
                   key={tab.id || tab.label}
+                  type="button"
                   onClick={tab.onClick}
                   className={cn(
                     "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px] shadow-2xs",

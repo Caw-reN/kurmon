@@ -530,6 +530,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   <span className="font-extrabold text-xs text-slate-800 tracking-tight">Notifikasi &amp; Informasi</span>
                 </div>
                 <button 
+                  type="button"
                   onClick={() => setShowNotifDropdown(false)} 
                   className="text-slate-400 hover:text-slate-700 text-[10px] font-bold bg-transparent border-none px-2 py-1 rounded-md hover:bg-slate-100 cursor-pointer uppercase tracking-wider transition-colors"
                 >
@@ -594,6 +595,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={requestPushPermission}
                       className="w-full py-1.5 text-white font-bold text-[10px] rounded-lg active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700"
                     >

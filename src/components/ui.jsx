@@ -270,7 +270,7 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-xl",
   );
 };
 
-export const Button = ({ children, variant = "primary", size = "default", className = "", ...props }) => {
+export const Button = ({ children, variant = "primary", size = "default", type = "button", className = "", ...props }) => {
   const variantStyles = {
     primary: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
     default: 'bg-[var(--ui-primary-btn,var(--ui-primary))] text-white hover:brightness-105 active:scale-95 btn-primary-theme shadow-sm border border-black/5',
@@ -297,6 +297,7 @@ export const Button = ({ children, variant = "primary", size = "default", classN
 
   return (
     <button
+      type={type}
       data-slot="button"
       data-variant={variant}
       className={cn(baseStyles, variantClass, sizeClass, "print:hidden", className)}

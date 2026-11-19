@@ -1131,6 +1131,7 @@ export default function CatatanWaliKelas({
                 />
                 {searchSiswa && (
                   <button 
+                    type="button"
                     onClick={() => setSearchSiswa('')}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
                   >
@@ -1437,6 +1438,7 @@ export default function CatatanWaliKelas({
                     )}
 
                     <button
+                      type="button"
                       onClick={() => setSelectedSiswa(null)}
                       className="p-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-[var(--ui-radius-small)] transition-all cursor-pointer flex items-center justify-center h-8 w-8"
                       title="Tutup Filter Siswa"
@@ -1512,6 +1514,7 @@ export default function CatatanWaliKelas({
                     />
                     {searchCatatan && (
                       <button 
+                        type="button"
                         onClick={() => setSearchCatatan('')}
                         className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
                       >
@@ -1635,6 +1638,7 @@ export default function CatatanWaliKelas({
                               {/* Action buttons */}
                               <div className="flex items-center gap-1">
                                 <button 
+                                  type="button"
                                   onClick={() => setActiveModal(c)} 
                                   className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
                                   title="Edit Catatan"
@@ -1642,6 +1646,7 @@ export default function CatatanWaliKelas({
                                   <Edit2 size={13} />
                                 </button>
                                 <button 
+                                  type="button"
                                   onClick={() => handleDelete(c.id)} 
                                   className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-[var(--ui-radius-small)] transition-colors border-none bg-transparent cursor-pointer flex items-center justify-center"
                                   title="Hapus Catatan"

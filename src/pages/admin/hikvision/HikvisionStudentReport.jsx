@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from'react';
-import useAuthStore from'../../../store/monitoring/authStore';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import useAuthStore from '../../../store/monitoring/authStore';
 import { useAuthToken } from '../../../hooks/useAuthToken.js';
 import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table } from 'lucide-react';
-import { useAppStore } from'../../../store/useAppStore';
-import { PageHeader } from'../../../components/monitoring/ui/index.js';
-import { CustomSelect } from'../../../components/CustomSelect.jsx';
-import { UISelect, Button, TablePagination, Modal } from'../../../components/ui.jsx';
+import { useAppStore } from '../../../store/useAppStore';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { CustomSelect } from '../../../components/CustomSelect.jsx';
+import { UISelect, Button, TablePagination, Modal } from '../../../components/ui.jsx';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { compareTableValues, formatAttendanceTime, getHolidayInfoForDate } from '../../../utils/adminHelpers.js';
 import AbsensiSiswa from '../../kedisiplinan/AbsensiSiswa.jsx';
@@ -25,18 +25,18 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [exportMode, setExportMode] = useState("summary");
   const [isSuperAdminModalOpen, setIsSuperAdminModalOpen] = useState(false);
 
-  
+
   const [data, setData] = useState([]);
   const [toast, setToast] = useState(null);
 
-  const showToast = (message, type ='success') => {
+  const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   };
   const [daysInMonth, setDaysInMonth] = useState(31);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  
+
   const roleStr = String(user?.role || '').toLowerCase();
   const subroleStr = String(user?.subrole || '').toLowerCase();
   const divisionStr = String(user?.division || '').toLowerCase();
@@ -53,7 +53,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       if (Array.isArray(studentAttendanceNotes) && studentAttendanceNotes.length > 0) {
         setStudentNotes(studentAttendanceNotes);
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, [authToken]);
 
   const getNoteChipClass = (color) => {
@@ -78,7 +78,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
   };
 
-  const isKesiswaanOrAdmin = 
+  const isKesiswaanOrAdmin =
     ['admin', 'superadmin', 'tu', 'tata_usaha', 'kepsek'].includes(roleStr) ||
     roleStr === 'kesiswaan' || roleStr === 'waka_kesiswaan' ||
     roleStr.includes('bk') || roleStr.includes('bpbk') ||
@@ -89,11 +89,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const canManageBulkRemarks = isKesiswaanOrAdmin;
 
-  const defaultClassName = 
-    (routeTab === "walas_report" && user?.walasClass) 
-      ? user.walasClass 
-      : (user?.isWalas && user.walasClass) 
-        ? user.walasClass 
+  const defaultClassName =
+    (routeTab === "walas_report" && user?.walasClass)
+      ? user.walasClass
+      : (user?.isWalas && user.walasClass)
+        ? user.walasClass
         : "all";
 
   const [filter, setFilter] = useState({
@@ -212,7 +212,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const daysToRender = React.useMemo(() => {
     let list = [];
-    if (viewMode ==="monthly") {
+    if (viewMode === "monthly") {
       list = Array.from({ length: daysInMonth }, (_, i) => i + 1);
     } else {
       const startDay = (selectedWeek - 1) * 7 + 1;
@@ -225,7 +225,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const today = new Date();
     const isCurrentMonthYear = filter.month === (today.getMonth() + 1) && filter.year === today.getFullYear();
 
-    if (isCurrentMonthYear && viewMode ==="monthly") {
+    if (isCurrentMonthYear && viewMode === "monthly") {
       const currentDay = today.getDate();
       const pastDays = [];
       for (let i = currentDay; i >= 1; i--) pastDays.push(i);
@@ -240,13 +240,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [mobileViewMode, setMobileViewMode] = useState('card');
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day }
-  const [permissionForm, setPermissionForm] = useState({ status:"Sakit", keterangan:"", fileData: null, fileName: null, fileSizeKB: null });
+  const [permissionForm, setPermissionForm] = useState({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null });
   const [isSubmittingCell, setIsSubmittingCell] = useState(false);
   const [showPermissionPreviewModal, setShowPermissionPreviewModal] = useState(false);
 
   const handleCellClick = (d, dayNum) => {
     if (user?.role === "siswa") return; // Siswa cannot edit their own or others' data
-    
+
     const dayData = d.days[dayNum];
     let pd = dayData?.pending_permission || dayData;
 
@@ -271,27 +271,27 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     let initialId = null;
 
     if (pd && (["Sakit", "Izin", "Alpa", "Terlambat", "PraPKL", "Hadir"].includes(pd.status) || String(pd.status || '').startsWith("PKL"))) {
-        initialStatus = pd.status;
-        initialKet = pd.keterangan || pd.note || "";
-        initialUrl = pd.gdrive_url || null;
-        initialId = pd.id || null;
+      initialStatus = pd.status;
+      initialKet = pd.keterangan || pd.note || "";
+      initialUrl = pd.gdrive_url || null;
+      initialId = pd.id || null;
     } else if (pd && (pd.in || pd.out)) {
-        initialStatus = pd.isLate ? "Terlambat" : "Hadir";
-        initialKet = pd.keterangan || pd.note || "";
-        initialUrl = pd.gdrive_url || null;
-        initialId = pd.id || null;
+      initialStatus = pd.isLate ? "Terlambat" : "Hadir";
+      initialKet = pd.keterangan || pd.note || "";
+      initialUrl = pd.gdrive_url || null;
+      initialId = pd.id || null;
     }
 
-    setPermissionForm({ 
-       id: initialId,
-       action: initialId ? 'update' : 'create',
-       status: initialStatus, 
-       keterangan: initialKet, 
-       gdriveUrl: initialUrl, 
-       fileData: null, 
-       fileName: null, 
-       fileSizeKB: null,
-       replaceImage: !initialUrl
+    setPermissionForm({
+      id: initialId,
+      action: initialId ? 'update' : 'create',
+      status: initialStatus,
+      keterangan: initialKet,
+      gdriveUrl: initialUrl,
+      fileData: null,
+      fileName: null,
+      fileSizeKB: null,
+      replaceImage: !initialUrl
     });
 
     const inTimeVal = formatAttendanceTime(dayData?.in);
@@ -313,32 +313,32 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-          const MAX_WIDTH = 600;
-          const MAX_HEIGHT = 600;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const MAX_WIDTH = 600;
+        const MAX_HEIGHT = 600;
 
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
           }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
 
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
 
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
-        const stringLength = dataUrl.length -'data:image/jpeg;base64,'.length;
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.5);
+        const stringLength = dataUrl.length - 'data:image/jpeg;base64,'.length;
         const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.5624896334383812;
         const sizeInKB = Math.round(sizeInBytes / 1024);
 
@@ -359,10 +359,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     if (!selectedCell) return;
     setIsSubmittingCell(true);
     try {
-      const dateStr = `${filter.year}-${String(filter.month).padStart(2,'0')}-${String(selectedCell.day).padStart(2,'0')}`;
+      const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(selectedCell.day).padStart(2, '0')}`;
       const res = await fetch("/api/kedisiplinan/absensi", {
-        method:"POST",
-        headers: {"Authorization": `Bearer ${authToken}`,"Content-Type":"application/json"
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${authToken}`, "Content-Type": "application/json"
         },
         body: JSON.stringify({
           id: permissionForm.id,
@@ -380,23 +381,23 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       if (json.ok) {
         showToast("Pengajuan ketidakhadiran berhasil disimpan.");
         setSelectedCell(null);
-        setPermissionForm({ status:"Sakit", keterangan:"", fileData: null, fileName: null, fileSizeKB: null });
+        setPermissionForm({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null });
         fetchData(true);
       } else {
-        showToast(json.error ||"Gagal menyimpan pengajuan.","error");
+        showToast(json.error || "Gagal menyimpan pengajuan.", "error");
       }
     } catch (err) {
       console.error(err);
-      showToast("Terjadi kesalahan jaringan.","error");
+      showToast("Terjadi kesalahan jaringan.", "error");
     }
     setIsSubmittingCell(false);
   };
 
   const getCellStyle = (dayData, studentClass = "", dateStr = "") => {
     const rawNote = String(dayData.note || dayData.keterangan || '').trim();
-    const isInternalNote = rawNote.toLowerCase().includes("mesin") || 
-      rawNote.startsWith("Dari mesin") || 
-      rawNote.startsWith("Alpa Otomatis") || 
+    const isInternalNote = rawNote.toLowerCase().includes("mesin") ||
+      rawNote.startsWith("Dari mesin") ||
+      rawNote.startsWith("Alpa Otomatis") ||
       rawNote.startsWith("Hadir (Hari Libur") ||
       rawNote === "-";
     const isCorrection = /koreksi|override|super\s*admin/i.test(rawNote);
@@ -405,21 +406,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
     const holidayInfo = dateStr ? getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, studentClass) : null;
 
-    const isMesinError = noteLower.includes('mesin error') || 
-      noteLower.includes('tidak terbaca') || 
-      noteLower.includes('mesin rusak') || 
-      noteLower.includes('alat error') || 
+    const isMesinError = noteLower.includes('mesin error') ||
+      noteLower.includes('tidak terbaca') ||
+      noteLower.includes('mesin rusak') ||
+      noteLower.includes('alat error') ||
       noteLower.includes('mesin offline') ||
       noteLower.includes('mati listrik');
 
-    const isLupaAbsen = noteLower.includes('lupa absen') || 
-      noteLower.includes('lupa tap') || 
-      noteLower.includes('lupa bawa') || 
-      noteLower.includes('ketinggalan kartu') || 
+    const isLupaAbsen = noteLower.includes('lupa absen') ||
+      noteLower.includes('lupa tap') ||
+      noteLower.includes('lupa bawa') ||
+      noteLower.includes('ketinggalan kartu') ||
       (noteLower.includes('lupa') && !isMesinError);
 
-    const isDispensasi = noteLower.includes('dispensasi') || 
-      noteLower.includes('tugas sekolah') || 
+    const isDispensasi = noteLower.includes('dispensasi') ||
+      noteLower.includes('tugas sekolah') ||
       noteLower.includes('dinas luar') ||
       noteLower.includes('lomba');
 
@@ -427,7 +428,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     const inTime = formatAttendanceTime(dayData.in);
     const outTime = formatAttendanceTime(dayData.out);
     const hasRealTaps = Boolean(inTime && inTime !== "Libur") || Boolean(outTime && outTime !== "Libur");
-    
+
     // Status Libur / Bebas Absensi (Kalender Akademik / Rotasi)
     // HANYA jika statusnya Libur ATAU (ada jadwal holidayInfo untuk kelas ini DAN siswa tidak memiliki tap scan masuk/pulang)
     const isExplicitHoliday = status === "Libur" || dayData.isHoliday || dayData.in === "Libur";
@@ -498,34 +499,34 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         noteText: cleanNote
       };
     }
-    if (status ==="Alpa") {
+    if (status === "Alpa") {
       return {
-        className:"bg-rose-50 text-rose-700 font-bold border border-rose-200/90 shadow-2xs",
-        style: { color:"#be123c", backgroundColor: "#fff1f2" },
+        className: "bg-rose-50 text-rose-700 font-bold border border-rose-200/90 shadow-2xs",
+        style: { color: "#be123c", backgroundColor: "#fff1f2" },
         hasCustomNote: Boolean(cleanNote),
         noteText: cleanNote
       };
     }
-    if (status ==="Sakit") {
+    if (status === "Sakit") {
       return {
-        className:"bg-amber-100 text-amber-800 font-bold",
-        style: { color:"#92400e" },
+        className: "bg-amber-100 text-amber-800 font-bold",
+        style: { color: "#92400e" },
         hasCustomNote: Boolean(cleanNote),
         noteText: cleanNote
       };
     }
-    if (status ==="Izin") {
+    if (status === "Izin") {
       return {
-        className:"bg-indigo-100 text-indigo-800 font-bold",
-        style: { color:"#1e40af" },
+        className: "bg-indigo-100 text-indigo-800 font-bold",
+        style: { color: "#1e40af" },
         hasCustomNote: Boolean(cleanNote),
         noteText: cleanNote
       };
     }
-    if (status ==="Terlambat" || dayData.isLate) {
+    if (status === "Terlambat" || dayData.isLate) {
       return {
-        className:"bg-rose-100 text-rose-800 font-bold",
-        style: { color:"#b91c1c" },
+        className: "bg-rose-100 text-rose-800 font-bold",
+        style: { color: "#b91c1c" },
         hasCustomNote: Boolean(cleanNote),
         noteText: cleanNote
       };
@@ -559,10 +560,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     try {
       const targetClass = (!filter.class_name || filter.class_name === 'none') ? (user?.walasClass || 'all') : filter.class_name;
       const res = await fetch("/api/hikvision/report/matrix", {
-        method:'POST',
+        method: 'POST',
         headers: {
           "Authorization": `Bearer ${authToken}`,
-          "Content-Type":"application/json",
+          "Content-Type": "application/json",
           ...(isManualRefresh ? { "Cache-Control": "no-cache" } : {})
         },
         body: JSON.stringify({ ...filter, class_name: targetClass, type: 'siswa', force: Boolean(isManualRefresh) })
@@ -575,19 +576,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           showToast("Data matriks kehadiran siswa berhasil diperbarui!", "success");
         }
       } else {
-        showToast(json.error ||"Gagal memuat laporan matrix","error");
+        showToast(json.error || "Gagal memuat laporan matrix", "error");
       }
     } catch (err) {
       console.error(err);
-      showToast("Terjadi kesalahan jaringan.","error");
+      showToast("Terjadi kesalahan jaringan.", "error");
     }
     setLoading(false);
   }, [authToken, filter]);
 
   useEffect(() => {
     if (user?.isWalas && !user.walasClass) {
-       // Walas with no class mapped
-       return;
+      // Walas with no class mapped
+      return;
     }
     fetchData();
   }, [fetchData, user?.isWalas, user?.walasClass]);
@@ -669,8 +670,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     setIsExporting(true);
 
     try {
-      if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor","warning");
-      
+      if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
+
       const ExcelJS = (await import('exceljs')).default;
       const { saveAs } = await import('file-saver');
       const workbook = new ExcelJS.Workbook();
@@ -729,7 +730,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           s: item.total_sakit,
           a: item.total_alpa
         };
-        
+
         const row = sheet.addRow(rowData);
         row.getCell('nis').alignment = { vertical: 'middle', wrapText: true };
         row.getCell('name').alignment = { vertical: 'middle', wrapText: true };
@@ -743,7 +744,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         exportDays.forEach(i => {
           const dayData = item.days[i];
           const cell = row.getCell(`d${i}`);
-          
+
           cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
           cell.border = {
             top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
@@ -766,7 +767,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               (dayData?.out && !["Libur", "Alpa", "Izin", "Sakit", "Mutasi"].includes(dayData.out)) ||
               (Array.isArray(dayData?.taps) && dayData.taps.length > 0)
             );
-            
+
             if ((status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) && !hasRealTaps) {
               const note = effectiveDayData.note || holidayInfo?.reason || 'Libur Kalender Akademik';
               content = isDetailed ? `LIBUR\n(${note})` : `LIBUR (${note})`;
@@ -812,7 +813,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 fgColor = "FFDCFCE7"; fontColor = "FF166534";
               }
             }
-            
+
             cell.value = content;
             cell.font = { color: { argb: fontColor }, bold: true, size: isDetailed ? 8 : 10 };
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fgColor } };
@@ -834,7 +835,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       const legendRow2 = sheet.addRow(['Keterangan:']);
       legendRow2.font = { bold: true };
       const legendRow3 = sheet.addRow(['Hadir (H)', 'Terlambat (T)', 'Sakit (S)', 'Izin (I)', 'Alpa (A)']);
-      
+
       sheet.eachRow((row) => row.commit());
 
       const buffer = await workbook.xlsx.writeBuffer();
@@ -857,7 +858,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
     try {
       if (!filteredData || filteredData.length === 0) return showToast("Tidak ada data untuk diekspor", "warning");
-      
+
       const jsPDF = (await import('jspdf')).default;
       const autoTable = (await import('jspdf-autotable')).default;
       const isDetailed = exportMode === "detailed";
@@ -866,14 +867,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         unit: 'mm',
         format: getDatabaseSnapshot()?.appSettings?.defaultPaperSize === 'F4' ? [215, 330] : 'a4'
       });
-      
+
       const monthName = new Date(filter.year, filter.month - 1).toLocaleString('id-ID', { month: 'long' });
       const startY = 15;
 
       doc.setFont("Helvetica", "bold");
       doc.setFontSize(14);
       doc.text(`LAPORAN KINERJA & KEHADIRAN SISWA`, 14, startY + 6);
-      
+
       doc.setFontSize(10);
       doc.setFont("Helvetica", "normal");
       doc.text(`Kelas: ${filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name} | Periode: ${monthName} ${filter.year}`, 14, startY + 12);
@@ -900,7 +901,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           String(item.total_hadir ?? 0),
           String(item.total_terlambat ?? 0)
         ];
-        
+
         exportDays.forEach(i => {
           const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
           const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, item.class_name);
@@ -919,7 +920,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               (dayData?.out && !["Libur", "Alpa", "Izin", "Sakit", "Mutasi"].includes(dayData.out)) ||
               (Array.isArray(dayData?.taps) && dayData.taps.length > 0)
             );
-            
+
             if ((status === "Libur" || effectiveDayData.isHoliday || Boolean(holidayInfo)) && !hasRealTaps) {
               const note = effectiveDayData.note || holidayInfo?.reason || 'Libur';
               content = isDetailed ? `LIBUR\n${note}` : "L";
@@ -965,17 +966,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 fillColor = [220, 252, 231]; textColor = [22, 101, 52];
               }
             }
-            
+
             if (content.includes(':')) {
-               row.push({
-                 content,
-                 styles: { fillColor, textColor, fontSize: 4, cellPadding: 0.5 }
-               });
+              row.push({
+                content,
+                styles: { fillColor, textColor, fontSize: 4, cellPadding: 0.5 }
+              });
             } else {
-               row.push({
-                 content,
-                 styles: { fillColor, textColor }
-               });
+              row.push({
+                content,
+                styles: { fillColor, textColor }
+              });
             }
           }
         });
@@ -1031,19 +1032,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             if (data.column.index >= 5 && typeof data.cell.raw === 'string') {
               const val = data.cell.raw;
               if (val === 'H') {
-                data.cell.styles.fillColor = [220, 252, 231]; 
+                data.cell.styles.fillColor = [220, 252, 231];
                 data.cell.styles.textColor = [22, 101, 52];
               } else if (val === 'T') {
-                data.cell.styles.fillColor = [254, 226, 226]; 
+                data.cell.styles.fillColor = [254, 226, 226];
                 data.cell.styles.textColor = [153, 27, 27];
               } else if (val === 'S') {
-                data.cell.styles.fillColor = [254, 243, 199]; 
+                data.cell.styles.fillColor = [254, 243, 199];
                 data.cell.styles.textColor = [146, 64, 14];
               } else if (val === 'I') {
-                data.cell.styles.fillColor = [219, 234, 254]; 
+                data.cell.styles.fillColor = [219, 234, 254];
                 data.cell.styles.textColor = [30, 58, 138];
               } else if (val === 'A') {
-                data.cell.styles.fillColor = [15, 23, 42]; 
+                data.cell.styles.fillColor = [15, 23, 42];
                 data.cell.styles.textColor = [255, 255, 255];
               }
             }
@@ -1073,19 +1074,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       doc.setFontSize(7);
       doc.setFont("Helvetica", "bold");
       doc.text("Keterangan Status & Sorotan Peringatan:", 14, finalY);
-      
+
       doc.setFont("Helvetica", "normal");
       doc.setFillColor(220, 252, 231); doc.rect(14, finalY + 2, 3, 3, 'F'); doc.text("Hadir (H)", 18, finalY + 4.5);
       doc.setFillColor(254, 226, 226); doc.rect(34, finalY + 2, 3, 3, 'F'); doc.text("Terlambat (T)", 38, finalY + 4.5);
       doc.setFillColor(254, 243, 199); doc.rect(60, finalY + 2, 3, 3, 'F'); doc.text("Sakit (S)", 64, finalY + 4.5);
       doc.setFillColor(219, 234, 254); doc.rect(80, finalY + 2, 3, 3, 'F'); doc.text("Izin (I)", 84, finalY + 4.5);
-      doc.setFillColor(15, 23, 42);    doc.rect(98, finalY + 2, 3, 3, 'F'); doc.text("Alpa (A)", 102, finalY + 4.5);
+      doc.setFillColor(15, 23, 42); doc.rect(98, finalY + 2, 3, 3, 'F'); doc.text("Alpa (A)", 102, finalY + 4.5);
 
       doc.setFillColor(254, 243, 199); doc.rect(122, finalY + 2, 3, 3, 'F'); doc.text("Kuning: Peringatan (≥3x)", 126, finalY + 4.5);
       doc.setFillColor(255, 237, 213); doc.rect(162, finalY + 2, 3, 3, 'F'); doc.text("Orange: Pelanggaran Sedang (≥5x)", 166, finalY + 4.5);
       doc.setFillColor(254, 226, 226); doc.rect(212, finalY + 2, 3, 3, 'F'); doc.text("Merah: Pelanggaran Berat (≥7x)", 216, finalY + 4.5);
-      doc.setFillColor(159, 18, 57);   doc.rect(258, finalY + 2, 3, 3, 'F'); doc.text("Merah Gelap: SP (≥10x)", 262, finalY + 4.5);
-      
+      doc.setFillColor(159, 18, 57); doc.rect(258, finalY + 2, 3, 3, 'F'); doc.text("Merah Gelap: SP (≥10x)", 262, finalY + 4.5);
+
       doc.save(`Laporan_Absensi_Siswa_${filter.class_name}_${filter.year}_${filter.month}.pdf`);
       showToast("Laporan PDF Siswa berhasil diunduh!", "success");
     } catch (err) {
@@ -1314,14 +1315,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             </thead>
             <tbody>
               ${filteredData.map((s, idx) => {
-                const totalH = s.total_hadir || 0;
-                const totalT = s.total_terlambat || 0;
-                const totalI = s.total_izin || 0;
-                const totalS = s.total_sakit || 0;
-                const totalA = s.total_alpa || 0;
-                const totalEff = totalH + totalT + totalI + totalS + totalA;
-                const pct = totalEff > 0 ? Math.round(((totalH + totalT) / totalEff) * 100) : 100;
-                return `
+          const totalH = s.total_hadir || 0;
+          const totalT = s.total_terlambat || 0;
+          const totalI = s.total_izin || 0;
+          const totalS = s.total_sakit || 0;
+          const totalA = s.total_alpa || 0;
+          const totalEff = totalH + totalT + totalI + totalS + totalA;
+          const pct = totalEff > 0 ? Math.round(((totalH + totalT) / totalEff) * 100) : 100;
+          return `
                   <tr>
                     <td>${idx + 1}</td>
                     <td>${s.nis || '-'}</td>
@@ -1335,7 +1336,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <td style="font-weight: bold;">${pct}%</td>
                   </tr>
                 `;
-              }).join('')}
+        }).join('')}
             </tbody>
             <tfoot>
               <tr style="background-color: #f8fafc; font-weight: bold;">
@@ -1367,14 +1368,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             </thead>
             <tbody>
               ${filteredData.map((s, idx) => {
-                const v = checkViolation(s, printDays);
-                let warnClass = "";
-                if (v.level === 4) warnClass = "row-warn-4";
-                else if (v.level === 3) warnClass = "row-warn-3";
-                else if (v.level === 2) warnClass = "row-warn-2";
-                else if (v.level === 1) warnClass = "row-warn-1";
+          const v = checkViolation(s, printDays);
+          let warnClass = "";
+          if (v.level === 4) warnClass = "row-warn-4";
+          else if (v.level === 3) warnClass = "row-warn-3";
+          else if (v.level === 2) warnClass = "row-warn-2";
+          else if (v.level === 1) warnClass = "row-warn-1";
 
-                return `
+          return `
                   <tr class="${warnClass}">
                     <td>${idx + 1}</td>
                     <td style="text-align: left; font-weight: bold;">
@@ -1387,21 +1388,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <td class="bg-sakit">${s.total_sakit || 0}</td>
                     <td class="bg-alpa">${s.total_alpa || 0}</td>
                     ${printDays.map(d => {
-                      const dayData = (s.days || {})[d];
-                      if (!dayData) return `<td>-</td>`;
-                      const status = dayData.status;
-                      if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
-                      if (status === "Izin") return `<td class="bg-izin">I</td>`;
-                      if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") return `<td class="bg-alpa">A</td>`;
-                      if (status === "PKL" || String(status || '').startsWith("PKL")) return `<td style="background:#e0e7ff; color:#3730a3; font-weight:bold;">PKL</td>`;
-                      if (status === "Libur" || dayData.isHoliday) return `<td style="background:#ffe4e6; color:#9f1239; font-weight:bold;" title="${dayData.note || 'Libur'}">L</td>`;
-                      if (dayData.isLate || status === "Terlambat") return `<td class="bg-terlambat">T</td>`;
-                      if (dayData.in || dayData.out || status === "Hadir") return `<td class="bg-hadir">H</td>`;
-                      return `<td>-</td>`;
-                    }).join('')}
+            const dayData = (s.days || {})[d];
+            if (!dayData) return `<td>-</td>`;
+            const status = dayData.status;
+            if (status === "Sakit") return `<td class="bg-sakit">S</td>`;
+            if (status === "Izin") return `<td class="bg-izin">I</td>`;
+            if (status === "Alpa" || status === "Alpa (Tanpa Keterangan)") return `<td class="bg-alpa">A</td>`;
+            if (status === "PKL" || String(status || '').startsWith("PKL")) return `<td style="background:#e0e7ff; color:#3730a3; font-weight:bold;">PKL</td>`;
+            if (status === "Libur" || dayData.isHoliday) return `<td style="background:#ffe4e6; color:#9f1239; font-weight:bold;" title="${dayData.note || 'Libur'}">L</td>`;
+            if (dayData.isLate || status === "Terlambat") return `<td class="bg-terlambat">T</td>`;
+            if (dayData.in || dayData.out || status === "Hadir") return `<td class="bg-hadir">H</td>`;
+            return `<td>-</td>`;
+          }).join('')}
                   </tr>
                 `;
-              }).join('')}
+        }).join('')}
             </tbody>
             <tfoot>
               <tr class="bg-hadir" style="background-color: #f0fdf4;">
@@ -1528,10 +1529,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   };
 
   const monthOptions = [
-    { value: 1, label:"Januari" }, { value: 2, label:"Februari" }, { value: 3, label:"Maret" },
-    { value: 4, label:"April" }, { value: 5, label:"Mei" }, { value: 6, label:"Juni" },
-    { value: 7, label:"Juli" }, { value: 8, label:"Agustus" }, { value: 9, label:"September" },
-    { value: 10, label:"Oktober" }, { value: 11, label:"November" }, { value: 12, label:"Desember" }
+    { value: 1, label: "Januari" }, { value: 2, label: "Februari" }, { value: 3, label: "Maret" },
+    { value: 4, label: "April" }, { value: 5, label: "Mei" }, { value: 6, label: "Juni" },
+    { value: 7, label: "Juli" }, { value: 8, label: "Agustus" }, { value: 9, label: "September" },
+    { value: 10, label: "Oktober" }, { value: 11, label: "November" }, { value: 12, label: "Desember" }
   ];
   const currentYear = new Date().getFullYear();
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1];
@@ -1553,11 +1554,11 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const isHolidayToday = React.useMemo(() => {
     const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2,"0");
-    const dd = String(today.getDate()).padStart(2,"0");
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
     const todayStr = `${yyyy}-${mm}-${dd}`;
     const selectedClass = String(filter.class_name || "all").trim().toUpperCase();
-    
+
     return academicCalendar.some(evt => {
       const start = evt.dateStart;
       const end = evt.dateEnd || evt.dateStart;
@@ -1577,7 +1578,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             targetClasses = String(evt.applicableClasses || "Semua").toUpperCase();
           }
           if (targetClasses === "SEMUA" || targetClasses === "ALL" || selectedClass === "ALL") return true;
-          
+
           let pGrade = "";
           if (selectedClass.startsWith("X ") || selectedClass.startsWith("10 ")) pGrade = "X";
           else if (selectedClass.startsWith("XI ") || selectedClass.startsWith("11 ")) pGrade = "XI";
@@ -1597,7 +1598,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     if (!isCurrentMonthYear || isHolidayOrWeekendToday) return [];
     return data.filter(student => {
       const dayData = student.days[todayNum];
-      return dayData && (dayData.isLate || dayData.status ==="Terlambat");
+      return dayData && (dayData.isLate || dayData.status === "Terlambat");
     });
   }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
 
@@ -1613,7 +1614,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     return data.filter(student => {
       const dayData = student.days[todayNum];
       if (!dayData) return true; // No scan yet pada hari sekolah
-      return ["Sakit","Izin","Alpa"].includes(dayData.status) || dayData.in ==="Alpa" || dayData.in ==="Sakit" || dayData.in ==="Izin";
+      return ["Sakit", "Izin", "Alpa"].includes(dayData.status) || dayData.in === "Alpa" || dayData.in === "Sakit" || dayData.in === "Izin";
     });
   }, [data, isCurrentMonthYear, todayNum, isHolidayOrWeekendToday]);
 
@@ -1624,20 +1625,20 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       const dayData = student.days[todayNum];
       if (!dayData) return false;
       // Hadir jika punya scan tap (in/out) atau status Hadir, bukan Sakit/Izin/Alpa/Mutasi
-      return !["Sakit","Izin","Alpa","Mutasi"].includes(dayData.status) 
+      return !["Sakit", "Izin", "Alpa", "Mutasi"].includes(dayData.status)
         && dayData.in !== "Alpa" && dayData.in !== "Sakit" && dayData.in !== "Izin"
         && (Boolean(dayData.in) || Boolean(dayData.out) || dayData.status === "Hadir");
     });
   }, [data, isCurrentMonthYear, todayNum]);
 
   if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
-     return (
-        <div className="p-8 text-center bg-rose-50 rounded-[var(--ui-radius-small)] border border-rose-200">
-           <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
-           <h3 className="text-xl font-bold text-rose-700">Data Wali Kelas Belum Lengkap</h3>
-           <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
-        </div>
-     );
+    return (
+      <div className="p-8 text-center bg-rose-50 rounded-[var(--ui-radius-small)] border border-rose-200">
+        <AlertTriangle size={48} className="mx-auto text-rose-500 mb-4" />
+        <h3 className="text-xl font-bold text-rose-700">Data Wali Kelas Belum Lengkap</h3>
+        <p className="text-rose-600 mt-2">Anda terdeteksi sebagai wali kelas, tetapi kelas yang Anda ampu tidak ditemukan atau sudah dihapus.</p>
+      </div>
+    );
   }
 
   return (
@@ -1649,22 +1650,20 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           <button
             type="button"
             onClick={() => setActiveTab('matriks')}
-            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-              activeTab === 'matriks'
-                ? 'bg-white text-emerald-700 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-700 bg-transparent'
-            }`}
+            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'matriks'
+              ? 'bg-white text-emerald-700 shadow-2xs'
+              : 'text-slate-500 hover:text-slate-700 bg-transparent'
+              }`}
           >
             MATRIKS BULANAN
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('surat')}
-            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-              activeTab === 'surat'
-                ? 'bg-white text-emerald-700 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-700 bg-transparent'
-            }`}
+            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'surat'
+              ? 'bg-white text-emerald-700 shadow-2xs'
+              : 'text-slate-500 hover:text-slate-700 bg-transparent'
+              }`}
           >
             MANAJEMEN SURAT
           </button>
@@ -1672,11 +1671,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <button
               type="button"
               onClick={() => setActiveTab('keterangan')}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${
-                activeTab === 'keterangan'
-                  ? 'bg-white text-emerald-700 shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-700 bg-transparent'
-              }`}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'keterangan'
+                ? 'bg-white text-emerald-700 shadow-2xs'
+                : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
             >
               KETERANGAN
             </button>
@@ -1687,24 +1685,24 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       {/* Desktop Header */}
       {!isNested && (
         <div className="hidden sm:block">
-          <PageHeader 
+          <PageHeader
             title={
-              activeTab === 'matriks' 
-                ? "Laporan Kehadiran Siswa" 
+              activeTab === 'matriks'
+                ? "Laporan Kehadiran Siswa"
                 : activeTab === 'keterangan'
                   ? "Keterangan Massal Absensi"
                   : "Manajemen Surat Izin/Sakit"
             }
             icon={
-              activeTab === 'matriks' 
-                ? FileText 
+              activeTab === 'matriks'
+                ? FileText
                 : activeTab === 'keterangan'
                   ? Sparkles
                   : UserX
             }
             description={
-              activeTab === 'matriks' 
-                ? "Rekap kehadiran siswa per bulan dalam bentuk matriks." 
+              activeTab === 'matriks'
+                ? "Rekap kehadiran siswa per bulan dalam bentuk matriks."
                 : activeTab === 'keterangan'
                   ? "Kelola penandaan keterangan massal presensi siswa per kelas dan rentang tanggal kegiatan."
                   : "Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."
@@ -1724,7 +1722,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         <React.Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
           <KeteranganMasalAbsensi authToken={authToken} classes={classes} />
         </React.Suspense>
-      ) : activeTab ==='surat' ? (
+      ) : activeTab === 'surat' ? (
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />
       ) : (
         <>
@@ -1732,7 +1730,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           {isCurrentMonthYear && data.length > 0 && (!isHolidayOrWeekendToday || presentStudentsToday.length > 0) && (
             <div className="grid grid-cols-3 gap-1.5 sm:gap-4">
               {/* Card 1: Siswa Hadir */}
-              <div 
+              <div
                 onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
                 className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
@@ -1761,7 +1759,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <UserCheck size={13} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
-                
+
                 {/* Desktop detail bar */}
                 <div className="hidden sm:flex mt-3 pt-3 border-t border-slate-100 items-center justify-between text-[11px]">
                   <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 text-[10px] truncate">
@@ -1774,7 +1772,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               </div>
 
               {/* Card 2: Siswa Terlambat */}
-              <div 
+              <div
                 onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
                 className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
@@ -1791,11 +1789,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     </div>
                     {/* Compact badge mobile */}
                     <div className="sm:hidden mt-1">
-                      <span className={`font-extrabold px-1.5 py-0.2 rounded-full border text-[8px] inline-block truncate ${
-                        lateStudentsToday.length > 0 
-                          ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
-                          : 'text-slate-500 bg-slate-50 border-slate-200/60'
-                      }`}>
+                      <span className={`font-extrabold px-1.5 py-0.2 rounded-full border text-[8px] inline-block truncate ${lateStudentsToday.length > 0
+                        ? 'text-amber-700 bg-amber-50 border-amber-200/60'
+                        : 'text-slate-500 bg-slate-50 border-slate-200/60'
+                        }`}>
                         {lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Telat` : 'Nihil'}
                       </span>
                     </div>
@@ -1804,14 +1801,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <Clock size={13} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
-                
+
                 {/* Desktop detail bar */}
                 <div className="hidden sm:flex mt-3 pt-3 border-t border-slate-100 items-center justify-between text-[11px]">
-                  <span className={`font-bold px-2 py-0.5 rounded-full border text-[10px] truncate ${
-                    lateStudentsToday.length > 0 
-                      ? 'text-amber-700 bg-amber-50 border-amber-200/60' 
-                      : 'text-slate-500 bg-slate-50 border-slate-200/60'
-                  }`}>
+                  <span className={`font-bold px-2 py-0.5 rounded-full border text-[10px] truncate ${lateStudentsToday.length > 0
+                    ? 'text-amber-700 bg-amber-50 border-amber-200/60'
+                    : 'text-slate-500 bg-slate-50 border-slate-200/60'
+                    }`}>
                     {lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Telat` : 'Nihil'}
                   </span>
                   <span className="font-bold text-slate-400 group-hover:text-amber-600 items-center gap-1 transition-colors">
@@ -1821,7 +1817,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               </div>
 
               {/* Card 3: Siswa Belum Scan / Tidak Masuk */}
-              <div 
+              <div
                 onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
                 className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
               >
@@ -1848,7 +1844,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <UserX size={13} className="sm:w-5 sm:h-5" strokeWidth={2.5} />
                   </div>
                 </div>
-                
+
                 {/* Desktop detail bar */}
                 <div className="hidden sm:flex mt-3 pt-3 border-t border-slate-100 items-center justify-between text-[11px]">
                   <span className="font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/60 text-[10px] truncate">
@@ -1868,7 +1864,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               {isAttendanceValidated ? (
                 <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl sm:rounded-2xl p-2 sm:p-3.5 flex items-center justify-between gap-2 shadow-2xs">
                   <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <div 
+                    <div
                       className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg text-white flex items-center justify-center shrink-0 shadow-2xs bg-emerald-600"
                     >
                       <CheckCircle2 size={14} strokeWidth={2.5} />
@@ -1936,11 +1932,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <button
                     type="button"
                     onClick={() => setDailyDetailModal('present')}
-                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
-                      dailyDetailModal === 'present'
-                        ? 'bg-white text-emerald-700 border-emerald-200 shadow-xs'
-                        : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
-                    }`}
+                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${dailyDetailModal === 'present'
+                      ? 'bg-white text-emerald-700 border-emerald-200 shadow-xs'
+                      : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                      }`}
                   >
                     <UserCheck size={14} className="shrink-0 text-emerald-600" />
                     <span>Masuk ({presentStudentsToday.length})</span>
@@ -1948,11 +1943,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <button
                     type="button"
                     onClick={() => setDailyDetailModal('late')}
-                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
-                      dailyDetailModal === 'late'
-                        ? 'bg-white text-amber-700 border-amber-200 shadow-xs'
-                        : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
-                    }`}
+                    className={`flex-1 min-w-[120px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${dailyDetailModal === 'late'
+                      ? 'bg-white text-amber-700 border-amber-200 shadow-xs'
+                      : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                      }`}
                   >
                     <Clock size={14} className="shrink-0 text-amber-600" />
                     <span>Terlambat ({lateStudentsToday.length})</span>
@@ -1960,11 +1954,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <button
                     type="button"
                     onClick={() => setDailyDetailModal('absent')}
-                    className={`flex-1 min-w-[140px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
-                      dailyDetailModal === 'absent'
-                        ? 'bg-white text-rose-700 border-rose-200 shadow-xs'
-                        : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
-                    }`}
+                    className={`flex-1 min-w-[140px] py-1.5 px-2.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${dailyDetailModal === 'absent'
+                      ? 'bg-white text-rose-700 border-rose-200 shadow-xs'
+                      : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
+                      }`}
                   >
                     <UserX size={14} className="shrink-0 text-rose-600" />
                     <span>Belum Hadir ({absentStudentsToday.length})</span>
@@ -1995,10 +1988,10 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 {/* List Container */}
                 <div className="border border-[var(--ui-border-muted)] rounded-[var(--ui-radius-card)] overflow-hidden divide-y divide-[var(--ui-border-muted)] max-h-[340px] overflow-y-auto custom-scrollbar bg-white">
                   {(() => {
-                    const currentList = dailyDetailModal === 'present' 
-                      ? presentStudentsToday 
-                      : dailyDetailModal === 'late' 
-                        ? lateStudentsToday 
+                    const currentList = dailyDetailModal === 'present'
+                      ? presentStudentsToday
+                      : dailyDetailModal === 'late'
+                        ? lateStudentsToday
                         : absentStudentsToday;
 
                     const filtered = currentList.filter(s => {
@@ -2052,9 +2045,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                   Tdk Absen Pagi (Plg {formatAttendanceTime(dayData.out) || '--:--'})
                                 </span>
                               ) : (
-                                <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
-                                  isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                }`}>
+                                <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${isLate ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                  }`}>
                                   {formatAttendanceTime(dayData.in) || "Hadir"} {isLate && "(T)"}
                                 </span>
                               )
@@ -2065,7 +2057,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                 <span className="px-2 py-0.5 bg-amber-50 text-amber-700 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border border-amber-200 shadow-xs">
                                   {formatAttendanceTime(dayData.in) || "Terlambat"}
                                 </span>
-                                <button 
+                                <button
                                   type="button"
                                   onClick={() => {
                                     setDailyDetailModal(null);
@@ -2082,14 +2074,13 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
                             {dailyDetailModal === 'absent' && (
                               <>
-                                <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${
-                                  status === "Sakit" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                <span className={`px-2 py-0.5 font-extrabold rounded-[var(--ui-radius-control)] text-[10px] border shadow-xs ${status === "Sakit" ? "bg-amber-50 text-amber-700 border-amber-200" :
                                   status === "Izin" ? "bg-indigo-50 text-indigo-700 border-indigo-200" :
-                                  "bg-rose-50 text-rose-700 border-rose-200"
-                                }`}>
+                                    "bg-rose-50 text-rose-700 border-rose-200"
+                                  }`}>
                                   {status === "Alpa" ? "Belum Scan" : status}
                                 </span>
-                                <button 
+                                <button
                                   type="button"
                                   onClick={() => {
                                     setDailyDetailModal(null);
@@ -2113,123 +2104,249 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             </Modal>
           )}
 
-      {/* Mobile Compact Unified Filter & Search Card */}
-      <div className="sm:hidden ui-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2.5 flex flex-col gap-2">
-        {/* Row 1: Header Class Info + Quick Export Buttons */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100/80 pb-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-              <Users size={12} strokeWidth={2.2} />
-            </div>
-            <div className="min-w-0 flex items-baseline gap-1.5">
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block">KELAS</span>
-              <h4 className="text-[11px] font-black text-slate-800 truncate">
-                {user?.isWalas ? (user.walasClass || 'Kelas Saya') : (filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name)}
-              </h4>
-            </div>
-          </div>
+          {/* Mobile Compact Unified Filter & Search Card */}
+          <div className="sm:hidden ui-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2.5 flex flex-col gap-2">
+            {/* Row 1: Header Class Info + Quick Export Buttons */}
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100/80 pb-1.5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                  <Users size={12} strokeWidth={2.2} />
+                </div>
+                <div className="min-w-0 flex items-baseline gap-1.5">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block">KELAS</span>
+                  <h4 className="text-[11px] font-black text-slate-800 truncate">
+                    {user?.isWalas ? (user.walasClass || 'Kelas Saya') : (filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name)}
+                  </h4>
+                </div>
+              </div>
 
-          {/* Export Buttons */}
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              type="button"
-              onClick={() => handleExportPDF(exportMode === 'detailed')}
-              disabled={loading || data.length === 0}
-              className="px-2 py-0.5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
-              title="Export PDF"
-            >
-              PDF
-            </button>
-            <button
-              type="button"
-              onClick={() => handleExport(exportMode === 'detailed')}
-              disabled={loading || data.length === 0}
-              className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
-              title="Export Excel"
-            >
-              XLS
-            </button>
-          </div>
-        </div>
+              {/* Export Buttons */}
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleExportPDF(exportMode === 'detailed')}
+                  disabled={loading || data.length === 0}
+                  className="px-2 py-0.5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
+                  title="Export PDF"
+                >
+                  PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleExport(exportMode === 'detailed')}
+                  disabled={loading || data.length === 0}
+                  className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
+                  title="Export Excel"
+                >
+                  XLS
+                </button>
+              </div>
+            </div>
 
-        {/* Row 2: Search Input + Filter Options Toggle */}
-        <div className="flex items-center gap-1.5">
-          <div className="relative flex-1 min-w-0">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cari nama siswa..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-8 pr-6 py-1 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
-            />
-            {search && (
-              <button 
-                onClick={() => setSearch('')}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
+            {/* Row 2: Search Input + Filter Options Toggle */}
+            <div className="flex items-center gap-1.5">
+              <div className="relative flex-1 min-w-0">
+                <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama siswa..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="w-full pl-8 pr-6 py-1 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 border-none bg-transparent cursor-pointer p-0.5"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowMobileFilterOptions(prev => !prev)}
+                className={`px-2 py-1 rounded-lg border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0 ${showMobileFilterOptions
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                title="Pengaturan Filter & Bulan"
               >
-                <X size={12} />
+                <Filter size={12} />
+                <span>Filter</span>
               </button>
+            </div>
+
+            {/* Row 3: Primary Quick Selectors (Bulan & Tahun) - Always accessible in a tight 2-col row */}
+            <div className="grid grid-cols-2 gap-1.5">
+              <div>
+                <CustomSelect
+                  value={filter.month}
+                  onChange={val => setFilter({ ...filter, month: parseInt(val) })}
+                  options={monthOptions}
+                />
+              </div>
+              <div>
+                <CustomSelect
+                  value={filter.year}
+                  onChange={val => setFilter({ ...filter, year: parseInt(val) })}
+                  options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
+                />
+              </div>
+            </div>
+
+            {/* Collapsible Advanced Filter Options */}
+            {showMobileFilterOptions && (
+              <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 animate-in fade-in duration-200">
+                {(routeTab !== "walas_report" || !user?.walasClass || isKesiswaanOrAdmin) && (
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Pilih Kelas</label>
+                    <CustomSelect
+                      value={filter.class_name || "all"}
+                      onChange={val => setFilter({ ...filter, class_name: val })}
+                      options={[
+                        { value: "all", label: "Semua Kelas" },
+                        ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
+                        ...((classes && classes.length > 0)
+                          ? classes.map(c => ({ value: c.name || c.kelas || c.id, label: c.name || c.kelas || c.id })).filter(c => c.value && c.value !== user?.walasClass)
+                          : Array.from(new Set(data.map(d => d.class_name).filter(Boolean))).sort().map(c => ({ value: c, label: c })).filter(c => c.value !== user?.walasClass)
+                        )
+                      ]}
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tipe Laporan</label>
+                    <CustomSelect
+                      value={viewMode}
+                      onChange={val => setViewMode(val)}
+                      options={[
+                        { value: "monthly", label: "Bulanan" },
+                        { value: "weekly", label: "Mingguan" }
+                      ]}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Format</label>
+                    <CustomSelect
+                      value={exportMode}
+                      onChange={val => setExportMode(val)}
+                      options={[
+                        { value: "summary", label: "Ringkas" },
+                        { value: "detailed", label: "Lengkap" }
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Urutan</label>
+                    <div className="flex items-center gap-1">
+                      <div className="flex-1 min-w-0">
+                        <CustomSelect
+                          value={sortBy}
+                          onChange={val => setSortBy(val)}
+                          options={[
+                            { value: "class_nis", label: "Per Kelas & NIS" },
+                            { value: "nis", label: "NIS / No. Absen" },
+                            { value: "name", label: "Nama (A-Z)" },
+                            { value: "class_name", label: "Kelas" },
+                            { value: "hadir", label: "Total Hadir" },
+                            { value: "alpa", label: "Total Alpa" }
+                          ]}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
+                        className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${sortDir === 'desc'
+                          ? 'bg-slate-800 text-white border-slate-800'
+                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                          }`}
+                      >
+                        <ArrowUpDown size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Status Siswa</label>
+                    <CustomSelect
+                      value={studentStatusFilter}
+                      onChange={val => setStudentStatusFilter(val)}
+                      options={[
+                        { value: "active", label: "Siswa Aktif" },
+                        { value: "all", label: "Semua Siswa" },
+                        { value: "mutasi", label: "Mutasi Saja" }
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fetchData}
+                  className="w-full py-2 rounded-xl font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-98 cursor-pointer bg-emerald-600 hover:bg-emerald-700 mt-1"
+                >
+                  <Wand2 size={14} strokeWidth={2.2} />
+                  Terapkan & Muat Ulang
+                </button>
+              </div>
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowMobileFilterOptions(prev => !prev)}
-            className={`px-2 py-1 rounded-lg border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0 ${
-              showMobileFilterOptions
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-            title="Pengaturan Filter & Bulan"
-          >
-            <Filter size={12} />
-            <span>Filter</span>
-          </button>
-        </div>
-
-        {/* Row 3: Primary Quick Selectors (Bulan & Tahun) - Always accessible in a tight 2-col row */}
-        <div className="grid grid-cols-2 gap-1.5">
-          <div>
-            <CustomSelect 
-              value={filter.month} 
-              onChange={val => setFilter({ ...filter, month: parseInt(val) })}
-              options={monthOptions}
-            />
-          </div>
-          <div>
-            <CustomSelect 
-              value={filter.year} 
-              onChange={val => setFilter({ ...filter, year: parseInt(val) })}
-              options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
-            />
-          </div>
-        </div>
-
-        {/* Collapsible Advanced Filter Options */}
-        {showMobileFilterOptions && (
-          <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 animate-in fade-in duration-200">
-            {(routeTab !== "walas_report" || !user?.walasClass || isKesiswaanOrAdmin) && (
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Pilih Kelas</label>
-                <CustomSelect 
-                  value={filter.class_name || "all"} 
-                  onChange={val => setFilter({ ...filter, class_name: val })}
+          {/* Desktop Filter Container */}
+          <div className="hidden sm:flex ui-card p-4 sm:p-5 flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
+            {/* Top Filter Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+              <div className="min-w-0">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Siswa</label>
+                <div className="relative w-full">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Nama / NIS..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
+                  />
+                </div>
+              </div>
+              <div className="min-w-0">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Status Siswa</label>
+                <CustomSelect
+                  value={studentStatusFilter}
+                  onChange={val => setStudentStatusFilter(val)}
                   options={[
-                    { value: "all", label: "Semua Kelas" },
-                    ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
-                    ...((classes && classes.length > 0)
-                      ? classes.map(c => ({ value: c.name || c.kelas || c.id, label: c.name || c.kelas || c.id })).filter(c => c.value && c.value !== user?.walasClass)
-                      : Array.from(new Set(data.map(d => d.class_name).filter(Boolean))).sort().map(c => ({ value: c, label: c })).filter(c => c.value !== user?.walasClass)
-                    )
+                    { value: "active", label: "Siswa Aktif" },
+                    { value: "all", label: "Semua Siswa" },
+                    { value: "mutasi", label: "Mutasi Keluar" }
                   ]}
                 />
               </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tipe Laporan</label>
+              <div className="min-w-0">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
+                <CustomSelect
+                  value={filter.month}
+                  onChange={val => setFilter({ ...filter, month: parseInt(val) })}
+                  options={monthOptions}
+                />
+              </div>
+              <div className="min-w-0">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tahun</label>
+                <CustomSelect
+                  value={filter.year}
+                  onChange={val => setFilter({ ...filter, year: parseInt(val) })}
+                  options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
+                />
+              </div>
+              <div className="min-w-0">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tipe</label>
                 <CustomSelect
                   value={viewMode}
                   onChange={val => setViewMode(val)}
@@ -2239,32 +2356,30 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   ]}
                 />
               </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Format</label>
-                <CustomSelect
-                  value={exportMode}
-                  onChange={val => setExportMode(val)}
-                  options={[
-                    { value: "summary", label: "Ringkas" },
-                    { value: "detailed", label: "Lengkap" }
-                  ]}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Urutan</label>
-                <div className="flex items-center gap-1">
+              {!user?.isWalas && (
+                <div className="min-w-0">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Kelas</label>
+                  <CustomSelect
+                    value={filter.class_name}
+                    onChange={val => setFilter({ ...filter, class_name: val })}
+                    options={[
+                      { value: "all", label: "-- Semua --" },
+                      ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas }))
+                    ]}
+                  />
+                </div>
+              )}
+              <div className="min-w-0">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Urutkan</label>
+                <div className="flex items-center gap-1 w-full min-w-0">
                   <div className="flex-1 min-w-0">
-                    <CustomSelect 
-                      value={sortBy} 
+                    <CustomSelect
+                      value={sortBy}
                       onChange={val => setSortBy(val)}
                       options={[
-                        { value: "class_nis", label: "Per Kelas & NIS" },
-                        { value: "nis", label: "NIS / No. Absen" },
+                        { value: "class_nis", label: "Kelas & NIS" },
+                        { value: "nis", label: "NIS" },
                         { value: "name", label: "Nama (A-Z)" },
-                        { value: "class_name", label: "Kelas" },
                         { value: "hadir", label: "Total Hadir" },
                         { value: "alpa", label: "Total Alpa" }
                       ]}
@@ -2273,440 +2388,311 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   <button
                     type="button"
                     onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
-                    className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                      sortDir === 'desc' 
-                        ? 'bg-slate-800 text-white border-slate-800' 
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                    }`}
+                    title={sortDir === "asc" ? "Naik" : "Turun"}
+                    className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-[var(--ui-radius-small)] border text-xs font-bold transition-all cursor-pointer ${sortDir === 'desc'
+                      ? 'bg-slate-800 text-white border-slate-800 shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                      }`}
                   >
-                    <ArrowUpDown size={13} />
+                    <ArrowUpDown size={14} />
                   </button>
                 </div>
               </div>
-
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Status Siswa</label>
-                <CustomSelect
-                  value={studentStatusFilter}
-                  onChange={val => setStudentStatusFilter(val)}
-                  options={[
-                    { value: "active", label: "Siswa Aktif" },
-                    { value: "all", label: "Semua Siswa" },
-                    { value: "mutasi", label: "Mutasi Saja" }
-                  ]}
-                />
-              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={fetchData}
-              className="w-full py-2 rounded-xl font-black text-xs text-white flex items-center justify-center gap-1.5 transition-all shadow-2xs active:scale-98 cursor-pointer bg-emerald-600 hover:bg-emerald-700 mt-1"
-            >
-              <Wand2 size={14} strokeWidth={2.2} />
-              Terapkan & Muat Ulang
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Desktop Filter Container */}
-      <div className="hidden sm:flex ui-card p-4 sm:p-5 flex-col gap-4 relative z-30 shadow-xs border border-slate-200/80">
-        {/* Top Filter Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-          <div className="min-w-0">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Cari Siswa</label>
-            <div className="relative w-full">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Nama / NIS..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] transition-all"
-              />
-            </div>
-          </div>
-          <div className="min-w-0">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Status Siswa</label>
-            <CustomSelect
-              value={studentStatusFilter}
-              onChange={val => setStudentStatusFilter(val)}
-              options={[
-                { value: "active", label: "Siswa Aktif" },
-                { value: "all", label: "Semua Siswa" },
-                { value: "mutasi", label: "Mutasi Keluar" }
-              ]}
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Bulan</label>
-            <CustomSelect 
-              value={filter.month} 
-              onChange={val => setFilter({ ...filter, month: parseInt(val) })}
-              options={monthOptions}
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tahun</label>
-            <CustomSelect 
-              value={filter.year} 
-              onChange={val => setFilter({ ...filter, year: parseInt(val) })}
-              options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
-            />
-          </div>
-          <div className="min-w-0">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Tipe</label>
-            <CustomSelect
-              value={viewMode}
-              onChange={val => setViewMode(val)}
-              options={[
-                { value:"monthly", label:"Bulanan" },
-                { value:"weekly", label:"Mingguan" }
-              ]}
-            />
-          </div>
-          {!user?.isWalas && (
-            <div className="min-w-0">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Kelas</label>
-              <CustomSelect 
-                value={filter.class_name} 
-                onChange={val => setFilter({ ...filter, class_name: val })}
-                options={[
-                  { value:"all", label:"-- Semua --" },
-                  ...classes.map(c => ({ value: c.name || c.kelas, label: c.name || c.kelas }))
-                ]}
-              />
-            </div>
-          )}
-          <div className="min-w-0">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 block">Urutkan</label>
-            <div className="flex items-center gap-1 w-full min-w-0">
-              <div className="flex-1 min-w-0">
-                <CustomSelect
-                  value={sortBy}
-                  onChange={val => setSortBy(val)}
-                  options={[
-                    { value: "class_nis", label: "Kelas & NIS" },
-                    { value: "nis", label: "NIS" },
-                    { value: "name", label: "Nama (A-Z)" },
-                    { value: "hadir", label: "Total Hadir" },
-                    { value: "alpa", label: "Total Alpa" }
-                  ]}
-                />
+            {/* Bottom Action Bar: Mode Select + Export Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Opsi Tampilan:</label>
+                <UISelect
+                  value={exportMode}
+                  onChange={(e) => setExportMode(e.target.value)}
+                  className="text-xs py-1.5 h-9 px-3 border-slate-200 rounded-[var(--ui-radius-small)] bg-slate-50 font-bold focus:bg-white"
+                >
+                  <option value="summary">Ringkas (Status H/T/I/S/A)</option>
+                  <option value="detailed">Lengkap (Jam Masuk / Pulang)</option>
+                </UISelect>
               </div>
-              <button
-                type="button"
-                onClick={() => setSortDir(prev => prev === "asc" ? "desc" : "asc")}
-                title={sortDir === "asc" ? "Naik" : "Turun"}
-                className={`shrink-0 w-9 h-9 p-0 flex items-center justify-center rounded-[var(--ui-radius-small)] border text-xs font-bold transition-all cursor-pointer ${
-                  sortDir === 'desc' 
-                    ? 'bg-slate-800 text-white border-slate-800 shadow-xs' 
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                <ArrowUpDown size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* Bottom Action Bar: Mode Select + Export Buttons */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Opsi Tampilan:</label>
-            <UISelect 
-              value={exportMode}
-              onChange={(e) => setExportMode(e.target.value)}
-              className="text-xs py-1.5 h-9 px-3 border-slate-200 rounded-[var(--ui-radius-small)] bg-slate-50 font-bold focus:bg-white"
-            >
-              <option value="summary">Ringkas (Status H/T/I/S/A)</option>
-              <option value="detailed">Lengkap (Jam Masuk / Pulang)</option>
-            </UISelect>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 justify-end">
-            {isSuperAdmin && (
-              <Button 
-                variant="outline"
-                type="button"
-                onClick={() => setIsSuperAdminModalOpen(true)}
-                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs"
-                title="Koreksi Jam Absensi Siswa (Khusus Super Admin)"
-              >
-                <Shield size={14} className="shrink-0 text-amber-400" />
-                <span>Koreksi Jam</span>
-              </Button>
-            )}
-
-            <Button 
-              variant="outline"
-              type="button"
-              onClick={() => fetchData(true)}
-              disabled={loading}
-              className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs transition-all"
-              title="Segarkan data terbaru dari mesin absensi & database"
-            >
-              <RefreshCw size={14} className={`shrink-0 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
-              <span>{loading ? "Memuat..." : "Segarkan"}</span>
-            </Button>
-
-            <Button 
-              variant="outline"
-              type="button"
-              onClick={() => handleExport(exportMode === 'detailed')}
-              disabled={loading || data.length === 0}
-              className="px-3.5 py-2 bg-emerald-50/90 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
-            >
-              <FileSpreadsheet size={14} className="shrink-0 text-emerald-600" />
-              <span>Excel</span>
-            </Button>
-
-            <Button 
-              variant="outline"
-              type="button"
-              onClick={() => handleExportPDF(exportMode === 'detailed')}
-              disabled={loading || data.length === 0}
-              className="px-3.5 py-2 bg-rose-50/90 hover:bg-rose-100 text-rose-700 border-rose-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
-            >
-              <FileText size={14} className="shrink-0 text-rose-600" />
-              <span>PDF</span>
-            </Button>
-
-            <Button 
-              variant="outline"
-              type="button"
-              onClick={() => setShowPrintModal(true)}
-              disabled={loading || data.length === 0}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
-            >
-              <Printer size={14} className="shrink-0" />
-              <span>Cetak Per Periode</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="ui-card shadow-xs border border-slate-200/80 overflow-hidden relative z-10">
-        <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-slate-200/80 bg-slate-50/80 flex flex-col xl:flex-row xl:items-center justify-between gap-1.5 sm:gap-2.5">
-           <div className="flex items-center justify-between w-full xl:w-auto gap-2">
-             <div className="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-2">
-               <span className="text-[11px] sm:text-xs font-black text-slate-800">Matriks Kehadiran Siswa</span>
-               <span className="px-1.5 py-0.2 rounded-md bg-white border border-slate-200 text-slate-800 font-black text-[9.5px] sm:text-[10px] shadow-2xs">
-                 {filteredData.length} Siswa
-               </span>
-             </div>
-
-             {/* Mobile View Mode Segmented Toggle (Kartu vs Tabel) */}
-             <div className="flex items-center gap-1 md:hidden shrink-0">
-               <div className="inline-flex p-0.5 rounded-lg bg-slate-200/80 border border-slate-300/60 shadow-2xs">
-                 <button
-                   type="button"
-                   onClick={() => setMobileViewMode('card')}
-                   className={`px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 transition-all ${
-                     mobileViewMode === 'card'
-                       ? 'bg-white text-emerald-800 shadow-2xs'
-                       : 'text-slate-600 hover:text-slate-900'
-                   }`}
-                 >
-                   <LayoutGrid size={11} strokeWidth={2.5} />
-                   <span>Kartu</span>
-                 </button>
-                 <button
-                   type="button"
-                   onClick={() => setMobileViewMode('table')}
-                   className={`px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 transition-all ${
-                     mobileViewMode === 'table'
-                       ? 'bg-white text-emerald-800 shadow-2xs'
-                       : 'text-slate-600 hover:text-slate-900'
-                   }`}
-                 >
-                   <Table size={11} strokeWidth={2.5} />
-                   <span>Tabel</span>
-                 </button>
-               </div>
-             </div>
-           </div>
-           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap xl:flex-wrap xl:overflow-visible">
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[9.5px] border border-emerald-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[9.5px] border border-rose-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[9.5px] border border-orange-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[9.5px] border border-indigo-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin (IZN)
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[9.5px] border border-amber-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-[9.5px] border border-rose-200/90 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[9.5px] border border-rose-300 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur
-              </span>
-
-              <div className="h-3 w-px bg-slate-300 mx-0.5 hidden xl:block shrink-0"></div>
-
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-teal-100 text-teal-800 font-black text-[9.5px] border border-teal-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-600"></span> PraPKL
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-black text-[9.5px] border border-sky-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span> PKL
-              </span>
-
-              <div className="h-3 w-px bg-slate-300 mx-0.5 hidden xl:block shrink-0"></div>
-
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-bold text-[9.5px] border border-sky-200 shadow-2xs shrink-0">
-                <Zap size={10} className="text-sky-600 shrink-0" /> Mesin Error
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-bold text-[9.5px] border border-amber-200 shadow-2xs shrink-0">
-                <AlertCircle size={10} className="text-amber-600 shrink-0" /> Lupa Absen
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-bold text-[9.5px] border border-indigo-200 shadow-2xs shrink-0">
-                <FileText size={10} className="text-indigo-600 shrink-0" /> Catatan Khusus
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[9.5px] border border-emerald-200 shadow-2xs shrink-0">
-                <Sparkles size={10} className="text-indigo-600 shrink-0" /> Hadir + Ket
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[9.5px] border border-slate-200 shadow-2xs shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Kosong (-)
-              </span>
-           </div>
-        </div>
-         
-        {/* Mobile Compact Card View */}
-        {mobileViewMode === 'card' && (
-          <div className="md:hidden p-2.5 space-y-2 bg-slate-50/50">
-            {loading ? (
-              <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
-                Memuat data absen...
-              </div>
-            ) : paginatedData.length === 0 ? (
-              <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
-                Tidak ada data untuk filter ini.
-              </div>
-            ) : (
-              paginatedData.map((d, idx) => {
-                const v = checkViolation(d, daysToRender);
-                return (
-                  <div
-                    key={d.nis}
-                    onClick={() => setSelectedStudentDetail(d)}
-                    className={`p-3 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white hover:border-emerald-300 ${
-                      v.level === 4 ? 'border-rose-300 bg-rose-50/20' :
-                      v.level === 3 ? 'border-rose-200 bg-rose-50/10' :
-                      v.level === 2 ? 'border-orange-200 bg-orange-50/10' :
-                      v.level === 1 ? 'border-amber-200 bg-amber-50/10' :
-                      'border-slate-200/90'
-                    }`}
+              <div className="flex items-center gap-2 shrink-0 justify-end">
+                {isSuperAdmin && (
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => setIsSuperAdminModalOpen(true)}
+                    className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white border-slate-900 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs"
+                    title="Koreksi Jam Absensi Siswa (Khusus Super Admin)"
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-black text-slate-400">
-                            #{(currentPage - 1) * itemsPerPage + idx + 1}
-                          </span>
-                          <h4 className="font-black text-xs text-slate-900 truncate">
-                            {d.name}
-                          </h4>
-                          {d.is_mutasi && (
-                            <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-rose-100 text-rose-700 border border-rose-200">
-                              MUTASI
-                            </span>
-                          )}
-                          {v.level > 0 && (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-50 text-amber-700 border border-amber-200">
-                              <AlertTriangle size={10} className="shrink-0 text-amber-600" />
-                              <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pelanggaran Berat' : v.level === 2 ? 'Pelanggaran Sedang' : 'Peringatan'}</span>
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] font-semibold text-slate-500 mt-0.5 truncate">
-                          {d.class_name || 'Tanpa Kelas'} {d.nis ? `• NIS ${d.nis}` : ''}
-                        </p>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70">
-                          Detail &rsaquo;
-                        </span>
-                      </div>
-                    </div>
+                    <Shield size={14} className="shrink-0 text-amber-400" />
+                    <span>Koreksi Jam</span>
+                  </Button>
+                )}
 
-                    {/* 5 Compact Stat Badges */}
-                    <div className="grid grid-cols-5 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
-                      <div className="text-center bg-emerald-50/70 border border-emerald-100 rounded-lg py-1">
-                        <div className="text-[8px] font-black uppercase text-emerald-700">Hadir</div>
-                        <div className="text-xs font-black text-emerald-800">{d.total_hadir || 0}</div>
-                      </div>
-                      <div className="text-center bg-amber-50/70 border border-amber-100 rounded-lg py-1">
-                        <div className="text-[8px] font-black uppercase text-amber-700">Telat</div>
-                        <div className="text-xs font-black text-amber-800">{d.total_terlambat || 0}</div>
-                      </div>
-                      <div className="text-center bg-indigo-50/70 border border-indigo-100 rounded-lg py-1">
-                        <div className="text-[8px] font-black uppercase text-indigo-700">Izin</div>
-                        <div className="text-xs font-black text-indigo-800">{d.total_izin || 0}</div>
-                      </div>
-                      <div className="text-center bg-sky-50/70 border border-sky-100 rounded-lg py-1">
-                        <div className="text-[8px] font-black uppercase text-sky-700">Sakit</div>
-                        <div className="text-xs font-black text-sky-800">{d.total_sakit || 0}</div>
-                      </div>
-                      <div className="text-center bg-rose-50/70 border border-rose-100 rounded-lg py-1">
-                        <div className="text-[8px] font-black uppercase text-rose-700">Alpa</div>
-                        <div className="text-xs font-black text-rose-800">{d.total_alpa || 0}</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => fetchData(true)}
+                  disabled={loading}
+                  className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border-slate-200 flex items-center justify-center gap-1.5 text-xs font-bold cursor-pointer shadow-xs transition-all"
+                  title="Segarkan data terbaru dari mesin absensi & database"
+                >
+                  <RefreshCw size={14} className={`shrink-0 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
+                  <span>{loading ? "Memuat..." : "Segarkan"}</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => handleExport(exportMode === 'detailed')}
+                  disabled={loading || data.length === 0}
+                  className="px-3.5 py-2 bg-emerald-50/90 hover:bg-emerald-100 text-emerald-700 border-emerald-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <FileSpreadsheet size={14} className="shrink-0 text-emerald-600" />
+                  <span>Excel</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => handleExportPDF(exportMode === 'detailed')}
+                  disabled={loading || data.length === 0}
+                  className="px-3.5 py-2 bg-rose-50/90 hover:bg-rose-100 text-rose-700 border-rose-200/90 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <FileText size={14} className="shrink-0 text-rose-600" />
+                  <span>PDF</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setShowPrintModal(true)}
+                  disabled={loading || data.length === 0}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600 flex items-center justify-center gap-1.5 text-xs font-black cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <Printer size={14} className="shrink-0" />
+                  <span>Cetak Per Periode</span>
+                </Button>
+              </div>
+            </div>
           </div>
-        )}
 
-        <div className={`${mobileViewMode === 'card' ? 'hidden md:block' : 'block'} overflow-x-auto relative`}>
-           <table className="w-full text-left border-collapse min-w-max">
-             <thead>
-               <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider">
-                 <th className="px-2 py-2.5 sm:px-2.5 sm:py-3 w-10 sm:w-12 font-black text-center border-r border-slate-200">NO</th>
-                 <th className="px-2.5 sm:px-4 py-2.5 sm:py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200 min-w-[125px] sm:min-w-[190px]">NAMA SISWA</th>
-                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">HDR</th>
-                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">TLT</th>
-                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">IZN</th>
-                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">SKT</th>
-                 <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">ALP</th>
-                 {daysToRender.map((dayNum) => (
-                    <th key={dayNum} className="px-2 py-3 font-black text-center min-w-[70px] border-r border-slate-200">
-                      {dayNum}
-                    </th>
-                 ))}
-               </tr>
-             </thead>
-              <tbody className="text-sm font-medium text-slate-700">
+          <div className="ui-card shadow-xs border border-slate-200/80 overflow-hidden relative z-10">
+            <div className="px-3 sm:px-4 py-2 sm:py-2.5 border-b border-slate-200/80 bg-slate-50/80 flex flex-col xl:flex-row xl:items-center justify-between gap-1.5 sm:gap-2.5">
+              <div className="flex items-center justify-between w-full xl:w-auto gap-2">
+                <div className="text-xs font-bold text-slate-700 shrink-0 flex items-center gap-2">
+                  <span className="text-[11px] sm:text-xs font-black text-slate-800">Matriks Kehadiran Siswa</span>
+                  <span className="px-1.5 py-0.2 rounded-md bg-white border border-slate-200 text-slate-800 font-black text-[9.5px] sm:text-[10px] shadow-2xs">
+                    {filteredData.length} Siswa
+                  </span>
+                </div>
+
+                {/* Mobile View Mode Segmented Toggle (Kartu vs Tabel) */}
+                <div className="flex items-center gap-1 md:hidden shrink-0">
+                  <div className="inline-flex p-0.5 rounded-lg bg-slate-200/80 border border-slate-300/60 shadow-2xs">
+                    <button
+                      type="button"
+                      onClick={() => setMobileViewMode('card')}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 transition-all ${mobileViewMode === 'card'
+                        ? 'bg-white text-emerald-800 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                      <LayoutGrid size={11} strokeWidth={2.5} />
+                      <span>Kartu</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMobileViewMode('table')}
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-black flex items-center gap-1 transition-all ${mobileViewMode === 'table'
+                        ? 'bg-white text-emerald-800 shadow-2xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                      <Table size={11} strokeWidth={2.5} />
+                      <span>Tabel</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap xl:flex-wrap xl:overflow-visible">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[9.5px] border border-emerald-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[9.5px] border border-rose-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[9.5px] border border-orange-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[9.5px] border border-indigo-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin (IZN)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[9.5px] border border-amber-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-[9.5px] border border-rose-200/90 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[9.5px] border border-rose-300 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur
+                </span>
+
+                <div className="h-3 w-px bg-slate-300 mx-0.5 hidden xl:block shrink-0"></div>
+
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-teal-100 text-teal-800 font-black text-[9.5px] border border-teal-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-600"></span> PraPKL
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-black text-[9.5px] border border-sky-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span> PKL
+                </span>
+
+                <div className="h-3 w-px bg-slate-300 mx-0.5 hidden xl:block shrink-0"></div>
+
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-bold text-[9.5px] border border-sky-200 shadow-2xs shrink-0">
+                  <Zap size={10} className="text-sky-600 shrink-0" /> Mesin Error
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-bold text-[9.5px] border border-amber-200 shadow-2xs shrink-0">
+                  <AlertCircle size={10} className="text-amber-600 shrink-0" /> Lupa Absen
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-bold text-[9.5px] border border-indigo-200 shadow-2xs shrink-0">
+                  <FileText size={10} className="text-indigo-600 shrink-0" /> Catatan Khusus
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[9.5px] border border-emerald-200 shadow-2xs shrink-0">
+                  <Sparkles size={10} className="text-indigo-600 shrink-0" /> Hadir + Ket
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[9.5px] border border-slate-200 shadow-2xs shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Kosong (-)
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile Compact Card View */}
+            {mobileViewMode === 'card' && (
+              <div className="md:hidden p-2.5 space-y-2 bg-slate-50/50">
                 {loading ? (
-                  <tr>
-                    <td colSpan={7 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
-                  </tr>
+                  <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
+                    Memuat data absen...
+                  </div>
                 ) : paginatedData.length === 0 ? (
-                  <tr>
-                    <td colSpan={7 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
-                  </tr>
+                  <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
+                    Tidak ada data untuk filter ini.
+                  </div>
                 ) : (
                   paginatedData.map((d, idx) => {
                     const v = checkViolation(d, daysToRender);
                     return (
-                      <tr 
-                        key={d.nis} 
-                        className={`border-b transition-colors ${v.bgClass}`}
+                      <div
+                        key={d.nis}
+                        onClick={() => setSelectedStudentDetail(d)}
+                        className={`p-3 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white hover:border-emerald-300 ${v.level === 4 ? 'border-rose-300 bg-rose-50/20' :
+                          v.level === 3 ? 'border-rose-200 bg-rose-50/10' :
+                            v.level === 2 ? 'border-orange-200 bg-orange-50/10' :
+                              v.level === 1 ? 'border-amber-200 bg-amber-50/10' :
+                                'border-slate-200/90'
+                          }`}
                       >
-                         <td className="px-2 sm:px-2.5 py-2 sm:py-2.5 text-center text-slate-400 font-bold text-xs border-r border-slate-200">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-black text-slate-400">
+                                #{(currentPage - 1) * itemsPerPage + idx + 1}
+                              </span>
+                              <h4 className="font-black text-xs text-slate-900 truncate">
+                                {d.name}
+                              </h4>
+                              {d.is_mutasi && (
+                                <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-rose-100 text-rose-700 border border-rose-200">
+                                  MUTASI
+                                </span>
+                              )}
+                              {v.level > 0 && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-50 text-amber-700 border border-amber-200">
+                                  <AlertTriangle size={10} className="shrink-0 text-amber-600" />
+                                  <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pelanggaran Berat' : v.level === 2 ? 'Pelanggaran Sedang' : 'Peringatan'}</span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] font-semibold text-slate-500 mt-0.5 truncate">
+                              {d.class_name || 'Tanpa Kelas'} {d.nis ? `• NIS ${d.nis}` : ''}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70">
+                              Detail &rsaquo;
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 5 Compact Stat Badges */}
+                        <div className="grid grid-cols-5 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
+                          <div className="text-center bg-emerald-50/70 border border-emerald-100 rounded-lg py-1">
+                            <div className="text-[8px] font-black uppercase text-emerald-700">Hadir</div>
+                            <div className="text-xs font-black text-emerald-800">{d.total_hadir || 0}</div>
+                          </div>
+                          <div className="text-center bg-amber-50/70 border border-amber-100 rounded-lg py-1">
+                            <div className="text-[8px] font-black uppercase text-amber-700">Telat</div>
+                            <div className="text-xs font-black text-amber-800">{d.total_terlambat || 0}</div>
+                          </div>
+                          <div className="text-center bg-indigo-50/70 border border-indigo-100 rounded-lg py-1">
+                            <div className="text-[8px] font-black uppercase text-indigo-700">Izin</div>
+                            <div className="text-xs font-black text-indigo-800">{d.total_izin || 0}</div>
+                          </div>
+                          <div className="text-center bg-sky-50/70 border border-sky-100 rounded-lg py-1">
+                            <div className="text-[8px] font-black uppercase text-sky-700">Sakit</div>
+                            <div className="text-xs font-black text-sky-800">{d.total_sakit || 0}</div>
+                          </div>
+                          <div className="text-center bg-rose-50/70 border border-rose-100 rounded-lg py-1">
+                            <div className="text-[8px] font-black uppercase text-rose-700">Alpa</div>
+                            <div className="text-xs font-black text-rose-800">{d.total_alpa || 0}</div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            <div className={`${mobileViewMode === 'card' ? 'hidden md:block' : 'block'} overflow-x-auto relative`}>
+              <table className="w-full text-left border-collapse min-w-max">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10px] uppercase tracking-wider">
+                    <th className="px-2 py-2.5 sm:px-2.5 sm:py-3 w-10 sm:w-12 font-black text-center border-r border-slate-200">NO</th>
+                    <th className="px-2.5 sm:px-4 py-2.5 sm:py-3 font-black sticky left-0 bg-slate-50 z-10 border-r border-slate-200 min-w-[125px] sm:min-w-[190px]">NAMA SISWA</th>
+                    <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">HDR</th>
+                    <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">TLT</th>
+                    <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">IZN</th>
+                    <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">SKT</th>
+                    <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">ALP</th>
+                    {daysToRender.map((dayNum) => (
+                      <th key={dayNum} className="px-2 py-3 font-black text-center min-w-[70px] border-r border-slate-200">
+                        {dayNum}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="text-sm font-medium text-slate-700">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={7 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Memuat data absen...</td>
+                    </tr>
+                  ) : paginatedData.length === 0 ? (
+                    <tr>
+                      <td colSpan={7 + daysToRender.length} className="px-6 py-12 text-center text-slate-500 font-bold">Tidak ada data untuk filter ini.</td>
+                    </tr>
+                  ) : (
+                    paginatedData.map((d, idx) => {
+                      const v = checkViolation(d, daysToRender);
+                      return (
+                        <tr
+                          key={d.nis}
+                          className={`border-b transition-colors ${v.bgClass}`}
+                        >
+                          <td className="px-2 sm:px-2.5 py-2 sm:py-2.5 text-center text-slate-400 font-bold text-xs border-r border-slate-200">
                             {(currentPage - 1) * itemsPerPage + idx + 1}
-                         </td>
-                         <td className={`px-2.5 sm:px-3.5 py-2 sm:py-2.5 sticky left-0 border-r z-10 min-w-[125px] sm:min-w-[190px] ${v.stickyBgClass}`}>
+                          </td>
+                          <td className={`px-2.5 sm:px-3.5 py-2 sm:py-2.5 sticky left-0 border-r z-10 min-w-[125px] sm:min-w-[190px] ${v.stickyBgClass}`}>
                             <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                               <span className={`font-bold text-xs truncate max-w-[95px] sm:max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
                               {d.is_mutasi && (
@@ -2716,9 +2702,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               )}
                               {v.level > 0 && (
                                 <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa ≥3x)"}>
-                                  <AlertTriangle 
-                                    size={12} 
-                                    className={`shrink-0 ${v.level === 4 ? "text-amber-500 animate-pulse" : v.level === 3 ? "text-rose-600" : v.level === 2 ? "text-orange-500" : "text-amber-500"}`} 
+                                  <AlertTriangle
+                                    size={12}
+                                    className={`shrink-0 ${v.level === 4 ? "text-amber-500 animate-pulse" : v.level === 3 ? "text-rose-600" : v.level === 2 ? "text-orange-500" : "text-amber-500"}`}
                                   />
                                 </span>
                               )}
@@ -2728,7 +2714,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                 {d.class_name || 'Tanpa Kelas'} {d.nis ? `• ${d.nis}` : ''}
                               </div>
                               {isKesiswaanOrAdmin && (
-                                <button 
+                                <button
                                   type="button"
                                   onClick={(e) => { e.stopPropagation(); setTargetDeleteStudent(d); }}
                                   title="Hapus data siswa dari mesin absensi / sistem"
@@ -2738,73 +2724,73 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                 </button>
                               )}
                             </div>
-                         </td>
-                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
-                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-amber-600 border-r border-slate-100">
-                             <div>{d.total_terlambat || 0}</div>
                           </td>
-                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin || 0}</td>
-                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
-                         <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-rose-600 border-r border-slate-100">
-                             <div>{d.total_alpa || 0}</div>
-                         </td>
-                      {daysToRender.map((dayNum) => {
-                         const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                         const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, d.class_name);
-                         const dayData = d.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
-                         if (!dayData) {
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-emerald-600 border-r border-slate-100">{d.total_hadir}</td>
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-amber-600 border-r border-slate-100">
+                            <div>{d.total_terlambat || 0}</div>
+                          </td>
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-indigo-600 border-r border-slate-100">{d.total_izin || 0}</td>
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-amber-500 border-r border-slate-100">{d.total_sakit || 0}</td>
+                          <td className="px-2 sm:px-3 py-2 sm:py-3 text-center font-black text-rose-600 border-r border-slate-100">
+                            <div>{d.total_alpa || 0}</div>
+                          </td>
+                          {daysToRender.map((dayNum) => {
+                            const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                            const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, d.class_name);
+                            const dayData = d.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
+                            if (!dayData) {
+                              return (
+                                <td 
+                                  key={dayNum} 
+                                  onClick={() => handleCellClick(d, dayNum)}
+                                  className="px-1 py-3 text-center border-r border-slate-100 text-[10px] text-slate-300 cursor-pointer hover:bg-slate-50"
+                                >
+                                  -
+                                </td>
+                              );
+                            }
+                            const cellColors = getCellStyle(dayData, d.class_name, dateStr);
                             return (
-                               <td 
-                                 key={dayNum} 
-                                 onClick={() => handleCellClick(d, dayNum)}
-                                 className="px-1 py-3 text-center border-r border-slate-100 text-[10px] text-slate-300 cursor-pointer hover:bg-slate-50"
-                               >
-                                 -
-                               </td>
-                            );
-                         }
-                         const cellColors = getCellStyle(dayData, d.class_name, dateStr);
-                         return (
-                            <td 
-                              key={dayNum} 
-                              onClick={() => handleCellClick(d, dayNum)}
-                              className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors relative"
-                            >
-                              {dayData?.pending_permission && (
-                                 <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
-                              )}
-                                <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] relative ${cellColors.className}`} style={cellColors.style}>
-                                   {cellColors.isHoliday || dayData.status === "Libur" || dayData.isHoliday ? (
-                                     <div className="py-1 flex flex-col items-center justify-center min-h-[34px] gap-0.5" title={`Libur: ${cellColors.noteText || "Bebas Absensi / Kalender Akademik"}`}>
-                                       <span className="inline-flex items-center px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-200/90 text-rose-900 text-[7px] font-black uppercase tracking-tight shadow-2xs border border-rose-300">
-                                         <span>LIBUR</span>
-                                       </span>
-                                       {Boolean(cellColors.noteText) && (
-                                         <span className="text-[7px] font-extrabold text-rose-900 block truncate max-w-[50px] leading-tight text-center" title={cellColors.noteText}>
-                                           {cellColors.noteText}
-                                         </span>
-                                       )}
-                                     </div>
-                                   ) : ["Sakit","Izin","Alpa","Mutasi","PraPKL"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
-                                     <div className="py-1 flex flex-col items-center justify-center min-h-[34px] gap-0.5">
-                                       {cellColors.isMesinError && (
-                                         <span className="mb-0.5 inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight">
-                                           Mesin
-                                         </span>
-                                       )}
-                                       {cellColors.isLupaAbsen && (
-                                         <span className="mb-0.5 inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight">
-                                           Lupa
-                                         </span>
-                                       )}
-                                       <span className="font-extrabold">{dayData.status === "Mutasi" ? "MUTASI" : dayData.status === "PraPKL" ? "PraPKL" : dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
-                                       {Boolean(cellColors.noteText) && !cellColors.isMesinError && !cellColors.isLupaAbsen && (
-                                         <span className="inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-white/90 border border-slate-300/80 text-[6.5px] font-black text-slate-800 max-w-[50px] truncate shadow-2xs" title={`Keterangan: ${cellColors.noteText}`}>
-                                           <span className="truncate">{cellColors.noteText}</span>
-                                         </span>
-                                       )}
-                                     </div>
-                                   ) : (() => {
+                              <td
+                                key={dayNum}
+                                onClick={() => handleCellClick(d, dayNum)}
+                                className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors relative"
+                              >
+                                {dayData?.pending_permission && (
+                                  <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
+                                )}
+                                  <div className={`text-[9px] font-black leading-tight p-1 rounded-[var(--ui-radius-small)] relative ${cellColors.className}`} style={cellColors.style}>
+                                    {cellColors.isHoliday || dayData.status === "Libur" || dayData.isHoliday ? (
+                                      <div className="py-1 flex flex-col items-center justify-center min-h-[34px] gap-0.5" title={`Libur: ${cellColors.noteText || "Bebas Absensi / Kalender Akademik"}`}>
+                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] bg-rose-200/90 text-rose-900 text-[7px] font-black uppercase tracking-tight shadow-2xs border border-rose-300">
+                                          <span>LIBUR</span>
+                                        </span>
+                                        {Boolean(cellColors.noteText) && (
+                                          <span className="text-[7px] font-extrabold text-rose-900 block truncate max-w-[50px] leading-tight text-center" title={cellColors.noteText}>
+                                            {cellColors.noteText}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : ["Sakit", "Izin", "Alpa", "Mutasi", "PraPKL"].includes(dayData.status) || dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? (
+                                      <div className="py-1 flex flex-col items-center justify-center min-h-[34px] gap-0.5">
+                                        {cellColors.isMesinError && (
+                                          <span className="mb-0.5 inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-sky-200/90 text-sky-950 text-[7px] font-black uppercase tracking-tight">
+                                            Mesin
+                                          </span>
+                                        )}
+                                        {cellColors.isLupaAbsen && (
+                                          <span className="mb-0.5 inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-amber-200/90 text-amber-950 text-[7px] font-black uppercase tracking-tight">
+                                            Lupa
+                                          </span>
+                                        )}
+                                        <span className="font-extrabold">{dayData.status === "Mutasi" ? "MUTASI" : dayData.status === "PraPKL" ? "PraPKL" : dayData.isPkl || String(dayData.status || '').startsWith("PKL") ? "PKL" : dayData.status.toUpperCase()}</span>
+                                        {Boolean(cellColors.noteText) && !cellColors.isMesinError && !cellColors.isLupaAbsen && (
+                                          <span className="inline-flex items-center px-1 py-0.2 rounded-[var(--ui-radius-pill)] bg-white/90 border border-slate-300/80 text-[6.5px] font-black text-slate-800 max-w-[50px] truncate shadow-2xs" title={`Keterangan: ${cellColors.noteText}`}>
+                                            <span className="truncate">{cellColors.noteText}</span>
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (() => {
                                       const inTime = formatAttendanceTime(dayData.in);
                                       const outTime = formatAttendanceTime(dayData.out);
                                       const noteText = cellColors.noteText || '';
@@ -2875,683 +2861,715 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                         </div>
                                       );
                                     })()}
-                                </div>
-                            </td>
-                         );
-                      })}
-                   </tr>
-                 );
-               })
-             )}
-              </tbody>
-              <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
-                {/* JML HADIR */}
-                <tr className="bg-emerald-100/90 border-b border-emerald-200 text-emerald-950">
-                  <td className="px-2.5 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold text-xs">-</td>
-                  <td className="px-4 py-2 sticky left-0 bg-emerald-100 z-10 border-r border-emerald-300 font-black text-[10px] uppercase">TOTAL HADIR (HDR)</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
-                  {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-emerald-200/80">
-                      {dailyTotals.hadir[d] > 0 ? (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-xs">
-                          {dailyTotals.hadir[d]}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-emerald-400">0</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                {/* JML TERLAMBAT */}
-                <tr className="bg-rose-100/90 border-b border-rose-200 text-rose-950">
-                  <td className="px-2.5 py-2 text-center border-r border-rose-300 text-rose-300 font-bold text-xs">-</td>
-                  <td className="px-4 py-2 sticky left-0 bg-rose-100 z-10 border-r border-rose-300 font-black text-[10px] uppercase">TOTAL TERLAMBAT (TLT)</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
-                  {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-rose-200/80">
-                      {dailyTotals.terlambat[d] > 0 ? (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-xs">
-                          {dailyTotals.terlambat[d]}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-rose-300">0</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                {/* JML IZIN */}
-                <tr className="bg-indigo-100/90 border-b border-indigo-200 text-indigo-950">
-                  <td className="px-2.5 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold text-xs">-</td>
-                  <td className="px-4 py-2 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
-                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
-                  {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-indigo-200/80">
-                      {dailyTotals.izin[d] > 0 ? (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-xs">
-                          {dailyTotals.izin[d]}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-indigo-300">0</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                {/* JML SAKIT */}
-                <tr className="bg-amber-100/90 border-b border-amber-200 text-amber-950">
-                  <td className="px-2.5 py-2 text-center border-r border-amber-300 text-amber-300 font-bold text-xs">-</td>
-                  <td className="px-4 py-2 sticky left-0 bg-amber-100 z-10 border-r border-amber-300 font-black text-[10px] uppercase">TOTAL SAKIT (SKT)</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
-                  <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
-                  {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-amber-200/80">
-                      {dailyTotals.sakit[d] > 0 ? (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-amber-500 text-white font-black text-[10px] shadow-xs">
-                          {dailyTotals.sakit[d]}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-amber-400">0</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-                {/* JML ALPA */}
-                <tr className="bg-slate-900 text-white border-b border-slate-800">
-                  <td className="px-2.5 py-2 text-center border-r border-slate-700 text-slate-500 font-bold text-xs">-</td>
-                  <td className="px-4 py-2 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-black text-[10px] uppercase text-white">TOTAL ALPA (ALP)</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
-                  <td className="px-3 py-2 text-center border-r border-slate-700 text-rose-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
-                  {daysToRender.map(d => (
-                    <td key={d} className="px-1 py-1.5 text-center border-r border-slate-800">
-                      {dailyTotals.alpa[d] > 0 ? (
-                        <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-xs">
-                          {dailyTotals.alpa[d]}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-bold text-slate-600">0</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              </tfoot>
-           </table>
-         </div>
-
-        <TablePagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={filteredData.length}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
-        />
-
-        {/* Legenda Indikator Matriks Kehadiran */}
-        <div className="mt-3.5 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col gap-2.5 text-xs shadow-2xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-slate-200/70">
-            <div className="flex items-center gap-1.5 font-black uppercase text-slate-500 text-[10px] tracking-wider shrink-0">
-              <Info size={13} className="text-slate-400" />
-              <span>Keterangan Tanda &amp; Warna Sel Matriks Kehadiran:</span>
-            </div>
-            <span className="text-[10px] text-slate-400 font-medium">Klik pada sel siswa untuk memasukkan izin, sakit, dinas, atau catatan khusus</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Presensi Utama */}
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[10px] border border-orange-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[10px] border border-indigo-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin (IZN)
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/90 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Kalender Akademik
-            </span>
-
-            {/* Separator PKL */}
-            <div className="h-4 w-px bg-slate-300 mx-1 hidden lg:block"></div>
-
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-teal-100 text-teal-800 font-black text-[10px] border border-teal-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-600"></span> PraPKL
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-black text-[10px] border border-sky-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span> PKL
-            </span>
-
-            {/* Separator Tanda Mesin */}
-            <div className="h-4 w-px bg-slate-300 mx-1 hidden lg:block"></div>
-
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-bold text-[10px] border border-sky-200 shadow-2xs">
-              <Zap size={11} className="text-sky-600 shrink-0" /> Mesin Error
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-200 shadow-2xs">
-              <AlertCircle size={11} className="text-amber-600 shrink-0" /> Lupa Absen
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-bold text-[10px] border border-indigo-200 shadow-2xs">
-              <FileText size={11} className="text-indigo-600 shrink-0" /> Catatan Khusus
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200 shadow-2xs">
-              <Sparkles size={11} className="text-indigo-600 shrink-0" /> Hadir + Tanda Keterangan
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[10px] border border-slate-200 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Kosong (-)
-            </span>
-          </div>
-        </div>
-       </div>
-
-       {/* Input Ketidakhadiran Modal */}
-       {selectedCell && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-200">
-             <div className="flex items-center justify-between p-4 border-b border-slate-100">
-               <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Input Ketidakhadiran</h3>
-               <Button variant="outline" 
-                 type="button" 
-                 onClick={() =>setSelectedCell(null)}
-                 
-               >
-                 <X size={16} /></Button>
-             </div>
-             
-             <form onSubmit={handleCellSubmit} className="p-4 space-y-4">
-               {selectedCell?.isMissingIn && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-[var(--ui-radius-small)] p-2.5 flex items-start gap-2 text-orange-950 text-xs shadow-xs">
-                    <AlertTriangle size={15} className="shrink-0 mt-0.5 text-orange-600" />
-                    <div>
-                      <p className="font-black text-orange-900">Catatan: Tidak Absen Pagi</p>
-                      <p className="text-[11px] text-orange-800 mt-0.5">
-                        Siswa tercatat hadir hanya saat absen pulang ({selectedCell.outTime || '--:--'}) tanpa melakukan scan masuk pagi.
-                      </p>
-                    </div>
-                  </div>
-                )}
-               <div>
-                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Nama Siswa</label>
-                 <div className="text-xs font-black text-slate-800">{selectedCell.name} ({selectedCell.nis})</div>
-               </div>
-
-               <div>
-                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Tanggal</label>
-                 <div className="text-xs font-black text-slate-800">
-                   {String(selectedCell.day).padStart(2,'0')} / {String(filter.month).padStart(2,'0')} / {filter.year}
-                 </div>
-               </div>
-
-               <div>
-                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Status Kehadiran</label>
-                 <UISelect
-                   value={permissionForm.status}
-                   onChange={(e) => setPermissionForm({ ...permissionForm, status: e.target.value })}
-                   className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-black focus:outline-[var(--ui-primary)]"
-                 >
-                   <option value="Hadir">Hadir (Tepat Waktu / Hadir di Kelas)</option>
-                   <option value="Sakit">Sakit</option>
-                   <option value="Izin">Izin</option>
-                   <option value="PraPKL">PraPKL</option>
-                   <option value="PKL">PKL (Sedang PKL / Magang)</option>
-                   <option value="Terlambat">Terlambat (Tetap Masuk)</option>
-                   <option value="Alpa">Alpa (Tanpa Keterangan)</option>
-                 </UISelect>
-               </div>
-
-               {["Sakit","Izin","Terlambat","PraPKL","PKL"].includes(permissionForm.status) && (
-                 <div>
-                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
-                     Upload Surat / Bukti (Gambar)
-                   </label>
-                   {permissionForm.gdriveUrl && !permissionForm.replaceImage ? (
-                      <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-[var(--ui-radius-small)] text-center">
-                        <button type="button" onClick={() => setShowPermissionPreviewModal(true)} className="w-full bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200 font-bold px-3 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer text-xs flex justify-center items-center gap-2">
-                           <Eye size={14} /> Lihat Surat / Foto
-                        </button>
-                      </div>
-                   ) : (
-                      <>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="w-full bg-slate-50 border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-semibold"
-                        />
-                         {permissionForm.fileData && (
-                           <div className="inline-flex items-center gap-1 text-[9px] text-emerald-600 font-bold mt-1">
-                             <CheckCircle2 size={11} className="shrink-0 text-emerald-600" />
-                             <span>Gambar siap diupload ({permissionForm.fileSizeKB} KB)</span>
-                           </div>
-                         )}
-                      </>
-                   )}
-                 </div>
-               )}
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Keterangan / Catatan Absen</label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[9px] text-slate-400 font-bold">Pilih Cepat Catatan:</span>
-                      {isSuperAdmin && (
-                        <button
-                          type="button"
-                          onClick={() => setIsManageNotesOpen(true)}
-                          className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200 cursor-pointer shadow-2xs"
-                          title="Kelola Pilihan Catatan & Kegiatan (Super Admin)"
-                        >
-                          <Settings2 size={10} />
-                          <span>Kelola Pilihan</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Preset Quick Note Chips */}
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {studentNotes.map((note) => {
-                      const toneClass = getNoteChipClass(note.color);
-                      return (
-                        <button
-                          key={note.id || note.label}
-                          type="button"
-                          onClick={() => setPermissionForm(prev => ({ 
-                            ...prev, 
-                            keterangan: note.keterangan || note.label, 
-                            status: note.status && (prev.status === "Alpa" || !prev.status) ? note.status : prev.status 
-                          }))}
-                          className={`px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] border transition-all flex items-center gap-1 shadow-2xs cursor-pointer ${toneClass}`}
-                        >
-                          {note.category === 'kegiatan' ? <Award size={10} className="shrink-0" /> : <Zap size={10} className="shrink-0" />}
-                          <span>{note.label}</span>
-                        </button>
+                                  </div>
+                                </td>
+                              );
+                            })}
+                        </tr>
                       );
-                    })}
-                    {permissionForm.keterangan && (
-                      <button
-                        type="button"
-                        onClick={() => setPermissionForm(prev => ({ ...prev, keterangan: "" }))}
-                        className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all flex items-center gap-1 cursor-pointer"
-                      >
-                        <X size={10} className="text-rose-500" /> Kosongkan
-                      </button>
-                    )}
-                  </div>
-
-                  <textarea
-                    required
-                    rows={3}
-                    value={permissionForm.keterangan}
-                    onChange={(e) => setPermissionForm({ ...permissionForm, keterangan: e.target.value })}
-                    placeholder="Tulis catatan (misal: Mesin error tidak terbaca, siswa hadir di kelas)..."
-                    className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)]"
-                  />
-                </div>
-
-                <div className="text-[9px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-[var(--ui-radius-small)] border border-amber-100 leading-normal flex items-start gap-1.5">
-                  <AlertTriangle size={13} className="shrink-0 text-amber-600 mt-0.5" />
-                  <span>Catatan: Pengajuan ketidakhadiran dari halaman ini memerlukan persetujuan dari Tata Usaha atau Kesiswaan sebelum aktif di laporan rekapitulasi.</span>
-                </div>
-
-               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                 <Button variant="outline" 
-                   type="button" 
-                   onClick={() =>setSelectedCell(null)}
-                   disabled={isSubmittingCell}
-                   
-                 >
-                   Batal</Button>
-                 <Button variant="outline" 
-                   type="submit" 
-                   disabled={isSubmittingCell}
-                  >{isSubmittingCell ?"Menyimpan..." :"Simpan Pengajuan"}</Button>
-               </div>
-             </form>
-           </div>
-         </div>
-       )}
-        {/* Modal Detail Siswa Bulanan (Mobile Friendly) */}
-        {selectedStudentDetail && (
-          <Modal 
-            isOpen={Boolean(selectedStudentDetail)} 
-            onClose={() => setSelectedStudentDetail(null)} 
-            title="Rekap Kehadiran Siswa" 
-            maxWidth="max-w-lg"
-          >
-            <div className="p-3 sm:p-4 flex flex-col gap-3.5">
-              {/* Student Header Card */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h3 className="text-sm font-black text-slate-900 truncate">
-                    {selectedStudentDetail.name}
-                  </h3>
-                  <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                    {selectedStudentDetail.class_name || 'Tanpa Kelas'} • NIS {selectedStudentDetail.nis}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="text-[10px] font-bold text-slate-400 block">Periode</span>
-                  <span className="text-xs font-black text-slate-700">
-                    Bulan {filter.month} / {filter.year}
-                  </span>
-                </div>
-              </div>
-
-              {/* 5 Stats Grid */}
-              <div className="grid grid-cols-5 gap-1.5">
-                <div className="bg-emerald-50 border border-emerald-200/70 rounded-xl p-2 text-center">
-                  <span className="text-[8.5px] font-black uppercase text-emerald-700 block">Hadir</span>
-                  <span className="text-sm font-black text-emerald-900">{selectedStudentDetail.total_hadir || 0}</span>
-                </div>
-                <div className="bg-amber-50 border border-amber-200/70 rounded-xl p-2 text-center">
-                  <span className="text-[8.5px] font-black uppercase text-amber-700 block">Telat</span>
-                  <span className="text-sm font-black text-amber-900">{selectedStudentDetail.total_terlambat || 0}</span>
-                </div>
-                <div className="bg-indigo-50 border border-indigo-200/70 rounded-xl p-2 text-center">
-                  <span className="text-[8.5px] font-black uppercase text-indigo-700 block">Izin</span>
-                  <span className="text-sm font-black text-indigo-900">{selectedStudentDetail.total_izin || 0}</span>
-                </div>
-                <div className="bg-sky-50 border border-sky-200/70 rounded-xl p-2 text-center">
-                  <span className="text-[8.5px] font-black uppercase text-sky-700 block">Sakit</span>
-                  <span className="text-sm font-black text-sky-900">{selectedStudentDetail.total_sakit || 0}</span>
-                </div>
-                <div className="bg-rose-50 border border-rose-200/70 rounded-xl p-2 text-center">
-                  <span className="text-[8.5px] font-black uppercase text-rose-700 block">Alpa</span>
-                  <span className="text-sm font-black text-rose-900">{selectedStudentDetail.total_alpa || 0}</span>
-                </div>
-              </div>
-
-              {/* Calendar Days Matrix (Grid of days) */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-black text-slate-800">Rincian Status Harian:</span>
-                  <span className="text-[10px] font-medium text-slate-400">Sentuh tanggal untuk edit/lihat</span>
-                </div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-[300px] overflow-y-auto no-scrollbar p-0.5">
-                  {daysToRender.map((dayNum) => {
-                    const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                    const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, selectedStudentDetail.class_name);
-                    const dayData = selectedStudentDetail.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
-                    const cellColors = dayData ? getCellStyle(dayData, selectedStudentDetail.class_name, dateStr) : null;
-                    
-                    return (
-                      <button
-                        key={dayNum}
-                        type="button"
-                        onClick={() => {
-                          const student = selectedStudentDetail;
-                          setSelectedStudentDetail(null);
-                          handleCellClick(student, dayNum);
-                        }}
-                        className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[54px] transition-all active:scale-95 cursor-pointer shadow-2xs ${
-                          dayData ? `${cellColors.className}` : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
-                        }`}
-                        style={cellColors?.style}
-                      >
-                        <div className="flex items-center justify-between w-full">
-                          <span className="text-[10px] font-black">Tgl {dayNum}</span>
-                          {dayData?.check_in && (
-                            <span className="text-[8px] font-mono font-bold">
-                              {dayData.check_in.slice(0, 5)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-1">
-                          <span className="text-[9.5px] font-black block truncate">
-                            {dayData?.status || '-'}
+                    })
+                  )}
+                </tbody>
+                <tfoot className="bg-slate-50 font-black text-xs border-t-2 border-slate-300">
+                  {/* JML HADIR */}
+                  <tr className="bg-emerald-100/90 border-b border-emerald-200 text-emerald-950">
+                    <td className="px-2.5 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold text-xs">-</td>
+                    <td className="px-4 py-2 sticky left-0 bg-emerald-100 z-10 border-r border-emerald-300 font-black text-[10px] uppercase">TOTAL HADIR (HDR)</td>
+                    <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_hadir || 0), 0)}</td>
+                    <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-emerald-300 text-emerald-300 font-bold">-</td>
+                    {daysToRender.map(d => (
+                      <td key={d} className="px-1 py-1.5 text-center border-r border-emerald-200/80">
+                        {dailyTotals.hadir[d] > 0 ? (
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-emerald-600 text-white font-black text-[10px] shadow-xs">
+                            {dailyTotals.hadir[d]}
                           </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                        ) : (
+                          <span className="text-[10px] font-bold text-emerald-400">0</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  {/* JML TERLAMBAT */}
+                  <tr className="bg-rose-100/90 border-b border-rose-200 text-rose-950">
+                    <td className="px-2.5 py-2 text-center border-r border-rose-300 text-rose-300 font-bold text-xs">-</td>
+                    <td className="px-4 py-2 sticky left-0 bg-rose-100 z-10 border-r border-rose-300 font-black text-[10px] uppercase">TOTAL TERLAMBAT (TLT)</td>
+                    <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_terlambat || 0), 0)}</td>
+                    <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-rose-300 text-rose-300 font-bold">-</td>
+                    {daysToRender.map(d => (
+                      <td key={d} className="px-1 py-1.5 text-center border-r border-rose-200/80">
+                        {dailyTotals.terlambat[d] > 0 ? (
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-xs">
+                            {dailyTotals.terlambat[d]}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-rose-300">0</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  {/* JML IZIN */}
+                  <tr className="bg-indigo-100/90 border-b border-indigo-200 text-indigo-950">
+                    <td className="px-2.5 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold text-xs">-</td>
+                    <td className="px-4 py-2 sticky left-0 bg-indigo-100 z-10 border-r border-indigo-300 font-black text-[10px] uppercase">TOTAL IZIN (IZN)</td>
+                    <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_izin || 0), 0)}</td>
+                    <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-indigo-300 text-indigo-300 font-bold">-</td>
+                    {daysToRender.map(d => (
+                      <td key={d} className="px-1 py-1.5 text-center border-r border-indigo-200/80">
+                        {dailyTotals.izin[d] > 0 ? (
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-[var(--ui-primary)] text-white font-black text-[10px] shadow-xs">
+                            {dailyTotals.izin[d]}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-indigo-300">0</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  {/* JML SAKIT */}
+                  <tr className="bg-amber-100/90 border-b border-amber-200 text-amber-950">
+                    <td className="px-2.5 py-2 text-center border-r border-amber-300 text-amber-300 font-bold text-xs">-</td>
+                    <td className="px-4 py-2 sticky left-0 bg-amber-100 z-10 border-r border-amber-300 font-black text-[10px] uppercase">TOTAL SAKIT (SKT)</td>
+                    <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-800 font-extrabold text-xs">{filteredData.reduce((acc, s) => acc + (s.total_sakit || 0), 0)}</td>
+                    <td className="px-3 py-2 text-center border-r border-amber-300 text-amber-300 font-bold">-</td>
+                    {daysToRender.map(d => (
+                      <td key={d} className="px-1 py-1.5 text-center border-r border-amber-200/80">
+                        {dailyTotals.sakit[d] > 0 ? (
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-amber-500 text-white font-black text-[10px] shadow-xs">
+                            {dailyTotals.sakit[d]}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-amber-400">0</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                  {/* JML ALPA */}
+                  <tr className="bg-slate-900 text-white border-b border-slate-800">
+                    <td className="px-2.5 py-2 text-center border-r border-slate-700 text-slate-500 font-bold text-xs">-</td>
+                    <td className="px-4 py-2 sticky left-0 bg-slate-900 z-10 border-r border-slate-700 font-black text-[10px] uppercase text-white">TOTAL ALPA (ALP)</td>
+                    <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-slate-700 text-slate-500 font-bold">-</td>
+                    <td className="px-3 py-2 text-center border-r border-slate-700 text-rose-400 font-black text-xs">{filteredData.reduce((acc, s) => acc + (s.total_alpa || 0), 0)}</td>
+                    {daysToRender.map(d => (
+                      <td key={d} className="px-1 py-1.5 text-center border-r border-slate-800">
+                        {dailyTotals.alpa[d] > 0 ? (
+                          <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-rose-600 text-white font-black text-[10px] shadow-xs">
+                            {dailyTotals.alpa[d]}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-slate-600">0</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
 
-              {/* Footer */}
-              <div className="pt-2 border-t border-slate-100 flex justify-end">
-                <Button type="button" onClick={() => setSelectedStudentDetail(null)}>
-                  Tutup
-                </Button>
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredData.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
+            />
+
+            {/* Legenda Indikator Matriks Kehadiran */}
+            <div className="mt-3.5 p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col gap-2.5 text-xs shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 pb-2 border-b border-slate-200/70">
+                <div className="flex items-center gap-1.5 font-black uppercase text-slate-500 text-[10px] tracking-wider shrink-0">
+                  <Info size={13} className="text-slate-400" />
+                  <span>Keterangan Tanda &amp; Warna Sel Matriks Kehadiran:</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-medium">Klik pada sel siswa untuk memasukkan izin, sakit, dinas, atau catatan khusus</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Presensi Utama */}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[10px] border border-emerald-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[10px] border border-rose-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Terlambat (TLT)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-orange-100 text-orange-800 font-bold text-[10px] border border-orange-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Tdk Absen Pagi
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-black text-[10px] border border-indigo-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-600"></span> Izin (IZN)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-black text-[10px] border border-amber-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Sakit (SKT)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 font-bold text-[10px] border border-rose-200/90 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alpa (ALP)
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-bold text-[10px] border border-rose-300 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Libur Kalender Akademik
+                </span>
+
+                {/* Separator PKL */}
+                <div className="h-4 w-px bg-slate-300 mx-1 hidden lg:block"></div>
+
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-teal-100 text-teal-800 font-black text-[10px] border border-teal-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-600"></span> PraPKL
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-black text-[10px] border border-sky-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-600"></span> PKL
+                </span>
+
+                {/* Separator Tanda Mesin */}
+                <div className="h-4 w-px bg-slate-300 mx-1 hidden lg:block"></div>
+
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-sky-100 text-sky-800 font-bold text-[10px] border border-sky-200 shadow-2xs">
+                  <Zap size={11} className="text-sky-600 shrink-0" /> Mesin Error
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 font-bold text-[10px] border border-amber-200 shadow-2xs">
+                  <AlertCircle size={11} className="text-amber-600 shrink-0" /> Lupa Absen
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-800 font-bold text-[10px] border border-indigo-200 shadow-2xs">
+                  <FileText size={11} className="text-indigo-600 shrink-0" /> Catatan Khusus
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-200 shadow-2xs">
+                  <Sparkles size={11} className="text-indigo-600 shrink-0" /> Hadir + Tanda Keterangan
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-500 font-bold text-[10px] border border-slate-200 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Kosong (-)
+                </span>
               </div>
             </div>
-          </Modal>
-        )}
+          </div>
 
-       {/* Modal Preview Surat / Foto */}
-       {showPermissionPreviewModal && (
-         <Modal isOpen={true} onClose={() => setShowPermissionPreviewModal(false)} title="Lihat Surat / Bukti" maxWidth="max-w-md">
-           <div className="p-2 flex flex-col gap-4">
-              <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
-                {(permissionForm.gdriveUrl && !permissionForm.gdriveUrl.startsWith('data:image/')) ? (
-                   <div className="text-center">
-                     <p className="text-sm font-bold text-white mb-3">Dokumen tersimpan di Google Drive</p>
-                     <a href={permissionForm.gdriveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-[var(--ui-radius-small)] shadow-sm transition-colors">
-                       <ExternalLink size={16} /> Buka Link Foto/Surat
-                     </a>
-                   </div>
-                ) : permissionForm.gdriveUrl?.startsWith('data:image/') ? (
-                   <img src={permissionForm.gdriveUrl} alt="Bukti" className="max-h-[380px] w-auto max-w-full object-contain rounded-[var(--ui-radius-small)] shadow-xs border border-slate-700" />
-                ) : (
-                   <p className="text-slate-400 font-medium text-sm">Tidak ada foto.</p>
-                )}
+          {/* Input Ketidakhadiran Modal */}
+          {selectedCell && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+              <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-sm w-full overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between p-4 border-b border-slate-100">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Input Ketidakhadiran</h3>
+                  <Button variant="outline"
+                    type="button"
+                    onClick={() => setSelectedCell(null)}
+
+                  >
+                    <X size={16} /></Button>
+                </div>
+
+                <form onSubmit={handleCellSubmit} className="p-4 space-y-4">
+                  {selectedCell?.isMissingIn && (
+                    <div className="bg-orange-50 border border-orange-200 rounded-[var(--ui-radius-small)] p-2.5 flex items-start gap-2 text-orange-950 text-xs shadow-xs">
+                      <AlertTriangle size={15} className="shrink-0 mt-0.5 text-orange-600" />
+                      <div>
+                        <p className="font-black text-orange-900">Catatan: Tidak Absen Pagi</p>
+                        <p className="text-[11px] text-orange-800 mt-0.5">
+                          Siswa tercatat hadir hanya saat absen pulang ({selectedCell.outTime || '--:--'}) tanpa melakukan scan masuk pagi.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Nama Siswa</label>
+                    <div className="text-xs font-black text-slate-800">{selectedCell.name} ({selectedCell.nis})</div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Tanggal</label>
+                    <div className="text-xs font-black text-slate-800">
+                      {String(selectedCell.day).padStart(2, '0')} / {String(filter.month).padStart(2, '0')} / {filter.year}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Status Kehadiran</label>
+                    <UISelect
+                      value={permissionForm.status}
+                      onChange={(e) => setPermissionForm({ ...permissionForm, status: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-black focus:outline-[var(--ui-primary)]"
+                    >
+                      <option value="Hadir">Hadir (Tepat Waktu / Hadir di Kelas)</option>
+                      <option value="Sakit">Sakit</option>
+                      <option value="Izin">Izin</option>
+                      <option value="PraPKL">PraPKL</option>
+                      <option value="PKL">PKL (Sedang PKL / Magang)</option>
+                      <option value="Terlambat">Terlambat (Tetap Masuk)</option>
+                      <option value="Alpa">Alpa (Tanpa Keterangan)</option>
+                    </UISelect>
+                  </div>
+
+                  {["Sakit", "Izin", "Terlambat", "PraPKL", "PKL"].includes(permissionForm.status) && (
+                    <div>
+                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">
+                        Upload Surat / Bukti (Gambar)
+                      </label>
+                      {permissionForm.gdriveUrl && !permissionForm.replaceImage ? (
+                        <div className="bg-slate-50 p-2.5 border border-slate-200 rounded-[var(--ui-radius-small)] text-center">
+                          <button type="button" onClick={() => setShowPermissionPreviewModal(true)} className="w-full bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200 font-bold px-3 py-2 rounded-[var(--ui-radius-small)] transition-all cursor-pointer text-xs flex justify-center items-center gap-2">
+                            <Eye size={14} /> Lihat Surat / Foto
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="w-full bg-slate-50 border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-semibold"
+                          />
+                          {permissionForm.fileData && (
+                            <div className="inline-flex items-center gap-1 text-[9px] text-emerald-600 font-bold mt-1">
+                              <CheckCircle2 size={11} className="shrink-0 text-emerald-600" />
+                              <span>Gambar siap diupload ({permissionForm.fileSizeKB} KB)</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Keterangan / Catatan Absen</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] text-slate-400 font-bold">Pilih Cepat Catatan:</span>
+                        {isSuperAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => setIsManageNotesOpen(true)}
+                            className="inline-flex items-center gap-1 text-[9.5px] font-bold text-amber-600 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] border border-amber-200 cursor-pointer shadow-2xs"
+                            title="Kelola Pilihan Catatan & Kegiatan (Super Admin)"
+                          >
+                            <Settings2 size={10} />
+                            <span>Kelola Pilihan</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Preset Quick Note Chips */}
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {studentNotes.map((note) => {
+                        const toneClass = getNoteChipClass(note.color);
+                        return (
+                          <button
+                            key={note.id || note.label}
+                            type="button"
+                            onClick={() => setPermissionForm(prev => ({
+                              ...prev,
+                              keterangan: note.keterangan || note.label,
+                              status: note.status && (prev.status === "Alpa" || !prev.status) ? note.status : prev.status
+                            }))}
+                            className={`px-2 py-1 text-[10px] font-black rounded-[var(--ui-radius-pill)] border transition-all flex items-center gap-1 shadow-2xs cursor-pointer ${toneClass}`}
+                          >
+                            {note.category === 'kegiatan' ? <Award size={10} className="shrink-0" /> : <Zap size={10} className="shrink-0" />}
+                            <span>{note.label}</span>
+                          </button>
+                        );
+                      })}
+                      {permissionForm.keterangan && (
+                        <button
+                          type="button"
+                          onClick={() => setPermissionForm(prev => ({ ...prev, keterangan: "" }))}
+                          className="px-2 py-1 text-[10px] font-bold rounded-[var(--ui-radius-pill)] text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all flex items-center gap-1 cursor-pointer"
+                        >
+                          <X size={10} className="text-rose-500" /> Kosongkan
+                        </button>
+                      )}
+                    </div>
+
+                    <textarea
+                      required
+                      rows={3}
+                      value={permissionForm.keterangan}
+                      onChange={(e) => setPermissionForm({ ...permissionForm, keterangan: e.target.value })}
+                      placeholder="Tulis catatan (misal: Mesin error tidak terbaca, siswa hadir di kelas)..."
+                      className="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-[var(--ui-primary)]"
+                    />
+                  </div>
+
+                  <div className="text-[9px] font-bold text-amber-600 bg-amber-50 p-2.5 rounded-[var(--ui-radius-small)] border border-amber-100 leading-normal flex items-start gap-1.5">
+                    <AlertTriangle size={13} className="shrink-0 text-amber-600 mt-0.5" />
+                    <span>Catatan: Pengajuan ketidakhadiran dari halaman ini memerlukan persetujuan dari Tata Usaha atau Kesiswaan sebelum aktif di laporan rekapitulasi.</span>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                    <Button variant="outline"
+                      type="button"
+                      onClick={() => setSelectedCell(null)}
+                      disabled={isSubmittingCell}
+
+                    >
+                      Batal</Button>
+                    <Button variant="outline"
+                      type="submit"
+                      disabled={isSubmittingCell}
+                    >{isSubmittingCell ? "Menyimpan..." : "Simpan Pengajuan"}</Button>
+                  </div>
+                </form>
               </div>
-              
-              <div className="flex justify-between items-center gap-3 pt-4 border-t border-slate-100">
-                 <Button type="button" variant="outline" className="text-xs text-rose-600 hover:bg-rose-50 border-rose-200" onClick={() => {
+            </div>
+          )}
+          {/* Modal Preview Surat / Foto */}
+          {showPermissionPreviewModal && (
+            <Modal isOpen={true} onClose={() => setShowPermissionPreviewModal(false)} title="Lihat Surat / Bukti" maxWidth="max-w-md">
+              <div className="p-2 flex flex-col gap-4">
+                <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
+                  {(permissionForm.gdriveUrl && !permissionForm.gdriveUrl.startsWith('data:image/')) ? (
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-white mb-3">Dokumen tersimpan di Google Drive</p>
+                      <a href={permissionForm.gdriveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-[var(--ui-radius-small)] shadow-sm transition-colors">
+                        <ExternalLink size={16} /> Buka Link Foto/Surat
+                      </a>
+                    </div>
+                  ) : permissionForm.gdriveUrl?.startsWith('data:image/') ? (
+                    <img src={permissionForm.gdriveUrl} alt="Bukti" className="max-h-[380px] w-auto max-w-full object-contain rounded-[var(--ui-radius-small)] shadow-xs border border-slate-700" />
+                  ) : (
+                    <p className="text-slate-400 font-medium text-sm">Tidak ada foto.</p>
+                  )}
+                </div>
+
+                <div className="flex justify-between items-center gap-3 pt-4 border-t border-slate-100">
+                  <Button type="button" variant="outline" className="text-xs text-rose-600 hover:bg-rose-50 border-rose-200" onClick={() => {
                     setPermissionForm({...permissionForm, replaceImage: true, gdriveUrl: null});
                     setShowPermissionPreviewModal(false);
-                 }}>
+                  }}>
                     Ganti Foto/Berkas
-                 </Button>
-                 <Button type="button" onClick={() => setShowPermissionPreviewModal(false)}>
+                  </Button>
+                  <Button type="button" onClick={() => setShowPermissionPreviewModal(false)}>
                     Tutup
-                 </Button>
+                  </Button>
+                </div>
               </div>
-           </div>
-         </Modal>
-       )}
-       {/* Modal Cetak Laporan Per Periode */}
-       {showPrintModal && (
-         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
-           <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
-             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/80">
-               <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
-                   <Printer size={18} />
-                 </div>
-                 <div>
-                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Cetak Laporan Kehadiran</h3>
-                   <p className="text-[10px] text-slate-500 font-medium">Pilih periode dan format pencetakan laporan</p>
-                 </div>
-               </div>
-               <button
-                 type="button"
-                 onClick={() => setShowPrintModal(false)}
-                 className="w-7 h-7 rounded-[var(--ui-radius-small)] hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
-               >
-                 <X size={16} />
-               </button>
-             </div>
-
-             <div className="p-5 space-y-4 text-xs">
-               <div>
-                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1.5">1. Pilih Periode Laporan</label>
-                 <div className="grid grid-cols-2 gap-2">
-                   {[
-                     { id: 'harian', label: 'Harian (Per Hari)', desc: 'Cetak presensi 1 hari', icon: Calendar },
-                     { id: 'mingguan', label: 'Mingguan', desc: 'Per minggu (7 hari)', icon: Calendar },
-                     { id: 'bulanan', label: 'Bulanan (Matriks)', desc: 'Matriks 1 bulan penuh', icon: FileSpreadsheet },
-                     { id: 'semester', label: '1 Semester', desc: 'Rekap total 6 bulan', icon: Wand2 },
-                   ].map(item => (
-                     <button
-                       key={item.id}
-                       type="button"
-                       onClick={() => setPrintPeriod(item.id)}
-                       className={`p-3 rounded-[var(--ui-radius-card)] text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${
-                         printPeriod === item.id 
-                           ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-xs font-bold ring-2 ring-indigo-500/20' 
-                           : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-white'
-                       }`}
-                     >
-                       <div className="flex items-center justify-between w-full">
-                         <span className="font-black text-xs">{item.label}</span>
-                         <item.icon size={14} className={printPeriod === item.id ? 'text-indigo-600' : 'text-slate-400'} />
-                       </div>
-                       <span className="text-[9.5px] opacity-75 font-semibold mt-1">{item.desc}</span>
-                     </button>
-                   ))}
-                 </div>
-               </div>
-
-               {printPeriod === 'harian' && (
-                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
-                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
-                   <UISelect
-                     value={printDate}
-                     onChange={e => setPrintDate(parseInt(e.target.value))}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
-                   >
-                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
-                       <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
-                     ))}
-                   </UISelect>
-                 </div>
-               )}
-
-               {printPeriod === 'mingguan' && (
-                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
-                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
-                   <UISelect
-                     value={printWeek}
-                     onChange={e => setPrintWeek(parseInt(e.target.value))}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
-                   >
-                     <option value={1}>Minggu ke-1 (Tgl 1 - 7)</option>
-                     <option value={2}>Minggu ke-2 (Tgl 8 - 14)</option>
-                     <option value={3}>Minggu ke-3 (Tgl 15 - 21)</option>
-                     <option value={4}>Minggu ke-4 (Tgl 22 - 28)</option>
-                     <option value={5}>Minggu ke-5 (Tgl 29 - {daysInMonth})</option>
-                   </UISelect>
-                 </div>
-               )}
-
-               {printPeriod === 'semester' && (
-                 <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
-                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
-                   <UISelect
-                     value={printSemester}
-                     onChange={e => setPrintSemester(e.target.value)}
-                     className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
-                   >
-                     <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
-                     <option value="genap">Semester Genap (Januari - Juni)</option>
-                   </UISelect>
-                 </div>
-               )}
-
-               <div className="p-3 bg-indigo-50/60 rounded-[var(--ui-radius-card)] border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
-                 <CheckCircle2 size={15} className="shrink-0 text-indigo-600 mt-0.5" />
-                 <span>Laporan akan dicetak lengkap dengan Kop Surat Sekolah, Rekapan Jumlah Harian (Hadir/Telat/Izin/Sakit/Alpa), serta Kolom Tanda Tangan Wali Kelas.</span>
-               </div>
-             </div>
-
-             <div className="flex items-center justify-end gap-2 p-4 bg-slate-50 border-t border-slate-100">
-               <Button
-                 variant="outline"
-                 type="button"
-                 onClick={() => setShowPrintModal(false)}
-                 className="px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
-               >
-                 Batal
-               </Button>
-               <Button
-                 type="button"
-                 onClick={handlePrintPeriod}
-                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer"
-               >
-                 <Printer size={15} />
-                 <span>Cetak Sekarang</span>
-               </Button>
-             </div>
-           </div>
-         </div>
-       )}
-        {/* Modal Konfirmasi Hapus Siswa dari Mesin & Data */}
-        {targetDeleteStudent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
-            <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
-              <div className="p-5">
-                <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
-                  <Trash2 size={24} />
-                </div>
-                <h3 className="text-sm font-black text-slate-800 text-center mb-1">
-                  Hapus Data Siswa dari Mesin Absensi?
+            </Modal>
+          )}
+      {/* Modal Detail Siswa Bulanan (Mobile Friendly) */}
+      {selectedStudentDetail && (
+        <Modal
+          isOpen={Boolean(selectedStudentDetail)}
+          onClose={() => setSelectedStudentDetail(null)}
+          title="Rekap Kehadiran Siswa"
+          maxWidth="max-w-lg"
+        >
+          <div className="p-3 sm:p-4 flex flex-col gap-3.5">
+            {/* Student Header Card */}
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-sm font-black text-slate-900 truncate">
+                  {selectedStudentDetail.name}
                 </h3>
-                <p className="text-xs text-slate-600 text-center leading-relaxed mb-4">
-                  Apakah Anda yakin ingin menghapus data absensi siswa <span className="font-bold text-slate-800">{targetDeleteStudent.name}</span> (NIS: {targetDeleteStudent.nis})? Tindakan ini akan menghapus siswa dari mesin Hikvision serta sinkronisasi data master.
+                <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                  {selectedStudentDetail.class_name || 'Tanpa Kelas'} • NIS {selectedStudentDetail.nis}
                 </p>
-                {targetDeleteStudent.is_mutasi && (
-                  <div className="p-3 bg-amber-50 rounded-[var(--ui-radius-small)] border border-amber-200 text-[11px] text-amber-800 font-medium mb-4 flex items-center gap-2">
-                    <AlertTriangle size={16} className="shrink-0 text-amber-600" />
-                    <span>Siswa ini sudah berstatus <strong>Mutasi Keluar</strong> (Tgl: {targetDeleteStudent.tanggal_keluar || '-'}).</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={isDeletingStudent}
-                    onClick={() => setTargetDeleteStudent(null)}
-                    className="flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isDeletingStudent}
-                    onClick={executeDeleteStudent}
-                    className="flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    {isDeletingStudent ? 'Menghapus...' : 'Ya, Hapus Siswa'}
-                  </button>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-[10px] font-bold text-slate-400 block">Periode</span>
+                <span className="text-xs font-black text-slate-700">
+                  Bulan {filter.month} / {filter.year}
+                </span>
+              </div>
+            </div>
+
+            {/* 5 Stats Grid */}
+            <div className="grid grid-cols-5 gap-1.5">
+              <div className="bg-emerald-50 border border-emerald-200/70 rounded-xl p-2 text-center">
+                <span className="text-[8.5px] font-black uppercase text-emerald-700 block">Hadir</span>
+                <span className="text-sm font-black text-emerald-900">{selectedStudentDetail.total_hadir || 0}</span>
+              </div>
+              <div className="bg-amber-50 border border-amber-200/70 rounded-xl p-2 text-center">
+                <span className="text-[8.5px] font-black uppercase text-amber-700 block">Telat</span>
+                <span className="text-sm font-black text-amber-900">{selectedStudentDetail.total_terlambat || 0}</span>
+              </div>
+              <div className="bg-indigo-50 border border-indigo-200/70 rounded-xl p-2 text-center">
+                <span className="text-[8.5px] font-black uppercase text-indigo-700 block">Izin</span>
+                <span className="text-sm font-black text-indigo-900">{selectedStudentDetail.total_izin || 0}</span>
+              </div>
+              <div className="bg-sky-50 border border-sky-200/70 rounded-xl p-2 text-center">
+                <span className="text-[8.5px] font-black uppercase text-sky-700 block">Sakit</span>
+                <span className="text-sm font-black text-sky-900">{selectedStudentDetail.total_sakit || 0}</span>
+              </div>
+              <div className="bg-rose-50 border border-rose-200/70 rounded-xl p-2 text-center">
+                <span className="text-[8.5px] font-black uppercase text-rose-700 block">Alpa</span>
+                <span className="text-sm font-black text-rose-900">{selectedStudentDetail.total_alpa || 0}</span>
+              </div>
+            </div>
+
+            {/* Calendar Days Matrix (Grid of days) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black text-slate-800">Rincian Status Harian:</span>
+                <span className="text-[10px] font-medium text-slate-400">Sentuh tanggal untuk edit/lihat</span>
+              </div>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-[300px] overflow-y-auto no-scrollbar p-0.5">
+                {daysToRender.map((dayNum) => {
+                  const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                  const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, selectedStudentDetail.class_name);
+                  const dayData = selectedStudentDetail.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
+                  const cellColors = dayData ? getCellStyle(dayData, selectedStudentDetail.class_name, dateStr) : null;
+
+                  return (
+                    <button
+                      key={dayNum}
+                      type="button"
+                      onClick={() => {
+                        const student = selectedStudentDetail;
+                        setSelectedStudentDetail(null);
+                        handleCellClick(student, dayNum);
+                      }}
+                      className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[54px] transition-all active:scale-95 cursor-pointer shadow-2xs ${dayData ? `${cellColors.className}` : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
+                        }`}
+                      style={cellColors?.style}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-[10px] font-black">Tgl {dayNum}</span>
+                        {dayData?.check_in && (
+                          <span className="text-[8px] font-mono font-bold">
+                            {dayData.check_in.slice(0, 5)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1">
+                        <span className="text-[9.5px] font-black block truncate">
+                          {dayData?.status || '-'}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="pt-2 border-t border-slate-100 flex justify-end">
+              <Button type="button" onClick={() => setSelectedStudentDetail(null)}>
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Modal Preview Surat / Foto */}
+      {showPermissionPreviewModal && (
+        <Modal isOpen={true} onClose={() => setShowPermissionPreviewModal(false)} title="Lihat Surat / Bukti" maxWidth="max-w-md">
+          <div className="p-2 flex flex-col gap-4">
+            <div className="bg-slate-900/90 rounded-[var(--ui-radius-card)] p-4 min-h-[250px] flex flex-col items-center justify-center relative overflow-hidden border border-slate-700">
+              {(permissionForm.gdriveUrl && !permissionForm.gdriveUrl.startsWith('data:image/')) ? (
+                <div className="text-center">
+                  <p className="text-sm font-bold text-white mb-3">Dokumen tersimpan di Google Drive</p>
+                  <a href={permissionForm.gdriveUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-[var(--ui-radius-small)] shadow-sm transition-colors">
+                    <ExternalLink size={16} /> Buka Link Foto/Surat
+                  </a>
                 </div>
+              ) : permissionForm.gdriveUrl?.startsWith('data:image/') ? (
+                <img src={permissionForm.gdriveUrl} alt="Bukti" className="max-h-[380px] w-auto max-w-full object-contain rounded-[var(--ui-radius-small)] shadow-xs border border-slate-700" />
+              ) : (
+                <p className="text-slate-400 font-medium text-sm">Tidak ada foto.</p>
+              )}
+            </div>
+
+            <div className="flex justify-between items-center gap-3 pt-4 border-t border-slate-100">
+              <Button type="button" variant="outline" className="text-xs text-rose-600 hover:bg-rose-50 border-rose-200" onClick={() => {
+                setPermissionForm({ ...permissionForm, replaceImage: true, gdriveUrl: null });
+                setShowPermissionPreviewModal(false);
+              }}>
+                Ganti Foto/Berkas
+              </Button>
+              <Button type="button" onClick={() => setShowPermissionPreviewModal(false)}>
+                Tutup
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {/* Modal Cetak Laporan Per Periode */}
+      {showPrintModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-sm max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/80">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                  <Printer size={18} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Cetak Laporan Kehadiran</h3>
+                  <p className="text-[10px] text-slate-500 font-medium">Pilih periode dan format pencetakan laporan</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPrintModal(false)}
+                className="w-7 h-7 rounded-[var(--ui-radius-small)] hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <div>
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1.5">1. Pilih Periode Laporan</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'harian', label: 'Harian (Per Hari)', desc: 'Cetak presensi 1 hari', icon: Calendar },
+                    { id: 'mingguan', label: 'Mingguan', desc: 'Per minggu (7 hari)', icon: Calendar },
+                    { id: 'bulanan', label: 'Bulanan (Matriks)', desc: 'Matriks 1 bulan penuh', icon: FileSpreadsheet },
+                    { id: 'semester', label: '1 Semester', desc: 'Rekap total 6 bulan', icon: Wand2 },
+                  ].map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setPrintPeriod(item.id)}
+                      className={`p-3 rounded-[var(--ui-radius-card)] text-left border transition-all cursor-pointer flex flex-col justify-between min-h-[70px] ${printPeriod === item.id
+                        ? 'bg-indigo-50/80 border-indigo-500/80 text-indigo-950 shadow-xs font-bold ring-2 ring-indigo-500/20'
+                        : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-white'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-black text-xs">{item.label}</span>
+                        <item.icon size={14} className={printPeriod === item.id ? 'text-indigo-600' : 'text-slate-400'} />
+                      </div>
+                      <span className="text-[9.5px] opacity-75 font-semibold mt-1">{item.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {printPeriod === 'harian' && (
+                <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Tanggal</label>
+                  <UISelect
+                    value={printDate}
+                    onChange={e => setPrintDate(parseInt(e.target.value))}
+                    className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
+                  >
+                    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(d => (
+                      <option key={d} value={d}>Tanggal {d} ({filter.month}/{filter.year})</option>
+                    ))}
+                  </UISelect>
+                </div>
+              )}
+
+              {printPeriod === 'mingguan' && (
+                <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Minggu Ke-</label>
+                  <UISelect
+                    value={printWeek}
+                    onChange={e => setPrintWeek(parseInt(e.target.value))}
+                    className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
+                  >
+                    <option value={1}>Minggu ke-1 (Tgl 1 - 7)</option>
+                    <option value={2}>Minggu ke-2 (Tgl 8 - 14)</option>
+                    <option value={3}>Minggu ke-3 (Tgl 15 - 21)</option>
+                    <option value={4}>Minggu ke-4 (Tgl 22 - 28)</option>
+                    <option value={5}>Minggu ke-5 (Tgl 29 - {daysInMonth})</option>
+                  </UISelect>
+                </div>
+              )}
+
+              {printPeriod === 'semester' && (
+                <div className="p-3 bg-slate-50 rounded-[var(--ui-radius-card)] border border-slate-200/80 space-y-2">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block">Pilih Semester</label>
+                  <UISelect
+                    value={printSemester}
+                    onChange={e => setPrintSemester(e.target.value)}
+                    className="w-full bg-white border border-slate-200 p-2 rounded-[var(--ui-radius-small)] text-xs font-bold focus:outline-indigo-500"
+                  >
+                    <option value="ganjil">Semester Ganjil (Juli - Desember)</option>
+                    <option value="genap">Semester Genap (Januari - Juni)</option>
+                  </UISelect>
+                </div>
+              )}
+
+              <div className="p-3 bg-indigo-50/60 rounded-[var(--ui-radius-card)] border border-indigo-100 flex items-start gap-2 text-[10.5px] text-indigo-900 font-semibold leading-relaxed">
+                <CheckCircle2 size={15} className="shrink-0 text-indigo-600 mt-0.5" />
+                <span>Laporan akan dicetak lengkap dengan Kop Surat Sekolah, Rekapan Jumlah Harian (Hadir/Telat/Izin/Sakit/Alpa), serta Kolom Tanda Tangan Wali Kelas.</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 p-4 bg-slate-50 border-t border-slate-100">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setShowPrintModal(false)}
+                className="px-4 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold"
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                onClick={handlePrintPeriod}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-[var(--ui-radius-small)] text-xs font-black shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer size={15} />
+                <span>Cetak Sekarang</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Konfirmasi Hapus Siswa dari Mesin & Data */}
+      {targetDeleteStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 p-4">
+          <div className="bg-white rounded-[var(--ui-radius-card)] shadow-xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="p-5">
+              <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+                <Trash2 size={24} />
+              </div>
+              <h3 className="text-sm font-black text-slate-800 text-center mb-1">
+                Hapus Data Siswa dari Mesin Absensi?
+              </h3>
+              <p className="text-xs text-slate-600 text-center leading-relaxed mb-4">
+                Apakah Anda yakin ingin menghapus data absensi siswa <span className="font-bold text-slate-800">{targetDeleteStudent.name}</span> (NIS: {targetDeleteStudent.nis})? Tindakan ini akan menghapus siswa dari mesin Hikvision serta sinkronisasi data master.
+              </p>
+              {targetDeleteStudent.is_mutasi && (
+                <div className="p-3 bg-amber-50 rounded-[var(--ui-radius-small)] border border-amber-200 text-[11px] text-amber-800 font-medium mb-4 flex items-center gap-2">
+                  <AlertTriangle size={16} className="shrink-0 text-amber-600" />
+                  <span>Siswa ini sudah berstatus <strong>Mutasi Keluar</strong> (Tgl: {targetDeleteStudent.tanggal_keluar || '-'}).</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={isDeletingStudent}
+                  onClick={() => setTargetDeleteStudent(null)}
+                  className="flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeletingStudent}
+                  onClick={executeDeleteStudent}
+                  className="flex-1 py-2.5 px-4 rounded-[var(--ui-radius-small)] bg-rose-600 hover:bg-rose-700 text-white text-xs font-black shadow-xs transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {isDeletingStudent ? 'Menghapus...' : 'Ya, Hapus Siswa'}
+                </button>
               </div>
             </div>
           </div>
-        )}
-       </>
+        </div>
+      )}
+        </>
       )}
 
       {toast && (
-        <div className={`fixed bottom-20 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type ==='error' ?'bg-rose-600' :'bg-emerald-600'}`}>
+        <div className={`fixed bottom-20 right-6 px-4 py-3 rounded-[var(--ui-radius-small)] shadow-lg font-medium text-sm flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
           {toast.message}
         </div>
       )}
-          {/* Super Admin Exclusive Attendance Override Modal */}
+
+      {/* Super Admin Exclusive Attendance Override Modal */}
       {isSuperAdmin && isSuperAdminModalOpen && (
         <SuperAdminAttendanceOverrideModal
           isOpen={isSuperAdminModalOpen}
