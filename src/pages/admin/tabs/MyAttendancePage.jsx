@@ -601,7 +601,7 @@ export default function MyAttendancePage({ setActiveTab }) {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-[2] py-2.5 px-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-xs font-black text-white shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 border-none disabled:opacity-60"
+              className="flex-[2] py-2.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-xs font-bold text-white shadow-xs active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2 border-none disabled:opacity-60"
             >
               <Send size={14} />
               <span>{submitting ? 'Mengirim...' : 'Kirim Pengajuan'}</span>

@@ -1328,7 +1328,10 @@ export default function CatatanWaliKelas({
           <div className="ui-card bg-white rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[460px] lg:h-[720px]">
             {/* Header: Siswa Terpilih (Morphing Banner) atau Toolbar Normal */}
             {selectedSiswa ? (
-              <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 sm:p-5 relative overflow-hidden shrink-0 shadow-xs">
+              <div 
+                className="bg-emerald-600 text-white p-4 sm:p-5 relative overflow-hidden shrink-0 shadow-xs"
+                style={{ backgroundColor: 'var(--ui-primary, #16a34a)' }}
+              >
                 <div className="absolute inset-0 opacity-10 pointer-events-none">
                   <div className="absolute top-0 right-0 w-36 h-36 rounded-full border-8 border-white -mr-8 -mt-8" />
                   <div className="absolute bottom-0 left-1/3 w-20 h-20 rounded-full border-4 border-white -mb-4" />

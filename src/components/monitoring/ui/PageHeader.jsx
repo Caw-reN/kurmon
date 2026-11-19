@@ -109,7 +109,7 @@ export default function PageHeader({
         className={cn(
           !isPlain 
             ? headerStyle === 'primary'
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 text-white transition-all bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 border border-emerald-500/30 shadow-xs overflow-hidden'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 text-white transition-all bg-emerald-600 border border-emerald-500/30 shadow-xs overflow-hidden'
               : headerStyle === 'glass'
               ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 shadow-xs transition-all'
               : headerStyle === 'minimal'
@@ -117,6 +117,7 @@ export default function PageHeader({
               : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-slate-200/80 bg-[var(--card,#ffffff)] text-slate-900 shadow-xs transition-all'
             : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-lg w-full p-0'
         )}
+        style={!isPlain && headerStyle === 'primary' ? { backgroundColor: 'var(--ui-primary, #16a34a)' } : undefined}
       >
         <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto min-w-0">
           {Icon && (
