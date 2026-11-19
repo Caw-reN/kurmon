@@ -3,6 +3,7 @@ import { Button } from '../components/ui.jsx';
 import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   BookOpen,
   Calendar,
+  CalendarDays,
   School,
   DoorOpen,
   TrendingUp,
@@ -21,10 +22,17 @@ import {  Users, HelpCircle, X, X as CloseIcon, FileText,
   Settings,
   LogIn,
   UserX,
+  Clock,
   Clock3,
   Shield,
   ShieldAlert,
   FileSpreadsheet,
+  Trophy,
+  Briefcase,
+  BarChart3,
+  Edit3,
+  UserCheck,
+  Search,
   Loader2, MessageSquare, ChevronLeft, ChevronRight, ChevronDown, Megaphone, Bell, BellRing, Sliders, Zap, MoreVertical, Pin, Layers, Tv, LogOut, User } from'lucide-react';
 import { useAppStore } from"../store/useAppStore";
 import { useDataStore } from "../store/useDataStore.js";
@@ -49,6 +57,59 @@ const messageTone = (priority) => {
   if (priority === 'high') return 'bg-rose-50 text-rose-600';
   if (priority === 'medium') return 'bg-amber-50 text-amber-600';
   return 'bg-indigo-50 text-indigo-600';
+};
+
+export const getShortcutIcon = (tab) => {
+  switch (tab) {
+    case 'jurnal_harian':
+    case 'silabusguru':
+    case 'silabus':
+      return BookOpen;
+    case 'walas_report':
+    case 'catatan_walikelas':
+      return GraduationCap;
+    case 'generate':
+      return Calendar;
+    case 'akademik':
+      return CalendarDays;
+    case 'absensiguru':
+    case 'ketersediaan':
+      return Clock;
+    case 'beban':
+      return BarChart3;
+    case 'kedisiplinan_absensi':
+    case 'absensi':
+    case 'laporan_absensi':
+    case 'hikvision_report_siswa':
+      return CheckCircle2;
+    case 'pesan':
+      return MessageSquare;
+    case 'riwayat_prestasi':
+      return Trophy;
+    case 'kedisiplinan_bpbk':
+    case 'tatib_skor':
+      return Shield;
+    case 'kedisiplinan_piket':
+      return ShieldAlert;
+    case 'siswa':
+    case 'datasiswa':
+      return Users;
+    case 'data_pegawai':
+    case 'guru':
+      return UserCheck;
+    case 'ruangan':
+      return DoorOpen;
+    case 'kelas':
+      return Building2;
+    case 'pkl_dashboard':
+    case 'pkl_data_siswa':
+    case 'pkl_data_perusahaan':
+    case 'pkl_jurnal':
+    case 'pkl_administrasi':
+      return Briefcase;
+    default:
+      return FileText;
+  }
 };
 
 export const ALL_SHORTCUT_CANDIDATES = [
@@ -850,10 +911,10 @@ export default function DashboardPage({
   }, [isTeacher, students, currentUser?.walasClass]);
 
   const teacherStatCards = useMemo(() => [
-    { label: "Siswa Saya", value: myStudentsCount, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600" },
-    { label: "Kelas Saya", value: myClasses || 4, icon: "/icons/066-education.svg", color: "bg-amber-50 text-amber-600" },
-    { label: "JP Aktual/Minggu", value: `${totalBebanJam || 36} JP`, icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600" },
-    { label: "Modul Ajar", value: mySyllabuses || 0, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600" },
+    { label: "Siswa Saya", value: myStudentsCount, icon: Users, color: "text-blue-600 bg-blue-50" },
+    { label: "Kelas Saya", value: myClasses || 4, icon: Building2, color: "text-amber-600 bg-amber-50" },
+    { label: "JP Aktual/Minggu", value: `${totalBebanJam || 36} JP`, icon: Clock, color: "text-emerald-600 bg-emerald-50" },
+    { label: "Modul Ajar", value: mySyllabuses || 0, icon: BookOpen, color: "text-indigo-600 bg-indigo-50" },
   ], [myStudentsCount, myClasses, totalBebanJam, mySyllabuses]);
 
   // ===================== GURU VIEW (early return) =====================
@@ -1122,37 +1183,37 @@ export default function DashboardPage({
 
         </div>
 
-        {/* ======= DESKTOP HERO BANNER (GURU) ======= */}
-        <div
-          className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-xs transition-all duration-300 mb-1 border border-white/10"
-          style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
-        >
-          
-          <div className="relative z-10 flex flex-row items-center justify-between gap-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate ">
-                Selamat Datang, <span className="text-white/95">{currentUser?.name || teacherData.name || currentUser?.username}</span>!
+        {/* ======= MINIMALIST DESKTOP HERO BANNER (GURU) ======= */}
+        <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs mb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+                Selamat Datang, <span className="text-primary font-black">{currentUser?.name || teacherData.name || currentUser?.username}</span>!
               </h1>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <span className="hidden sm:flex bg-white/10 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] backdrop-blur-md items-center gap-1">
-                  <LayoutGrid size={10} /> Guru / Pengajar
-                </span>
-                <span className="bg-black/20 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] backdrop-blur-md flex items-center gap-1">
-                  <Calendar size={10} /> {todayShort}
-                </span>
-              </div>
+              <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+                Ringkasan jadwal, data presensi & aktivitas KBM Anda hari ini.
+              </p>
             </div>
+            <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                <LayoutGrid size={12} strokeWidth={2.4} /> Guru / Pengajar
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-full">
+                <Calendar size={12} strokeWidth={2} /> {todayShort}
+              </span>
+            </div>
+          </div>
 
-            <div className="flex items-center shrink-0">
-              <button 
-                onClick={() => setShowPanduan(true)}
-                title="Panduan"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-pill)] bg-white/15 hover:bg-white/25 border border-white/10 text-white backdrop-blur-md text-xs font-bold transition-all cursor-pointer hover:shadow-xs"
-              >
-                <HelpCircle size={14} strokeWidth={2.5} />
-                <span className="hidden sm:inline">Panduan</span>
-              </button>
-            </div>
+          <div className="flex items-center shrink-0">
+            <button 
+              type="button"
+              onClick={() => setShowPanduan(true)}
+              title="Panduan Guru"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 hover:text-slate-900 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
+            >
+              <HelpCircle size={14} strokeWidth={2.2} className="text-slate-500" />
+              <span>Panduan</span>
+            </button>
           </div>
         </div>
 
@@ -1219,45 +1280,54 @@ export default function DashboardPage({
           {/* KOLOM TENGAH (col-span-6): Menu Utama & Statistik */}
           <div className="lg:col-span-6 flex flex-col gap-4">
             {/* MENU UTAMA Section */}
-            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4">
-              <div className="flex items-center gap-2 mb-2.5">
-                <Zap size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
-                <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Menu Utama</h2>
+            <div className="ui-card bg-white border border-slate-200/80 shadow-2xs rounded-xl p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap size={15} className="text-primary shrink-0" strokeWidth={2.4} />
+                <h2 className="text-sm font-bold text-slate-800 tracking-tight">Menu Utama</h2>
               </div>
-              <div className="grid grid-cols-4 gap-2">
-                {teacherShortcuts.map((shortcut, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveTab(shortcut.tab)}
-                    className="bg-slate-50/90 py-2 sm:py-2.5 px-1 rounded-[var(--ui-radius-control)] border border-slate-200/70 shadow-xs flex flex-col items-center justify-center gap-1.5 hover:-translate-y-0.5 hover:bg-slate-100 transition-all duration-200 cursor-pointer text-center w-full group"
-                  >
-                    <div className="w-7 h-7 flex items-center justify-center shrink-0">
-                      <img src={shortcut.icon} className="w-5 h-5 object-contain" alt="" />
-                    </div>
-                    <p className="text-[9.5px] font-bold text-slate-700 leading-tight text-center px-0.5 break-words line-clamp-2">{shortcut.label}</p>
-                  </button>
-                ))}
+              <div className="grid grid-cols-4 gap-2.5">
+                {teacherShortcuts.map((shortcut, i) => {
+                  const ShortcutIcon = getShortcutIcon(shortcut.tab);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setActiveTab(shortcut.tab)}
+                      className="group bg-slate-50/60 hover:bg-white hover:border-primary/40 border border-slate-200/80 rounded-xl p-2.5 sm:p-3 flex flex-col items-center justify-center gap-2 shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer text-center"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 group-hover:bg-primary/10 group-hover:border-primary/20 flex items-center justify-center text-slate-600 group-hover:text-primary transition-colors shrink-0 shadow-2xs">
+                        <ShortcutIcon size={16} strokeWidth={2.2} />
+                      </div>
+                      <span className="text-[10.5px] font-semibold text-slate-700 group-hover:text-primary leading-tight text-center line-clamp-2 transition-colors">
+                        {shortcut.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* DATA & INFORMASI STATISTIK Section */}
-            <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex-1">
-              <div className="flex items-center gap-2 mb-2.5">
-                <Activity size={16} className="text-[var(--ui-primary)] shrink-0" strokeWidth={2.5} />
-                <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Statistik Saya</h2>
+            <div className="ui-card bg-white border border-slate-200/80 shadow-2xs rounded-xl p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity size={15} className="text-primary shrink-0" strokeWidth={2.4} />
+                <h2 className="text-sm font-bold text-slate-800 tracking-tight">Statistik Saya</h2>
               </div>
-              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                {teacherStatCards.map((stat, i) => (
-                  <div key={i} className="bg-slate-50/90 p-2.5 sm:p-3 rounded-[var(--ui-radius-control)] border border-slate-200/70 shadow-xs flex items-center gap-2.5 hover:-translate-y-0.5 transition-all cursor-default w-full">
-                    <div className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
-                      <img src={stat.icon} className="w-5 h-5 sm:w-6 sm:h-6 object-contain" alt="" />
+              <div className="grid grid-cols-2 gap-2.5">
+                {teacherStatCards.map((stat, i) => {
+                  const StatIcon = stat.icon || Users;
+                  return (
+                    <div key={i} className="bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/70 rounded-xl p-3 flex items-center justify-between gap-2.5 transition-colors">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">{stat.label}</p>
+                        <p className="text-lg font-black text-slate-900 tracking-tight mt-0.5 truncate">{stat.value}</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-slate-500 shrink-0 shadow-2xs">
+                        <StatIcon size={16} strokeWidth={2.2} />
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <p className="text-[8.5px] sm:text-[9.5px] font-bold text-slate-400 mb-0.5 uppercase tracking-wider truncate">{stat.label}</p>
-                      <h2 className="text-base sm:text-lg font-black text-slate-800 tracking-tight leading-none">{stat.value}</h2>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -2032,37 +2102,37 @@ export default function DashboardPage({
 
         </div>
 
-      {/* ======= DESKTOP HERO BANNER ======= */}
-      <div
-        className="hidden sm:block rounded-[var(--ui-radius-card)] p-3 sm:p-4 relative overflow-hidden text-white shadow-xs transition-all duration-300 mb-1 border border-white/10"
-        style={{ backgroundColor: "var(--ui-primary, #064e3b)" }}
-      >
-        
-        <div className="relative z-10 flex flex-row items-center justify-between gap-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 min-w-0 flex-1">
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight truncate ">
-              Selamat Datang, <span className="text-white/95">{currentUser?.name || currentUser?.username ||"Pengguna"}</span>!
+      {/* ======= MINIMALIST DESKTOP HERO BANNER (ADMIN/UMUM) ======= */}
+      <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs mb-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+              Selamat Datang, <span className="text-primary font-black">{currentUser?.name || currentUser?.username || "Pengguna"}</span>!
             </h1>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="hidden sm:flex bg-white/10 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] backdrop-blur-md items-center gap-1">
-                <LayoutGrid size={10} /> {dashboardMode.badge}
-              </span>
-              <span className="bg-black/20 border border-white/5 text-white/90 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-[var(--ui-radius-pill)] backdrop-blur-md flex items-center gap-1">
-                <Calendar size={10} /> {todayShort}
-              </span>
-            </div>
+            <p className="text-xs text-slate-500 font-medium truncate mt-0.5">
+              Ringkasan pemantauan sistem, operasional sekolah & aktivitas terpadu.
+            </p>
           </div>
+          <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+              <LayoutGrid size={12} strokeWidth={2.4} /> {dashboardMode.badge}
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-600 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-full">
+              <Calendar size={12} strokeWidth={2} /> {todayShort}
+            </span>
+          </div>
+        </div>
 
-          <div className="flex items-center shrink-0">
-            <button 
-              onClick={() =>setShowPanduan(true)} 
-              title="Panduan Aplikasi" 
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--ui-radius-pill)] bg-white/15 hover:bg-white/25 border border-white/10 text-white backdrop-blur-md text-xs font-bold transition-all cursor-pointer hover:shadow-xs"
-            >
-              <HelpCircle size={14} strokeWidth={2.5} />
-              <span className="hidden sm:inline">Panduan</span>
-            </button>
-          </div>
+        <div className="flex items-center shrink-0">
+          <button 
+            type="button"
+            onClick={() => setShowPanduan(true)}
+            title="Panduan Aplikasi"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 hover:text-slate-900 shadow-2xs text-xs font-semibold transition-all cursor-pointer active:scale-95"
+          >
+            <HelpCircle size={14} strokeWidth={2.2} className="text-slate-500" />
+            <span>Panduan</span>
+          </button>
         </div>
       </div>
 
@@ -3331,8 +3401,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-xs">
-                  <img src="/icons/045-account.svg" alt="Guru" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <Users size={18} strokeWidth={2.2} className="text-indigo-600" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
@@ -3391,8 +3461,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-xs">
-                  <img src="/icons/045-account.svg" alt="Karyawan" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" style={{ filter: 'hue-rotate(90deg)' }} />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0 shadow-2xs">
+                  <UserCheck size={18} strokeWidth={2.2} className="text-teal-600" />
                 </div>
                 <div className="min-w-0">
                   <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">
@@ -3450,8 +3520,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
             >
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-xs">
-                    <img src="/icons/066-education.svg" alt="Siswa" className="w-4 h-4 sm:w-5 sm:h-5 opacity-85" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                    <GraduationCap size={18} strokeWidth={2.2} className="text-emerald-600" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-1 sm:gap-2 truncate">

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Loader2, ExternalLink, MessageCircle } from 'lucide-react';
+import { Loader2, ExternalLink, MessageCircle, Shield, Users, Clock, GraduationCap, AlertTriangle, Trophy, Search, Tv, CheckCircle2 } from 'lucide-react';
+import { cn } from '../../../lib/utils.js';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
 import { useDataStore } from '../../../store/useDataStore.js';
 import { getDatabaseSnapshot } from '../../../utils/dataSource.js';
 import { CustomSelect } from '../../CustomSelect.jsx';
-import { Shield } from 'lucide-react';
 import SuperAdminAttendanceOverrideModal from '../../admin/SuperAdminAttendanceOverrideModal.jsx';
 
 export const getClassBadge = (className) => {
@@ -535,6 +535,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Guru/Karyawan',
         labelShort: 'Guru/Staf',
         count: guruKaryawanLogs.length,
+        lucideIcon: Users,
         icon: '/icons/045-account.svg',
         badgeBg: 'bg-indigo-100/90 text-indigo-800'
       },
@@ -543,6 +544,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Guru/Karyawan Terlambat',
         labelShort: 'Guru Telat',
         count: terlambatGuruLogs.length,
+        lucideIcon: Clock,
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-orange-100/90 text-orange-800'
       },
@@ -551,6 +553,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Kehadiran Siswa',
         labelShort: 'Siswa Hadir',
         count: kehadiranSiswaLogs.length,
+        lucideIcon: GraduationCap,
         icon: '/icons/066-education.svg',
         badgeBg: 'bg-purple-100/90 text-purple-800'
       },
@@ -559,6 +562,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Siswa Terlambat',
         labelShort: 'Siswa Telat',
         count: terlambatSiswaLogs.length,
+        lucideIcon: Clock,
         icon: '/icons/039-time.svg',
         badgeBg: 'bg-amber-100/90 text-amber-800'
       },
@@ -567,6 +571,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Siswa Bermasalah',
         labelShort: 'Bermasalah',
         count: bermasalahLogs.length,
+        lucideIcon: AlertTriangle,
         icon: '/icons/099-alert.svg',
         badgeBg: 'bg-rose-100/90 text-rose-800'
       },
@@ -575,6 +580,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         label: 'Siswa Berprestasi',
         labelShort: 'Prestasi',
         count: siswaPrestasiLogs.length,
+        lucideIcon: Trophy,
         icon: '/icons/063-follow.svg',
         badgeBg: 'bg-emerald-100/90 text-emerald-800'
       }
@@ -778,15 +784,15 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
 
       {/* Dynamic Header */}
-      <div className="px-4 py-3 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white border border-slate-200 shadow-xs flex items-center justify-center shrink-0">
-            <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />
+          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center shrink-0 text-primary">
+            <Tv size={16} strokeWidth={2.2} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+              <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 LIVE
               </span>
@@ -823,17 +829,17 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               />
             </div>
           )}
-          <div className="relative w-full sm:w-52">
-            <img src="/icons/042-search.svg" alt="Search" className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 opacity-40" />
+          <div className="relative w-full sm:w-56">
+            <Search size={14} className="text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Cari nama / NIS / kelas..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full h-[34px] pl-8 pr-3 bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-control)] text-xs font-semibold text-slate-700 focus:outline-none focus:border-[var(--ui-primary)] focus:shadow-[var(--ui-focus-ring)] placeholder:text-slate-400 transition-all"
+              className="w-full h-[34px] pl-8 pr-7 bg-white border border-slate-200/90 rounded-lg shadow-2xs text-xs font-medium text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 placeholder:text-slate-400 transition-all"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-[var(--ui-primary)] font-bold border-none bg-transparent cursor-pointer transition-colors">×</button>
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold border-none bg-transparent cursor-pointer transition-colors p-1">×</button>
             )}
           </div>
 
@@ -842,7 +848,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             <button
               type="button"
               onClick={() => setShowSuperAdminModal(true)}
-              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-[var(--ui-radius-control)] text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0 border border-slate-700"
+              className="h-[34px] px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0 border border-slate-700"
               title="Koreksi Jam Absensi (Khusus Super Admin)"
             >
               <Shield size={13} className="text-amber-400 shrink-0" />
@@ -852,38 +858,40 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
         </div>
       </div>
 
-      {/* Navigation Tabs Bar - Responsive Mobile 3-Column Grid / Desktop 6-Column Grid */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3.5 bg-[var(--ui-surface-muted)] border-b border-[var(--ui-border-muted)] select-none">
+      {/* Navigation Tabs Bar - Minimalist Segmented Tabs */}
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 p-2.5 sm:p-3 bg-slate-50/50 border-b border-slate-100 select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
+          const TabIcon = tab.lucideIcon || Users;
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
-              className={`py-2 px-1.5 sm:px-2 rounded-[var(--ui-radius-small)] border flex flex-col items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center w-full min-h-[56px] sm:min-h-[68px] relative touch-manipulation active:scale-95 ${isActive
-                  ? 'text-white shadow-[var(--ui-shadow-card)] ring-2 ring-[var(--ui-primary)]/30 border-[var(--ui-primary)]'
-                  : 'bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] text-slate-700 shadow-[var(--ui-shadow-card)] hover:-translate-y-0.5 hover:border-slate-300'
-                }`}
-              style={isActive ? {
-                backgroundColor: "var(--ui-primary)",
-                borderColor: "var(--ui-primary)",
-                color: "#ffffff"
-              } : {}}
+              className={cn(
+                "py-2 px-1.5 sm:px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer text-center w-full min-h-[58px] sm:min-h-[64px] relative touch-manipulation active:scale-95",
+                isActive
+                  ? "bg-primary text-white border-primary shadow-2xs font-bold"
+                  : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 shadow-2xs font-semibold"
+              )}
             >
               <div className="relative shrink-0 flex items-center justify-center">
-                <img
-                  src={tab.icon}
-                  alt={tab.label}
-                  className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-transform duration-300 ${isActive ? 'scale-110' : 'opacity-85'}`}
-                  style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
+                <TabIcon
+                  size={18}
+                  strokeWidth={isActive ? 2.5 : 2}
+                  className={isActive ? "text-white" : "text-slate-500"}
                 />
-                <span className={`absolute -top-1.5 -right-3 px-1 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-xs border ${isActive ? 'bg-white text-slate-900 border-white' : `border-white ${tab.badgeBg}`
-                  }`}>
+                <span className={cn(
+                  "absolute -top-1.5 -right-3.5 px-1.5 min-w-[17px] h-[17px] flex items-center justify-center rounded-full text-[9px] font-black leading-none shadow-2xs border",
+                  isActive ? "bg-white text-slate-900 border-white" : "bg-slate-100 text-slate-700 border-slate-200"
+                )}>
                   {tab.count}
                 </span>
               </div>
-              <span className={`text-[10px] leading-tight truncate max-w-full px-0.5 ${isActive ? 'text-white font-black' : 'text-slate-600 font-bold'}`}>
+              <span className={cn(
+                "text-[10px] leading-tight truncate max-w-full px-0.5",
+                isActive ? "text-white font-bold" : "text-slate-600 font-semibold"
+              )}>
                 <span className="sm:hidden">{tab.labelShort || tab.label}</span>
                 <span className="hidden sm:inline">{tab.label}</span>
               </span>
