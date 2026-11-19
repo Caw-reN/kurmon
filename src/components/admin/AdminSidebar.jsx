@@ -409,7 +409,7 @@ export default function AdminSidebar({
           />
         </button>
         <div
-          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out pl-0 flex flex-col gap-0.5 sidebar-submenus relative"
+          className="overflow-hidden transition-[max-height,opacity,margin] duration-300 ease-in-out ml-2.5 pl-2 border-l border-slate-200/80 flex flex-col gap-0.5 sidebar-submenus relative"
           style={{
             maxHeight: isOpen ? "1000px" : "0px",
             opacity: isOpen ? 1 : 0,
@@ -891,68 +891,70 @@ export default function AdminSidebar({
             sessionStorage.setItem("admin_sidebar_scroll_top", scrollTop);
           }}
           className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-6 relative z-10 transition-all focus:outline-none",
-            isCollapsed ? "px-2 no-scrollbar scrollbar-none" : "px-3 sidebar-scrollbar custom-scrollbar no-scrollbar scrollbar-none"
+            "flex-1 overflow-y-auto overflow-x-hidden pt-1.5 pb-6 relative z-10 transition-all focus:outline-none sidebar-scrollbar-left",
+            isCollapsed ? "px-2 no-scrollbar scrollbar-none" : "pl-1.5 pr-2.5"
           )}
           title="Gunakan tombol panah keyboard atau scroll mouse untuk menggulir"
         >
-          {searchQuery.trim() ? (
-            <div className="flex flex-col gap-1 py-1">
-              <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                Hasil Pencarian ({filteredSearchItems.length})
-              </div>
-              {filteredSearchItems.length > 0 ? (
-                filteredSearchItems.map(item => {
-                  const isActive = activeTab === item.id || (Array.isArray(item.activeIds) && item.activeIds.includes(activeTab));
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setActiveTab(item.id);
-                        if (isMobileMenuOpen) setIsMobileMenuOpen(false);
-                      }}
-                      type="button"
-                      className={cn(
-                        "flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
-                        isActive
-                          ? "bg-primary/10 text-primary font-bold"
-                          : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
-                      )}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", isActive ? "bg-primary text-white" : "bg-slate-100 text-slate-500")}>
-                          {item.icon && React.createElement(item.icon, { size: 15, strokeWidth: isActive ? 2.4 : 2 })}
-                        </div>
-                        <span className="truncate">{item.label}</span>
-                      </div>
-                      <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
-                        {item.adminGroup || item.section || "Menu"}
-                      </span>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="px-3 py-4 text-center text-xs text-slate-400">
-                  Tidak ada menu yang sesuai dengan "{searchQuery}"
+          <div className="w-full flex flex-col min-w-0" style={{ direction: 'ltr' }}>
+            {searchQuery.trim() ? (
+              <div className="flex flex-col gap-1 py-1">
+                <div className="px-3 py-1 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  Hasil Pencarian ({filteredSearchItems.length})
                 </div>
-              )}
-            </div>
-          ) : (
-            <>
-              {renderDynamicMenu()}
+                {filteredSearchItems.length > 0 ? (
+                  filteredSearchItems.map(item => {
+                    const isActive = activeTab === item.id || (Array.isArray(item.activeIds) && item.activeIds.includes(activeTab));
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          if (isMobileMenuOpen) setIsMobileMenuOpen(false);
+                        }}
+                        type="button"
+                        className={cn(
+                          "flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold rounded-lg text-left transition-colors cursor-pointer border-none",
+                          isActive
+                            ? "bg-primary/10 text-primary font-bold"
+                            : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0", isActive ? "bg-primary text-white" : "bg-slate-100 text-slate-500")}>
+                            {item.icon && React.createElement(item.icon, { size: 15, strokeWidth: isActive ? 2.4 : 2 })}
+                          </div>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-2">
+                          {item.adminGroup || item.section || "Menu"}
+                        </span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="px-3 py-4 text-center text-xs text-slate-400">
+                    Tidak ada menu yang sesuai dengan "{searchQuery}"
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                {renderDynamicMenu()}
 
-              {/* Config access for non-admin with granted config permissions */}
-              {hasAnyConfigAccess() && (
-                <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
-                  {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
-                  {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
-                  {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
-                  {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
-                  {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
-                </SidebarGroup>
-              )}
-            </>
-          )}
+                {/* Config access for non-admin with granted config permissions */}
+                {hasAnyConfigAccess() && (
+                  <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
+                    {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
+                    {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
+                    {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
+                    {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
+                    {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
+                  </SidebarGroup>
+                )}
+              </>
+            )}
+          </div>
         </nav>
       </div>
 
