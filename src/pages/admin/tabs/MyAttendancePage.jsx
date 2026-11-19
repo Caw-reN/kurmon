@@ -663,14 +663,13 @@ export default function MyAttendancePage({ setActiveTab }) {
         </div>
       </div>
 
-      {/* STATS CARDS: Modern Elevation & Micro-badges */}
+      {/* STATS CARDS: Clean Modern Elevation Without Top Line Accent */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
         {[
           { 
             label: 'Hadir', 
             value: stats.hadir, 
             icon: CheckCircle2,
-            accent: 'bg-emerald-500', 
             iconBg: 'bg-emerald-50 border-emerald-200/80 text-emerald-700',
             pillBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
             hoverBorder: 'hover:border-emerald-300'
@@ -679,7 +678,6 @@ export default function MyAttendancePage({ setActiveTab }) {
             label: 'Terlambat', 
             value: stats.terlambat, 
             icon: Clock,
-            accent: 'bg-amber-500', 
             iconBg: 'bg-amber-50 border-amber-200/80 text-amber-700',
             pillBg: 'bg-amber-50 text-amber-800 border-amber-200/80',
             hoverBorder: 'hover:border-amber-300'
@@ -688,7 +686,6 @@ export default function MyAttendancePage({ setActiveTab }) {
             label: 'Izin', 
             value: stats.izin, 
             icon: FileText,
-            accent: 'bg-indigo-500', 
             iconBg: 'bg-indigo-50 border-indigo-200/80 text-indigo-700',
             pillBg: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
             hoverBorder: 'hover:border-indigo-300'
@@ -697,7 +694,6 @@ export default function MyAttendancePage({ setActiveTab }) {
             label: 'Sakit', 
             value: stats.sakit, 
             icon: HeartPulse,
-            accent: 'bg-yellow-500', 
             iconBg: 'bg-yellow-50 border-yellow-200/80 text-yellow-800',
             pillBg: 'bg-yellow-50 text-yellow-800 border-yellow-200/80',
             hoverBorder: 'hover:border-yellow-300'
@@ -706,7 +702,6 @@ export default function MyAttendancePage({ setActiveTab }) {
             label: 'Alpa', 
             value: stats.alpa, 
             icon: AlertCircle,
-            accent: 'bg-rose-500', 
             iconBg: 'bg-rose-50 border-rose-200/80 text-rose-700',
             pillBg: 'bg-rose-50 text-rose-800 border-rose-200/80',
             hoverBorder: 'hover:border-rose-300'
@@ -716,16 +711,13 @@ export default function MyAttendancePage({ setActiveTab }) {
           return (
             <div 
               key={s.label} 
-              className={`ui-card bg-white border border-slate-200/80 ${s.hoverBorder} rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition-all relative overflow-hidden group`}
+              className={`ui-card bg-white border border-slate-200/80 ${s.hoverBorder} rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between shadow-xs hover:shadow-sm transition-all group`}
             >
-              {/* Top Accent Strip */}
-              <div className={`absolute top-0 left-0 right-0 h-1 ${s.accent}`} />
-              
               <div className="flex items-center justify-between gap-1 mb-2">
                 <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400">
                   {s.label}
                 </span>
-                <div className={`w-7 h-7 rounded-lg border ${s.iconBg} flex items-center justify-center shrink-0`}>
+                <div className={`w-7 h-7 rounded-lg border ${s.iconBg} flex items-center justify-center shrink-0 shadow-2xs`}>
                   <Icon size={14} strokeWidth={2.4} />
                 </div>
               </div>
