@@ -21,7 +21,7 @@ const GuidePortalButton = ({ onClick }) => {
       size="sm"
       onClick={onClick}
       title="Panduan"
-      className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-[var(--ui-radius-small)] text-xs font-bold shrink-0 active:translate-y-[1px] transition-all"
+      className="text-muted-foreground hover:text-primary hover:bg-primary/10 border border-border flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold shrink-0 active:translate-y-[1px] transition-all"
     >
       <HelpCircle size={14} />
       <span>Panduan</span>
@@ -518,7 +518,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
               {/* Realtime Notification Status / Prompt */}
               {notifPermission === "granted" && (
-                <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-2 shrink-0">
+                <div className="bg-emerald-50/80 border border-emerald-200/90 rounded-lg p-3 flex flex-col gap-2 shrink-0">
                   <div className="flex items-start gap-2.5">
                     <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
                       <CheckCircle2 size={14} />
@@ -539,7 +539,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                       type="button"
                       disabled={isTestingPush}
                       onClick={handleTestGenericPush}
-                      className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-[var(--ui-radius-small)] text-emerald-900 text-[10px] font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                      className="flex-1 py-1.5 px-2 bg-white hover:bg-emerald-100 border border-emerald-200 rounded-md text-emerald-900 text-[10px] font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                     >
                       {isTestingPush ? 'Mengirim...' : 'Tes Notif HP'}
                     </button>
@@ -547,14 +547,14 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                       type="button"
                       disabled={isTestingPush}
                       onClick={handleTestSchedulePush}
-                      className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-[var(--ui-radius-small)] text-[10px] font-black transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                      className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-[10px] font-black transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                     >
                       {isTestingPush ? 'Mengirim...' : 'Uji Pengingat Jadwal'}
                     </button>
                   </div>
 
                   {testFeedback && (
-                    <div className={`text-[9.5px] font-bold px-2 py-1 rounded ${testFeedback.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-800'}`}>
+                    <div className={`text-[9.5px] font-bold px-2 py-1 rounded-md ${testFeedback.ok ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-800'}`}>
                       {testFeedback.message}
                     </div>
                   )}
@@ -562,7 +562,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               )}
 
               {notifPermission === "default" && (
-                <div className="bg-primary/10 border border-primary/20 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-2 shrink-0">
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex flex-col gap-2 shrink-0">
                   <div className="flex items-start gap-2.5">
                     <Bell className="text-primary w-4 h-4 shrink-0 mt-0.5" />
                     <div className="flex flex-col">
@@ -572,7 +572,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   </div>
                   <button
                     onClick={requestPushPermission}
-                    className="w-full py-1.5 text-white font-bold text-[10px] rounded-[var(--ui-radius-small)] active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-1.5 text-white font-bold text-[10px] rounded-md active:scale-98 transition-all border-none cursor-pointer flex items-center justify-center gap-1.5"
                     style={{ backgroundColor: appSettings?.primaryColor || "var(--ui-primary)" }}
                   >
                     <span>Izinkan Sekarang</span>
@@ -581,7 +581,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               )}
 
               {notifPermission === "denied" && (
-                <div className="bg-amber-50/80 border border-amber-200 rounded-[var(--ui-radius-small)] p-3 flex flex-col gap-1.5 shrink-0">
+                <div className="bg-amber-50/80 border border-amber-200 rounded-lg p-3 flex flex-col gap-1.5 shrink-0">
                   <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
                     <Bell size={13} className="text-amber-600 shrink-0" />
                     <span>Izin Notifikasi Diblokir Browser</span>
@@ -592,7 +592,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   <button
                     type="button"
                     onClick={requestPushPermission}
-                    className="mt-1 w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-[var(--ui-radius-small)] transition-all cursor-pointer border-none"
+                    className="mt-1 w-full py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[10px] rounded-md transition-all cursor-pointer border-none"
                   >
                     Coba Aktifkan Ulang
                   </button>
@@ -605,13 +605,13 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   Jadwal Mengajar Hari Ini
                 </span>
                 {todayClasses.length === 0 ? (
-                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-[var(--ui-radius-small)]">
+                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-md">
                     Tidak ada jadwal mengajar hari ini.
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {todayClasses.map((item, idx) => (
-                      <div key={idx} className="flex gap-2.5 p-2.5 bg-primary/5 border border-primary/10 rounded-[var(--ui-radius-small)]">
+                      <div key={idx} className="flex gap-2.5 p-2.5 bg-primary/5 border border-primary/10 rounded-lg">
                         <Clock className="text-primary w-4 h-4 mt-0.5 shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="text-[11px] font-extrabold text-slate-800 truncate">
@@ -638,13 +638,13 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
                   Pengumuman Terbaru
                 </span>
                 {!dashboardMessages || dashboardMessages.length === 0 ? (
-                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-[var(--ui-radius-small)]">
+                  <div className="text-[11px] font-bold text-slate-400 py-2 text-center bg-slate-50 rounded-md">
                     Belum ada pengumuman terbaru.
                   </div>
                 ) : (
                   <div className="flex flex-col gap-1.5">
                     {dashboardMessages.slice(0, 3).map((item, idx) => (
-                      <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-[var(--ui-radius-small)]">
+                      <div key={idx} className="flex gap-2.5 p-2.5 bg-slate-50 border border-slate-100 rounded-lg">
                         <MessageSquare className="text-slate-500 w-4 h-4 mt-0.5 shrink-0" />
                         <div className="flex flex-col min-w-0">
                           <span className="text-[11px] font-extrabold text-slate-800 truncate">

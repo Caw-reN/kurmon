@@ -337,7 +337,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               size="sm"
               onClick={handleSaveProfile} 
               disabled={isSaving}
-              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+              className="flex items-center gap-1.5 font-bold"
             >
               {isSaving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} strokeWidth={2.5} />}
               <span>Simpan Profil</span>
@@ -348,7 +348,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               size="sm"
               onClick={handleSaveKopSurat} 
               disabled={isSaving}
-              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+              className="flex items-center gap-1.5 font-bold"
             >
               {isSaving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} strokeWidth={2.5} />}
               <span>Simpan Format & Margin</span>
@@ -358,14 +358,14 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
       />
 
       {/* Unified Tab Switcher Bar */}
-      <div className="bg-white p-1.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] w-full sm:w-auto">
+      <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-lg border border-[var(--ui-border-muted)] w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab('profil')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'profil'
-                ? 'bg-white text-slate-800 shadow-xs'
+                ? 'bg-white text-slate-800'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -376,9 +376,9 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
           <button
             type="button"
             onClick={() => setActiveTab('tahun')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'tahun'
-                ? 'bg-white text-slate-800 shadow-xs'
+                ? 'bg-white text-slate-800'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -389,9 +389,9 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
           <button
             type="button"
             onClick={() => setActiveTab('kop')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'kop'
-                ? 'bg-white text-slate-800 shadow-xs'
+                ? 'bg-white text-slate-800'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -401,7 +401,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
         </div>
 
         {activeYear && (
-          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 rounded-[var(--ui-radius-control)] text-xs font-extrabold w-fit self-end sm:self-center">
+          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-3 py-1 rounded-lg text-xs font-extrabold w-fit self-end sm:self-center">
             <Star size={13} className="fill-emerald-500 text-emerald-500" />
             <span>TA Aktif: {activeYear.nama} {activeYear.semester}</span>
           </div>
@@ -410,7 +410,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
 
       {/* ─── TAB 1: PROFIL & LOGO SEKOLAH ─────────────────────────────────── */}
       {activeTab === 'profil' && (
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-6 border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-6">
+        <div className="bg-white rounded-xl p-4 sm:p-6 border border-slate-200/80 space-y-6">
           {/* Logo Management Grid */}
           <div>
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -418,8 +418,8 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-xs">
+              <div className="p-4 bg-[var(--ui-surface-muted)] rounded-lg border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3">
                   {logoPreview ? (
                     <img src={logoPreview} alt="Logo Umum" className="w-full h-full object-contain p-1" />
                   ) : (
@@ -434,8 +434,8 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                 </Button>
               </div>
 
-              <div className="p-4 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-xs">
+              <div className="p-4 bg-[var(--ui-surface-muted)] rounded-lg border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3">
                   {logoMobilePreview ? (
                     <img src={logoMobilePreview} alt="Logo Mobile" className="w-full h-full object-contain p-1" />
                   ) : (
@@ -450,8 +450,8 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                 </Button>
               </div>
 
-              <div className="p-4 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-[var(--ui-radius-control)] border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3 shadow-xs">
+              <div className="p-4 bg-[var(--ui-surface-muted)] rounded-lg border border-[var(--ui-border-soft)] flex flex-col items-center text-center">
+                <div className="w-20 h-20 rounded-lg border border-slate-200 flex items-center justify-center overflow-hidden bg-white shrink-0 mb-3">
                   {logoWebPreview ? (
                     <img src={logoWebPreview} alt="Logo Website" className="w-full h-full object-contain p-1" />
                   ) : (
@@ -486,7 +486,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                       value={profile[f.key] || ''}
                       onChange={e => setProfile({ ...profile, [f.key]: e.target.value })}
                       placeholder={f.placeholder}
-                      className="w-full px-3 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all resize-none"
+                      className="w-full px-3 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all resize-none"
                     />
                   ) : (
                     <input
@@ -494,7 +494,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                       value={profile[f.key] || ''}
                       onChange={e => setProfile({ ...profile, [f.key]: e.target.value })}
                       placeholder={f.placeholder}
-                      className="w-full px-3 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                      className="w-full px-3 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
                     />
                   )}
                 </div>
@@ -506,7 +506,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
                 variant="primary" 
                 onClick={handleSaveProfile} 
                 disabled={isSaving}
-                className="flex items-center gap-2 font-bold px-6 py-2.5 shadow-[var(--ui-shadow-control)] w-full sm:w-auto justify-center"
+                className="flex items-center gap-2 font-bold px-6 py-2.5 w-full sm:w-auto justify-center"
               >
                 {isSaving ? <RefreshCw size={15} className="animate-spin" /> : <Save size={15} strokeWidth={2.5} />}
                 <span>Simpan Perubahan Profil</span>
@@ -518,7 +518,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
 
       {/* ─── TAB 2: TAHUN AJARAN ─────────────────────────────────────────── */}
       {activeTab === 'tahun' && (
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-6 border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-4">
+        <div className="bg-white rounded-xl p-4 sm:p-6 border border-slate-200/80 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Daftar Tahun Ajaran & Semester</h3>
@@ -529,7 +529,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               variant="primary" 
               size="sm"
               onClick={() => { setEditingYear(null); setYearForm({ nama: '', semester: 'Ganjil', tanggal_mulai: '', tanggal_selesai: '' }); setShowYearModal(true); }}
-              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+              className="flex items-center gap-1.5 font-bold"
             >
               <Plus size={14} strokeWidth={2.5} />
               <span>+ Tambah Tahun Ajaran</span>
@@ -618,13 +618,13 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
       {activeTab === 'kop' && (
         <div className="space-y-5">
           {/* Preset Quick Actions & Mode Toggle */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider mr-1">Preset Cepat:</span>
               <button
                 type="button"
                 onClick={() => applyPreset('resmi')}
-                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Landmark size={13} className="text-emerald-600" />
                 <span>Standar Dinas Resmi</span>
@@ -632,7 +632,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               <button
                 type="button"
                 onClick={() => applyPreset('banner')}
-                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <ImageIcon size={13} className="text-indigo-600" />
                 <span>Banner Gambar Utuh</span>
@@ -640,7 +640,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
               <button
                 type="button"
                 onClick={() => applyPreset('compact')}
-                className="px-2.5 py-1 rounded-[var(--ui-radius-control)] bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-700 text-xs font-bold border border-slate-200 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <FileText size={13} className="text-amber-600" />
                 <span>Kompak Minimalis</span>
@@ -648,7 +648,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 cursor-pointer bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] px-3 py-1.5 rounded-[var(--ui-radius-control)] hover:bg-slate-100 transition-colors">
+              <label className="flex items-center gap-2 cursor-pointer bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors">
                 <input
                   type="checkbox"
                   checked={kopState.useKopSuratGambar}
@@ -661,7 +661,7 @@ export default function ProfilSekolah({ appSettings = {}, setAppSettings = () =>
           </div>
 
           {/* Realtime Live Preview Paper Box */}
-          <div className="bg-slate-900 rounded-[var(--ui-radius-card)] p-4 sm:p-6 shadow-xl relative overflow-hidden">
+          <div className="bg-slate-900 rounded-xl p-4 sm:p-6 relative overflow-hidden">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800 text-xs">
               <span className="font-extrabold text-amber-400 flex items-center gap-1.5">
                 <Sparkles size={14} /> Pratinjau Kertas Dokumen A4 Realtime dengan Margin

@@ -126,14 +126,14 @@ export default function TabGenerate(props) {
           {scheduleGenerationMode === "auto" ? (
             <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border-none">
+                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border-none">
                   <input type="checkbox" checked={strictCompetency} onChange={(e) => setStrictCompetency(e.target.checked)} className="accent-[var(--ui-primary)] cursor-pointer" />
                   <div>
                     <p className="text-sm font-bold text-slate-800">Strict Kompetensi Mapel</p>
                     <p className="text-xs text-slate-500">Hanya tempatkan guru pada mapel yang ada di kompetensinya.</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-[var(--ui-radius-small)] border-none">
+                <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border-none">
                   <input type="checkbox" checked={specialWednesdayConstraint} onChange={(e) => setSpecialWednesdayConstraint(e.target.checked)} className="accent-[var(--ui-primary)] cursor-pointer" />
                   <div>
                     <p className="text-sm font-bold text-slate-800">Aturan Khusus Rabu (X TKJ/TKR)</p>
@@ -151,7 +151,7 @@ export default function TabGenerate(props) {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/70 border border-emerald-200/80 p-3.5 rounded-[var(--ui-radius-small)]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-emerald-50/70 border border-emerald-200/80 p-3.5 rounded-lg">
               <div className="flex items-center gap-2.5 text-xs text-emerald-900 font-medium">
                 <Edit3 size={18} className="text-emerald-600 shrink-0" />
                 <div>
@@ -183,7 +183,7 @@ export default function TabGenerate(props) {
 
       {/* READONLY NOTICE & WARNINGS */}
       {!(isSuperAdminRole(currentUser.role) || (currentUser.role ==="waka" && (currentUser.division ||"").toLowerCase() ==="kurikulum")) && (
-        <div className="bg-slate-50 border-none text-slate-700 px-4 py-3 rounded-[var(--ui-radius-small)] flex items-center gap-2.5 shrink-0 shadow-sm text-xs font-medium print:hidden">
+        <div className="bg-slate-50 border border-slate-200/80 text-slate-700 px-4 py-3 rounded-lg flex items-center gap-2.5 shrink-0 text-xs font-medium print:hidden">
           <Info size={17} className="text-slate-500 shrink-0" />
           <div>
             <strong>Mode lihat saja.</strong> Generate & edit jadwal hanya tersedia untuk SuperAdmin atau Waka Kurikulum.
@@ -191,7 +191,7 @@ export default function TabGenerate(props) {
         </div>
       )}
       {generationReadiness?.warnings?.length > 0 && (isSuperAdminRole(currentUser.role) || (currentUser.role ==="waka" && (currentUser.division ||"").toLowerCase() ==="kurikulum")) && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-[var(--ui-radius-small)] flex items-start gap-2.5 shrink-0 shadow-sm text-xs font-medium print:hidden">
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg flex items-start gap-2.5 shrink-0 text-xs font-medium print:hidden">
           <AlertCircle size={17} className="text-amber-600 shrink-0 mt-0.5" />
           <div>
             <strong>Catatan sebelum generate:</strong>
@@ -202,7 +202,7 @@ export default function TabGenerate(props) {
         </div>
       )}
       {swapWarning && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-[var(--ui-radius-small)] flex items-start gap-2.5 shrink-0 shadow-sm text-xs font-medium print:hidden">
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg flex items-start gap-2.5 shrink-0 text-xs font-medium print:hidden">
           <AlertCircle size={17} className="text-rose-500 shrink-0 mt-0.5" />
           <div className="flex-1">
             {typeof swapWarning ==='string' ? <><strong className="mr-1">Perhatian:</strong> {swapWarning}</> : swapWarning}
@@ -254,7 +254,7 @@ export default function TabGenerate(props) {
                   placeholder="Cari kelas atau mapel..." 
                   value={scheduleSearchQuery}
                   onChange={e => setScheduleSearchQuery && setScheduleSearchQuery(e.target.value)}
-                  className="w-full bg-white border-none rounded-[var(--ui-radius-small)] py-2 pl-9 pr-3 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[var(--ui-accent)] focus:ring-2 transition-all"
+                  className="w-full bg-white border border-slate-200/80 rounded-lg py-2 pl-9 pr-3 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[var(--ui-accent)] focus:ring-2 transition-all"
                   style={{'--tw-ring-color':'var(--ui-accent)' }}
                 />
               </div>
@@ -337,7 +337,7 @@ export default function TabGenerate(props) {
 
             {/* Quick Pick from Class Teaching Loads */}
             {classTeachingLoads.length > 0 && (
-              <div className="bg-amber-50/60 border border-amber-200/80 p-3 rounded-[var(--ui-radius-small)] flex flex-col gap-2">
+              <div className="bg-amber-50/60 border border-amber-200/80 p-3 rounded-lg flex flex-col gap-2">
                 <div className="text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
                   <Sparkles size={14} className="text-amber-600 shrink-0" />
                   <span>Pilihan Cepat Beban Mengajar ({slotFormData.className}):</span>
@@ -360,9 +360,9 @@ export default function TabGenerate(props) {
                             teamTeacher: rawCodes[1] || ""
                           }));
                         }}
-                        className={`text-[11px] px-2.5 py-1 rounded-[var(--ui-radius-small)] border font-medium transition-all text-left flex items-center gap-1 cursor-pointer ${
+                        className={`text-[11px] px-2.5 py-1 rounded-md border font-medium transition-all text-left flex items-center gap-1 cursor-pointer ${
                           isSelected 
-                            ? "bg-[var(--ui-primary)] text-white border-transparent font-bold shadow-sm"
+                            ? "bg-[var(--ui-primary)] text-white border-transparent font-bold"
                             : "bg-white border-amber-200 text-slate-800 hover:border-[var(--ui-primary)] hover:bg-white"
                         }`}
                       >

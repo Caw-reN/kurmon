@@ -271,7 +271,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
             size="sm"
             onClick={handleSave} 
             disabled={isSaving}
-            className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+            className="flex items-center gap-1.5 font-bold"
           >
             {isSaving ? <RefreshCw size={13} className="animate-spin" /> : <Save size={13} strokeWidth={2.5} />}
             <span>Simpan Struktur</span>
@@ -280,14 +280,14 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
       />
 
       {/* Unified Tab Switcher Bar */}
-      <div className="bg-white p-1.5 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center justify-between gap-2.5">
-        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] w-full sm:w-auto">
+      <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 flex items-center justify-between gap-2.5">
+        <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-lg border border-[var(--ui-border-muted)] w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setActiveTab('kelola')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'kelola'
-                ? 'bg-white text-slate-800 shadow-xs'
+                ? 'bg-white text-slate-800'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -298,9 +298,9 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
           <button
             type="button"
             onClick={() => setActiveTab('preview')}
-            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+            className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-md text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
               activeTab === 'preview'
-                ? 'bg-white text-slate-800 shadow-xs'
+                ? 'bg-white text-slate-800'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -318,7 +318,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
       {activeTab === "kelola" && (
         <div className="space-y-3.5">
           {/* Action Toolbar Card */}
-          <div className="bg-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white rounded-xl p-3.5 sm:p-4 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <TeacherCombobox teachers={teachers} onSelect={handleAddFromTeacher} />
 
             <div className="flex items-center gap-2">
@@ -337,7 +337,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
           {/* Members List */}
           {struktur.length === 0 ? (
-            <div className="bg-white rounded-[var(--ui-radius-card)] p-12 text-center border border-slate-200/80">
+            <div className="bg-white rounded-xl p-12 text-center border border-slate-200/80">
               <Users size={36} className="mx-auto text-slate-300 mb-2" />
               <h4 className="text-sm font-bold text-slate-700">Belum ada pengurus organisasi</h4>
               <p className="text-xs text-slate-400 mt-1 mb-4">Tambahkan pengurus pertama dari daftar guru atau secara manual.</p>
@@ -359,7 +359,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, index)}
                     onDragEnd={() => setDraggedIndex(null)}
-                    className={`bg-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 border transition-all duration-200 shadow-[var(--ui-shadow-card)] flex flex-col md:flex-row items-start md:items-center gap-3.5 ${
+                    className={`bg-white rounded-xl p-3.5 sm:p-4 border transition-all duration-200 flex flex-col md:flex-row items-start md:items-center gap-3.5 ${
                       draggedIndex === index ? 'opacity-40 border-indigo-300 bg-indigo-50/50' : 'border-slate-200/80 hover:border-slate-300'
                     }`}
                   >
@@ -398,7 +398,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
                     {/* Member Avatar / Photo Upload */}
                     <div className="relative group/avatar shrink-0">
-                      <div className="w-12 h-12 rounded-[var(--ui-radius-control)] bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] flex items-center justify-center overflow-hidden shadow-xs">
+                      <div className="w-12 h-12 rounded-lg bg-[var(--ui-surface-muted)] border border-[var(--ui-border-soft)] flex items-center justify-center overflow-hidden">
                         {item.photoUrl ? (
                           <img src={item.photoUrl} alt={item.name} className="w-full h-full object-cover" />
                         ) : (
@@ -406,7 +406,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                         )}
                       </div>
                       <label 
-                        className="absolute inset-0 bg-black/60 rounded-[var(--ui-radius-control)] text-white opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[8.5px] font-bold p-1 text-center"
+                        className="absolute inset-0 bg-black/60 rounded-lg text-white opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[8.5px] font-bold p-1 text-center"
                         title="Upload Foto"
                       >
                         <ImageIcon size={12} className="mb-0.5" />
@@ -432,7 +432,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                           placeholder="Nama Pengurus & Gelar..." 
                           value={item.name} 
                           onChange={(e) => handleUpdate(index, 'name', e.target.value)} 
-                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-extrabold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-extrabold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
                         />
                       </div>
 
@@ -447,7 +447,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                           placeholder="Pilih atau ketik jabatan..." 
                           value={item.position} 
                           onChange={(e) => handleUpdate(index, 'position', e.target.value)} 
-                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
                         />
                         <datalist id={`preset-jabatan-${index}`}>
                           {PRESET_JABATAN.map(j => <option key={j} value={j} />)}
@@ -486,7 +486,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                           placeholder="NIP / No. Kontak / Kode..." 
                           value={item.description} 
                           onChange={(e) => handleUpdate(index, 'description', e.target.value)} 
-                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
+                          className="w-full px-2.5 py-1.5 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-medium text-slate-700 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)] transition-all"
                         />
                       </div>
                     </div>
@@ -512,7 +512,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
       {/* ── TAB 2: PRATINJAU DIAGRAM POHON (ORG CHART) ── */}
       {activeTab === "preview" && (
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-6 border border-slate-200/80 shadow-[var(--ui-shadow-card)] overflow-x-auto min-h-[450px]">
+        <div className="bg-white rounded-xl p-6 border border-slate-200/80 overflow-x-auto min-h-[450px]">
           <div className="text-center mb-6">
             <h3 className="font-black text-slate-900 text-base">Bagan Struktur Kepengurusan Organisasi</h3>
             <p className="text-xs text-slate-400 mt-0.5">Hierarki organisasi sekolah berdasarkan atasan langsung.</p>
@@ -531,7 +531,7 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-[var(--ui-radius-control)] shadow-[var(--ui-shadow-modal)] font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
+        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${
           toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />} 
@@ -549,8 +549,8 @@ function TreeNode({ node }) {
   return (
     <div className="flex flex-col items-center relative">
       {/* Node Card */}
-      <div className="bg-white rounded-[var(--ui-radius-control)] p-3 border-2 border-[var(--ui-primary)] shadow-sm flex flex-col items-center text-center w-48 relative z-10 transition-all hover:scale-105 hover:shadow-sm">
-        <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 shadow-xs flex items-center justify-center bg-slate-50">
+      <div className="bg-white rounded-lg p-3 border-2 border-[var(--ui-primary)] flex flex-col items-center text-center w-48 relative z-10 transition-all hover:scale-105">
+        <div className="w-12 h-12 rounded-full overflow-hidden mb-2 border border-slate-200 flex items-center justify-center bg-slate-50">
           {node.photoUrl ? (
             <img src={node.photoUrl} alt={node.name} className="w-full h-full object-cover" />
           ) : (

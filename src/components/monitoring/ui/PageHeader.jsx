@@ -58,11 +58,11 @@ export default function PageHeader({
       {/* Mobile Hero Header Card (Shown on Mobile screens when not plain) */}
       {!isPlain && (
         <div 
-          className="sm:hidden w-full rounded-[var(--ui-radius-card)] p-3.5 flex items-center gap-3 relative overflow-hidden mb-1 transition-all bg-white border border-slate-200/80 shadow-xs text-slate-900"
+          className="sm:hidden w-full rounded-xl p-3.5 flex items-center gap-3 relative overflow-hidden mb-1 transition-all bg-white border border-slate-200/80 text-slate-900"
         >
           {Icon && (
             <div 
-              className="w-9 h-9 rounded-[var(--ui-radius-control)] flex items-center justify-center shrink-0 shadow-xs bg-primary/10 text-primary border border-primary/20"
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-primary/10 text-primary border border-primary/20"
             >
               <Icon size={18} strokeWidth={2.2} />
             </div>
@@ -87,11 +87,11 @@ export default function PageHeader({
                   key={tab.id || tab.label}
                   onClick={tab.onClick}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px]",
+                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-lg text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px]",
                     isLastOdd ? "col-span-2" : "",
                     tab.isActive
-                      ? "bg-slate-900 text-white border-slate-900 shadow-xs font-black"
-                      : "bg-white text-slate-700 hover:text-slate-900 border-slate-200/90 shadow-xs"
+                      ? "bg-slate-900 text-white border-slate-900 font-black"
+                      : "bg-white text-slate-700 hover:text-slate-900 border-slate-200/90"
                   )}
                   style={tab.isActive ? {
                     background: "var(--ui-primary)",
@@ -113,20 +113,20 @@ export default function PageHeader({
         className={cn(
           !isPlain 
             ? headerStyle === 'primary'
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-[var(--ui-radius-card)] w-full p-4 sm:p-5 text-white shadow-sm transition-all'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-xl w-full p-4 sm:p-5 text-white transition-all'
               : headerStyle === 'glass'
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-[var(--ui-radius-card)] w-full p-4 sm:p-5 border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 shadow-xs transition-all'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-xl w-full p-4 sm:p-5 border border-white/50 bg-white/75 backdrop-blur-md text-slate-900 transition-all'
               : headerStyle === 'minimal'
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-none w-full p-0 bg-transparent text-slate-900 border-none shadow-none transition-all'
-              : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-[var(--ui-radius-card)] w-full p-4 sm:p-5 border border-slate-200/80 bg-[var(--card,#ffffff)] text-slate-900 shadow-xs transition-all'
-            : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-[var(--ui-radius-small)] w-full p-0'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-none w-full p-0 bg-transparent text-slate-900 border-none transition-all'
+              : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-xl w-full p-4 sm:p-5 border border-slate-200/80 bg-[var(--card,#ffffff)] text-slate-900 transition-all'
+            : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-lg w-full p-0'
         )}
         style={!isPlain && headerStyle === 'primary' ? { backgroundColor: 'var(--ui-primary, #064e3b)' } : undefined}
       >
         <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto">
           {Icon && (
             <div 
-              className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border"
+              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border"
               style={
                 headerStyle === 'primary'
                   ? { backgroundColor: "rgba(255, 255, 255, 0.2)", borderColor: "rgba(255, 255, 255, 0.3)", color: "#ffffff" }

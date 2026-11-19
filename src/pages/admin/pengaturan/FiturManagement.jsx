@@ -82,7 +82,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
             <p className="text-xs font-semibold text-slate-500">Kontrol fitur aktif untuk Guru, Siswa, dan Admin</p>
           </div>
           {savedMsg && (
-            <span className="text-xs text-emerald-600 font-extrabold animate-fade-in-up flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-[var(--ui-radius-small)] border border-emerald-200">
+            <span className="text-xs text-emerald-600 font-extrabold animate-fade-in-up flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-md border border-emerald-200">
               <CheckCircle2 size={14} />
               Tersimpan Otomatis
             </span>
@@ -92,8 +92,8 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
 
       {/* KPI Overview Summary Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
             <Layers size={20} />
           </div>
           <div>
@@ -102,8 +102,8 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
             <ToggleRight size={20} />
           </div>
           <div>
@@ -112,8 +112,8 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
             <AlertTriangle size={20} />
           </div>
           <div>
@@ -122,8 +122,8 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] p-4 shadow-xs flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-[var(--ui-radius-card)] bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
             <Sparkles size={20} />
           </div>
           <div>
@@ -134,9 +134,9 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
       </div>
 
       {/* Info Tip Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-[var(--ui-radius-card)] p-4 text-white shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-slate-800">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl p-4 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-white/10 text-emerald-400 flex items-center justify-center shrink-0 border border-white/10">
+          <div className="w-8 h-8 rounded-lg bg-white/10 text-emerald-400 flex items-center justify-center shrink-0 border border-white/10">
             <Info size={18} />
           </div>
           <p className="text-xs font-semibold text-slate-200 leading-relaxed">
@@ -144,7 +144,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           </p>
         </div>
         {savedMsg && (
-          <span className="text-xs text-emerald-400 font-extrabold animate-fade-in-up flex items-center gap-1.5 shrink-0 bg-white/10 px-3 py-1.5 rounded-[var(--ui-radius-small)]">
+          <span className="text-xs text-emerald-400 font-extrabold animate-fade-in-up flex items-center gap-1.5 shrink-0 bg-white/10 px-3 py-1.5 rounded-md">
             <CheckCircle2 size={14} />
             Sistem Diperbarui
           </span>
@@ -160,19 +160,19 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           return (
             <div
               key={cfg.key}
-              className={`group relative bg-white border rounded-[var(--ui-radius-card)] p-5 transition-all duration-200 flex flex-col justify-between ${
+              className={`group relative bg-white border rounded-xl p-5 transition-all duration-200 flex flex-col justify-between ${
                 isActive 
-                  ? 'border-slate-200/90 shadow-xs hover:shadow-sm hover:border-slate-300' 
-                  : 'border-slate-200/60 bg-slate-50/50 shadow-none opacity-85'
+                  ? 'border-slate-200/90 hover:border-slate-300' 
+                  : 'border-slate-200/60 bg-slate-50/50 opacity-85'
               }`}
             >
               <div>
                 {/* Header Card: Icon + Title + Switch */}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-[var(--ui-radius-card)] flex items-center justify-center shrink-0 transition-colors ${
+                    <div className={`w-11 h-11 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                       isActive 
-                        ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20 shadow-xs' 
+                        ? 'bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] border border-[var(--ui-primary)]/20' 
                         : 'bg-slate-100 text-slate-400 border border-slate-200/60'
                     }`}>
                       <Icon size={20} strokeWidth={2.2} />
@@ -182,7 +182,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
                         {cfg.label}
                       </h3>
                       {cfg.critical && (
-                        <span className="inline-flex items-center gap-1 text-[9.5px] font-extrabold uppercase bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-0.5 rounded-[var(--ui-radius-small)] mt-1">
+                        <span className="inline-flex items-center gap-1 text-[9.5px] font-extrabold uppercase bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-0.5 rounded-md mt-1">
                           <AlertTriangle size={10} className="text-amber-600" />
                           Fitur Utama
                         </span>
@@ -202,7 +202,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
                   >
                     <span
                       aria-hidden="true"
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0 transition duration-200 ease-in-out ${
                         isActive ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
@@ -226,7 +226,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
                       return (
                         <span 
                           key={role}
-                          className={`inline-flex items-center gap-1 text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-[var(--ui-radius-small)] border ${rb.bg}`}
+                          className={`inline-flex items-center gap-1 text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-md border ${rb.bg}`}
                         >
                           {RoleIcon && <RoleIcon size={11} />}
                           {rb.label}
@@ -237,7 +237,7 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
                 </div>
 
                 {!isActive && (
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-[var(--ui-radius-small)] p-2 leading-tight">
+                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 bg-rose-50 border border-rose-100 rounded-md p-2 leading-tight">
                     <AlertTriangle size={13} className="shrink-0 text-rose-500" />
                     <span>Fitur disembunyikan dari {cfg.affectedRoles.join(' & ')}</span>
                   </div>

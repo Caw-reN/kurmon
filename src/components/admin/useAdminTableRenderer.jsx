@@ -2,7 +2,7 @@ import React from'react';
 import { cn } from'@/lib/utils';
 import { normalizeText } from'../../utils/adminHelpers.js';
 import { DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from'../../utils/constants.js';
-import { ArrowUpDown, Upload, History, Trash2, Plus, Search, ChevronLeft, ChevronRight, Edit3 } from'lucide-react';
+import { ArrowUpDown, Upload, History, Trash2, Plus, Search, ChevronLeft, ChevronRight, Edit3, ChevronDown, ChevronUp } from'lucide-react';
 import { Badge } from'../ui/badge.jsx';
 import { UISelect, Button } from'../ui.jsx';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from'../ui/table.jsx';
@@ -241,7 +241,7 @@ export function useAdminTableRenderer(context) {
     return (
       <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
         {actualPageHeader}
-        <section className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] flex flex-col flex-1 overflow-hidden">
+        <section className="ui-card rounded-xl bg-white border border-slate-200/80 flex flex-col flex-1 overflow-hidden">
           {options.customTabs && (
             <div className="px-4 pt-4 pb-2 border-b border-border bg-muted/30">
               {options.customTabs}
@@ -260,7 +260,7 @@ export function useAdminTableRenderer(context) {
                   placeholder={`Cari ${title.toLowerCase()}...`}
                   value={searchTerm}
                   onChange={e => { setSearchTerm(e.target.value); setTablePage(1); }}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--ui-primary)]/10 transition-all placeholder:text-slate-400"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-[var(--ui-primary)] focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all placeholder:text-slate-400"
                 />
               </div>
 
@@ -273,7 +273,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="outline" 
                     onClick={() => openModal("bulk","add")} 
-                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs border-slate-200 hover:bg-slate-50 text-slate-700"
+                    className="text-xs font-bold gap-1.5 rounded-lg border-slate-200 hover:bg-slate-50 text-slate-700"
                   >
                     <Upload size={13} /> Import Teks
                   </Button>
@@ -284,7 +284,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="outline" 
                     onClick={undoLastDelete} 
-                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs border-slate-200 text-slate-700 hover:bg-slate-50"
+                    className="text-xs font-bold gap-1.5 rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50"
                   >
                     <History size={13} /> Undo Hapus
                   </Button>
@@ -296,7 +296,7 @@ export function useAdminTableRenderer(context) {
                       type="button"
                       variant="outline" 
                       onClick={() => openModal('bulk_edit', 'edit', { tabKey, ids: selectedKeys })} 
-                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-[var(--ui-radius-small)] shadow-xs"
+                      className="text-xs font-bold gap-1.5 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 rounded-lg"
                     >
                       <Edit3 size={13} /> Edit Massal ({selectedCount})
                     </Button>
@@ -304,7 +304,7 @@ export function useAdminTableRenderer(context) {
                       type="button"
                       variant="destructive" 
                       onClick={() => handleBulkDelete(tabKey, selectedKeys)} 
-                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-[var(--ui-radius-small)] shadow-xs"
+                      className="text-xs font-bold gap-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg"
                     >
                       <Trash2 size={13} /> Hapus ({selectedCount})
                     </Button>
@@ -316,7 +316,7 @@ export function useAdminTableRenderer(context) {
                     type="button"
                     variant="destructive" 
                     onClick={handleResetRuangan} 
-                    className="text-xs font-bold gap-1.5 rounded-[var(--ui-radius-small)] shadow-xs"
+                    className="text-xs font-bold gap-1.5 rounded-lg"
                   >
                     <Trash2 size={13} /> Kosongkan Semua
                   </Button>
@@ -326,7 +326,7 @@ export function useAdminTableRenderer(context) {
                   <Button 
                     type="button"
                     onClick={() => openModal(tabKey,"add")} 
-                    className="text-xs font-extrabold gap-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-[var(--ui-radius-small)] shadow-xs px-3.5 py-2 active:scale-95 transition-all border-none"
+                    className="text-xs font-extrabold gap-1.5 bg-[var(--ui-primary)] hover:opacity-90 text-white rounded-lg px-3.5 py-2 active:scale-95 transition-all border-none"
                   >
                     <Plus size={15} strokeWidth={2.5} /> Tambah Data
                   </Button>
@@ -339,7 +339,7 @@ export function useAdminTableRenderer(context) {
               <div className="text-xs font-bold text-slate-500 flex items-center gap-2">
                 <span>Menampilkan <strong className="text-slate-800">{paginatedData.length}</strong> dari total {actualTotal} data</span>
                 {selectedCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-[var(--ui-radius-pill)] bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black">
+                  <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-black">
                     {selectedCount} Dipilih
                   </span>
                 )}
@@ -356,7 +356,7 @@ export function useAdminTableRenderer(context) {
                         ...prev,
                         [tabKey]: { ...(prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey]), key: e.target.value }
                       }))}
-                      className="text-xs font-bold border-slate-200 rounded-[var(--ui-radius-small)]"
+                      className="text-xs font-bold border-slate-200 rounded-lg"
                     >
                       {sortOptions.map(option => (
                         <option key={option.value} value={option.value}>{option.label}</option>
@@ -371,7 +371,7 @@ export function useAdminTableRenderer(context) {
                         [tabKey]: { ...(prev[tabKey] || DEFAULT_TABLE_SORTS[tabKey]), dir: sortConfig.dir === "asc" ? "desc" : "asc" }
                       }))}
                       title={sortConfig.dir === "asc" ? "Urutan A-Z" : "Urutan Z-A"}
-                      className="h-8 w-8 rounded-[var(--ui-radius-small)] border-slate-200"
+                      className="h-8 w-8 rounded-lg border-slate-200"
                     >
                       <ArrowUpDown size={13} />
                     </Button>
@@ -395,7 +395,7 @@ export function useAdminTableRenderer(context) {
                           }));
                           setTablePage(1);
                         }}
-                        className="text-xs font-bold border-slate-200 rounded-[var(--ui-radius-small)]"
+                        className="text-xs font-bold border-slate-200 rounded-lg"
                       >
                         {optionsList.map(opt => (
                           <option key={opt} value={opt}>{opt}</option>
@@ -447,7 +447,7 @@ export function useAdminTableRenderer(context) {
                     <div className="flex items-center justify-center gap-1">
                       <span>No</span>
                       {(sortConfig.key === "code" || sortConfig.key === "nis" || sortConfig.key === "id" || sortConfig.key === "teacherCode") && (
-                        <span className="text-[9px] font-black text-primary">{sortConfig.dir === "asc" ? "▲" : "▼"}</span>
+                        sortConfig.dir === "asc" ? <ChevronUp size={11} className="text-primary inline shrink-0" /> : <ChevronDown size={11} className="text-primary inline shrink-0" />
                       )}
                     </div>
                   </TableHead>
@@ -552,10 +552,10 @@ export function useAdminTableRenderer(context) {
                   <button
                     type="button"
                     onClick={() => setShowRowsDropdown(!showRowsDropdown)}
-                    className="h-6 rounded-[var(--ui-radius-small)] border border-border bg-card px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer select-none"
+                    className="h-6 rounded-md border border-border bg-card px-2 text-[11px] font-bold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-1 cursor-pointer select-none"
                   >
                     <span>{itemsPerPage} baris</span>
-                    <span className="text-[8px] text-slate-400">▼</span>
+                    <ChevronDown size={11} className="text-slate-400 shrink-0" />
                   </button>
 
                   {showRowsDropdown && (
@@ -564,7 +564,7 @@ export function useAdminTableRenderer(context) {
                         className="fixed inset-0 z-40 bg-transparent" 
                         onClick={() => setShowRowsDropdown(false)}
                       />
-                      <div className="absolute left-0 bottom-7 min-w-[90px] bg-card border border-slate-200/60 shadow-sm rounded-[var(--ui-radius-small)] p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
+                      <div className="absolute left-0 bottom-7 min-w-[90px] bg-card border border-slate-200/80 rounded-lg p-1 z-50 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-1 duration-150">
                         {[20, 50, 100].map(val => (
                           <button
                             key={val}
@@ -574,7 +574,7 @@ export function useAdminTableRenderer(context) {
                               setTablePage(p => ({ ...p, [tabKey]: 1 }));
                               setShowRowsDropdown(false);
                             }}
-                            className={cn("w-full text-left px-2.5 py-1.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-colors cursor-pointer",
+                            className={cn("w-full text-left px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-colors cursor-pointer",
                               itemsPerPage === val 
                                 ?"bg-primary text-white" 
                                 :"text-slate-600 hover:bg-slate-50 hover:text-slate-800"

@@ -200,7 +200,7 @@ export default function DashboardPKL() {
               variant="outline" 
               size="sm" 
               onClick={fetchData} 
-              className="flex items-center gap-1.5 font-bold shadow-[var(--ui-shadow-control)]"
+              className="flex items-center gap-1.5 font-bold"
             >
               <RefreshCw size={13} /> Refresh Data
             </Button>
@@ -211,7 +211,7 @@ export default function DashboardPKL() {
       {/* 4 Premium KPI Stat Cards (2x2 on Mobile, 4x1 on Desktop) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Card 1: Mitra DUDI */}
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between overflow-hidden group">
+        <div className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200/80 flex flex-col justify-between overflow-hidden group">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-indigo-600 block mb-0.5 truncate">
@@ -224,12 +224,12 @@ export default function DashboardPKL() {
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400">Industri</span>
               </div>
             </div>
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
               <Building size={18} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
             </div>
           </div>
           <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-            <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-indigo-200/60 truncate">
+            <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-indigo-200/60 truncate">
               {stats.totalKuota || 0} Kuota
             </span>
             <span className="font-bold text-slate-400 hidden sm:inline">
@@ -239,7 +239,7 @@ export default function DashboardPKL() {
         </div>
 
         {/* Card 2: Siswa PKL Aktif */}
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between overflow-hidden group">
+        <div className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200/80 flex flex-col justify-between overflow-hidden group">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-600 block mb-0.5 truncate">
@@ -252,12 +252,12 @@ export default function DashboardPKL() {
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400">Siswa</span>
               </div>
             </div>
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-all">
               <Users size={18} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
             </div>
           </div>
           <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-emerald-200/60 truncate">
+            <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-200/60 truncate">
               100% Kelas XII
             </span>
             <span className="font-bold text-slate-400 hidden sm:inline">
@@ -267,7 +267,7 @@ export default function DashboardPKL() {
         </div>
 
         {/* Card 3: Guru Pembimbing */}
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between overflow-hidden group">
+        <div className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200/80 flex flex-col justify-between overflow-hidden group">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-indigo-600 block mb-0.5 truncate">
@@ -280,12 +280,12 @@ export default function DashboardPKL() {
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400">Guru</span>
               </div>
             </div>
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
               <GraduationCap size={18} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
             </div>
           </div>
           <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-            <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border border-indigo-200/60 truncate">
+            <span className="font-bold text-indigo-700 bg-indigo-50 px-1.5 sm:px-2 py-0.5 rounded-md border border-indigo-200/60 truncate">
               Monitoring
             </span>
             <span className="font-bold text-slate-400 hidden sm:inline">
@@ -295,7 +295,7 @@ export default function DashboardPKL() {
         </div>
 
         {/* Card 4: Jurnal & Validasi */}
-        <div className="bg-white rounded-[var(--ui-radius-card)] p-3 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] hover:shadow-[var(--ui-shadow-card-hover)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between overflow-hidden group">
+        <div className="bg-white rounded-xl p-3 sm:p-5 border border-slate-200/80 flex flex-col justify-between overflow-hidden group">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-amber-600 block mb-0.5 truncate">
@@ -308,12 +308,12 @@ export default function DashboardPKL() {
                 <span className="text-[10px] sm:text-xs font-bold text-slate-400">Logbook</span>
               </div>
             </div>
-            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-all shadow-xs">
+            <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-lg bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:bg-amber-500 group-hover:text-white transition-all">
               <Clock size={18} strokeWidth={2.5} className="sm:w-[22px] sm:h-[22px]" />
             </div>
           </div>
           <div className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px]">
-            <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-[var(--ui-radius-pill)] border truncate ${
+            <span className={`font-bold px-1.5 sm:px-2 py-0.5 rounded-md border truncate ${
               pendingJurnals.length > 0
                 ? 'text-amber-700 bg-amber-50 border-amber-200/60'
                 : 'text-emerald-700 bg-emerald-50 border-emerald-200/60'
@@ -331,11 +331,11 @@ export default function DashboardPKL() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         
         {/* Left Column (2/3): Interactive Leaflet Map & DUDI Directory */}
-        <div className="xl:col-span-2 bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-[var(--ui-shadow-card)] overflow-hidden flex flex-col h-[520px]">
+        <div className="xl:col-span-2 bg-white rounded-xl border border-slate-200/80 overflow-hidden flex flex-col h-[520px]">
           {/* Map Controls Header */}
           <div className="px-4 sm:px-5 py-3.5 border-b border-[var(--ui-border-muted)] bg-[var(--ui-surface-muted)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[var(--ui-radius-control)] bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0 shadow-xs">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-200/60 flex items-center justify-center shrink-0">
                 <MapIcon size={16} strokeWidth={2.5} />
               </div>
               <div>
@@ -346,7 +346,7 @@ export default function DashboardPKL() {
 
             <div className="flex items-center gap-2 flex-wrap">
               {/* City Filter Pills */}
-              <div className="flex items-center gap-1 p-0.5 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs">
+              <div className="flex items-center gap-1 p-0.5 bg-white rounded-lg border border-[var(--ui-border-soft)]">
                 {[
                   { id: 'all', label: 'Semua' },
                   { id: 'bekasi', label: 'Bekasi' },
@@ -357,9 +357,9 @@ export default function DashboardPKL() {
                     key={city.id}
                     type="button"
                     onClick={() => setSelectedCityFilter(city.id)}
-                    className={`px-2 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border-none ${
+                    className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer border-none ${
                       selectedCityFilter === city.id
-                        ? 'bg-[var(--ui-primary)] text-white shadow-xs'
+                        ? 'bg-[var(--ui-primary)] text-white'
                         : 'text-slate-600 hover:text-slate-900 bg-transparent'
                     }`}
                   >
@@ -369,13 +369,13 @@ export default function DashboardPKL() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center gap-1 p-0.5 bg-white rounded-[var(--ui-radius-control)] border border-[var(--ui-border-soft)] shadow-xs">
+              <div className="flex items-center gap-1 p-0.5 bg-white rounded-lg border border-[var(--ui-border-soft)]">
                 <button
                   type="button"
                   onClick={() => setViewMode('map')}
-                  className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border-none flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer border-none flex items-center gap-1 ${
                     viewMode === 'map'
-                      ? 'bg-slate-800 text-white shadow-xs'
+                      ? 'bg-slate-800 text-white'
                       : 'text-slate-500 hover:text-slate-800 bg-transparent'
                   }`}
                 >
@@ -384,9 +384,9 @@ export default function DashboardPKL() {
                 <button
                   type="button"
                   onClick={() => setViewMode('list')}
-                  className={`px-2.5 py-1 rounded-[var(--ui-radius-small)] text-[10px] font-bold transition-all cursor-pointer border-none flex items-center gap-1 ${
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all cursor-pointer border-none flex items-center gap-1 ${
                     viewMode === 'list'
-                      ? 'bg-slate-800 text-white shadow-xs'
+                      ? 'bg-slate-800 text-white'
                       : 'text-slate-500 hover:text-slate-800 bg-transparent'
                   }`}
                 >

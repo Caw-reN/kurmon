@@ -444,7 +444,7 @@ export default function TabHakAkses(props) {
           <Button
             type="button"
             onClick={() => setCreateModalOpen(true)}
-            className="text-xs font-bold gap-1.5 shadow-xs"
+            className="text-xs font-bold gap-1.5"
           >
             <Plus size={14} /> + Buat Role Kustom Baru
           </Button>
@@ -452,9 +452,9 @@ export default function TabHakAkses(props) {
       />
 
       {/* Guide Banner */}
-      <div className="p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+          <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5">
             <ShieldCheck size={18} />
           </div>
           <div>
@@ -472,7 +472,7 @@ export default function TabHakAkses(props) {
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         
         {/* LEFT COLUMN: ROLE SELECTOR */}
-        <div className="w-full lg:w-72 shrink-0 ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 space-y-4">
+        <div className="w-full lg:w-72 shrink-0 ui-card bg-white border border-slate-200/80 rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-black text-slate-700 uppercase tracking-wider">Daftar Role / Jabatan</span>
             <button
@@ -503,9 +503,9 @@ export default function TabHakAkses(props) {
                         key={r.key}
                         type="button"
                         onClick={() => setSelectedRoleKey(r.key)}
-                        className={`w-full text-left px-3 py-2 rounded-[var(--ui-radius-small)] transition-all flex items-center justify-between gap-2 border cursor-pointer ${
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-all flex items-center justify-between gap-2 border cursor-pointer ${
                           isSelected
-                            ? 'bg-[var(--ui-primary)] text-white border-indigo-600 shadow-xs font-black'
+                            ? 'bg-[var(--ui-primary)] text-white border-indigo-600 font-black'
                             : 'bg-slate-50/70 hover:bg-slate-100 text-slate-700 border-slate-200/60'
                         }`}
                       >
@@ -539,9 +539,9 @@ export default function TabHakAkses(props) {
                         <button
                           type="button"
                           onClick={() => setSelectedRoleKey(k)}
-                          className={`w-full text-left px-3 py-2 pr-8 rounded-[var(--ui-radius-small)] transition-all flex items-center justify-between gap-2 border cursor-pointer ${
+                          className={`w-full text-left px-3 py-2 pr-8 rounded-lg transition-all flex items-center justify-between gap-2 border cursor-pointer ${
                             isSelected
-                              ? 'bg-indigo-600 text-white border-indigo-700 shadow-xs font-black'
+                              ? 'bg-indigo-600 text-white border-indigo-700 font-black'
                               : 'bg-indigo-50/40 hover:bg-indigo-50 text-indigo-900 border-indigo-200/60'
                           }`}
                         >
@@ -568,7 +568,7 @@ export default function TabHakAkses(props) {
         <div className="flex-1 w-full space-y-4">
           
           {/* Active Role Bar & Search Toolbar */}
-          <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-black text-slate-800">
@@ -587,13 +587,13 @@ export default function TabHakAkses(props) {
                 placeholder="Cari nama modul..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
+                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20 transition-all"
               />
             </div>
           </div>
 
           {/* Quick Preset Buttons */}
-          <div className="bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] p-3.5 shadow-xs space-y-2">
+          <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-black text-slate-700 uppercase tracking-wider">
               <Sparkles size={14} className="text-amber-500" />
               <span>Preset Cepat (Sekali Klik)</span>
@@ -613,7 +613,7 @@ export default function TabHakAkses(props) {
                   key={preset.key}
                   type="button"
                   onClick={() => applyPreset(preset.key)}
-                  className={`text-[11px] font-bold px-2.5 py-1 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer shadow-xs ${preset.color}`}
+                  className={`text-[11px] font-bold px-2.5 py-1 rounded-md border transition-all cursor-pointer ${preset.color}`}
                 >
                   {preset.label}
                 </button>
@@ -626,7 +626,7 @@ export default function TabHakAkses(props) {
             {filteredGroups.map(group => (
               <div 
                 key={group.key}
-                className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] overflow-hidden flex flex-col"
+                className="ui-card bg-white border border-slate-200/80 rounded-xl overflow-hidden flex flex-col"
               >
                 {/* Category Header */}
                 <div className="bg-slate-50/90 border-b border-slate-200/80 px-4 py-2.5 flex items-center justify-between">
@@ -669,14 +669,14 @@ export default function TabHakAkses(props) {
                         </div>
 
                         {/* 3-State Buttons */}
-                        <div className="flex items-center bg-slate-100 p-0.5 rounded-[var(--ui-radius-small)] shrink-0 self-start sm:self-center">
+                        <div className="flex items-center bg-slate-100 p-0.5 rounded-md shrink-0 self-start sm:self-center">
                           {/* Tutup */}
                           <button
                             type="button"
                             onClick={() => setTabPermission(tab, 'nonaktif')}
                             className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
                               currentLevel === 'nonaktif'
-                                ? 'bg-rose-500 text-white shadow-xs'
+                                ? 'bg-rose-500 text-white'
                                 : 'text-slate-500 hover:text-slate-700'
                             }`}
                           >
@@ -689,7 +689,7 @@ export default function TabHakAkses(props) {
                             onClick={() => setTabPermission(tab, 'view')}
                             className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
                               currentLevel === 'view'
-                                ? 'bg-amber-500 text-white shadow-xs'
+                                ? 'bg-amber-500 text-white'
                                 : 'text-slate-500 hover:text-slate-700'
                             }`}
                           >
@@ -702,7 +702,7 @@ export default function TabHakAkses(props) {
                             onClick={() => setTabPermission(tab, 'edit')}
                             className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all flex items-center gap-1 cursor-pointer ${
                               currentLevel === 'edit'
-                                ? 'bg-emerald-600 text-white shadow-xs'
+                                ? 'bg-emerald-600 text-white'
                                 : 'text-slate-500 hover:text-slate-700'
                             }`}
                           >
@@ -721,7 +721,7 @@ export default function TabHakAkses(props) {
       </div>
 
       {/* STICKY SAVE BAR */}
-      <div className="bg-slate-900 border border-slate-800 text-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-80 shadow-sm z-30 transition-all">
+      <div className="bg-slate-900 border border-slate-800 text-white rounded-xl p-3.5 sm:p-4 flex items-center justify-between fixed bottom-4 right-4 left-4 lg:left-80 z-30 transition-all">
         <div className="flex items-center gap-2.5">
           <span className={`w-2.5 h-2.5 rounded-full ${isModified ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
           <span className="text-xs font-bold text-slate-200">
@@ -756,9 +756,9 @@ export default function TabHakAkses(props) {
             type="button"
             onClick={handleUpdateRole}
             disabled={!isModified}
-            className={`px-4 py-1.5 text-xs font-black rounded-[var(--ui-radius-small)] flex items-center gap-1.5 transition-all ${
+            className={`px-4 py-1.5 text-xs font-black rounded-lg flex items-center gap-1.5 transition-all ${
               isModified 
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs' 
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
                 : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
             }`}
           >

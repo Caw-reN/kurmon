@@ -127,8 +127,8 @@ export default function TabSilabus(props) {
 
       {/* KPI Stats Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/80 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
             <FileText size={18} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -137,8 +137,8 @@ export default function TabSilabus(props) {
           </div>
         </div>
 
-        <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/80 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
             <BookOpen size={18} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -147,8 +147,8 @@ export default function TabSilabus(props) {
           </div>
         </div>
 
-        <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/80 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
             <User size={18} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
@@ -157,19 +157,19 @@ export default function TabSilabus(props) {
           </div>
         </div>
 
-        <div className="p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex items-center gap-3">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/80 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
             <Layers size={18} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <p className="text-xl sm:text-2xl font-black text-purple-700 leading-tight">{noteCount + categoryCount}</p>
+            <p className="text-xl sm:text-2xl font-black text-indigo-700 leading-tight">{noteCount + categoryCount}</p>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-0.5 truncate">Kategori & Catatan</p>
           </div>
         </div>
       </div>
 
       {/* Main Controls Card */}
-      <div className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-3.5">
+      <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/80 space-y-3.5">
         <div className="flex flex-col lg:flex-row gap-3 lg:items-center justify-between">
           
           {/* Search Input */}
@@ -179,7 +179,7 @@ export default function TabSilabus(props) {
               type="text"
               value={silabusSearchTerm}
               onChange={(e) => setSilabusSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-7 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-[var(--ui-radius-control)] text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]"
+              className="w-full pl-9 pr-7 py-2 bg-[var(--ui-surface-muted)] hover:bg-white border border-[var(--ui-border-soft)] rounded-lg text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-[var(--ui-primary)]"
               placeholder="Cari mapel, guru, judul materi, atau kategori..."
             />
             {silabusSearchTerm && (
@@ -228,7 +228,7 @@ export default function TabSilabus(props) {
                 gradeSemester: activeSilabus.gradeSemester, 
                 categoryId: activeSilabus.categoryId 
               } : undefined)}
-              className="text-xs font-bold gap-1.5 shadow-[var(--ui-shadow-control)]"
+              className="text-xs font-bold gap-1.5"
             >
               <Plus size={13} /> + Tambah RPP
             </Button>
@@ -238,11 +238,11 @@ export default function TabSilabus(props) {
 
       {/* Spotlight Recent Modules */}
       {spotlightSyllabuses.length > 0 && (
-        <div className="p-4 rounded-[var(--ui-radius-card)] bg-slate-50 border border-slate-200/80 space-y-2.5">
+        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
           <div className="flex items-center gap-2">
             <FileText size={15} className="text-[var(--ui-primary)]" />
             <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Modul Ajar Terbaru</h3>
-            <span className="ml-auto text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-[var(--ui-radius-small)]">
+            <span className="ml-auto text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-md">
               {Math.min(spotlightSyllabuses.length, 3)} materi
             </span>
           </div>
@@ -251,17 +251,17 @@ export default function TabSilabus(props) {
             {spotlightSyllabuses.map((s) => {
               const cat = syllabusCategories?.find((c) => c.id === s.categoryId);
               return (
-                <div key={s.id} className="rounded-[var(--ui-radius-control)] bg-white border border-slate-200 p-3.5 shadow-xs space-y-1.5">
+                <div key={s.id} className="rounded-lg bg-white border border-slate-200 p-3.5 space-y-1.5">
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                     {s.teacherCode || '-'} &bull; {s.gradeSemester || '-'}
                   </div>
                   <div className="font-black text-slate-800 text-xs sm:text-sm line-clamp-1">{s.title || 'Tanpa judul'}</div>
                   <div className="flex items-center justify-between gap-2 pt-1">
-                    <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-black uppercase tracking-wider bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]">
+                    <span className="px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider bg-[var(--ui-primary)]/10 text-[var(--ui-primary)]">
                       {s.subjectName || 'Umum'}
                     </span>
                     {cat?.name && (
-                      <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-black uppercase tracking-wider bg-slate-100 text-slate-600">
+                      <span className="px-2 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider bg-slate-100 text-slate-600">
                         {cat.name}
                       </span>
                     )}
@@ -274,19 +274,19 @@ export default function TabSilabus(props) {
       )}
 
       {/* Main Subjects and Meetings Panel */}
-      <div className="p-4 sm:p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col flex-1">
+      <div className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/80 flex flex-col flex-1">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2 border-b border-slate-100 pb-3">
           <div>
             <h2 className="text-base font-black text-slate-800">Susunan Modul Ajar per Mapel</h2>
             <p className="text-xs text-slate-500 font-medium mt-0.5">Pilih mata pelajaran, lalu buka tab pertemuan di dalamnya.</p>
           </div>
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider bg-slate-100 px-2.5 py-1 rounded-[var(--ui-radius-small)]">
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider bg-slate-100 px-2.5 py-1 rounded-md">
             {filteredSyllabuses.length} RPP Ditemukan
           </span>
         </div>
 
         {filteredSyllabuses.length === 0 ? (
-          <div className="rounded-[var(--ui-radius-control)] border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
+          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
             <BookOpen size={36} className="mx-auto mb-2 text-slate-300" />
             <p className="text-xs font-bold text-slate-600">
               {silabusSearchTerm && silabusSearchTerm.trim() 
@@ -298,7 +298,7 @@ export default function TabSilabus(props) {
           <div className="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-4">
             
             {/* Subject Selector List */}
-            <div className="rounded-[var(--ui-radius-control)] bg-[var(--ui-surface-muted)] p-2.5 border border-slate-200/70 overflow-hidden">
+            <div className="rounded-lg bg-[var(--ui-surface-muted)] p-2.5 border border-slate-200/70 overflow-hidden">
               <div className="flex items-center gap-1.5 px-2 py-1.5 mb-1">
                 <BookOpenText size={14} className="text-[var(--ui-primary)]" />
                 <p className="text-xs font-black text-slate-800">Mata Pelajaran ({groupedSubjectNames.length})</p>
@@ -316,9 +316,9 @@ export default function TabSilabus(props) {
                         setSelectedSilabusSubject(subjectName);
                         setSelectedSilabusId(subjectItems[0]?.id || '');
                       }}
-                      className={`w-full text-left p-2.5 rounded-[var(--ui-radius-small)] transition-all cursor-pointer border ${
+                      className={`w-full text-left p-2.5 rounded-lg transition-all cursor-pointer border ${
                         isActive 
-                          ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
+                          ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]' 
                           : 'bg-white text-slate-700 border-slate-200/80 hover:bg-slate-50'
                       }`}
                     >
@@ -336,7 +336,7 @@ export default function TabSilabus(props) {
             </div>
 
             {/* Meeting Detail Viewer */}
-            <div className="rounded-[var(--ui-radius-control)] bg-white border border-slate-200/80 p-4 sm:p-5 min-w-0 flex flex-col justify-between">
+            <div className="rounded-lg bg-white border border-slate-200/80 p-4 sm:p-5 min-w-0 flex flex-col justify-between">
               <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                   <div>
@@ -372,7 +372,7 @@ export default function TabSilabus(props) {
                         <button 
                           type="button"
                           onClick={() => handleRemoveSyllabusSafe(activeSilabus.id, activeSilabus)}
-                          className="p-2 text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-[var(--ui-radius-control)] cursor-pointer"
+                          className="p-2 text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-lg cursor-pointer"
                           title="Hapus"
                         >
                           <Trash2 size={13} />
@@ -391,9 +391,9 @@ export default function TabSilabus(props) {
                         key={item.id}
                         type="button"
                         onClick={() => setSelectedSilabusId(item.id)}
-                        className={`shrink-0 text-left px-3 py-2 rounded-[var(--ui-radius-small)] border transition-all cursor-pointer ${
+                        className={`shrink-0 text-left px-3 py-2 rounded-lg border transition-all cursor-pointer ${
                           isActive 
-                            ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs' 
+                            ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)]' 
                             : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
@@ -408,19 +408,19 @@ export default function TabSilabus(props) {
 
                 {/* Meeting Detail Card */}
                 {activeSilabus ? (
-                  <div className="mt-4 rounded-[var(--ui-radius-control)] bg-slate-50/80 border border-slate-200 p-4 space-y-3">
+                  <div className="mt-4 rounded-lg bg-slate-50/80 border border-slate-200 p-4 space-y-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="bg-white border border-slate-200 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase text-slate-600">
+                      <span className="bg-white border border-slate-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase text-slate-600">
                         Pertemuan {activeSilabusIndex + 1}
                       </span>
-                      <span className="bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase">
+                      <span className="bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase">
                         Guru: {activeSilabus.teacherCode || '-'}
                       </span>
-                      <span className="bg-white border border-slate-200 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase text-slate-600">
+                      <span className="bg-white border border-slate-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase text-slate-600">
                         {activeSilabus.gradeSemester || '-'}
                       </span>
                       {activeSilabusCategory && (
-                        <span className="bg-white border border-slate-200 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-black uppercase text-slate-600">
+                        <span className="bg-white border border-slate-200 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase text-slate-600">
                           {activeSilabusCategory.name}
                         </span>
                       )}
@@ -429,17 +429,17 @@ export default function TabSilabus(props) {
                     <h4 className="text-base font-black text-slate-800">{activeSilabus.title || `Pertemuan ${activeSilabusIndex + 1}`}</h4>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                      <div className="rounded-[var(--ui-radius-small)] bg-white border border-slate-200/80 p-3">
+                      <div className="rounded-lg bg-white border border-slate-200/80 p-3">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Tujuan Pembelajaran</p>
                         <p className="text-xs font-bold text-slate-700 leading-relaxed">{activeSilabus.objectives || '-'}</p>
                       </div>
-                      <div className="rounded-[var(--ui-radius-small)] bg-white border border-slate-200/80 p-3">
+                      <div className="rounded-lg bg-white border border-slate-200/80 p-3">
                         <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">Catatan Khusus</p>
                         <p className="text-xs font-bold text-slate-700 leading-relaxed">{activeSilabus.notes || 'Tidak ada catatan khusus.'}</p>
                       </div>
                     </div>
 
-                    <div className="rounded-[var(--ui-radius-small)] bg-white border border-slate-200/80 p-3">
+                    <div className="rounded-lg bg-white border border-slate-200/80 p-3">
                       <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">Materi Pembelajaran</p>
                       {activeSilabus.materials ? (
                         <div className="space-y-1.5">

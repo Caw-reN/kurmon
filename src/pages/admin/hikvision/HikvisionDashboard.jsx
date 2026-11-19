@@ -54,7 +54,7 @@ const DeviceTypeBadge = ({ type }) => {
   const cfg = isStaff ? DEVICE_TYPE_CONFIG.staff : (DEVICE_TYPE_CONFIG[type] || DEVICE_TYPE_CONFIG.siswa);
   const Icon = cfg.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[var(--ui-radius-small)] text-[10px] font-bold border ${cfg.color}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${cfg.color}`}>
       <Icon size={10} /> {cfg.label}
     </span>
   );
@@ -403,7 +403,7 @@ export default function HikvisionDashboard() {
               <h3 className="font-bold text-slate-800 text-sm">Daftar Perangkat</h3>
               <div className="ml-auto flex items-center gap-1.5">
                 {devices.some(d => d.is_online === false) && (
-                  <span className="text-[10px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] font-black uppercase tracking-wider shadow-2xs">
+                  <span className="text-[10px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-md font-black uppercase tracking-wider">
                     {devices.filter(d => d.is_online === false).length} Offline
                   </span>
                 )}
@@ -420,7 +420,7 @@ export default function HikvisionDashboard() {
                     const Icon = cfg.icon;
                     return (
                       <div key={device.id} className="p-4 flex items-start gap-3 hover:bg-slate-50 transition-colors">
-                        <div className={`w-9 h-9 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${cfg.color}`}>
+                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border ${cfg.color}`}>
                           <Icon size={18} />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -436,7 +436,7 @@ export default function HikvisionDashboard() {
                                   <div className="flex items-center gap-1 text-slate-600 font-bold">
                                     <Activity size={12} className="text-emerald-500 animate-pulse" />
                                     <span>{device.ip_address}</span>
-                                    <span className="text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5 shadow-2xs">Online</span>
+                                    <span className="text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 rounded-md ml-1 uppercase font-black tracking-widest leading-none py-0.5">Online</span>
                                   </div>
                                 );
                               }
@@ -448,12 +448,12 @@ export default function HikvisionDashboard() {
                                   <div className="flex items-center gap-1.5 text-slate-400 flex-wrap">
                                     <MonitorSmartphone size={12} className="text-rose-500 shrink-0" />
                                     <span className="line-through decoration-rose-400 text-slate-400">{device.ip_address}</span>
-                                    <span className="text-[9px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 rounded-[var(--ui-radius-small)] ml-1 uppercase font-black tracking-widest leading-none py-0.5 shadow-2xs">
+                                    <span className="text-[9px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 rounded-md ml-1 uppercase font-black tracking-widest leading-none py-0.5">
                                       {isSyncFailed ? "Gagal Terhubung" : "Offline"}
                                     </span>
                                   </div>
                                   {downtime ? (
-                                    <div className="flex flex-col gap-0.5 text-[10.5px] text-rose-700 bg-rose-50/80 border border-rose-200/70 rounded-[var(--ui-radius-small)] p-1.5 shadow-2xs mt-1">
+                                    <div className="flex flex-col gap-0.5 text-[10.5px] text-rose-700 bg-rose-50/80 border border-rose-200/70 rounded-lg p-1.5 mt-1">
                                       <div className="flex items-center gap-1 font-semibold">
                                         <Clock size={11} className="text-rose-500 shrink-0" />
                                         <span>Mulai mati: <strong className="font-bold text-rose-900">{downtime.startTimeFormatted}</strong></span>
@@ -485,7 +485,7 @@ export default function HikvisionDashboard() {
           </div>
 
           {/* Pengaturan Batas Absensi Multi-Kampus & Hari */}
-          <div className="ui-card overflow-hidden shadow-xs border border-slate-200/80">
+          <div className="ui-card overflow-hidden border border-slate-200/80 rounded-xl">
             <div className="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock size={18} className="text-[var(--ui-primary)]" />
@@ -495,7 +495,7 @@ export default function HikvisionDashboard() {
                 type="button"
                 onClick={handleApplyPreset}
                 title="Terapkan jadwal standar Kampus A (Jumat 11.50) & Kampus B (Jumat 15.30)"
-                className="text-[10.5px] font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-[var(--ui-radius-small)] transition-all cursor-pointer shadow-2xs"
+                className="text-[10.5px] font-black text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-md transition-all cursor-pointer"
               >
                 Preset Standar A/B
               </button>
@@ -522,7 +522,7 @@ export default function HikvisionDashboard() {
               {/* Tab Bar 2: Pilihan Kampus */}
               <div>
                 <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Pilih Lokasi Kampus:</label>
-                <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/70">
+                <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200/70">
                   {[
                     { id: 'kampus_a', label: 'Kampus A' },
                     { id: 'kampus_b', label: 'Kampus B' },
@@ -532,9 +532,9 @@ export default function HikvisionDashboard() {
                       key={c.id}
                       type="button"
                       onClick={() => setActiveCampusTab(c.id)}
-                      className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all text-center cursor-pointer ${
+                      className={`py-1.5 px-2 rounded-md text-xs font-bold transition-all text-center cursor-pointer ${
                         activeCampusTab === c.id
-                          ? 'bg-white text-slate-900 shadow-xs font-extrabold'
+                          ? 'bg-white text-slate-900 font-extrabold'
                           : 'text-slate-600 hover:text-slate-900 bg-transparent'
                       }`}
                     >
@@ -548,7 +548,7 @@ export default function HikvisionDashboard() {
               {activeCampusTab !== 'all' && (
                 <div>
                   <label className="text-[9.5px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">Pilih Hari:</label>
-                  <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-[var(--ui-radius-small)] border border-slate-200/70">
+                  <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200/70">
                     {[
                       { id: 'regular', label: 'Senin - Kamis' },
                       { id: 'jumat', label: 'Jumat' },
@@ -558,9 +558,9 @@ export default function HikvisionDashboard() {
                         key={d.id}
                         type="button"
                         onClick={() => setActiveDayTab(d.id)}
-                        className={`py-1.5 px-2 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all text-center cursor-pointer ${
+                        className={`py-1.5 px-2 rounded-md text-xs font-bold transition-all text-center cursor-pointer ${
                           activeDayTab === d.id
-                            ? 'bg-emerald-600 text-white shadow-xs font-extrabold'
+                            ? 'bg-emerald-600 text-white font-extrabold'
                             : 'text-slate-600 hover:text-slate-900 bg-transparent'
                         }`}
                       >
@@ -573,13 +573,13 @@ export default function HikvisionDashboard() {
 
               {/* Context Banner Info */}
               {activeCampusTab === 'kampus_a' && activeDayTab === 'jumat' && (
-                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-indigo-50/80 border border-indigo-200 text-indigo-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                <div className="p-2.5 rounded-lg bg-indigo-50/80 border border-indigo-200 text-indigo-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
                   <Zap size={14} className="text-indigo-600 shrink-0" />
                   <span><strong className="text-indigo-700">Aturan Jumat Kampus A:</strong> Jam buka absen pulang disetel pukul <strong>11:50</strong>. Tap siswa mulai 11:50 otomatis tercatat sebagai absen Pulang.</span>
                 </div>
               )}
               {activeCampusTab === 'kampus_b' && activeDayTab === 'jumat' && (
-                <div className="p-2.5 rounded-[var(--ui-radius-small)] bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                <div className="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200 text-amber-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
                   <Zap size={14} className="text-amber-600 shrink-0" />
                   <span><strong className="text-amber-700">Aturan Jumat Kampus B:</strong> Jam buka absen pulang disetel pukul <strong>15:30</strong>.</span>
                 </div>
