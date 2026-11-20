@@ -59,6 +59,18 @@ export default function CrudModals({
                 />
               </div>
               <div>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">NIK (Nomor Induk Kependudukan - 16 Digit)</label>
+                <input
+                  type="text"
+                  maxLength={16}
+                  value={formData.nik || ""}
+                  onChange={(e) => setFormData({ ...formData, nik: e.target.value.replace(/[^0-9]/g, '') })}
+                  className="w-full border-none bg-slate-50 p-3.5 rounded-[var(--ui-radius-small)] text-sm font-bold focus:bg-white focus:outline-[var(--ui-primary)]"
+                  placeholder="Contoh: 3275012345670001 (16 digit)"
+                />
+                <p className="text-[10px] text-slate-400 font-medium mt-1 ml-1">16 digit kependudukan untuk pelacakan identitas & BP/BK.</p>
+              </div>
+              <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-2 block">Nama Lengkap</label>
                 <input
                   type="text"

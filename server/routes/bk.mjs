@@ -400,7 +400,9 @@ export async function handleBkRoutes(req, res, url, ctx) {
     if (!session) return true;
     if (req.method === "GET") {
       try {
-        const { rows } = await dbPool.query(`
+        const studentNis = url.searchParams.get('student_nis');
+        const className = url.searchParams.get('class_name');
+        let query = `
           SELECT l.*, 
                  COALESCE(l.created_by_name, 'Guru BK') as created_by_name,
                  COALESCE(s.payload->>'namaSiswa', s.payload->>'name', s.payload->>'nama', s.payload->>'nama_siswa') as student_name,
@@ -408,8 +410,22 @@ export async function handleBkRoutes(req, res, url, ctx) {
                  s.payload->>'nisn' as student_nisn
           FROM bk_letters l
           LEFT JOIN mst_students s ON l.student_nis = s.id OR l.student_nis = s.payload->>'nis' OR l.student_nis = s.payload->>'code'
-          ORDER BY l.issue_date DESC, l.id DESC
-        `);
+        `;
+        const params = [];
+        const whereClauses = [];
+        if (studentNis) {
+          params.push(studentNis);
+          whereClauses.push(`(l.student_nis = $${params.length} OR s.payload->>'nis' = $${params.length} OR s.payload->>'code' = $${params.length})`);
+        }
+        if (className && className !== 'all' && className !== 'semua') {
+          params.push(className);
+          whereClauses.push(`(COALESCE(s.payload->>'class_name', s.payload->>'kelas', s.payload->>'className') = $${params.length})`);
+        }
+        if (whereClauses.length > 0) {
+          query += ` WHERE ${whereClauses.join(' AND ')}`;
+        }
+        query += ` ORDER BY l.issue_date DESC, l.id DESC`;
+        const { rows } = await dbPool.query(query, params);
         send(req, res, 200, { ok: true, data: rows });
       } catch (err) {
         sendDatabaseError(req, res, err);

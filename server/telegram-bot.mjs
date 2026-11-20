@@ -1276,6 +1276,14 @@ async function _isHolidayOrWeekend(dateStr, targetClassOrRole = "Semua") {
                     if (!tcClean) return false;
                     if (targetClean === tcClean) return true;
                     if (targetGrade && (tcClean === targetGrade || tcClean === (targetGrade === 'X' ? '10' : targetGrade === 'XI' ? '11' : '12'))) return true;
+                    if (tcClean === 'XII' || tcClean === '12') return targetClean.startsWith('XII ') || targetClean.startsWith('12 ') || targetClean === 'XII' || targetClean === '12';
+                    if (tcClean === 'XI' || tcClean === '11') return targetClean.startsWith('XI ') || targetClean.startsWith('11 ') || targetClean === 'XI' || targetClean === '11';
+                    if (tcClean === 'X' || tcClean === '10') return targetClean.startsWith('X ') || targetClean.startsWith('10 ') || targetClean === 'X' || targetClean === '10';
+                    if (targetClean.startsWith(tcClean + ' ') || targetClean.startsWith(tcClean + '-')) return true;
+                    const normStr = (s) => s.replace(/^10(?=\s|[A-Z]|$)/i, 'X').replace(/^11(?=\s|[A-Z]|$)/i, 'XI').replace(/^12(?=\s|[A-Z]|$)/i, 'XII').replace(/[\s\-_]/g, '');
+                    const tNorm = normStr(targetClean);
+                    const tcNorm = normStr(tcClean);
+                    if (tNorm === tcNorm || tNorm.startsWith(tcNorm)) return true;
                     return targetClean.split(/\s+/).includes(tcClean);
                   });
                   if (!matched) continue;

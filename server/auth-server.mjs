@@ -2674,6 +2674,11 @@ const server = createServer(async (req, res) => {
               if (tcClean === 'xii' || tcClean === '12') return scClean.startsWith('xii ') || scClean.startsWith('12 ') || scClean === 'xii' || scClean === '12';
               if (tcClean === 'xi' || tcClean === '11') return scClean.startsWith('xi ') || scClean.startsWith('11 ') || scClean === 'xi' || scClean === '11';
               if (tcClean === 'x' || tcClean === '10') return scClean.startsWith('x ') || scClean.startsWith('10 ') || scClean === 'x' || scClean === '10';
+              if (scClean.startsWith(tcClean + ' ') || scClean.startsWith(tcClean + '-')) return true;
+              const normStr = (s) => s.replace(/^10(?=\s|[a-z]|$)/i, 'x').replace(/^11(?=\s|[a-z]|$)/i, 'xi').replace(/^12(?=\s|[a-z]|$)/i, 'xii').replace(/[\s\-_]/g, '');
+              const sNorm = normStr(scClean);
+              const tcNorm = normStr(tcClean);
+              if (sNorm === tcNorm || sNorm.startsWith(tcNorm)) return true;
               return scClean.split(/\s+/).includes(tcClean);
             });
           });

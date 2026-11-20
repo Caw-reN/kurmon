@@ -2798,7 +2798,12 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                       Hapus Foto
                     </button>
                   )}
-                  <p className="text-[10px] text-slate-400">Rasio pas foto resmi (3:4)</p>
+                  <p className="text-[10px] text-slate-500 font-semibold leading-tight">
+                    Rasio pas foto resmi 3:4 (Maks 2MB)
+                    <span className="block text-[9px] text-slate-400 font-normal mt-0.5">
+                      Standar background: Merah (tahun ganjil) / Biru (tahun genap)
+                    </span>
+                  </p>
                 </div>
               </div>
             </div>
@@ -2812,6 +2817,18 @@ export default function KartuPelajar({ students: propStudents = [] }) {
                 onChange={e => setEditForm({ ...editForm, data: { ...editForm.data, nis: e.target.value } })} 
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] text-xs font-bold disabled:bg-slate-100 disabled:text-slate-400" 
               />
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 mb-1">NIK (Nomor Induk Kependudukan - 16 Digit)</label>
+              <input 
+                maxLength={16}
+                placeholder="Contoh: 3275012345670001 (16 digit)" 
+                value={editForm.data.nik || ''} 
+                onChange={e => setEditForm({ ...editForm, data: { ...editForm.data, nik: e.target.value.replace(/[^0-9]/g, '') } })} 
+                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-[var(--ui-radius-control)] text-xs font-semibold focus:ring-2 focus:ring-[var(--ui-primary)]/20 focus:border-[var(--ui-primary)]" 
+              />
+              <span className="text-[9.5px] text-slate-400 font-medium ml-1">Untuk integrasi Dapodik & pelacakan identitas oleh BP/BK.</span>
             </div>
 
             <div>

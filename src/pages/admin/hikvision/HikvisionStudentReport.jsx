@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAuthToken } from '../../../hooks/useAuthToken.js';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, ChevronRight, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table, Activity } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, ChevronRight, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, ShieldAlert, Filter, LayoutGrid, Table, Activity } from 'lucide-react';
 import { useAppStore } from '../../../store/useAppStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
@@ -247,16 +247,83 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [mobileViewMode, setMobileViewMode] = useState('card');
   const [todayCardFilter, setTodayCardFilter] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'tidak_masuk'
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
-  const [detailModalTab, setDetailModalTab] = useState('calendar'); // 'calendar' | 'list'
+  const [detailModalTab, setDetailModalTab] = useState('calendar'); // 'calendar' | 'list' | 'sp_violations'
   const [selectedDayInModal, setSelectedDayInModal] = useState(null);
   const [historyFilterType, setHistoryFilterType] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'absen' | 'libur'
+
+  // Data Surat Peringatan (SP) dan Riwayat Pelanggaran Siswa untuk Wali Kelas
+  const [bkLetters, setBkLetters] = useState([]);
+  const [studentViolations, setStudentViolations] = useState([]);
+  const [loadingViolations, setLoadingViolations] = useState(false);
+
+  const fetchBkLetters = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch("/api/kedisiplinan/bk/letters", {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) setBkLetters(data.data || []);
+    } catch (e) {
+      console.warn("Gagal memuat surat BK:", e);
+    }
+  }, [authToken]);
+
+  useEffect(() => {
+    fetchBkLetters();
+  }, [fetchBkLetters]);
+
+  const fetchStudentViolations = useCallback(async (nis) => {
+    if (!authToken || !nis) return;
+    setLoadingViolations(true);
+    try {
+      const res = await fetch(`/api/kedisiplinan/riwayat?siswa_nis=${encodeURIComponent(nis)}`, {
+        headers: { "Authorization": `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setStudentViolations(data.data || []);
+      } else {
+        setStudentViolations([]);
+      }
+    } catch {
+      setStudentViolations([]);
+    } finally {
+      setLoadingViolations(false);
+    }
+  }, [authToken]);
+
+  const getStudentSpInfo = useCallback((studentNis) => {
+    if (!studentNis || !Array.isArray(bkLetters) || bkLetters.length === 0) return null;
+    const sNis = String(studentNis).trim();
+    const letters = bkLetters.filter(l => {
+      const lNis = String(l.student_nis || '').trim();
+      const match = lNis === sNis || (lNis.length === 8 && sNis.length === 9 && sNis.endsWith(lNis)) || (sNis.length === 8 && lNis.length === 9 && lNis.endsWith(sNis));
+      return match && (String(l.letter_type || '').toUpperCase().includes('SP') || String(l.letter_type || '').toUpperCase().includes('PERINGATAN'));
+    });
+    if (letters.length === 0) return null;
+    return letters[0];
+  }, [bkLetters]);
+
+  const selectedStudentSpLetters = React.useMemo(() => {
+    if (!selectedStudentDetail?.nis || !Array.isArray(bkLetters)) return [];
+    const sNis = String(selectedStudentDetail.nis).trim();
+    return bkLetters.filter(l => {
+      const lNis = String(l.student_nis || '').trim();
+      const match = lNis === sNis || (lNis.length === 8 && sNis.length === 9 && sNis.endsWith(lNis)) || (sNis.length === 8 && lNis.length === 9 && lNis.endsWith(sNis));
+      return match && (String(l.letter_type || '').toUpperCase().includes('SP') || String(l.letter_type || '').toUpperCase().includes('PERINGATAN'));
+    });
+  }, [selectedStudentDetail, bkLetters]);
 
   const openStudentDetail = useCallback((student) => {
     setSelectedStudentDetail(student);
     setSelectedDayInModal(isCurrentMonthYear ? todayNum : Math.min(new Date().getDate(), daysInMonth));
     setDetailModalTab('calendar');
     setHistoryFilterType('all');
-  }, [isCurrentMonthYear, todayNum, daysInMonth]);
+    if (student?.nis) {
+      fetchStudentViolations(student.nis);
+    }
+  }, [isCurrentMonthYear, todayNum, daysInMonth, fetchStudentViolations]);
 
   const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day }
   const [permissionForm, setPermissionForm] = useState({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null });
@@ -2829,6 +2896,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                     MUTASI
                                   </span>
                                 )}
+                                {(() => {
+                                  const sp = getStudentSpInfo(d.nis);
+                                  return sp ? (
+                                    <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-rose-600 text-white shrink-0 shadow-2xs flex items-center gap-0.5" title={`Surat Peringatan Resmi BK: ${sp.letter_type} (No: ${sp.letter_no || '-'})`}>
+                                      <ShieldAlert size={8} />
+                                      <span>{sp.letter_type || 'SP'}</span>
+                                    </span>
+                                  ) : null;
+                                })()}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500 font-semibold truncate">
                                 <span>{d.class_name || 'Tanpa Kelas'}</span>
@@ -2962,6 +3038,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                   MUTASI
                                 </span>
                               )}
+                              {(() => {
+                                const sp = getStudentSpInfo(d.nis);
+                                return sp ? (
+                                  <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded-[var(--ui-radius-small)] bg-rose-600 text-white shrink-0 shadow-2xs flex items-center gap-0.5" title={`Surat Peringatan Resmi BK: ${sp.letter_type} (No: ${sp.letter_no || '-'})`}>
+                                    <ShieldAlert size={8} />
+                                    <span>{sp.letter_type || 'SP'}</span>
+                                  </span>
+                                ) : null;
+                              })()}
                               {v.level > 0 && (
                                 <span title={v.level === 4 ? "Pelanggaran SP (≥10x)" : v.level === 3 ? "Pelanggaran Berat (Telat ≥7x / Alpa ≥8x)" : v.level === 2 ? "Pelanggaran Sedang (Telat ≥5x / Alpa ≥6x)" : "Peringatan (Telat ≥3x / Alpa ≥3x)"}>
                                   <AlertTriangle
@@ -3688,10 +3773,40 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 </div>
               </div>
 
-              {/* Segmented View Switcher: Kalender vs Riwayat */}
+              {/* Alert Peringatan SP jika siswa menerima SP */}
+              {(() => {
+                const spInfo = getStudentSpInfo(selectedStudentDetail?.nis);
+                const totalPoin = studentViolations.reduce((sum, v) => sum + (parseInt(v.poin) || 0), 0);
+                if (spInfo || totalPoin >= 75) {
+                  return (
+                    <div 
+                      onClick={() => setDetailModalTab('sp_violations')}
+                      className="p-2.5 rounded-xl bg-rose-50/90 border border-rose-200/90 text-rose-900 flex items-center justify-between gap-2 shadow-2xs cursor-pointer hover:bg-rose-100/80 transition-all"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <ShieldAlert size={16} className="text-rose-600 shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-[11px] font-black truncate block">
+                            {spInfo ? `Peringatan: Siswa Menerima ${spInfo.letter_type || 'SP'}` : `Peringatan: Akumulasi ${totalPoin} Poin (Ambang Batas SP 1)`}
+                          </span>
+                          <span className="text-[9.5px] font-semibold text-rose-700 truncate block">
+                            {spInfo ? `No. Surat: ${spInfo.letter_no || '-'} • Alasan: ${spInfo.reason || 'Pelanggaran Kedisiplinan'}` : 'Klik untuk melihat rincian pelanggaran yang diterima siswa.'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-600 text-white text-[9.5px] font-black uppercase shrink-0">
+                        Lihat SP
+                      </span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Segmented View Switcher: Kalender vs Riwayat vs Detail SP */}
               <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
                 <span className="text-xs font-black text-slate-800">
-                  {detailModalTab === 'calendar' ? 'Kalender Presensi Siswa' : 'Riwayat Harian Siswa'}
+                  {detailModalTab === 'calendar' ? 'Kalender Presensi Siswa' : detailModalTab === 'sp_violations' ? 'Detail SP & Pelanggaran' : 'Riwayat Harian Siswa'}
                 </span>
 
                 <div className="inline-flex p-0.5 rounded-lg bg-slate-100 border border-slate-200">
@@ -3714,6 +3829,19 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   >
                     <FileText size={11} strokeWidth={2.4} />
                     <span>Riwayat</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDetailModalTab('sp_violations')}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      detailModalTab === 'sp_violations' ? 'bg-white text-rose-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <ShieldAlert size={11} strokeWidth={2.4} className={getStudentSpInfo(selectedStudentDetail?.nis) ? 'text-rose-600' : 'text-slate-400'} />
+                    <span>Detail SP</span>
+                    {(getStudentSpInfo(selectedStudentDetail?.nis) || studentViolations.length > 0) && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -3970,6 +4098,147 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           </div>
                         );
                       })}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab Content 3: Detail SP & Riwayat Pelanggaran Siswa */}
+              {detailModalTab === 'sp_violations' && (
+                <div className="flex flex-col gap-3 animate-in fade-in duration-200">
+                  {/* Status SP Banner / Summary */}
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs">
+                    <div>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Status Kedisiplinan Siswa</span>
+                      <h4 className="text-xs sm:text-sm font-black text-slate-800 mt-0.5">
+                        {selectedStudentSpLetters.length > 0
+                          ? `Siswa Memiliki ${selectedStudentSpLetters.length} Surat Peringatan (SP)`
+                          : 'Tidak Ada Surat Peringatan Resmi Aktif'}
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-800 border border-rose-200 font-black text-xs shadow-2xs">
+                        Total {studentViolations.reduce((sum, v) => sum + (parseInt(v.poin) || 0), 0)} Poin
+                      </span>
+                      <span className="px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs shadow-2xs">
+                        {studentViolations.length} Pelanggaran
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Section 1: Surat Peringatan (SP) Resmi dari BP/BK */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                        <ShieldAlert size={12} className="text-rose-600" />
+                        <span>Surat Peringatan Resmi (SP 1 / SP 2 / SP 3)</span>
+                      </label>
+                      <span className="text-[10px] font-bold text-slate-400">{selectedStudentSpLetters.length} Surat Diterbitkan</span>
+                    </div>
+
+                    {selectedStudentSpLetters.length === 0 ? (
+                      <div className="p-4 rounded-xl border border-slate-200/80 bg-white text-center text-slate-400">
+                        <Shield size={22} className="mx-auto mb-1 text-slate-300 opacity-60" />
+                        <p className="text-xs font-bold text-slate-600">Belum Ada Surat Peringatan Resmi</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Siswa belum pernah diterbitkan surat peringatan resmi oleh BP/BK.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedStudentSpLetters.map((letter) => (
+                          <div
+                            key={letter.id}
+                            className="p-3 rounded-xl border border-rose-200/90 bg-rose-50/40 shadow-2xs space-y-2"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-600 text-white font-black text-[10px] shadow-2xs">
+                                  {letter.letter_type}
+                                </span>
+                                <h5 className="font-extrabold text-xs text-slate-900 mt-1">
+                                  No. Surat: {letter.letter_no || '-'}
+                                </h5>
+                                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                  Tanggal Terbit: {letter.issue_date ? new Date(letter.issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'} • Oleh: {letter.created_by_name || 'Guru BK'}
+                                </p>
+                              </div>
+                              <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-white border border-rose-200 text-rose-700 font-bold text-[9.5px]">
+                                {letter.status || 'Diterbitkan'}
+                              </span>
+                            </div>
+
+                            <div className="p-2 rounded-lg bg-white border border-rose-100 text-slate-700 text-xs">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-rose-600 block mb-0.5">Alasan / Penyebab Penerbitan SP:</span>
+                              <p className="font-semibold leading-relaxed">{letter.reason || 'Pelanggaran tata tertib dan kedisiplinan sekolah.'}</p>
+                            </div>
+
+                            {(letter.appointment_date || letter.appointment_time || letter.appointment_place) && (
+                              <div className="p-2 rounded-lg bg-amber-50/80 border border-amber-200/80 text-[10.5px] text-amber-900">
+                                <span className="font-black block text-[9.5px] text-amber-800 uppercase tracking-wider mb-0.5">Jadwal Pemanggilan Orang Tua:</span>
+                                <div className="grid grid-cols-2 gap-1 text-[10px] font-semibold">
+                                  <span>Tanggal: {letter.appointment_date ? new Date(letter.appointment_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</span>
+                                  <span>Waktu: {letter.appointment_time || '-'}</span>
+                                  <span>Tempat: {letter.appointment_place || 'Ruang BK'}</span>
+                                  <span>Menghadap: {letter.appointed_person || 'Guru BK / Wali Kelas'}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Section 2: Rincian Pelanggaran yang Diterima Siswa */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
+                        <AlertCircle size={12} className="text-amber-500" />
+                        <span>Rincian Pelanggaran yang Diterima</span>
+                      </label>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        {studentViolations.length} Catatan Kejadian
+                      </span>
+                    </div>
+
+                    {loadingViolations ? (
+                      <div className="p-6 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+                        <RefreshCw size={18} className="animate-spin mx-auto mb-1 text-slate-400" />
+                        <span className="text-xs font-bold">Memuat rincian pelanggaran...</span>
+                      </div>
+                    ) : studentViolations.length === 0 ? (
+                      <div className="p-4 rounded-xl border border-slate-200/80 bg-white text-center text-slate-400">
+                        <p className="text-xs font-bold text-slate-600">Bersih dari Pelanggaran Tata Tertib</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">Tidak ada riwayat pelanggaran atau poin kedisiplinan yang tercatat.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5 max-h-[260px] overflow-y-auto no-scrollbar pr-0.5">
+                        {studentViolations.map((item, idx) => (
+                          <div
+                            key={item.id || idx}
+                            className="p-2.5 rounded-xl border border-slate-200/90 bg-white shadow-2xs hover:border-slate-300 transition-all"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h5 className="font-black text-xs text-slate-800 leading-snug">
+                                  {item.tindakan_nama || 'Pelanggaran Kedisiplinan'}
+                                </h5>
+                                <div className="flex items-center gap-2 mt-0.5 text-[9.5px] text-slate-400 font-semibold">
+                                  <span>{item.tanggal_kejadian ? new Date(item.tanggal_kejadian).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</span>
+                                  <span>• Pelapor: {item.pelapor_nama || 'Petugas Piket'}</span>
+                                </div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-50 text-rose-700 border border-rose-200 font-black text-xs shrink-0 shadow-2xs">
+                                +{item.poin || 0} Poin
+                              </span>
+                            </div>
+                            {item.catatan && (
+                              <p className="mt-1.5 p-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[10px] text-slate-600 font-medium italic">
+                                "{item.catatan}"
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

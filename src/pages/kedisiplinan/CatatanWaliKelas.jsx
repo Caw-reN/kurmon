@@ -334,6 +334,7 @@ export default function CatatanWaliKelas({
   const [riwayatPoin, setRiwayatPoin] = useState([]);
   const [absensiList, setAbsensiList] = useState([]);
   const [konselingList, setKonselingList] = useState([]);
+  const [bkLetters, setBkLetters] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [selectedSiswa, setSelectedSiswa] = useState(null);
@@ -433,12 +434,24 @@ export default function CatatanWaliKelas({
     } catch (e) { console.error(e); }
   }, [authToken]);
 
+  const fetchBkLetters = useCallback(async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch('/api/kedisiplinan/bk/letters', {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.ok) setBkLetters(data.data || []);
+    } catch (e) { console.warn('Gagal memuat data surat BK/SP:', e); }
+  }, [authToken]);
+
   useEffect(() => { 
     fetchCatatan(); 
     fetchRiwayatPoin(); 
     fetchAbsensi(); 
     fetchKonseling(); 
-  }, [fetchCatatan, fetchRiwayatPoin, fetchAbsensi, fetchKonseling]);
+    fetchBkLetters();
+  }, [fetchCatatan, fetchRiwayatPoin, fetchAbsensi, fetchKonseling, fetchBkLetters]);
 
   useEffect(() => {
     setCatatanPage(1);
@@ -545,6 +558,12 @@ export default function CatatanWaliKelas({
     ];
   }, [classes, walasClass, isKesiswaan, isWalas]);
 
+  const isNisEqual = useCallback((n1, n2) => {
+    const s1 = String(n1 || '').trim();
+    const s2 = String(n2 || '').trim();
+    return Boolean(s1 && s2 && (s1 === s2 || (s1.length === 9 && s2.length === 8 && s1.endsWith(s2)) || (s1.length === 8 && s2.length === 9 && s2.endsWith(s1))));
+  }, []);
+
   // === FILTER DAFTAR SISWA (PANEL KIRI) ===
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
@@ -574,12 +593,15 @@ export default function CatatanWaliKelas({
 
       // 4. Filter Status Pemetaan
       if (filterStatusSiswa !== 'all') {
-        const hasNotes = catatanList.some(c => String(c.siswa_nis) === nis);
-        const hasViolations = riwayatPoin.some(p => String(p.siswa_nis) === nis);
+        const hasNotes = catatanList.some(c => isNisEqual(c.siswa_nis, nis));
+        const hasViolations = riwayatPoin.some(p => isNisEqual(p.siswa_nis, nis));
+        const hasSpLetter = bkLetters.some(l => isNisEqual(l.student_nis, nis) && (String(l.letter_type || '').toUpperCase().includes('SP') || String(l.letter_type || '').toUpperCase().includes('PERINGATAN')));
+        const totalPoin = riwayatPoin.filter(p => isNisEqual(p.siswa_nis, nis)).reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
 
         if (filterStatusSiswa === 'with_notes' && !hasNotes) return false;
         if (filterStatusSiswa === 'no_notes' && hasNotes) return false;
         if (filterStatusSiswa === 'with_violations' && !hasViolations) return false;
+        if (filterStatusSiswa === 'with_sp' && !hasSpLetter && totalPoin < 75) return false;
       }
 
       // 5. Search Siswa
@@ -590,7 +612,7 @@ export default function CatatanWaliKelas({
 
       return true;
     });
-  }, [students, filterTingkat, filterJurusan, filterKelas, filterStatusSiswa, searchSiswa, catatanList, riwayatPoin]);
+  }, [students, filterTingkat, filterJurusan, filterKelas, filterStatusSiswa, searchSiswa, catatanList, riwayatPoin, bkLetters, isNisEqual, isKesiswaan, isWalas, walasClass]);
 
   // === FILTER CATATAN WALI KELAS (PANEL KANAN) ===
   const filteredCatatan = useMemo(() => {
@@ -657,14 +679,14 @@ export default function CatatanWaliKelas({
   // === PEMETAAN STATS & KPI ===
   const kpiStats = useMemo(() => {
     const totalSiswa = filteredStudents.length;
-    const isNisEqual = (n1, n2) => {
-      const s1 = String(n1 || '').trim();
-      const s2 = String(n2 || '').trim();
-      return Boolean(s1 && s2 && (s1 === s2 || (s1.length === 9 && s2.length === 8 && s1.endsWith(s2)) || (s1.length === 8 && s2.length === 9 && s2.endsWith(s1))));
-    };
     const siswaWithNotes = filteredStudents.filter(s => catatanList.some(c => isNisEqual(c.siswa_nis, getStudentNis(s)))).length;
     const siswaNoNotes = totalSiswa - siswaWithNotes;
     const siswaWithViolations = filteredStudents.filter(s => riwayatPoin.some(p => isNisEqual(p.siswa_nis, getStudentNis(s)))).length;
+    const siswaWithSp = filteredStudents.filter(s => {
+      const nis = getStudentNis(s);
+      return bkLetters.some(l => isNisEqual(l.student_nis, nis) && (String(l.letter_type || '').toUpperCase().includes('SP') || String(l.letter_type || '').toUpperCase().includes('PERINGATAN'))) ||
+        riwayatPoin.filter(p => isNisEqual(p.siswa_nis, nis)).reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0) >= 75;
+    }).length;
     const totalCatatan = filteredCatatan.length;
 
     return {
@@ -672,9 +694,10 @@ export default function CatatanWaliKelas({
       siswaWithNotes,
       siswaNoNotes,
       siswaWithViolations,
+      siswaWithSp,
       totalCatatan
     };
-  }, [filteredStudents, catatanList, riwayatPoin, filteredCatatan]);
+  }, [filteredStudents, catatanList, riwayatPoin, bkLetters, isNisEqual, filteredCatatan]);
 
   const resetLeftFilters = () => {
     setSearchSiswa('');
@@ -1244,8 +1267,18 @@ export default function CatatanWaliKelas({
                       searchText: 'Memiliki Pelanggaran Poin',
                       label: (
                         <div className="flex items-center gap-1.5">
-                          <AlertCircle size={12} className="text-rose-500" />
+                          <AlertCircle size={12} className="text-amber-500" />
                           <span>Memiliki Pelanggaran/Poin</span>
+                        </div>
+                      )
+                    },
+                    { 
+                      value: 'with_sp', 
+                      searchText: 'Mendapat SP Surat Peringatan',
+                      label: (
+                        <div className="flex items-center gap-1.5">
+                          <ShieldAlert size={12} className="text-rose-600" />
+                          <span>Mendapat SP (Peringatan)</span>
                         </div>
                       )
                     },
@@ -1318,6 +1351,19 @@ export default function CatatanWaliKelas({
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                        {(() => {
+                          const spLetter = bkLetters.find(l => isNisEqual(l.student_nis, nis) && (String(l.letter_type || '').toUpperCase().includes('SP') || String(l.letter_type || '').toUpperCase().includes('PERINGATAN')));
+                          if (spLetter) {
+                            return (
+                              <span className="text-[8.5px] font-black bg-rose-600 text-white px-2 py-0.5 rounded-[var(--ui-radius-pill)] shadow-2xs shrink-0 flex items-center gap-0.5" title={`Surat Peringatan Resmi BK: ${spLetter.letter_type}`}>
+                                <ShieldAlert size={8} />
+                                <span>{spLetter.letter_type || 'SP'}</span>
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+
                         {siswaCatatan.length > 0 ? (
                           <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-[var(--ui-radius-pill)]">
                             {siswaCatatan.length} Catatan
@@ -1565,6 +1611,149 @@ export default function CatatanWaliKelas({
                 </div>
               </div>
             )}
+
+            {/* Kartu Khusus SP & Detail Pelanggaran Siswa Terpilih untuk Wali Kelas */}
+            {selectedSiswa && (() => {
+              const nis = getStudentNis(selectedSiswa);
+              const studentSpLetters = bkLetters.filter(l => isNisEqual(l.student_nis, nis) && (String(l.letter_type || '').toUpperCase().includes('SP') || String(l.letter_type || '').toUpperCase().includes('PERINGATAN')));
+              const studentViolations = riwayatPoin.filter(p => isNisEqual(p.siswa_nis, nis));
+              const totalPoin = studentViolations.reduce((sum, p) => sum + (parseInt(p.poin) || 0), 0);
+
+              return (
+                <div className="p-3 sm:p-4 bg-slate-50/60 border-b border-slate-200/80 shrink-0">
+                  <div className="bg-white rounded-xl border border-slate-200/90 p-3.5 shadow-2xs space-y-3">
+                    {/* Header Baris Status */}
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
+                          studentSpLetters.length > 0 
+                            ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                            : totalPoin >= 75 
+                              ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                          <ShieldAlert size={16} />
+                        </div>
+                        <div>
+                          <h4 className="text-xs sm:text-sm font-black text-slate-800">
+                            Status SP & Pelanggaran Kedisiplinan
+                          </h4>
+                          <p className="text-[10px] text-slate-400 font-semibold">
+                            Data resmi dari BP/BK dan Petugas Piket Sekolah
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {studentSpLetters.length > 0 ? (
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-600 text-white font-black text-[10px] shadow-2xs flex items-center gap-1">
+                            <ShieldAlert size={10} />
+                            <span>{studentSpLetters[0].letter_type || 'SP'}</span>
+                          </span>
+                        ) : totalPoin >= 75 ? (
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-amber-500 text-white font-black text-[10px] shadow-2xs">
+                            Ambang Batas SP
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 border border-emerald-200 font-black text-[10px]">
+                            Tertib
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Section SP Letters */}
+                    {studentSpLetters.length > 0 ? (
+                      <div className="space-y-2">
+                        <span className="text-[9.5px] font-black uppercase tracking-wider text-rose-600 block">
+                          Surat Peringatan Resmi Diterbitkan ({studentSpLetters.length} Surat):
+                        </span>
+                        {studentSpLetters.map((letter) => (
+                          <div
+                            key={letter.id}
+                            className="p-3 rounded-xl border border-rose-200/90 bg-rose-50/40 shadow-2xs space-y-2"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-600 text-white font-black text-[10px]">
+                                  {letter.letter_type}
+                                </span>
+                                <h5 className="font-extrabold text-xs text-slate-900 mt-1">
+                                  No. Surat: {letter.letter_no || '-'}
+                                </h5>
+                                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                                  Tanggal Terbit: {letter.issue_date ? new Date(letter.issue_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'} • Oleh: {letter.created_by_name || 'Guru BK'}
+                                </p>
+                              </div>
+                              <span className="px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-white border border-rose-200 text-rose-700 font-bold text-[9.5px]">
+                                {letter.status || 'Diterbitkan'}
+                              </span>
+                            </div>
+
+                            <div className="p-2 rounded-lg bg-white border border-rose-100 text-slate-700 text-xs">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-rose-600 block mb-0.5">Alasan / Penyebab Penerbitan SP:</span>
+                              <p className="font-semibold leading-relaxed">{letter.reason || 'Pelanggaran tata tertib dan kedisiplinan sekolah.'}</p>
+                            </div>
+
+                            {(letter.appointment_date || letter.appointment_time || letter.appointment_place) && (
+                              <div className="p-2 rounded-lg bg-amber-50/80 border border-amber-200/80 text-[10.5px] text-amber-900">
+                                <span className="font-black block text-[9.5px] text-amber-800 uppercase tracking-wider mb-0.5">Jadwal Pemanggilan Orang Tua:</span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10px] font-semibold">
+                                  <span>Tanggal: {letter.appointment_date ? new Date(letter.appointment_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</span>
+                                  <span>Waktu: {letter.appointment_time || '-'}</span>
+                                  <span>Tempat: {letter.appointment_place || 'Ruang BK'}</span>
+                                  <span>Menghadap: {letter.appointed_person || 'Guru BK / Wali Kelas'}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : totalPoin >= 75 ? (
+                      <div className="p-2.5 rounded-xl border border-amber-200/90 bg-amber-50/60 text-amber-900 text-xs">
+                        <p className="font-bold">Perhatian: Siswa telah mencapai akumulasi {totalPoin} Poin (Ambang batas penerbitan SP 1).</p>
+                        <p className="text-[10px] text-amber-700 mt-0.5">Segera lakukan bimbingan intensif dan koordinasi dengan Guru BP/BK.</p>
+                      </div>
+                    ) : null}
+
+                    {/* Section Rincian Pelanggaran Spesifik */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1">
+                          <AlertCircle size={11} className="text-amber-500" />
+                          <span>Rincian Pelanggaran yang Diterima ({studentViolations.length} Kejadian)</span>
+                        </label>
+                        <span className="text-[10px] font-black text-rose-600">
+                          Total +{totalPoin} Poin
+                        </span>
+                      </div>
+
+                      {studentViolations.length === 0 ? (
+                        <p className="text-[11px] text-slate-400 font-medium italic p-2 bg-slate-50 rounded-lg border border-slate-100">
+                          Tidak ada catatan pelanggaran tata tertib tercatat untuk siswa ini.
+                        </p>
+                      ) : (
+                        <div className="space-y-1.5 max-h-[160px] overflow-y-auto custom-scrollbar pr-0.5">
+                          {studentViolations.map((v, i) => (
+                            <div key={v.id || i} className="p-2 rounded-lg border border-slate-200/80 bg-slate-50/50 flex items-start justify-between gap-2 text-xs">
+                              <div className="min-w-0">
+                                <p className="font-bold text-slate-800 leading-snug">{v.tindakan_nama || 'Pelanggaran Kedisiplinan'}</p>
+                                <p className="text-[9.5px] text-slate-400 font-semibold mt-0.5">
+                                  {v.tanggal_kejadian ? new Date(v.tanggal_kejadian).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'} • Pelapor: {v.pelapor_nama || 'Petugas Piket'}
+                                </p>
+                                {v.catatan && <p className="text-[9.5px] text-slate-600 italic mt-0.5">"{v.catatan}"</p>}
+                              </div>
+                              <span className="px-1.5 py-0.5 rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-800 font-black text-[9.5px] shrink-0">
+                                +{v.poin || 0}p
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* List Catatan */}
             {isLoading ? (

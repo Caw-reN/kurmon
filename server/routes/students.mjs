@@ -18,8 +18,8 @@ export async function handleStudentRoutes(req, res, url, ctx) {
       const filterClass = url.searchParams.get('class_name');
       
       if (search) {
-        query += ' WHERE (payload->>\'name\' ILIKE $1 OR payload->>\'nis\' ILIKE $1)';
-        countQuery += ' WHERE (payload->>\'name\' ILIKE $1 OR payload->>\'nis\' ILIKE $1)';
+        query += ' WHERE (payload->>\'name\' ILIKE $1 OR payload->>\'nis\' ILIKE $1 OR payload->>\'nik\' ILIKE $1)';
+        countQuery += ' WHERE (payload->>\'name\' ILIKE $1 OR payload->>\'nis\' ILIKE $1 OR payload->>\'nik\' ILIKE $1)';
         params.push(`%${search}%`);
       }
 
