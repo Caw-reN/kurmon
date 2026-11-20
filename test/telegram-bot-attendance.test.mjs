@@ -15,6 +15,14 @@ test('Telegram formatting and escaping functions properly', () => {
   const formatted = formatMessageToHtml('Status: *Hadir* pada `07:15`');
   assert.match(formatted, /<b>Hadir<\/b>/);
   assert.match(formatted, /<code>07:15<\/code>/);
+
+  // Verifikasi perlindungan tag Telegram resmi dan penanganan ringkasan harian
+  const dailyReport = '📊 <b>LAPORAN HARIAN SISTEM</b>\n• Hadir: <b>1095</b> siswa\n<i>Sistem aman</i>\n<script>alert(1)</script> & ok';
+  const formattedDaily = formatMessageToHtml(dailyReport);
+  assert.match(formattedDaily, /<b>LAPORAN HARIAN SISTEM<\/b>/);
+  assert.match(formattedDaily, /<b>1095<\/b>/);
+  assert.match(formattedDaily, /<i>Sistem aman<\/i>/);
+  assert.match(formattedDaily, /&lt;script&gt;alert\(1\)&lt;\/script&gt; &amp; ok/);
 });
 
 test('formatDowntimeDuration returns human readable strings in Indonesian', () => {

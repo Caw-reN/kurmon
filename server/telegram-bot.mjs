@@ -3842,33 +3842,47 @@ export function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 
+const TELEGRAM_TAG_REGEX = /<\/?(?:b|strong|i|em|u|ins|s|strike|del|code|pre|blockquote|tg-spoiler)(?:\s+[^>]*)?>|<\/?a(?:\s+href="[^"]*")?>|<\/?span(?:\s+class="[^"]*")?>/gi;
+
 /**
- * Konversi pesan markdown (*bold*, _italic_, `code`, ```pre```) ke HTML Telegram
- * dan bersihkan karakter asterisk / underscore yang merusak tampilan
+ * Konversi pesan markdown (*bold*, _italic_, `code`, ```pre```) atau HTML ke HTML Telegram yang valid,
+ * melindungi tag HTML resmi Telegram (<b>, <i>, <code>, <pre>, dll.) dari over-escaping
+ * dan membersihkan karakter asterisk / underscore yang merusak tampilan
  */
 export function formatMessageToHtml(rawText) {
   if (!rawText) return '';
   let text = String(rawText);
 
-  // 1. Escape karakter HTML dasar terlebih dahulu
+  // 1. Lindungi tag HTML Telegram yang sudah ada agar tidak di-escape
+  const placeholders = [];
+  text = text.replace(TELEGRAM_TAG_REGEX, (match) => {
+    const idx = placeholders.length;
+    placeholders.push(match);
+    return `@@TGBOTTAG${idx}@@`;
+  });
+
+  // 2. Escape karakter HTML dasar untuk teks di luar tag resmi
   text = escapeHtml(text);
 
-  // 2. Ubah blok kode ```code``` -> <pre><code>code</code></pre>
+  // 3. Ubah blok kode ```code``` -> <pre><code>code</code></pre>
   text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
 
-  // 3. Ubah inline code `code` -> <code>code</code>
+  // 4. Ubah inline code `code` -> <code>code</code>
   text = text.replace(/`([^`\n]+)`/g, '<code>$1</code>');
 
-  // 4. Ubah **bold** atau *bold* -> <b>bold</b>
+  // 5. Ubah **bold** atau *bold* -> <b>bold</b>
   text = text.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>');
   text = text.replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
 
-  // 5. Ubah _italic_ -> <i>italic</i>
+  // 6. Ubah _italic_ -> <i>italic</i>
   text = text.replace(/_([^_\n]+)_/g, '<i>$1</i>');
 
-  // 6. Bersihkan sisa karakter * atau _ yang tidak berpasangan agar tidak tampil berantakan
+  // 7. Bersihkan sisa karakter * atau _ yang tidak berpasangan agar tidak tampil berantakan
   text = text.replace(/(\s|^)\*+(\s|$)/g, '$1•$2');
   text = text.replace(/(\s|^)_+(\s|$)/g, '$1$2');
+
+  // 8. Kembalikan tag HTML resmi Telegram
+  text = text.replace(/@@TGBOTTAG(\d+)@@/g, (_, idx) => placeholders[Number(idx)] || '');
 
   return text;
 }
