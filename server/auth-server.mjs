@@ -1886,16 +1886,23 @@ const createSession = (role, extra = {}) => {
 
 
 
-const readJsonBody = (req) => new Promise((resolveBody, rejectBody) => {
+const readJsonBody = (req, maxBytes = MAX_JSON_BODY_BYTES) => new Promise((resolveBody, rejectBody) => {
+  const isGzip = (req.headers["content-encoding"] || "").toLowerCase().includes("gzip");
+  let stream = req;
+  if (isGzip) {
+    const gunzip = zlib.createGunzip();
+    req.pipe(gunzip);
+    stream = gunzip;
+  }
   let raw = "";
-  req.on("data", (chunk) => {
+  stream.on("data", (chunk) => {
     raw += chunk;
-    if (raw.length > MAX_JSON_BODY_BYTES) {
+    if (raw.length > maxBytes) {
       rejectBody(new Error("Payload terlalu besar."));
       req.destroy();
     }
   });
-  req.on("end", () => {
+  stream.on("end", () => {
     if (!raw) return resolveBody({});
     try {
       resolveBody(JSON.parse(raw));
@@ -1903,6 +1910,7 @@ const readJsonBody = (req) => new Promise((resolveBody, rejectBody) => {
       rejectBody(error);
     }
   });
+  stream.on("error", rejectBody);
   req.on("error", rejectBody);
 });
 
@@ -4480,96 +4488,47 @@ const server = createServer(async (req, res) => {
         return;
       }
       try {
-        let { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
-        const parseCfg = (r) => {
-          if (!r?.extra_config) return {};
-          if (typeof r.extra_config === 'object') return r.extra_config;
-          try { return JSON.parse(r.extra_config); } catch { return {}; }
-        };
-        let cfg = rows.length > 0 ? parseCfg(rows[0]) : {};
-        if (rows.length === 0 || !rows[0].api_key || !cfg.chat_id) {
-          // Fallback otomatis ke telegram_bot_monitor jika telegram_backup belum disetel
-          const monitorRes = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_bot_monitor' AND is_active = true LIMIT 1");
-          if (monitorRes.rows.length > 0) {
-            const mCfg = parseCfg(monitorRes.rows[0]);
-            if (monitorRes.rows[0].api_key && mCfg.chat_id) {
-              rows = monitorRes.rows;
-              cfg = mCfg;
-            }
-          }
-        }
-        if (rows.length === 0 || !rows[0].api_key || !cfg.chat_id) {
-          send(req, res, 400, { ok: false, error: "Telegram Backup belum dikonfigurasi atau tidak aktif (Bot Token & Chat ID wajib diisi)." });
+        const { runBackupJson, pruneOldBackups, getTelegramCredentials, sendTelegramBackupFile } = await import('./auto-backup.mjs');
+
+        const creds = await getTelegramCredentials(dbPool);
+        if (!creds || !creds.botToken || !creds.chatId) {
+          send(req, res, 400, { ok: false, error: "Telegram Backup belum dikonfigurasi atau tidak aktif (Bot Token & Chat ID wajib diisi di menu Pengaturan API Key)." });
           return;
         }
 
-        const botToken = rows[0].api_key;
-        const chatId = cfg.chat_id;
+        // 1. Streaming backup terkompresi GZIP dan otomatis batasi ke 3 backup terbaru di server
+        const backupResult = await runBackupJson();
+        pruneOldBackups(3);
 
-        const backupData = {};
-        const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
-        const tables = tblResult.rows.map(r => r.tablename);
-
-        // FIX B-01: Strip kolom sensitif dari semua backup Telegram
-        const SENSITIVE_COLS = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
-        const stripSensitive = (rows) => rows.map(row => {
-          const clean = { ...row };
-          for (const col of SENSITIVE_COLS) { if (col in clean) delete clean[col]; }
-          return clean;
+        // 2. Unggah berkas dokumen terkompresi (.json.gz) ke Telegram
+        await sendTelegramBackupFile({
+          filePath: backupResult.filePath,
+          fileName: backupResult.fileName,
+          size: backupResult.size,
+          checksum: backupResult.checksum,
+          botToken: creds.botToken,
+          chatId: creds.chatId,
+          captionTitle: "Backup Manual Database Kurmon"
         });
-
-        for (const table of tables) {
-          try {
-            const result = await dbPool.query(`SELECT * FROM ${table}`);
-            backupData[table] = stripSensitive(result.rows);
-          } catch (err) {}
-        }
-
-        const backupJsonStr = JSON.stringify(backupData, null, 2);
-        const fileName = `Backup_Kurmon_Manual_${new Date().toISOString().replace(/[:.]/g, '-')}.json.gz`;
-        
-        const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
-        const compressedBuffer = zlib.gzipSync(backupJsonStr);
-        const captionText = `📦 <b>Backup Manual Kurmon</b>\n\n📅 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})} WIB\n🗂 <b>Nama File:</b> <code>${fileName}</code>\n💾 <b>Ukuran:</b> <b>${(compressedBuffer.length/1024/1024).toFixed(2)} MB</b>\n\n<i>Berkas cadangan database berhasil dibuat dan dikirim.</i>`;
-        
-        const multipartHeader = Buffer.from(
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
-          `--${boundary}\r\n` +
-          `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
-          `Content-Type: application/gzip\r\n\r\n`,
-          'utf-8'
-        );
-        const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
-        const finalBody = Buffer.concat([multipartHeader, compressedBuffer, multipartFooter]);
-
-        const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-          method: 'POST',
-          headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-          body: finalBody
-        });
-
-        const telegramData = await telegramRes.json();
-        
-        if (!telegramData.ok) {
-           throw new Error(telegramData.description || "Gagal mengirim ke Telegram");
-        }
 
         await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
-          [session.id, session.name, session.role, 'TELEGRAM_BACKUP_MANUAL', 'database', `Backup manual sukses dikirim ke Telegram.`]);
-        
-        send(req, res, 200, { ok: true, data: { filename: fileName, size: (backupJsonStr.length / 1024 / 1024).toFixed(2) + ' MB' } });
-      } catch (err) { 
+          [session.id, session.name, session.role, 'TELEGRAM_BACKUP_MANUAL', 'database', `Backup manual terkompresi sukses dikirim ke Telegram: ${backupResult.fileName} (${backupResult.size}). Retensi 3 backup aktif.`]);
+
+        send(req, res, 200, {
+          ok: true,
+          message: `Backup database (${backupResult.size}) berhasil dibuat dan dikirim ke Telegram! File cadangan lokal di server disimpan dengan retensi 3 backup terbaru.`,
+          data: { filename: backupResult.fileName, size: backupResult.size, checksum: backupResult.checksum }
+        });
+      } catch (err) {
         console.error("Manual Telegram Backup Error:", err);
         let errorMsg = err.message || "Gagal mengirim ke Telegram";
         if (errorMsg.toLowerCase().includes('chat not found')) {
           errorMsg = 'Chat tidak ditemukan di Telegram! Buka bot Anda di Telegram dan tekan tombol "START" (/start) atau kirim pesan ke bot terlebih dahulu.';
         }
-        send(req, res, 500, { ok: false, error: errorMsg }); 
+        send(req, res, 500, { ok: false, error: errorMsg });
+      }
+      return;
+    }
       }
       return;
     }
@@ -6096,7 +6055,7 @@ const server = createServer(async (req, res) => {
       }
 
       try {
-        const body = await readJsonBody(req);
+        const body = await readJsonBody(req, 150_000_000);
         const tables = body.tables || body;
         if (typeof tables !== 'object' || Array.isArray(tables)) {
           send(req, res, 400, { ok: false, error: "Format file JSON backup tidak valid." });
@@ -6383,78 +6342,34 @@ cron.schedule('0 2 * * *', async () => {
 
 // ==================== TELEGRAM BACKUP CRON ====================
 cron.schedule('15 2 * * *', async () => {
-  console.log("[CRON] Memulai otomatisasi Telegram Backup...");
+  console.log("[CRON] Memulai otomatisasi Backup Harian (GZIP Streaming & Telegram)...");
   try {
-    const { rows } = await dbPool.query("SELECT api_key, extra_config FROM api_keys WHERE service_name = 'telegram_backup' AND is_active = true LIMIT 1");
-    const parseCfg = (r) => {
-      if (!r?.extra_config) return {};
-      if (typeof r.extra_config === 'object') return r.extra_config;
-      try { return JSON.parse(r.extra_config); } catch { return {}; }
-    };
-    const cfg = rows.length > 0 ? parseCfg(rows[0]) : {};
-    if (rows.length === 0 || !rows[0].api_key || !cfg.chat_id) {
-      console.log("[CRON] Batal backup: Telegram Backup belum dikonfigurasi atau tidak aktif.");
-      return;
-    }
-    
-    const botToken = rows[0].api_key;
-    const chatId = cfg.chat_id;
+    const { runBackupJson, pruneOldBackups, getTelegramCredentials, sendTelegramBackupFile } = await import('./auto-backup.mjs');
 
-    const backupData = {};
-    const tblResult = await dbPool.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname = 'public'");
-    const tables = tblResult.rows.map(r => r.tablename);
+    // 1. Buat backup GZIP terkompresi & batasi retensi 3 backup lokal
+    const backupResult = await runBackupJson();
+    pruneOldBackups(3);
+    console.log(`[CRON] Backup lokal tersimpan: ${backupResult.fileName} (${backupResult.size})`);
 
-    // FIX B-01: Strip kolom sensitif dari CRON Telegram backup
-    const CRON_SENSITIVE = new Set(['password', 'password_hash', 'hashed_password', 'pin', 'secret', 'api_key']);
-    const cronStripSensitive = (rows) => rows.map(row => {
-      const clean = { ...row };
-      for (const col of CRON_SENSITIVE) { if (col in clean) delete clean[col]; }
-      return clean;
-    });
-
-    for (const table of tables) {
-      try {
-        const result = await dbPool.query(`SELECT * FROM ${table}`);
-        backupData[table] = cronStripSensitive(result.rows);
-      } catch (err) {}
+    // 2. Kirim ke Telegram jika dikonfigurasi
+    const creds = await getTelegramCredentials(dbPool);
+    if (creds && creds.botToken && creds.chatId) {
+      await sendTelegramBackupFile({
+        filePath: backupResult.filePath,
+        fileName: backupResult.fileName,
+        size: backupResult.size,
+        checksum: backupResult.checksum,
+        botToken: creds.botToken,
+        chatId: creds.chatId,
+        captionTitle: "Backup Otomatis Harian Database Kurmon"
+      });
+      console.log(`[CRON] Backup Telegram berhasil dikirim ke chat ${creds.chatId}.`);
+    } else {
+      console.log("[CRON] Telegram backup dilewati (belum dikonfigurasi). Backup lokal di server tetap sukses dibuat & tersimpan (retensi max 3 file).");
     }
 
-    const backupJsonStr = JSON.stringify(backupData, null, 2);
-    const fileName = `Backup_Kurmon_${new Date().toISOString().replace(/[:.]/g, '-')}.json.gz`;
-    
-    const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
-    const compressedBuffer = zlib.gzipSync(backupJsonStr);
-    const captionText = `📦 <b>Backup Otomatis Harian</b>\n\n📅 <b>Waktu:</b> ${new Date().toLocaleString('id-ID', {timeZone:'Asia/Jakarta'})} WIB\n🗂 <b>Nama File:</b> <code>${fileName}</code>\n💾 <b>Ukuran:</b> <b>${(compressedBuffer.length/1024/1024).toFixed(2)} MB</b>\n\n<i>Cadangan database harian berhasil disimpan.</i>`;
-    const multipartHeader = Buffer.from(
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
-      `Content-Type: application/gzip\r\n\r\n`,
-      'utf-8'
-    );
-    const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
-    const finalBody = Buffer.concat([multipartHeader, compressedBuffer, multipartFooter]);
-
-    const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
-      method: 'POST',
-      headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
-      body: finalBody
-    });
-
-    const telegramData = await telegramRes.json();
-    
-    if (!telegramData.ok) {
-       throw new Error(telegramData.description || "Gagal mengirim ke Telegram");
-    }
-    
-    console.log(`[CRON] Backup Telegram berhasil.`);
     await dbPool.query("INSERT INTO audit_logs (user_id, user_name, user_role, action, target_type, detail) VALUES ($1,$2,$3,$4,$5,$6)",
-      ['system', 'Sistem Cron', 'system', 'TELEGRAM_BACKUP', 'database', `Backup harian otomatis sukses dikirim ke Telegram.`]);
+      ['system', 'Sistem Cron', 'system', 'TELEGRAM_BACKUP', 'database', `Backup harian otomatis sukses: ${backupResult.fileName} (${backupResult.size}). Retensi 3 backup aktif.`]);
 
   } catch (error) {
     console.error("[CRON] Telegram Backup Error:", error);

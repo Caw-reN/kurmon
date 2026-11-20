@@ -25,7 +25,9 @@ dist-ssr
 *.sw?
 scratch/
 Login_main.jsx
-server/backups/backup_*.json
+server/backups/backup_*
+server/backups/*.gz
+server/backups/*.sql
 # BUG-14 FIX: File artefak besar di root yang tidak perlu di-commit
 useAdminImportExport.serve.jsx
 promosi.html

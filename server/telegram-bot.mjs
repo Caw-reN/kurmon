@@ -1631,7 +1631,7 @@ async function _cmdBackup(chatId, from) {
           `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
           `--${boundary}\r\n` +
           `Content-Disposition: form-data; name="document"; filename="${result.fileName}"\r\n` +
-          `Content-Type: application/json\r\n\r\n`,
+          `Content-Type: application/gzip\r\n\r\n`,
           'utf-8'
         );
         const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, 'utf-8');
@@ -1641,7 +1641,7 @@ async function _cmdBackup(chatId, from) {
           method: 'POST',
           headers: { 'Content-Type': `multipart/form-data; boundary=${boundary}` },
           body: finalBody,
-          signal: AbortSignal.timeout(60_000)
+          signal: AbortSignal.timeout(120_000)
         });
       } catch (uploadErr) {
         console.warn('[TelegramBot] Gagal upload berkas cadangan ke Telegram:', uploadErr.message);

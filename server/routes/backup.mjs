@@ -49,7 +49,7 @@ export async function handleBackupRoutes(req, res, url, ctx) {
 
     try {
       const files = fs.readdirSync(BACKUP_DIR)
-        .filter(f => f.endsWith('.json') || f.endsWith('.sql'))
+        .filter(f => f.endsWith('.json') || f.endsWith('.json.gz') || f.endsWith('.gz') || f.endsWith('.sql'))
         .map(f => {
           const fp = path.join(BACKUP_DIR, f);
           const stat = fs.statSync(fp);
@@ -94,9 +94,12 @@ export async function handleBackupRoutes(req, res, url, ctx) {
     try {
       const stat = fs.statSync(filePath);
       const ext = path.extname(filename).toLowerCase();
-      const contentType = ext === '.sql' ? 'text/plain' : 'application/json';
+      let contentType = 'application/json';
+      if (ext === '.sql') contentType = 'text/plain';
+      else if (filename.endsWith('.json.gz') || ext === '.gz') contentType = 'application/gzip';
+
       res.writeHead(200, {
-        'Content-Type': `${contentType}; charset=utf-8`,
+        'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Length': stat.size,
       });

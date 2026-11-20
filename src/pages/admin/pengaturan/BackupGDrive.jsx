@@ -323,8 +323,10 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.name.endsWith('.json')) {
-      showToast('Berkas cadangan harus berekstensi .json', 'error');
+    const isGz = file.name.endsWith('.json.gz') || file.name.endsWith('.gz');
+    const isJson = file.name.endsWith('.json');
+    if (!isJson && !isGz) {
+      showToast('Berkas cadangan harus berekstensi .json atau .json.gz', 'error');
       return;
     }
 
@@ -335,39 +337,42 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
 
     setIsRestoring(true);
     showToast('Sedang memulihkan database sekolah, mohon tunggu...', 'success');
-    
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      try {
-        const jsonContent = event.target.result;
-        JSON.parse(jsonContent);
-        
-        const res = await fetch('/api/restore-backup', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${authToken}`, 'Content-Type': 'application/json' },
-          body: jsonContent
-        });
-        let data = null;
-        try {
-          data = await res.json();
-        } catch {
-          data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
-        }
-        
-        if (data.ok) {
-          showToast('Database berhasil dipulihkan! Halaman akan dimuat ulang...');
-          setTimeout(() => window.location.reload(), 2000);
-        } else {
-          showToast(data.error || 'Terjadi kesalahan saat memulihkan data.', 'error');
-        }
-      } catch (e) {
-        showToast('Berkas JSON tidak valid atau struktur tidak cocok.', 'error');
-      } finally {
-        setIsRestoring(false);
+
+    try {
+      const headers = {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      };
+      if (isGz) {
+        headers['Content-Encoding'] = 'gzip';
       }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
+
+      const res = await fetch('/api/restore-backup', {
+        method: 'POST',
+        headers,
+        body: file
+      });
+
+      let data = null;
+      try {
+        data = await res.json();
+      } catch {
+        data = { ok: false, error: `Respon server tidak valid (Status: ${res.status}).` };
+      }
+
+      if (data.ok) {
+        showToast('Database berhasil dipulihkan! Halaman akan dimuat ulang...');
+        setTimeout(() => window.location.reload(), 2000);
+      } else {
+        showToast(data.error || 'Terjadi kesalahan saat memulihkan data.', 'error');
+      }
+    } catch (err) {
+      console.error('Restore error:', err);
+      showToast('Gagal memproses berkas cadangan: ' + err.message, 'error');
+    } finally {
+      setIsRestoring(false);
+      e.target.value = '';
+    }
   };
 
   const handleArchive = async () => {
@@ -1124,7 +1129,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             <div>
               <input 
                 type="file" 
-                accept=".json" 
+                accept=".json,.json.gz,.gz" 
                 className="hidden" 
                 ref={fileInputRef} 
                 onChange={handleFileChange} 
@@ -1136,7 +1141,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
                 className="w-full sm:w-auto py-3 px-8 rounded-[var(--ui-radius-small)] font-black text-xs bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-xs mx-auto disabled:opacity-50"
               >
                 {isRestoring ? <RefreshCw size={15} className="animate-spin" /> : <UploadCloud size={15} />}
-                <span>{isRestoring ? 'Memulihkan Data Database...' : 'Pilih Berkas JSON & Jalankan Restore'}</span>
+                <span>{isRestoring ? 'Memulihkan Data Database...' : 'Pilih Berkas JSON/GZ & Jalankan Restore'}</span>
               </button>
             </div>
           </div>

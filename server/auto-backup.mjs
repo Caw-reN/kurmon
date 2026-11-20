@@ -2,6 +2,7 @@ import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import zlib from "zlib";
 import cron from "node-cron";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
@@ -58,20 +59,21 @@ function stripRow(row) {
 }
 
 /**
- * Buat backup JSON dari semua tabel menggunakan STREAMING ke disk.
+ * Buat backup JSON terkompresi GZIP dari semua tabel menggunakan STREAMING ke disk.
  * Tidak memuat seluruh database ke memory — setiap tabel di-cursor 100 baris
- * sekaligus dan langsung ditulis ke WriteStream.
+ * sekaligus dan langsung di-compress melalui zlib ke file .json.gz.
+ * Menghasilkan penghematan ruang hingga >90% dan membatasi retensi server ke 3 backup terbaru.
  *
- * @returns {{ fileName, filePath, size, checksum }}
+ * @returns {{ fileName, filePath, size, sizeBytes, checksum }}
  */
 export async function runBackupJson() {
   if (!_dbPool) throw new Error("Database pool belum diinisialisasi.");
 
   const dateStr = new Date().toISOString().replace(/[:.]/g, "-");
-  const fileName = `backup_${PG_DATABASE}_${dateStr}.json`;
+  const fileName = `backup_${PG_DATABASE}_${dateStr}.json.gz`;
   const filePath = path.join(BACKUP_DIR, fileName);
 
-  console.log(`[AutoBackup] 📦 Streaming backup JSON: ${fileName}...`);
+  console.log(`[AutoBackup] 📦 Streaming compressed backup JSON.GZ: ${fileName}...`);
 
   // Ambil semua tabel dari public schema
   const tblResult = await _dbPool.query(
@@ -80,18 +82,21 @@ export async function runBackupJson() {
   const tables = tblResult.rows.map((r) => r.tablename);
 
   const hashStream = crypto.createHash("sha256");
-  const writeStream = fs.createWriteStream(filePath, { encoding: "utf8" });
+  const gzipStream = zlib.createGzip({ level: 9 });
+  const writeStream = fs.createWriteStream(filePath);
 
-  // Helper: write ke file + update hash secara bersamaan
+  gzipStream.on("data", (chunk) => hashStream.update(chunk));
+  gzipStream.pipe(writeStream);
+
   function write(str) {
-    writeStream.write(str);
-    hashStream.update(str);
+    gzipStream.write(str);
   }
 
   const waitFinish = () =>
     new Promise((resolve, reject) => {
       writeStream.on("finish", resolve);
       writeStream.on("error", reject);
+      gzipStream.on("error", reject);
     });
 
   // Tulis header meta
@@ -99,6 +104,7 @@ export async function runBackupJson() {
     generatedAt: new Date().toISOString(),
     database: PG_DATABASE,
     tables: tables.length,
+    compression: "gzip"
   });
   write(`{"_meta":${meta}`);
 
@@ -138,16 +144,20 @@ export async function runBackupJson() {
   }
 
   write("}");
-  writeStream.end();
+  gzipStream.end();
   await waitFinish();
 
   const checksum = hashStream.digest("hex");
-  const size = formatBytes(fs.statSync(filePath).size);
+  const stat = fs.statSync(filePath);
+  const size = formatBytes(stat.size);
 
   console.log(`[AutoBackup] ✅ Backup selesai: ${fileName} (${size})`);
   console.log(`[AutoBackup] 🔑 SHA-256: ${checksum}`);
 
-  return { fileName, filePath, size, checksum };
+  // Otomatis bersihkan cadangan lama sehingga server HANYA menyimpan 3 cadangan terbaru
+  pruneOldBackups(3);
+
+  return { fileName, filePath, size, sizeBytes: stat.size, checksum };
 }
 
 /**
@@ -170,32 +180,162 @@ export async function runBackup() {
       }
       if (stderr) console.log(`[AutoBackup] pg_dump stderr: ${stderr}`);
       console.log(`[AutoBackup] ✅ SQL Backup created: ${filePath}`);
+      pruneOldBackups(3);
       resolve(filePath);
     });
   });
 }
 
 /**
- * Hapus file backup yang lebih lama dari keepDays hari
+ * Otomatis menghapus file backup lama pada folder server/backups.
+ * Menjamin maksimal HANYA 3 backup terbaru yang dipertahankan di server disk.
  */
-function cleanOldBackups(keepDays = 7) {
+export function pruneOldBackups(maxKeep = 3) {
   try {
-    const files = fs.readdirSync(BACKUP_DIR);
-    const now = Date.now();
-    const cutoff = keepDays * 24 * 60 * 60 * 1000;
-    files.forEach(file => {
-      const fp = path.join(BACKUP_DIR, file);
-      try {
-        const stat = fs.statSync(fp);
-        if (now - stat.mtime.getTime() > cutoff) {
-          fs.unlinkSync(fp);
-          console.log(`[AutoBackup] 🗑️  Backup lama dihapus: ${file}`);
+    if (!fs.existsSync(BACKUP_DIR)) return;
+    const entries = fs.readdirSync(BACKUP_DIR)
+      .filter((file) => {
+        const lower = file.toLowerCase();
+        return (lower.startsWith('backup_') || lower.startsWith('backup-')) &&
+               (lower.endsWith('.json.gz') || lower.endsWith('.gz') || lower.endsWith('.json') || lower.endsWith('.sql'));
+      })
+      .map((file) => {
+        const fp = path.join(BACKUP_DIR, file);
+        try {
+          const stat = fs.statSync(fp);
+          return { file, fp, mtime: stat.mtime.getTime() };
+        } catch {
+          return null;
         }
-      } catch {}
-    });
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.mtime - a.mtime); // Terkini di depan
+
+    if (entries.length > maxKeep) {
+      const toDelete = entries.slice(maxKeep);
+      for (const item of toDelete) {
+        try {
+          fs.unlinkSync(item.fp);
+          console.log(`[AutoBackup] 🗑️  Backup lama otomatis dihapus (retensi max ${maxKeep}): ${item.file}`);
+        } catch (delErr) {
+          console.warn(`[AutoBackup] Gagal menghapus backup lama ${item.file}:`, delErr.message);
+        }
+      }
+    }
   } catch (err) {
-    console.warn("[AutoBackup] cleanOldBackups error:", err.message);
+    console.warn("[AutoBackup] pruneOldBackups error:", err.message);
   }
+}
+
+/**
+ * Backward-compatible helper untuk penghapusan cadangan lama
+ */
+export function cleanOldBackups(keepDays = 7) {
+  pruneOldBackups(3);
+}
+
+/**
+ * Ambil konfigurasi kredensial Telegram (Bot Token & Chat ID)
+ * dari database api_keys atau fallback environment variables.
+ */
+export async function getTelegramCredentials(pool = _dbPool) {
+  if (pool) {
+    try {
+      const { rows } = await pool.query(
+        `SELECT service_name, api_key, extra_config FROM api_keys 
+         WHERE (service_name = 'telegram_backup' OR service_name = 'telegram_bot_monitor' OR service_name LIKE 'telegram%') 
+         AND is_active = true 
+         ORDER BY CASE WHEN service_name = 'telegram_backup' THEN 1 WHEN service_name = 'telegram_bot_monitor' THEN 2 ELSE 3 END 
+         LIMIT 1`
+      );
+      if (rows.length > 0 && rows[0].api_key) {
+        const botToken = rows[0].api_key.trim();
+        let cfg = {};
+        try {
+          cfg = typeof rows[0].extra_config === 'string' && rows[0].extra_config.trim().startsWith('{')
+            ? JSON.parse(rows[0].extra_config)
+            : (typeof rows[0].extra_config === 'object' && rows[0].extra_config !== null ? rows[0].extra_config : {});
+        } catch {}
+        const chatId = cfg?.chat_id ? String(cfg.chat_id).trim() : null;
+        if (botToken && chatId) {
+          return { botToken, chatId, serviceName: rows[0].service_name };
+        }
+      }
+    } catch (err) {
+      console.warn('[AutoBackup] Error fetching Telegram credentials from DB:', err.message);
+    }
+  }
+
+  // Fallback ke environment variables jika ada
+  if (process.env.TELEGRAM_BOT_TOKEN && (process.env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_BACKUP_CHAT_ID)) {
+    return {
+      botToken: process.env.TELEGRAM_BOT_TOKEN.trim(),
+      chatId: String(process.env.TELEGRAM_BACKUP_CHAT_ID || process.env.TELEGRAM_CHAT_ID).trim(),
+      serviceName: 'env'
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Mengirimkan berkas cadangan database ke Telegram melalui endpoint sendDocument (multipart/form-data)
+ */
+export async function sendTelegramBackupFile({
+  filePath,
+  fileName,
+  size,
+  checksum,
+  botToken,
+  chatId,
+  captionTitle = "Backup Database Kurmon"
+}) {
+  if (!botToken || !chatId) {
+    throw new Error("Telegram Bot Token dan Chat ID belum dikonfigurasi.");
+  }
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Berkas cadangan ${filePath} tidak ditemukan.`);
+  }
+
+  const fileBuffer = fs.readFileSync(filePath);
+  const boundary = "----KurmonBackupBoundary" + Date.now().toString(16);
+  const nowStr = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+  const captionText =
+    `📦 <b>${captionTitle}</b>\n\n` +
+    `📅 <b>Waktu:</b> ${nowStr} WIB\n` +
+    `🗂 <b>Nama File:</b> <code>${fileName}</code>\n` +
+    `💾 <b>Ukuran:</b> <b>${size}</b> (Terkompresi GZIP)\n` +
+    `🔑 <b>SHA-256:</b> <code>${checksum ? checksum.slice(0, 16) + '...' : '-'}</code>\n\n` +
+    `<i>Cadangan database terkompresi GZIP (.json.gz) berhasil dibuat & disimpan dengan retensi rolling 3 cadangan di server.</i>`;
+
+  const multipartHeader = Buffer.from(
+    `--${boundary}\r\n` +
+    `Content-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n` +
+    `--${boundary}\r\n` +
+    `Content-Disposition: form-data; name="caption"\r\n\r\n${captionText}\r\n` +
+    `--${boundary}\r\n` +
+    `Content-Disposition: form-data; name="parse_mode"\r\n\r\nHTML\r\n` +
+    `--${boundary}\r\n` +
+    `Content-Disposition: form-data; name="document"; filename="${fileName}"\r\n` +
+    `Content-Type: application/gzip\r\n\r\n`,
+    "utf-8"
+  );
+  const multipartFooter = Buffer.from(`\r\n--${boundary}--\r\n`, "utf-8");
+  const finalBody = Buffer.concat([multipartHeader, fileBuffer, multipartFooter]);
+
+  const response = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+    method: "POST",
+    headers: { "Content-Type": `multipart/form-data; boundary=${boundary}` },
+    body: finalBody,
+    signal: AbortSignal.timeout(120_000)
+  });
+
+  const resJson = await response.json();
+  if (!resJson.ok) {
+    throw new Error(resJson.description || "Gagal mengirim berkas dokumen ke Telegram");
+  }
+
+  return resJson;
 }
 
 /**
@@ -217,9 +357,9 @@ async function getScheduleConfig() {
 }
 
 /**
- * Jalankan backup otomatis: JSON + notifikasi Telegram
+ * Jalankan backup otomatis: GZIP JSON + kirim berkas Telegram
  */
-async function runAutoBackup() {
+export async function runAutoBackup() {
   const config = await getScheduleConfig();
   if (!config.enabled) {
     console.log("[AutoBackup] ⏸  Backup otomatis dinonaktifkan dari pengaturan.");
@@ -231,31 +371,30 @@ async function runAutoBackup() {
 
   try {
     result = await runBackupJson();
-    cleanOldBackups(config.keepDays);
+    pruneOldBackups(3);
   } catch (err) {
     error = err;
     console.error("[AutoBackup] ❌ Auto-backup gagal:", err.message);
   }
 
-  // Kirim notifikasi Telegram jika dikonfigurasi
-  if (config.sendToTelegram) {
+  // Kirim berkas cadangan ke Telegram jika dikonfigurasi
+  if (result) {
     try {
-      const { sendTelegramAlert } = await import("./telegram-bot.mjs");
-      if (result) {
-        await sendTelegramAlert(
-          "backupStatus",
-          `Backup otomatis berhasil!\nFile: ${result.fileName}\nUkuran: ${result.size}\nSHA-256: ${result.checksum.slice(0, 20)}...`,
-          "info"
-        );
-      } else if (error) {
-        await sendTelegramAlert(
-          "backupStatus",
-          `Backup otomatis GAGAL!\nError: ${error.message}`,
-          "critical"
-        );
+      const creds = await getTelegramCredentials(_dbPool);
+      if (creds && creds.botToken && creds.chatId) {
+        await sendTelegramBackupFile({
+          filePath: result.filePath,
+          fileName: result.fileName,
+          size: result.size,
+          checksum: result.checksum,
+          botToken: creds.botToken,
+          chatId: creds.chatId,
+          captionTitle: "Backup Otomatis Terjadwal Kurmon"
+        });
+        console.log(`[AutoBackup] 📤 Berkas backup berhasil diunggah ke Telegram (${creds.chatId}).`);
       }
     } catch (teleErr) {
-      console.warn("[AutoBackup] Gagal kirim notif Telegram:", teleErr.message);
+      console.warn("[AutoBackup] Gagal kirim berkas ke Telegram:", teleErr.message);
     }
   }
 }
@@ -279,7 +418,7 @@ function startCron() {
       console.error("[AutoBackup] Cron error:", err.message);
     }
   });
-  console.log("[AutoBackup] ✅ Cron scheduler aktif (cek setiap jam, backup sesuai jadwal database).");
+  console.log("[AutoBackup] ✅ Cron scheduler aktif (cek setiap jam, retensi max 3 backup, kirim berkas ke Telegram).");
 }
 
 startCron();
