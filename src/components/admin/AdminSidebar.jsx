@@ -22,6 +22,7 @@ const SECTION_METADATA = {
   'Sarana & Prasarana': { key: 'sarpras', icon: Building2, label: 'Sarana & Prasarana' },
   'Mesin Absensi': { key: 'mesin_absensi', icon: Cpu, label: 'Mesin Absensi' },
   'Tampilan': { key: 'tampilan', icon: Palette, label: 'Tampilan Web' },
+  'Aktivitas': { key: 'aktivitas', icon: Activity, label: 'Aktivitas' },
   'Komunikasi': { key: 'komunikasi', icon: MessageSquare, label: 'Komunikasi' },
   'Pengaturan': { key: 'pengaturan', icon: Settings, label: 'Pengaturan' },
   'Konfigurasi Sistem': { key: 'sistem', icon: Settings, label: 'Konfigurasi Sistem' },
@@ -33,11 +34,12 @@ const SECTION_ORDER = [
   'Wali Kelas',
   'Kehadiran',
   'Kesiswaan',
-  'PKL & Hubin',
-  'Sarana & Prasarana',
   'Data Master',
   'Administrasi',
+  'PKL & Hubin',
+  'Sarana & Prasarana',
   'Mesin Absensi',
+  'Aktivitas',
   'Tampilan',
   'Pengaturan',
   'Komunikasi',
@@ -516,62 +518,13 @@ export default function AdminSidebar({
   };
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // KEPSEK MENU RENDERER — Khusus Kepala Sekolah (Fokus pada Menu Pintasan & Eksekutif)
-  // ─────────────────────────────────────────────────────────────────────────────
-  const renderKepsekMenu = () => {
-    return (
-      <>
-        {/* UTAMA */}
-        {renderNavItem({
-          id: 'dashboard',
-          icon: LayoutDashboard,
-          label: 'Dashboard',
-        })}
-
-        {/* MONITORING & KBM */}
-        <SidebarSection label="MONITORING & KBM" />
-        {renderNavItem({ id: 'generate', icon: Calendar, label: 'Jadwal & KBM' })}
-        {renderNavItem({ id: 'laporan_absensi', icon: ClipboardList, label: 'Rekap Kehadiran', activeIds: ['laporan_absensi', 'hikvision_report_guru', 'hikvision_report_karyawan'] })}
-        {renderNavItem({ id: 'pesan', icon: MessageSquare, label: 'Pengumuman' })}
-        {renderNavItem({ id: 'kedisiplinan_bpbk', icon: Trophy, label: 'Buku BPBK' })}
-        {renderNavItem({ id: 'pkl_dashboard', icon: Briefcase, label: 'Dashboard PKL' })}
-        {renderNavItem({ id: 'akademik', icon: CalendarDays, label: 'Kalender' })}
-
-        {/* DATA UTAMA */}
-        <SidebarSection label="DATA UTAMA" />
-        {renderNavItem({ id: 'dataguru', icon: Users, label: 'Data Guru', activeIds: ['dataguru', 'guru', 'data_pegawai', 'karyawan'] })}
-        {renderNavItem({ id: 'datasiswa', icon: GraduationCap, label: 'Data Siswa', activeIds: ['datasiswa', 'siswa'] })}
-        {renderNavItem({ id: 'dataperusahaan', icon: Building2, label: 'Mitra DUDI', activeIds: ['dataperusahaan', 'pkl_data_perusahaan'] })}
-        {renderNavItem({ id: 'riwayat_prestasi', icon: Trophy, label: 'Riwayat Prestasi' })}
-
-        {/* LAPORAN KEHADIRAN */}
-        <SidebarSection label="LAPORAN" />
-        {renderNavItem({ id: 'hikvision_report_guru', icon: FileText, label: 'Absensi Guru' })}
-        {renderNavItem({ id: 'hikvision_report_siswa', icon: FileText, label: 'Absensi Siswa' })}
-        {renderNavItem({ id: 'kedisiplinan_absensi', icon: CheckCircle2, label: 'Izin & Sakit Siswa' })}
-        {renderNavItem({ id: 'keterangan_massal', icon: FileSpreadsheet, label: 'Keterangan Massal' })}
-
-        {/* LOG AKTIVITAS */}
-        <SidebarSection label="AKTIVITAS" />
-        {renderNavItem({ id: 'audit_log', icon: Activity, label: 'Log Aktivitas' })}
-        {renderNavItem({ id: 'keamanan', icon: Shield, label: 'Keamanan Akun' })}
-      </>
-    );
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────────
   // DYNAMIC MENU RENDERER — reads from MENU_REGISTRY
   // ─────────────────────────────────────────────────────────────────────────────
   const renderDynamicMenu = () => {
     const isAdmin = isSuperAdminRole(activeUserRole);
-    const isKepsek = normalizeUserRole(activeUserRole) === 'kepsek' || normalizeUserRole(currentUser?.role) === 'kepsek';
 
     if (isAdmin) {
       return renderAdminMenu();
-    }
-
-    if (isKepsek) {
-      return renderKepsekMenu();
     }
 
     // For non-admin users: group MENU_REGISTRY into collapsible SidebarGroup accordions
@@ -602,7 +555,7 @@ export default function AdminSidebar({
       (role === 'guru' && div === 'kurikulum') ||
       div === 'kurikulum'
     );
-    const isPureWalas = isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam;
+    const isPureWalas = isWalasUser && !isKesiswaanTeam && !isKurikulumTeam && !isBKTeam && role !== 'kepsek';
 
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {

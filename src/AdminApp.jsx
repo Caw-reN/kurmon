@@ -248,7 +248,9 @@ export const GLOBAL_ROLE_DEFAULTS = {
     "kedisiplinan_hub", "riwayat_prestasi", "tatib_skor", "laporan_absensi",
     "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
     "ruangan", "denah", "fasilitas", "keamanan", "audit_log",
-    "activity_logs", "pengumuman", "rekap_jurnal_kelas", "kelas", "jurusan", "struktur"
+    "activity_logs", "pengumuman", "rekap_jurnal_kelas", "kelas", "jurusan", "struktur",
+    "siswa_keluar", "mapel", "esurat", "kartu_pelajar", "pkl_absensi_setting",
+    "pengaturan", "advanced_rules", "silabus", "silabusguru", "rpp_guru"
   ],
   tu: [
     "dashboard", "siswa", "data_pegawai", "guru", "karyawan", "kelas", "jurusan",
@@ -3233,6 +3235,17 @@ export default function App() {
     }
 
     if (activeRole === "superadmin" || activeRole === "admin") {
+      if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
+      return true;
+    }
+
+    // STRICT OVERRIDE KEPALA SEKOLAH: Monitoring eksekutif menyeluruh terhadap seluruh modul akademik & operasional
+    if (activeRole === "kepsek") {
+      const forbiddenForKepsek = [
+        "fitur", "hak_akses", "manajemen_role", "api_keys", "whatsapp",
+        "gdrive_backup", "status_password", "pengaturanuser", "log_password"
+      ];
+      if (forbiddenForKepsek.includes(id)) return false;
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
       return true;
     }

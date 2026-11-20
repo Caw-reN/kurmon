@@ -446,11 +446,12 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
           "siswa", "guru", "karyawan", "data_pegawai", "dataguru", "datasiswa", "dataperusahaan",
           "laporan_absensi", "absensi", "absensiguru",
           "hikvision_report_guru", "hikvision_report_karyawan", "hikvision_report_siswa",
-          "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan",
-          "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_bpbk", "kedisiplinan_piket", "buku_konseling",
-          "jurnal_harian", "ruangan", "fasilitas", "silabus", "modul_ajar", "beban", "jadwal", "generate",
-          "keamanan", "audit_log", "activity_logs", "riwayat_prestasi", "pengumuman", "kalender", "kalender_akademik", "pesan",
-          "struktur"
+          "pkl_dashboard", "pkl_data_siswa", "pkl_data_perusahaan", "pkl_penugasan", "pkl_administrasi", "pkl_jurnal", "pkl_laporan", "pkl_absensi_setting",
+          "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_bpbk", "kedisiplinan_piket", "buku_konseling", "kedisiplinan_hub", "tatib_skor",
+          "jurnal_harian", "rekap_jurnal_kelas", "ruangan", "denah", "fasilitas", "silabus", "silabusguru", "rpp_guru", "modul_ajar", "beban", "jadwal", "generate",
+          "ketersediaan", "pengaturan", "advanced_rules",
+          "keamanan", "audit_log", "activity_logs", "riwayat_prestasi", "siswa_keluar", "pengumuman", "kalender", "kalender_akademik", "pesan",
+          "kelas", "jurusan", "mapel", "esurat", "kartu_pelajar", "struktur"
         ];
         if (kepsekAllowedTabs.includes(activeTab)) return true;
         return checkAllowed("kepsek");
@@ -645,41 +646,43 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
             </span>
           </td>
           <td className="px-3 py-2.5 text-right">
-            <div className="flex justify-end items-center gap-1.5">
-              <button 
-                type="button"
-                onClick={() => openModal("mapel","edit", item)} 
-                className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200/80 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
-                title="Edit Mapel"
-              >
-                <Edit2 size={13} />
-              </button>
-              {(() => {
-                const deps = checkDependencies("mapel", item.name);
-                if (deps.length > 0) {
+            {!isTabReadOnly("mapel") && (
+              <div className="flex justify-end items-center gap-1.5">
+                <button 
+                  type="button"
+                  onClick={() => openModal("mapel","edit", item)} 
+                  className="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200/80 bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer"
+                  title="Edit Mapel"
+                >
+                  <Edit2 size={13} />
+                </button>
+                {(() => {
+                  const deps = checkDependencies("mapel", item.name);
+                  if (deps.length > 0) {
+                    return (
+                      <button 
+                        type="button"
+                        onClick={() => openModal('lock_info', 'view', { type: 'mapel', name: `Mata Pelajaran: ${item.name}`, deps })}
+                        title="Klik untuk melihat detail koneksi data"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-600 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <Lock size={13} />
+                      </button>
+                    );
+                  }
                   return (
                     <button 
                       type="button"
-                      onClick={() => openModal('lock_info', 'view', { type: 'mapel', name: `Mata Pelajaran: ${item.name}`, deps })}
-                      title="Klik untuk melihat detail koneksi data"
-                      className="w-7 h-7 flex items-center justify-center rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-600 transition-colors shadow-2xs cursor-pointer"
+                      onClick={() => handleDelete("mapel", item.name)} 
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-rose-200/80 bg-white hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer" 
+                      title="Hapus"
                     >
-                      <Lock size={13} />
+                      <Trash2 size={13} />
                     </button>
                   );
-                }
-                return (
-                  <button 
-                    type="button"
-                    onClick={() => handleDelete("mapel", item.name)} 
-                    className="w-7 h-7 flex items-center justify-center rounded-lg border border-rose-200/80 bg-white hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-colors shadow-2xs cursor-pointer" 
-                    title="Hapus"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                );
-              })()}
-            </div>
+                })()}
+              </div>
+            )}
           </td>
         </tr>, { 
           pageHeader: (
@@ -728,6 +731,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         });
       case"ruangan":
       case"fasilitas":
+      case"denah":
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Fasilitas & Ruangan...
         </div>}>

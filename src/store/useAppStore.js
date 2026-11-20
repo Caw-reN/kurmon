@@ -126,6 +126,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     keamanan: "view", audit_log: "view", activity_logs: "view", pengumuman: "view",
     kedisiplinan_hub: "view", tatib_skor: "view",
     rekap_jurnal_kelas: "view", keterangan_massal: "view", struktur: "view",
+    siswa_keluar: "view", mapel: "view", esurat: "view", kartu_pelajar: "view",
+    pkl_absensi_setting: "view", pengaturan: "view", advanced_rules: "view",
   },
 
   // ─── WAKA ───────────────────────────────────────────────────────────────────
