@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import { useAuthToken } from '../../hooks/useAuthToken.js';
 import { getAttendanceStatusTone } from '../../utils/adminHelpers.js';
-import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, Award, Settings2, AlertTriangle, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Search, Download, Plus, CheckCircle2, Edit2, Trash2, X, UploadCloud, Eye, FileText, ExternalLink, Clock, Zap, Award, Settings2, AlertTriangle, ShieldAlert, ArrowRight, Calendar } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { compressImageFromFile } from '../../utils/imageUtils.js';
@@ -550,12 +550,12 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
         <div className="p-2 sm:p-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full">
             {[
-              { id: "all", label: "Semua Record", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-2xs" },
-              { id: "pending", label: "Menunggu Persetujuan", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
-              { id: "Sakit", label: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
-              { id: "Izin", label: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-2xs" },
-              { id: "Alpa", label: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
-              { id: "Terlambat", label: "Dispensasi", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-2xs" },
+              { id: "all", label: "Semua Record", shortLabel: "Semua", count: statusCounts.all, activeBg: "bg-emerald-600 text-white border-emerald-600 shadow-2xs" },
+              { id: "pending", label: "Menunggu Persetujuan", shortLabel: "Pending", count: statusCounts.pending, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
+              { id: "Sakit", label: "Sakit", shortLabel: "Sakit", count: statusCounts.Sakit, activeBg: "bg-amber-500 text-white border-amber-500 shadow-2xs" },
+              { id: "Izin", label: "Izin", shortLabel: "Izin", count: statusCounts.Izin, activeBg: "bg-[var(--ui-primary)] text-white border-indigo-600 shadow-2xs" },
+              { id: "Alpa", label: "Alpa", shortLabel: "Alpa", count: statusCounts.Alpa, activeBg: "bg-rose-600 text-white border-rose-600 shadow-2xs" },
+              { id: "Terlambat", label: "Dispensasi", shortLabel: "Dispensasi", count: statusCounts.Terlambat, activeBg: "bg-orange-500 text-white border-orange-500 shadow-2xs" },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -567,7 +567,8 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100/80"
                 }`}
               >
-                <span>{tab.label}</span>
+                <span className="sm:hidden">{tab.shortLabel}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
                 <span className={`text-[9.5px] font-black px-1.5 py-0.2 rounded-full ${
                   filterStatus === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
                 }`}>
@@ -598,41 +599,44 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                 />
               </div>
             )}
-            <div className="w-full sm:w-[180px]">
-              <CustomSelect
-                options={classOptionsToShow}
-                value={filterKelas}
-                onChange={val => setFilterKelas(val)}
-                placeholder="Filter Kelas"
-              />
-            </div>
-            <div className="flex w-full sm:w-auto items-center gap-2">
-              <input 
-                type="date"
-                value={filterTanggal}
-                onChange={e => setFilterTanggal(e.target.value)}
-                className="flex-1 sm:flex-none px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
-              />
-              {filterTanggal !== "" && (
-                 <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs rounded-xl text-rose-600 hover:bg-rose-50">Clear</Button>
-              )}
+            {/* Mobile: 2-column grid for Kelas & Tanggal */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto sm:items-center sm:gap-2.5">
+              <div className="w-full sm:w-[180px]">
+                <CustomSelect
+                  options={classOptionsToShow}
+                  value={filterKelas}
+                  onChange={val => setFilterKelas(val)}
+                  placeholder="Filter Kelas"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <input 
+                  type="date"
+                  value={filterTanggal}
+                  onChange={e => setFilterTanggal(e.target.value)}
+                  className="flex-1 sm:flex-none px-2.5 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                />
+                {filterTanggal !== "" && (
+                   <Button variant="ghost" size="sm" onClick={() => setFilterTanggal("")} className="shrink-0 text-xs px-2 rounded-xl text-rose-600 hover:bg-rose-50">Clear</Button>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:w-auto sm:items-center shrink-0 justify-end">
             {selectedIds.size > 0 && (
-              <div className="flex items-center gap-1.5 mr-1">
+              <div className="col-span-2 sm:col-span-1 flex items-center gap-1.5 mr-1">
                 <button 
                   type="button"
                   onClick={openBulkEdit} 
-                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                  className="flex-1 sm:flex-none px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                 >
                   <Edit2 size={13} /> <span>Edit Massal ({selectedIds.size})</span>
                 </button>
                 <button 
                   type="button"
                   onClick={openBulkDeleteTwoStep} 
-                  className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer"
+                  className="flex-1 sm:flex-none px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                 >
                   <Trash2 size={13} /> <span>Hapus ({selectedIds.size})</span>
                 </button>
@@ -641,14 +645,14 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             <button 
               type="button"
               onClick={exportExcel} 
-              className="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+              className="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
             >
               <Download size={14} /> <span>Export</span>
             </button>
             <button 
               type="button"
               onClick={openAdd} 
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-[var(--ui-radius-small)] shadow-xs flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
             >
               <Plus size={15} /> <span>Input Absensi</span>
             </button>
@@ -881,8 +885,12 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
             const student = students.find(s => String(s.nis) === String(item.siswa_nis));
             const hasAttachment = item.gdrive_url || item.surat_url || item.fileData || item.surat_base64 || item.surat_path;
             const isSelected = selectedIds.has(item.id);
+            const isPending = item.approval_status === "pending" || !item.approval_status;
+            const isApproved = item.approval_status === "approved";
+            const isRejected = item.approval_status === "rejected";
+
             return (
-              <div key={item.id} className={`p-3.5 bg-white border rounded-[var(--ui-radius-card)] shadow-xs flex flex-col gap-2.5 transition-all ${isSelected ? 'border-emerald-400 bg-emerald-50/30 ring-2 ring-emerald-500/20' : 'border-slate-200/80'}`}>
+              <div key={item.id} className={`p-3 bg-white border rounded-[var(--ui-radius-card)] shadow-2xs flex flex-col gap-2 transition-all ${isSelected ? 'border-emerald-400 bg-emerald-50/20 ring-2 ring-emerald-500/20' : 'border-slate-200/80'}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <input
@@ -895,47 +903,92 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                       {new Date(item.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </span>
                   </div>
-                  <span className={`inline-flex px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] text-[10px] font-extrabold uppercase border ${getAttendanceStatusTone(item.status)}`}>
-                    {item.status}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`inline-flex px-2 py-0.5 rounded-[var(--ui-radius-pill)] text-[9.5px] font-extrabold uppercase border ${getAttendanceStatusTone(item.status)}`}>
+                      {item.status}
+                    </span>
+                    <span className={`inline-flex px-1.5 py-0.2 rounded-full text-[8.5px] font-black border ${
+                      isApproved ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                      isRejected ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                      'bg-amber-50 text-amber-700 border-amber-200'
+                    }`}>
+                      {isApproved ? 'Disetujui' : isRejected ? 'Ditolak' : 'Pending'}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <p className="font-extrabold text-slate-900 text-xs">{student ? (student.namaSiswa || student.name) : item.siswa_nis}</p>
                   <p className="text-[10px] text-slate-400 font-semibold">{student ? (student.class_name || student.kelas || '-') : '-'}</p>
                 </div>
-                {item.keterangan && (
-                  <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-[var(--ui-radius-small)]">{item.keterangan}</p>
+                {(item.keterangan || item.pelapor_nama) && (
+                  <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100 flex flex-col gap-0.5">
+                    {item.keterangan && <p className="font-medium text-slate-700">{item.keterangan}</p>}
+                    {item.pelapor_nama && (
+                      <p className="text-[9px] text-slate-400 font-semibold">Pelapor: {item.pelapor_nama}</p>
+                    )}
+                  </div>
                 )}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <button 
-                    type="button" 
-                    onClick={() => setPreviewItem(item)} 
-                    className="text-xs px-2.5 py-1 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 font-bold flex items-center gap-1 border border-indigo-200"
-                  >
-                    <Eye size={12} />
-                    <span>{hasAttachment ? 'Surat' : 'Upload'}</span>
-                  </button>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      type="button" 
+                      onClick={() => setPreviewItem(item)} 
+                      className={`text-[11px] px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 border transition-all ${
+                        hasAttachment 
+                          ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200' 
+                          : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                      }`}
+                    >
+                      <Eye size={12} />
+                      <span>{hasAttachment ? 'Lihat Surat' : 'Upload'}</span>
+                    </button>
+                  </div>
 
-                  {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
-                    <div className="flex items-center gap-1.5">
-                      <button 
-                        type="button"
-                        onClick={() => handleEdit(item)} 
-                        className="p-1.5 bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)]"
-                        title="Edit Data"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => handleDelete(item.id)} 
-                        className="p-1.5 bg-slate-100 text-rose-600 rounded-[var(--ui-radius-small)]"
-                        title="Hapus Data"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5">
+                    {hasApprovalPermission && isPending && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleApprove(item.id)}
+                          className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
+                          title="Setujui Surat"
+                        >
+                          <CheckCircle2 size={12} />
+                          <span>ACC</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleReject(item.id)}
+                          className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black rounded-lg shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
+                          title="Tolak Surat"
+                        >
+                          <X size={12} />
+                          <span>Tolak</span>
+                        </button>
+                      </>
+                    )}
+
+                    {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={() => handleEdit(item)} 
+                          className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-all cursor-pointer"
+                          title="Edit Data"
+                        >
+                          <Edit2 size={12} />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => handleDelete(item.id)} 
+                          className="p-1.5 bg-slate-100 hover:bg-rose-50 text-rose-600 rounded-lg transition-all cursor-pointer"
+                          title="Hapus Data"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -944,19 +997,21 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       </div>
 
       {/* Seamless Integrated Footer Pagination */}
-      <div className="flex flex-col sm:flex-row justify-between items-center p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80 gap-3">
-        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 font-bold text-center">
-          <span>Tampilkan</span>
-          <UISelect 
-            value={itemsPerPageSurat} 
-            onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
-            className="px-2 py-1 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500 shadow-xs"
-          >
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </UISelect>
-          <span>data dari {filteredItems.length}</span>
+      <div className="flex flex-col sm:flex-row justify-between items-center p-3 sm:p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80 gap-2.5">
+        <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto text-xs text-slate-500 font-bold">
+          <div className="flex items-center gap-1.5">
+            <span>Tampilkan</span>
+            <UISelect 
+              value={itemsPerPageSurat} 
+              onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
+              className="px-2 py-1 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500 shadow-xs"
+            >
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </UISelect>
+          </div>
+          <span>dari {filteredItems.length} data</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Button 

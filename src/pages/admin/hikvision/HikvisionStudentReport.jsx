@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAuthToken } from '../../../hooks/useAuthToken.js';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table, Activity } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, ChevronRight, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table, Activity } from 'lucide-react';
 import { useAppStore } from '../../../store/useAppStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
@@ -1806,6 +1806,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   const cardTotalPages = Math.ceil(activeDisplayData.length / itemsPerPage) || 1;
 
+  const handleKpiCardClick = (type) => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setTodayCardFilter(prev => prev === type ? 'all' : type);
+      setCurrentPage(1);
+    } else {
+      setDailyDetailModal(type === 'hadir' ? 'present' : type === 'terlambat' ? 'late' : 'absent');
+      setDailySearchQuery('');
+    }
+  };
+
   if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
     return (
       <div className="p-8 text-center bg-rose-50 rounded-[var(--ui-radius-small)] border border-rose-200">
@@ -1906,8 +1916,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             <div className="grid grid-cols-3 gap-1.5 sm:gap-4">
               {/* Card 1: Siswa Hadir */}
               <div
-                onClick={() => { setDailyDetailModal('present'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                onClick={() => handleKpiCardClick('hadir')}
+                className={`group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation ${
+                  todayCardFilter === 'hadir'
+                    ? 'border-emerald-500 ring-2 ring-emerald-500/80 bg-emerald-50/30'
+                    : 'border-slate-200/80'
+                }`}
               >
                 <div className="flex items-center sm:items-start justify-between gap-1 sm:gap-3">
                   <div className="min-w-0 flex-1">
@@ -1925,8 +1939,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     </div>
                     {/* Compact badge mobile */}
                     <div className="sm:hidden mt-1">
-                      <span className="font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-full border border-emerald-200/60 text-[8px] inline-block truncate">
-                        {isHolidayOrWeekendToday ? "Libur" : `${data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir`}
+                      <span className={`font-extrabold px-1.5 py-0.2 rounded-full border text-[8px] inline-block truncate ${
+                        todayCardFilter === 'hadir'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-black'
+                          : 'text-emerald-700 bg-emerald-50 border-emerald-200/60'
+                      }`}>
+                        {todayCardFilter === 'hadir' ? 'Aktif' : (isHolidayOrWeekendToday ? "Libur" : `${data.length > 0 ? Math.round((presentStudentsToday.length / data.length) * 100) : 0}% Hadir`)}
                       </span>
                     </div>
                   </div>
@@ -1948,8 +1966,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
               {/* Card 2: Siswa Terlambat */}
               <div
-                onClick={() => { setDailyDetailModal('late'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                onClick={() => handleKpiCardClick('terlambat')}
+                className={`group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation ${
+                  todayCardFilter === 'terlambat'
+                    ? 'border-amber-500 ring-2 ring-amber-500/80 bg-amber-50/30'
+                    : 'border-slate-200/80'
+                }`}
               >
                 <div className="flex items-center sm:items-start justify-between gap-1 sm:gap-3">
                   <div className="min-w-0 flex-1">
@@ -1964,11 +1986,14 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     </div>
                     {/* Compact badge mobile */}
                     <div className="sm:hidden mt-1">
-                      <span className={`font-extrabold px-1.5 py-0.2 rounded-full border text-[8px] inline-block truncate ${lateStudentsToday.length > 0
-                        ? 'text-amber-700 bg-amber-50 border-amber-200/60'
-                        : 'text-slate-500 bg-slate-50 border-slate-200/60'
-                        }`}>
-                        {lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Telat` : 'Nihil'}
+                      <span className={`font-extrabold px-1.5 py-0.2 rounded-full border text-[8px] inline-block truncate ${
+                        todayCardFilter === 'terlambat'
+                          ? 'bg-amber-600 text-white border-amber-600 font-black'
+                          : lateStudentsToday.length > 0
+                          ? 'text-amber-700 bg-amber-50 border-amber-200/60'
+                          : 'text-slate-500 bg-slate-50 border-slate-200/60'
+                      }`}>
+                        {todayCardFilter === 'terlambat' ? 'Aktif' : (lateStudentsToday.length > 0 ? `${lateStudentsToday.length} Telat` : 'Nihil')}
                       </span>
                     </div>
                   </div>
@@ -1993,8 +2018,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
               {/* Card 3: Siswa Belum Scan / Tidak Masuk */}
               <div
-                onClick={() => { setDailyDetailModal('absent'); setDailySearchQuery(''); }}
-                className="group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation"
+                onClick={() => handleKpiCardClick('tidak_masuk')}
+                className={`group relative bg-white rounded-xl sm:rounded-2xl p-2 sm:p-4 border shadow-2xs hover:shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200 cursor-pointer flex flex-col justify-between overflow-hidden touch-manipulation ${
+                  todayCardFilter === 'tidak_masuk'
+                    ? 'border-rose-500 ring-2 ring-rose-500/80 bg-rose-50/30'
+                    : 'border-slate-200/80'
+                }`}
               >
                 <div className="flex items-center sm:items-start justify-between gap-1 sm:gap-3">
                   <div className="min-w-0 flex-1">
@@ -2010,8 +2039,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     </div>
                     {/* Compact badge mobile */}
                     <div className="sm:hidden mt-1">
-                      <span className="font-extrabold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded-full border border-rose-200/60 text-[8px] inline-block truncate">
-                        {absentStudentsToday.length > 0 ? `${absentStudentsToday.length} Siswa` : 'Nihil'}
+                      <span className={`font-extrabold px-1.5 py-0.2 rounded-full border text-[8px] inline-block truncate ${
+                        todayCardFilter === 'tidak_masuk'
+                          ? 'bg-rose-600 text-white border-rose-600 font-black'
+                          : 'text-rose-700 bg-rose-50 border-rose-200/60'
+                      }`}>
+                        {todayCardFilter === 'tidak_masuk' ? 'Aktif' : (absentStudentsToday.length > 0 ? `${absentStudentsToday.length} Siswa` : 'Nihil')}
                       </span>
                     </div>
                   </div>
@@ -2280,45 +2313,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
           )}
 
           {/* Mobile Compact Unified Filter & Search Card */}
-          <div className="sm:hidden ui-card bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-2.5 flex flex-col gap-2">
-            {/* Row 1: Header Class Info + Quick Export Buttons */}
-            <div className="flex items-center justify-between gap-2 border-b border-slate-100/80 pb-1.5">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <div className="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                  <Users size={12} strokeWidth={2.2} />
-                </div>
-                <div className="min-w-0 flex items-baseline gap-1.5">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block">KELAS</span>
-                  <h4 className="text-[11px] font-black text-slate-800 truncate">
-                    {user?.isWalas ? (user.walasClass || 'Kelas Saya') : (filter.class_name === 'all' ? 'Semua Kelas' : filter.class_name)}
-                  </h4>
-                </div>
-              </div>
-
-              {/* Export Buttons */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => handleExportPDF(exportMode === 'detailed')}
-                  disabled={loading || data.length === 0}
-                  className="px-2 py-0.5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
-                  title="Export PDF"
-                >
-                  PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleExport(exportMode === 'detailed')}
-                  disabled={loading || data.length === 0}
-                  className="px-2 py-0.5 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
-                  title="Export Excel"
-                >
-                  XLS
-                </button>
-              </div>
-            </div>
-
-            {/* Row 2: Search Input + Filter Options Toggle */}
+          <div className="sm:hidden ui-card bg-white rounded-xl border border-slate-200/80 shadow-2xs p-2 flex flex-col gap-1.5">
+            {/* Single Row: Search Input + Filter Options Toggle + Export Buttons */}
             <div className="flex items-center gap-1.5">
               <div className="relative flex-1 min-w-0">
                 <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -2327,7 +2323,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   placeholder="Cari nama siswa..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-8 pr-6 py-1 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+                  className="w-full pl-8 pr-6 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
                 />
                 {search && (
                   <button
@@ -2343,38 +2339,57 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               <button
                 type="button"
                 onClick={() => setShowMobileFilterOptions(prev => !prev)}
-                className={`px-2 py-1 rounded-lg border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0 ${showMobileFilterOptions
+                className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shrink-0 ${showMobileFilterOptions
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
-                title="Pengaturan Filter & Bulan"
+                title="Filter Periode, Bulan, & Kelas"
               >
                 <Filter size={12} />
                 <span>Filter</span>
               </button>
-            </div>
 
-            {/* Row 3: Primary Quick Selectors (Bulan & Tahun) - Always accessible in a tight 2-col row */}
-            <div className="grid grid-cols-2 gap-1.5">
-              <div>
-                <CustomSelect
-                  value={filter.month}
-                  onChange={val => setFilter({ ...filter, month: parseInt(val) })}
-                  options={monthOptions}
-                />
-              </div>
-              <div>
-                <CustomSelect
-                  value={filter.year}
-                  onChange={val => setFilter({ ...filter, year: parseInt(val) })}
-                  options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => handleExportPDF(exportMode === 'detailed')}
+                disabled={loading || data.length === 0}
+                className="px-2 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
+                title="Export PDF"
+              >
+                PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => handleExport(exportMode === 'detailed')}
+                disabled={loading || data.length === 0}
+                className="px-2 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/60 font-black text-[9.5px] transition-all cursor-pointer disabled:opacity-50 active:scale-95 shadow-2xs"
+                title="Export Excel"
+              >
+                XLS
+              </button>
             </div>
 
             {/* Collapsible Advanced Filter Options */}
             {showMobileFilterOptions && (
               <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 animate-in fade-in duration-200">
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Bulan</label>
+                    <CustomSelect
+                      value={filter.month}
+                      onChange={val => setFilter({ ...filter, month: parseInt(val) })}
+                      options={monthOptions}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Tahun</label>
+                    <CustomSelect
+                      value={filter.year}
+                      onChange={val => setFilter({ ...filter, year: parseInt(val) })}
+                      options={yearOptions.map(y => ({ value: y, label: y.toString() }))}
+                    />
+                  </div>
+                </div>
                 {(routeTab !== "walas_report" || !user?.walasClass || isKesiswaanOrAdmin) && (
                   <div>
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-1">Pilih Kelas</label>
@@ -2689,7 +2704,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap xl:flex-wrap xl:overflow-visible">
+              <div className={`${mobileViewMode === 'card' ? 'hidden xl:flex' : 'flex'} items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 whitespace-nowrap xl:flex-wrap xl:overflow-visible`}>
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-800 font-black text-[9.5px] border border-emerald-200 shadow-2xs shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Hadir Normal
                 </span>
@@ -2744,70 +2759,24 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             {/* Mobile Compact Card View */}
             {mobileViewMode === 'card' && (
               <div className="md:hidden flex flex-col bg-slate-50/50">
-                {/* Mobile Filter Chips Status Hari Ini */}
-                {isCurrentMonthYear && (
-                  <div className="px-3 pt-2.5 pb-2 border-b border-slate-200/80 bg-white">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
-                        Filter Status Hari Ini
-                      </span>
-                      <span className="text-[9px] font-bold text-slate-400">
-                        {todayNum} {monthOptions.find(m => m.value === filter.month)?.label || ''} {filter.year}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-                      <button
-                        type="button"
-                        onClick={() => { setTodayCardFilter('all'); setCurrentPage(1); }}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 cursor-pointer ${
-                          todayCardFilter === 'all'
-                            ? 'bg-slate-800 text-white border-slate-800 shadow-2xs'
-                            : 'bg-slate-50 text-slate-600 border-slate-200/90 hover:bg-slate-100'
-                        }`}
-                      >
-                        Semua ({filteredData.length})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setTodayCardFilter('hadir'); setCurrentPage(1); }}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
-                          todayCardFilter === 'hadir'
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                            : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                        }`}
-                      >
-                        <CheckCircle2 size={11} strokeWidth={2.4} />
-                        <span>Hadir ({presentStudentsToday.length})</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setTodayCardFilter('terlambat'); setCurrentPage(1); }}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
-                          todayCardFilter === 'terlambat'
-                            ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                            : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                        }`}
-                      >
-                        <Clock size={11} strokeWidth={2.4} />
-                        <span>Telat ({lateStudentsToday.length})</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setTodayCardFilter('tidak_masuk'); setCurrentPage(1); }}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
-                          todayCardFilter === 'tidak_masuk'
-                            ? 'bg-rose-600 text-white border-rose-600 shadow-2xs'
-                            : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
-                        }`}
-                      >
-                        <UserX size={11} strokeWidth={2.4} />
-                        <span>Belum Masuk ({absentStudentsToday.length})</span>
-                      </button>
-                    </div>
+                {/* Active Filter Pill if filtered by top KPI */}
+                {isCurrentMonthYear && todayCardFilter !== 'all' && (
+                  <div className="px-3 py-1.5 bg-slate-100/90 border-b border-slate-200 flex items-center justify-between text-xs animate-in fade-in">
+                    <span className="text-[10px] font-bold text-slate-700">
+                      Filter: <strong className="text-emerald-800 font-black">{todayCardFilter === 'hadir' ? 'Siswa Hadir' : todayCardFilter === 'terlambat' ? 'Siswa Terlambat' : 'Siswa Belum Masuk'}</strong> ({activeDisplayData.length} Siswa)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setTodayCardFilter('all'); setCurrentPage(1); }}
+                      className="text-[10px] font-black text-rose-600 hover:text-rose-700 flex items-center gap-0.5 bg-transparent border-none cursor-pointer"
+                    >
+                      <X size={11} strokeWidth={2.5} />
+                      <span>Reset</span>
+                    </button>
                   </div>
                 )}
 
-                <div className="p-2.5 space-y-2.5">
+                <div className="p-2 sm:p-2.5 space-y-2">
                   {loading ? (
                     <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
                       Memuat data absen...
@@ -2828,15 +2797,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                         <div
                           key={d.nis}
                           onClick={() => setSelectedStudentDetail(d)}
-                          className={`p-3 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white ${
-                            isTodayPresent ? 'border-emerald-200/90 hover:border-emerald-400' :
-                            isTodayLate ? 'border-amber-300/90 hover:border-amber-400 bg-amber-50/15' :
-                            isTodayAbsent ? 'border-rose-200 hover:border-rose-300 bg-rose-50/15' :
-                            'border-slate-200/90 hover:border-slate-300'
+                          className={`p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white ${
+                            isTodayPresent ? 'border-emerald-200/90 hover:border-emerald-300' :
+                            isTodayLate ? 'border-amber-200/90 hover:border-amber-300 bg-amber-50/10' :
+                            isTodayAbsent ? 'border-rose-200/80 hover:border-rose-300 bg-rose-50/10' :
+                            'border-slate-200/80 hover:border-slate-300'
                           }`}
                         >
-                          {/* Baris Atas: Nomor, Nama Siswa, & Tombol Detail */}
-                          <div className="flex items-start justify-between gap-2 mb-2">
+                          {/* Row 1: Student Identity (Left) & Today Attendance Hero Badge (Right) */}
+                          <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 <span className="text-[10px] font-black text-slate-400 shrink-0">
@@ -2851,112 +2820,68 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                <p className="text-[10px] font-semibold text-slate-500 truncate">
-                                  {d.class_name || 'Tanpa Kelas'} {d.nis ? `• NIS ${d.nis}` : ''}
-                                </p>
+                              <div className="flex items-center gap-1.5 mt-0.5 text-[10px] text-slate-500 font-semibold truncate">
+                                <span>{d.class_name || 'Tanpa Kelas'}</span>
+                                {d.nis && <span>• NIS {d.nis}</span>}
                                 {v.level > 0 && (
-                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-50 text-amber-700 border border-amber-200">
-                                    <AlertTriangle size={10} className="shrink-0 text-amber-600" />
-                                    <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pelanggaran Berat' : v.level === 2 ? 'Pelanggaran Sedang' : 'Peringatan'}</span>
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-black bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0">
+                                    <AlertTriangle size={9} className="shrink-0 text-amber-600" />
+                                    <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pel. Berat' : v.level === 2 ? 'Pel. Sedang' : 'Peringatan'}</span>
                                   </span>
                                 )}
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1 shrink-0">
-                              <span className="text-[9.5px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">
-                                Detail &rsaquo;
-                              </span>
-                            </div>
+                            {/* Hero Status Hari Ini (Kanan Atas) */}
+                            {todaySummary && (
+                              <div className="shrink-0 flex flex-col items-end">
+                                <div className={`px-2 py-0.5 rounded-lg border font-black text-[10.5px] flex items-center gap-1 shadow-2xs ${
+                                  todaySummary.type === 'hadir' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                                  todaySummary.type === 'terlambat' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                                  todaySummary.type === 'sakit' ? 'bg-sky-50 text-sky-800 border-sky-200' :
+                                  todaySummary.type === 'izin' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' :
+                                  todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl' ? 'bg-teal-50 text-teal-800 border-teal-200' :
+                                  todaySummary.type === 'holiday' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                                  'bg-rose-50 text-rose-700 border-rose-200'
+                                }`}>
+                                  {todaySummary.type === 'hadir' && <CheckCircle2 size={12} strokeWidth={2.5} className="text-emerald-600 shrink-0" />}
+                                  {todaySummary.type === 'terlambat' && <Clock size={12} strokeWidth={2.5} className="text-amber-600 shrink-0" />}
+                                  {todaySummary.type === 'sakit' && <Activity size={12} strokeWidth={2.5} className="text-sky-600 shrink-0" />}
+                                  {todaySummary.type === 'izin' && <FileText size={12} strokeWidth={2.5} className="text-indigo-600 shrink-0" />}
+                                  {(todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl') && <Zap size={12} strokeWidth={2.5} className="text-teal-600 shrink-0" />}
+                                  {todaySummary.type === 'holiday' && <Calendar size={12} strokeWidth={2.5} className="text-slate-500 shrink-0" />}
+                                  {todaySummary.type === 'absent' && <UserX size={12} strokeWidth={2.5} className="text-rose-600 shrink-0" />}
+
+                                  <span className="truncate max-w-[125px]">
+                                    {todaySummary.type === 'hadir' ? (todaySummary.inTime ? `Hadir ${todaySummary.inTime}` : 'Hadir Tepat') :
+                                     todaySummary.type === 'terlambat' ? (todaySummary.inTime ? `Telat ${todaySummary.inTime}` : 'Terlambat') :
+                                     todaySummary.badgeText}
+                                  </span>
+                                </div>
+                                <span className="text-[8px] font-bold text-slate-400 mt-0.5 truncate max-w-[125px]">
+                                  {todaySummary.type === 'hadir' ? 'Tepat Waktu' :
+                                   todaySummary.type === 'terlambat' ? 'Terlambat Masuk' :
+                                   todaySummary.type === 'absent' ? 'Belum Scan' :
+                                   todaySummary.detail}
+                                </span>
+                              </div>
+                            )}
                           </div>
 
-                          {/* HIGHLIGHT UTAMA: Status Presensi Hari Ini */}
-                          {todaySummary && (
-                            <div className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 mb-2.5 shadow-2xs ${
-                              todaySummary.type === 'hadir'
-                                ? 'bg-emerald-50/90 border-emerald-200/90 text-emerald-950'
-                                : todaySummary.type === 'terlambat'
-                                ? 'bg-amber-50/90 border-amber-300/90 text-amber-950'
-                                : todaySummary.type === 'sakit'
-                                ? 'bg-sky-50/90 border-sky-200/90 text-sky-950'
-                                : todaySummary.type === 'izin'
-                                ? 'bg-indigo-50/90 border-indigo-200/90 text-indigo-950'
-                                : todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl'
-                                ? 'bg-teal-50/90 border-teal-200/90 text-teal-950'
-                                : todaySummary.type === 'holiday'
-                                ? 'bg-slate-50 border-slate-200 text-slate-800'
-                                : 'bg-rose-50/90 border-rose-200/90 text-rose-950'
-                            }`}>
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
-                                  todaySummary.type === 'hadir' ? 'bg-emerald-100 border-emerald-300 text-emerald-700' :
-                                  todaySummary.type === 'terlambat' ? 'bg-amber-100 border-amber-300 text-amber-700' :
-                                  todaySummary.type === 'sakit' ? 'bg-sky-100 border-sky-300 text-sky-700' :
-                                  todaySummary.type === 'izin' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' :
-                                  todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl' ? 'bg-teal-100 border-teal-300 text-teal-700' :
-                                  todaySummary.type === 'holiday' ? 'bg-slate-100 border-slate-300 text-slate-600' :
-                                  'bg-rose-100 border-rose-300 text-rose-700'
-                                }`}>
-                                  {todaySummary.type === 'hadir' && <CheckCircle2 size={16} strokeWidth={2.4} />}
-                                  {todaySummary.type === 'terlambat' && <Clock size={16} strokeWidth={2.4} />}
-                                  {todaySummary.type === 'sakit' && <Activity size={16} strokeWidth={2.4} />}
-                                  {todaySummary.type === 'izin' && <FileText size={16} strokeWidth={2.4} />}
-                                  {(todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl') && <Zap size={16} strokeWidth={2.4} />}
-                                  {todaySummary.type === 'holiday' && <Calendar size={16} strokeWidth={2.4} />}
-                                  {todaySummary.type === 'absent' && <UserX size={16} strokeWidth={2.4} />}
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400">Hari Ini:</span>
-                                    <span className="text-[11.5px] font-black truncate">{todaySummary.label}</span>
-                                  </div>
-                                  <p className="text-[9.5px] font-medium opacity-80 truncate mt-0.5">{todaySummary.detail}</p>
-                                </div>
-                              </div>
+                          {/* Row 2: Rekap Akumulasi Bulan Ini (Sleek Inline Badges) */}
+                          <div className="flex items-center justify-between pt-1.5 mt-1.5 border-t border-slate-100 text-[10px]">
+                            <div className="flex items-center gap-1 font-black flex-wrap">
+                              <span className="text-slate-400 font-bold mr-0.5 uppercase text-[8px] tracking-wider">Rekap:</span>
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-100" title="Total Hadir">{d.total_hadir || 0}H</span>
+                              <span className="px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-100" title="Total Terlambat">{d.total_terlambat || 0}T</span>
+                              <span className="px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-800 border border-indigo-100" title="Total Izin">{d.total_izin || 0}I</span>
+                              <span className="px-1.5 py-0.2 rounded bg-sky-50 text-sky-800 border border-sky-100" title="Total Sakit">{d.total_sakit || 0}S</span>
+                              <span className="px-1.5 py-0.2 rounded bg-rose-50 text-rose-800 border border-rose-100" title="Total Alpa">{d.total_alpa || 0}A</span>
+                            </div>
 
-                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black shrink-0 border ${
-                                todaySummary.type === 'hadir' ? 'bg-emerald-100/80 text-emerald-800 border-emerald-300' :
-                                todaySummary.type === 'terlambat' ? 'bg-amber-100/80 text-amber-900 border-amber-300' :
-                                todaySummary.type === 'sakit' ? 'bg-sky-100/80 text-sky-800 border-sky-300' :
-                                todaySummary.type === 'izin' ? 'bg-indigo-100/80 text-indigo-800 border-indigo-300' :
-                                todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl' ? 'bg-teal-100/80 text-teal-800 border-teal-300' :
-                                todaySummary.type === 'holiday' ? 'bg-slate-100 text-slate-700 border-slate-300' :
-                                'bg-rose-100/80 text-rose-800 border-rose-300'
-                              }`}>
-                                {todaySummary.badgeText}
-                              </span>
-                            </div>
-                          )}
-
-                          {/* 5 Compact Stat Badges (Akumulasi Bulan Ini) */}
-                          <div className="pt-2 border-t border-slate-100">
-                            <div className="flex items-center justify-between text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
-                              <span>Akumulasi Bulan Ini</span>
-                              <span>{monthOptions.find(m => m.value === filter.month)?.label || ''} {filter.year}</span>
-                            </div>
-                            <div className="grid grid-cols-5 gap-1.5">
-                              <div className="text-center bg-emerald-50/70 border border-emerald-100 rounded-lg py-1">
-                                <div className="text-[8px] font-black uppercase text-emerald-700">Hadir</div>
-                                <div className="text-xs font-black text-emerald-800">{d.total_hadir || 0}</div>
-                              </div>
-                              <div className="text-center bg-amber-50/70 border border-amber-100 rounded-lg py-1">
-                                <div className="text-[8px] font-black uppercase text-amber-700">Telat</div>
-                                <div className="text-xs font-black text-amber-800">{d.total_terlambat || 0}</div>
-                              </div>
-                              <div className="text-center bg-indigo-50/70 border border-indigo-100 rounded-lg py-1">
-                                <div className="text-[8px] font-black uppercase text-indigo-700">Izin</div>
-                                <div className="text-xs font-black text-indigo-800">{d.total_izin || 0}</div>
-                              </div>
-                              <div className="text-center bg-sky-50/70 border border-sky-100 rounded-lg py-1">
-                                <div className="text-[8px] font-black uppercase text-sky-700">Sakit</div>
-                                <div className="text-xs font-black text-sky-800">{d.total_sakit || 0}</div>
-                              </div>
-                              <div className="text-center bg-rose-50/70 border border-rose-100 rounded-lg py-1">
-                                <div className="text-[8px] font-black uppercase text-rose-700">Alpa</div>
-                                <div className="text-xs font-black text-rose-800">{d.total_alpa || 0}</div>
-                              </div>
-                            </div>
+                            <span className="text-[9px] font-bold text-slate-400 hover:text-emerald-700 flex items-center gap-0.5 shrink-0">
+                              Detail &rsaquo;
+                            </span>
                           </div>
                         </div>
                       );
