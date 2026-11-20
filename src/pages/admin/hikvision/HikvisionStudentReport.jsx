@@ -240,6 +240,17 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [mobileViewMode, setMobileViewMode] = useState('card');
   const [todayCardFilter, setTodayCardFilter] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'tidak_masuk'
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
+  const [detailModalTab, setDetailModalTab] = useState('calendar'); // 'calendar' | 'list'
+  const [selectedDayInModal, setSelectedDayInModal] = useState(null);
+  const [historyFilterType, setHistoryFilterType] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'absen' | 'libur'
+
+  const openStudentDetail = useCallback((student) => {
+    setSelectedStudentDetail(student);
+    setSelectedDayInModal(isCurrentMonthYear ? todayNum : Math.min(new Date().getDate(), daysInMonth));
+    setDetailModalTab('calendar');
+    setHistoryFilterType('all');
+  }, [isCurrentMonthYear, todayNum, daysInMonth]);
+
   const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day }
   const [permissionForm, setPermissionForm] = useState({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null });
   const [isSubmittingCell, setIsSubmittingCell] = useState(false);
@@ -2796,7 +2807,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       return (
                         <div
                           key={d.nis}
-                          onClick={() => setSelectedStudentDetail(d)}
+                          onClick={() => openStudentDetail(d)}
                           className={`p-2.5 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white ${
                             isTodayPresent ? 'border-emerald-200/90 hover:border-emerald-300' :
                             isTodayLate ? 'border-amber-200/90 hover:border-amber-300 bg-amber-50/10' :
@@ -3506,111 +3517,477 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
               </div>
             </Modal>
           )}
-      {/* Modal Detail Siswa Bulanan (Mobile Friendly) */}
-      {selectedStudentDetail && (
-        <Modal
-          isOpen={Boolean(selectedStudentDetail)}
-          onClose={() => setSelectedStudentDetail(null)}
-          title="Rekap Kehadiran Siswa"
-          maxWidth="max-w-lg"
-        >
-          <div className="p-3 sm:p-4 flex flex-col gap-3.5">
-            {/* Student Header Card */}
-            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <h3 className="text-sm font-black text-slate-900 truncate">
-                  {selectedStudentDetail.name}
-                </h3>
-                <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                  {selectedStudentDetail.class_name || 'Tanpa Kelas'} • NIS {selectedStudentDetail.nis}
-                </p>
+      {/* Modal Detail Siswa Bulanan (Revamped: 7-Kolom Kalender & Riwayat Harian) */}
+      {selectedStudentDetail && (() => {
+        // Kalender 7-kolom (Senin s/d Minggu)
+        const firstDayIndex = new Date(filter.year, filter.month - 1, 1).getDay();
+        const startPadding = (firstDayIndex + 6) % 7;
+        const paddingSlots = Array(startPadding).fill(null);
+        const dayNumbers = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+        const calendarGrid = [...paddingSlots, ...dayNumbers];
+
+        const getModalDayDetails = (dayNum) => {
+          if (!dayNum) return null;
+          const dateObj = new Date(filter.year, filter.month - 1, dayNum);
+          const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+          const dayIndex = dateObj.getDay();
+          const isWeekend = dayIndex === 0 || dayIndex === 6;
+          const dayName = dateObj.toLocaleDateString('id-ID', { weekday: 'long' });
+          const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, selectedStudentDetail.class_name);
+          const isHoliday = Boolean(holidayInfo) || selectedStudentDetail.days?.[dayNum]?.isHoliday;
+          const dayData = selectedStudentDetail.days?.[dayNum];
+          const inTime = formatAttendanceTime(dayData?.in);
+          const outTime = formatAttendanceTime(dayData?.out);
+          const status = String(dayData?.status || dayData?.in || '').trim();
+          const isLate = dayData?.isLate || status === 'Terlambat';
+          const note = dayData?.note || holidayInfo?.reason || '';
+
+          let type = 'empty';
+          let label = '-';
+          let badgeColor = 'bg-slate-100 text-slate-500 border-slate-200';
+          let dotColor = 'bg-slate-300';
+          let bgCell = 'bg-slate-50/70 border-slate-200/70 text-slate-400';
+
+          if (isHoliday) {
+            type = 'holiday';
+            label = holidayInfo?.reason || 'Libur Kalender';
+            badgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
+            dotColor = 'bg-rose-500';
+            bgCell = 'bg-rose-50 text-rose-800 border-rose-200';
+          } else if (isWeekend && !inTime && !outTime) {
+            type = 'weekend';
+            label = dayIndex === 0 ? 'Libur Akhir Pekan (Minggu)' : 'Libur Akhir Pekan (Sabtu)';
+            badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+            dotColor = 'bg-slate-300';
+            bgCell = 'bg-slate-100/70 text-slate-400 border-slate-200/60';
+          } else if (status === 'Sakit') {
+            type = 'sakit';
+            label = 'Sakit';
+            badgeColor = 'bg-sky-50 text-sky-800 border-sky-200';
+            dotColor = 'bg-sky-500';
+            bgCell = 'bg-sky-50 text-sky-800 border-sky-200';
+          } else if (status === 'Izin') {
+            type = 'izin';
+            label = 'Izin';
+            badgeColor = 'bg-indigo-50 text-indigo-800 border-indigo-200';
+            dotColor = 'bg-indigo-500';
+            bgCell = 'bg-indigo-50 text-indigo-800 border-indigo-200';
+          } else if (status === 'Dispensasi' || String(note).toLowerCase().includes('dispensasi')) {
+            type = 'dispensasi';
+            label = 'Dispensasi';
+            badgeColor = 'bg-teal-50 text-teal-800 border-teal-200';
+            dotColor = 'bg-teal-500';
+            bgCell = 'bg-teal-50 text-teal-800 border-teal-200';
+          } else if (status === 'PKL' || status === 'PraPKL' || dayData?.isPkl) {
+            type = 'pkl';
+            label = status === 'PraPKL' ? 'Pra-PKL' : 'PKL';
+            badgeColor = 'bg-teal-50 text-teal-800 border-teal-200';
+            dotColor = 'bg-teal-500';
+            bgCell = 'bg-teal-50 text-teal-800 border-teal-200';
+          } else if (status === 'Alpa' || dayData?.in === 'Alpa') {
+            type = 'alpa';
+            label = 'Alpa (Tidak Hadir)';
+            badgeColor = 'bg-rose-50 text-rose-700 border-rose-200';
+            dotColor = 'bg-rose-500';
+            bgCell = 'bg-rose-50 text-rose-700 border-rose-200';
+          } else if (isLate) {
+            type = 'terlambat';
+            label = inTime ? `Telat (${inTime} WIB)` : 'Terlambat';
+            badgeColor = 'bg-amber-50 text-amber-800 border-amber-300';
+            dotColor = 'bg-amber-500';
+            bgCell = 'bg-amber-50 text-amber-800 border-amber-300';
+          } else if (inTime || status === 'Hadir') {
+            type = 'hadir';
+            label = inTime ? `Hadir (${inTime} WIB)` : 'Hadir Tepat';
+            badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+            dotColor = 'bg-emerald-500';
+            bgCell = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+          } else if (!inTime && outTime) {
+            type = 'terlambat';
+            label = `Pulang Saja (${outTime} WIB)`;
+            badgeColor = 'bg-orange-50 text-orange-800 border-orange-200';
+            dotColor = 'bg-orange-500';
+            bgCell = 'bg-orange-50 text-orange-800 border-orange-200';
+          }
+
+          return {
+            dayNum,
+            dateStr,
+            dayName,
+            isWeekend,
+            isHoliday,
+            holidayInfo,
+            dayData,
+            inTime,
+            outTime,
+            status,
+            isLate,
+            note,
+            type,
+            label,
+            badgeColor,
+            dotColor,
+            bgCell
+          };
+        };
+
+        const activeDayInfo = getModalDayDetails(selectedDayInModal);
+
+        return (
+          <Modal
+            isOpen={Boolean(selectedStudentDetail)}
+            onClose={() => { setSelectedStudentDetail(null); setSelectedDayInModal(null); }}
+            title="Rekap Kehadiran Siswa"
+            maxWidth="max-w-lg"
+          >
+            <div className="p-3 sm:p-4 flex flex-col gap-3">
+              {/* Profile Card Siswa */}
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200/80 flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
+                    {selectedStudentDetail.name?.charAt(0).toUpperCase() || 'S'}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-sm font-black text-slate-900 truncate">
+                      {selectedStudentDetail.name}
+                    </h3>
+                    <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate">
+                      {selectedStudentDetail.class_name || 'Tanpa Kelas'} {selectedStudentDetail.nis ? `• NIS ${selectedStudentDetail.nis}` : ''}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <span className="text-[8.5px] font-black uppercase text-slate-400 tracking-wider block">Periode</span>
+                  <span className="text-xs font-black text-slate-800">
+                    {monthOptions.find(m => m.value === filter.month)?.label || `Bulan ${filter.month}`} {filter.year}
+                  </span>
+                </div>
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-[10px] font-bold text-slate-400 block">Periode</span>
-                <span className="text-xs font-black text-slate-700">
-                  Bulan {filter.month} / {filter.year}
+
+              {/* 5 KPI Summary Badges */}
+              <div className="grid grid-cols-5 gap-1.5">
+                <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl py-1.5 px-1 text-center shadow-2xs">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-emerald-700 block">Hadir</span>
+                  <span className="text-sm font-black text-emerald-900">{selectedStudentDetail.total_hadir || 0}</span>
+                </div>
+                <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl py-1.5 px-1 text-center shadow-2xs">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-amber-700 block">Telat</span>
+                  <span className="text-sm font-black text-amber-900">{selectedStudentDetail.total_terlambat || 0}</span>
+                </div>
+                <div className="bg-indigo-50/80 border border-indigo-200/80 rounded-xl py-1.5 px-1 text-center shadow-2xs">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-indigo-700 block">Izin</span>
+                  <span className="text-sm font-black text-indigo-900">{selectedStudentDetail.total_izin || 0}</span>
+                </div>
+                <div className="bg-sky-50/80 border border-sky-200/80 rounded-xl py-1.5 px-1 text-center shadow-2xs">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-sky-700 block">Sakit</span>
+                  <span className="text-sm font-black text-sky-900">{selectedStudentDetail.total_sakit || 0}</span>
+                </div>
+                <div className="bg-rose-50/80 border border-rose-200/80 rounded-xl py-1.5 px-1 text-center shadow-2xs">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-rose-700 block">Alpa</span>
+                  <span className="text-sm font-black text-rose-900">{selectedStudentDetail.total_alpa || 0}</span>
+                </div>
+              </div>
+
+              {/* Segmented View Switcher: Kalender vs Riwayat */}
+              <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                <span className="text-xs font-black text-slate-800">
+                  {detailModalTab === 'calendar' ? 'Kalender Presensi Siswa' : 'Riwayat Harian Siswa'}
                 </span>
-              </div>
-            </div>
 
-            {/* 5 Stats Grid */}
-            <div className="grid grid-cols-5 gap-1.5">
-              <div className="bg-emerald-50 border border-emerald-200/70 rounded-xl p-2 text-center">
-                <span className="text-[8.5px] font-black uppercase text-emerald-700 block">Hadir</span>
-                <span className="text-sm font-black text-emerald-900">{selectedStudentDetail.total_hadir || 0}</span>
+                <div className="inline-flex p-0.5 rounded-lg bg-slate-100 border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setDetailModalTab('calendar')}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      detailModalTab === 'calendar' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <Calendar size={11} strokeWidth={2.4} />
+                    <span>Kalender</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDetailModalTab('list')}
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer ${
+                      detailModalTab === 'list' ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    <FileText size={11} strokeWidth={2.4} />
+                    <span>Riwayat</span>
+                  </button>
+                </div>
               </div>
-              <div className="bg-amber-50 border border-amber-200/70 rounded-xl p-2 text-center">
-                <span className="text-[8.5px] font-black uppercase text-amber-700 block">Telat</span>
-                <span className="text-sm font-black text-amber-900">{selectedStudentDetail.total_terlambat || 0}</span>
-              </div>
-              <div className="bg-indigo-50 border border-indigo-200/70 rounded-xl p-2 text-center">
-                <span className="text-[8.5px] font-black uppercase text-indigo-700 block">Izin</span>
-                <span className="text-sm font-black text-indigo-900">{selectedStudentDetail.total_izin || 0}</span>
-              </div>
-              <div className="bg-sky-50 border border-sky-200/70 rounded-xl p-2 text-center">
-                <span className="text-[8.5px] font-black uppercase text-sky-700 block">Sakit</span>
-                <span className="text-sm font-black text-sky-900">{selectedStudentDetail.total_sakit || 0}</span>
-              </div>
-              <div className="bg-rose-50 border border-rose-200/70 rounded-xl p-2 text-center">
-                <span className="text-[8.5px] font-black uppercase text-rose-700 block">Alpa</span>
-                <span className="text-sm font-black text-rose-900">{selectedStudentDetail.total_alpa || 0}</span>
-              </div>
-            </div>
 
-            {/* Calendar Days Matrix (Grid of days) */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-black text-slate-800">Rincian Status Harian:</span>
-                <span className="text-[10px] font-medium text-slate-400">Sentuh tanggal untuk edit/lihat</span>
-              </div>
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-[300px] overflow-y-auto no-scrollbar p-0.5">
-                {daysToRender.map((dayNum) => {
-                  const dateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                  const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, dateStr, selectedStudentDetail.class_name);
-                  const dayData = selectedStudentDetail.days[dayNum] || (holidayInfo ? { isHoliday: true, status: "Libur", note: holidayInfo.reason } : null);
-                  const cellColors = dayData ? getCellStyle(dayData, selectedStudentDetail.class_name, dateStr) : null;
+              {/* Tab Content 1: Kalender 7-Kolom */}
+              {detailModalTab === 'calendar' && (
+                <div className="flex flex-col gap-2.5 animate-in fade-in duration-200">
+                  {/* Calendar 7 Header Columns */}
+                  <div className="bg-white border border-slate-200/80 rounded-xl p-2.5 shadow-2xs">
+                    <div className="grid grid-cols-7 gap-1 text-center font-black text-[10px] uppercase text-slate-400 pb-1.5 mb-1.5 border-b border-slate-100">
+                      <span>Sen</span>
+                      <span>Sel</span>
+                      <span>Rab</span>
+                      <span>Kam</span>
+                      <span>Jum</span>
+                      <span className="text-rose-400">Sab</span>
+                      <span className="text-rose-400">Min</span>
+                    </div>
 
-                  return (
-                    <button
-                      key={dayNum}
-                      type="button"
-                      onClick={() => {
-                        const student = selectedStudentDetail;
-                        setSelectedStudentDetail(null);
-                        handleCellClick(student, dayNum);
-                      }}
-                      className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[54px] transition-all active:scale-95 cursor-pointer shadow-2xs ${dayData ? `${cellColors.className}` : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'
-                        }`}
-                      style={cellColors?.style}
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <span className="text-[10px] font-black">Tgl {dayNum}</span>
-                        {dayData?.check_in && (
-                          <span className="text-[8px] font-mono font-bold">
-                            {dayData.check_in.slice(0, 5)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-1">
-                        <span className="text-[9.5px] font-black block truncate">
-                          {dayData?.status || '-'}
+                    {/* 7-Kolom Calendar Grid */}
+                    <div className="grid grid-cols-7 gap-1">
+                      {calendarGrid.map((dayNum, i) => {
+                        if (!dayNum) {
+                          return <div key={`pad-${i}`} className="h-10 rounded-lg bg-slate-50/40 border border-transparent" />;
+                        }
+
+                        const dInfo = getModalDayDetails(dayNum);
+                        const isSelected = selectedDayInModal === dayNum;
+                        const isToday = isCurrentMonthYear && dayNum === todayNum;
+
+                        return (
+                          <button
+                            key={dayNum}
+                            type="button"
+                            onClick={() => setSelectedDayInModal(dayNum)}
+                            className={`h-10 sm:h-11 rounded-xl border flex flex-col items-center justify-between p-1 transition-all cursor-pointer relative ${
+                              isSelected
+                                ? `ring-2 ring-emerald-500 shadow-xs z-10 font-black ${dInfo.bgCell}`
+                                : `${dInfo.bgCell} hover:opacity-80 active:scale-95`
+                            }`}
+                          >
+                            <div className="flex items-center justify-center w-full">
+                              <span className={`text-[11px] leading-tight ${
+                                isToday ? 'font-black text-emerald-950 underline decoration-emerald-500 decoration-2' :
+                                dInfo.isWeekend ? 'font-bold text-slate-400' : 'font-extrabold'
+                              }`}>
+                                {dayNum}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-center w-full pb-0.5">
+                              <span className={`w-1.5 h-1.5 rounded-full ${dInfo.dotColor}`} />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Hero Selected Day Card */}
+                  {activeDayInfo && (
+                    <div className={`p-3 rounded-xl border transition-all shadow-2xs ${
+                      activeDayInfo.type === 'hadir' ? 'bg-emerald-50/60 border-emerald-200' :
+                      activeDayInfo.type === 'terlambat' ? 'bg-amber-50/60 border-amber-300' :
+                      activeDayInfo.type === 'sakit' ? 'bg-sky-50/60 border-sky-200' :
+                      activeDayInfo.type === 'izin' ? 'bg-indigo-50/60 border-indigo-200' :
+                      activeDayInfo.type === 'alpa' ? 'bg-rose-50/60 border-rose-200' :
+                      activeDayInfo.type === 'holiday' ? 'bg-rose-50/60 border-rose-200' :
+                      'bg-slate-50 border-slate-200'
+                    }`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                              {activeDayInfo.dayName}, {activeDayInfo.dayNum} {monthOptions.find(m => m.value === filter.month)?.label || ''} {filter.year}
+                            </span>
+                            {isCurrentMonthYear && activeDayInfo.dayNum === todayNum && (
+                              <span className="px-1.5 py-0.2 rounded text-[7.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                HARI INI
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-xs sm:text-sm font-black text-slate-900 mt-0.5">
+                            {activeDayInfo.type === 'hadir' ? 'Hadir Tepat Waktu' :
+                             activeDayInfo.type === 'terlambat' ? 'Terlambat Masuk' :
+                             activeDayInfo.type === 'sakit' ? 'Sakit (Ada Keterangan)' :
+                             activeDayInfo.type === 'izin' ? 'Izin (Ada Keterangan)' :
+                             activeDayInfo.type === 'alpa' ? 'Alpa / Tidak Hadir' :
+                             activeDayInfo.type === 'weekend' ? activeDayInfo.label :
+                             activeDayInfo.type === 'holiday' ? `Libur: ${activeDayInfo.label}` :
+                             'Bebas Absensi / Belum Ada Data'}
+                          </h4>
+                        </div>
+
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border shrink-0 ${activeDayInfo.badgeColor}`}>
+                          {activeDayInfo.label}
                         </span>
                       </div>
-                    </button>
-                  );
-                })}
+
+                      {/* Detail Jam Masuk & Pulang */}
+                      {(activeDayInfo.inTime || activeDayInfo.outTime || activeDayInfo.note) && (
+                        <div className="mt-2 pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2 text-[10.5px]">
+                          <div className="flex items-center gap-3 text-slate-600 font-semibold">
+                            {activeDayInfo.inTime && (
+                              <span className="flex items-center gap-1">
+                                <Clock size={11} className="text-emerald-600" />
+                                <span>Masuk: <strong className="text-slate-800 font-black">{activeDayInfo.inTime} WIB</strong></span>
+                              </span>
+                            )}
+                            {activeDayInfo.outTime && (
+                              <span className="flex items-center gap-1">
+                                <Clock size={11} className="text-slate-500" />
+                                <span>Pulang: <strong className="text-slate-800 font-black">{activeDayInfo.outTime} WIB</strong></span>
+                              </span>
+                            )}
+                          </div>
+                          {activeDayInfo.note && (
+                            <p className="text-[10px] text-slate-500 italic">
+                              Ket: {activeDayInfo.note}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Tombol Ubah / Input Surat */}
+                      {user?.role !== "siswa" && !activeDayInfo.isWeekend && (
+                        <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const student = selectedStudentDetail;
+                              const day = activeDayInfo.dayNum;
+                              setSelectedStudentDetail(null);
+                              handleCellClick(student, day);
+                            }}
+                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs rounded-lg shadow-xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                          >
+                            <Edit2 size={12} />
+                            <span>Ubah Status / Input Surat</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tab Content 2: Riwayat Harian (Timeline List) */}
+              {detailModalTab === 'list' && (
+                <div className="flex flex-col gap-2 animate-in fade-in duration-200">
+                  {/* Filter Status Chips inside Modal */}
+                  <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pb-0.5">
+                    {[
+                      { id: 'all', label: 'Semua Hari' },
+                      { id: 'hadir', label: 'Hadir' },
+                      { id: 'terlambat', label: 'Telat' },
+                      { id: 'absen', label: 'Alpa / Izin / Sakit' },
+                      { id: 'libur', label: 'Libur / Weekend' }
+                    ].map(fTab => (
+                      <button
+                        key={fTab.id}
+                        type="button"
+                        onClick={() => setHistoryFilterType(fTab.id)}
+                        className={`px-2.5 py-1 rounded-lg text-[9.5px] font-black border transition-all shrink-0 cursor-pointer ${
+                          historyFilterType === fTab.id
+                            ? 'bg-slate-800 text-white border-slate-800 shadow-2xs'
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        }`}
+                      >
+                        {fTab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* List Container */}
+                  <div className="space-y-1.5 max-h-[300px] overflow-y-auto no-scrollbar pr-0.5">
+                    {Array.from({ length: daysInMonth }, (_, i) => daysInMonth - i)
+                      .filter(dayNum => {
+                        if (historyFilterType === 'all') return true;
+                        const info = getModalDayDetails(dayNum);
+                        if (historyFilterType === 'hadir') return info.type === 'hadir';
+                        if (historyFilterType === 'terlambat') return info.type === 'terlambat';
+                        if (historyFilterType === 'absen') return info.type === 'alpa' || info.type === 'sakit' || info.type === 'izin' || info.type === 'dispensasi';
+                        if (historyFilterType === 'libur') return info.type === 'weekend' || info.type === 'holiday';
+                        return true;
+                      })
+                      .map(dayNum => {
+                        const info = getModalDayDetails(dayNum);
+                        const isToday = isCurrentMonthYear && dayNum === todayNum;
+
+                        return (
+                          <div
+                            key={dayNum}
+                            className={`p-2.5 rounded-xl border flex items-center justify-between gap-2.5 transition-all shadow-2xs ${
+                              info.type === 'hadir' ? 'bg-white border-emerald-200/80 hover:border-emerald-300' :
+                              info.type === 'terlambat' ? 'bg-amber-50/20 border-amber-200/80 hover:border-amber-300' :
+                              info.type === 'sakit' ? 'bg-sky-50/20 border-sky-200/80 hover:border-sky-300' :
+                              info.type === 'izin' ? 'bg-indigo-50/20 border-indigo-200/80 hover:border-indigo-300' :
+                              info.type === 'alpa' ? 'bg-rose-50/20 border-rose-200/80 hover:border-rose-300' :
+                              'bg-slate-50/80 border-slate-200/80 text-slate-500'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className={`w-9 h-9 rounded-lg border flex flex-col items-center justify-center shrink-0 ${
+                                isToday ? 'bg-emerald-600 text-white border-emerald-600 font-black' :
+                                info.isWeekend ? 'bg-slate-100 text-slate-500 border-slate-200' :
+                                info.type === 'hadir' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                                info.type === 'terlambat' ? 'bg-amber-50 text-amber-800 border-amber-200' :
+                                info.type === 'alpa' ? 'bg-rose-50 text-rose-800 border-rose-200' :
+                                'bg-slate-100 text-slate-700 border-slate-200'
+                              }`}>
+                                <span className="text-[11px] font-black leading-none">{dayNum}</span>
+                                <span className="text-[7.5px] uppercase font-bold tracking-tight mt-0.5">
+                                  {info.dayName.slice(0, 3)}
+                                </span>
+                              </div>
+
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className={`px-2 py-0.2 rounded-full text-[9px] font-black border ${info.badgeColor}`}>
+                                    {info.label}
+                                  </span>
+                                  {isToday && (
+                                    <span className="px-1.5 py-0.2 rounded text-[7.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                      HARI INI
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500 font-medium truncate">
+                                  {info.inTime && <span>Masuk: <strong className="text-slate-700">{info.inTime}</strong></span>}
+                                  {info.outTime && <span>• Pulang: <strong className="text-slate-700">{info.outTime}</strong></span>}
+                                  {info.note && <span className="italic truncate">({info.note})</span>}
+                                  {!info.inTime && !info.outTime && !info.note && (
+                                    <span>{info.isWeekend ? 'Akhir Pekan' : info.isHoliday ? 'Bebas KBM' : 'Tanpa data scan'}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {user?.role !== "siswa" && !info.isWeekend && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const s = selectedStudentDetail;
+                                  setSelectedStudentDetail(null);
+                                  handleCellClick(s, dayNum);
+                                }}
+                                className="px-2 py-1 text-[10px] font-black text-slate-700 hover:text-emerald-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg shrink-0 shadow-2xs transition-all cursor-pointer active:scale-95"
+                                title="Ubah data kehadiran"
+                              >
+                                Ubah &rsaquo;
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 font-bold">
+                  Total {daysInMonth} Hari Kalender
+                </span>
+                <Button type="button" onClick={() => { setSelectedStudentDetail(null); setSelectedDayInModal(null); }}>
+                  Tutup
+                </Button>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <Button type="button" onClick={() => setSelectedStudentDetail(null)}>
-                Tutup
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        );
+      })()}
 
       {/* Modal Preview Surat / Foto */}
       {showPermissionPreviewModal && (

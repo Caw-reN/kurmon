@@ -944,51 +944,26 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    {hasApprovalPermission && isPending && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleApprove(item.id)}
-                          className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-black rounded-lg shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
-                          title="Setujui Surat"
-                        >
-                          <CheckCircle2 size={12} />
-                          <span>ACC</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleReject(item.id)}
-                          className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-black rounded-lg shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
-                          title="Tolak Surat"
-                        >
-                          <X size={12} />
-                          <span>Tolak</span>
-                        </button>
-                      </>
-                    )}
-
-                    {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
-                      <>
-                        <button 
-                          type="button"
-                          onClick={() => handleEdit(item)} 
-                          className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-all cursor-pointer"
-                          title="Edit Data"
-                        >
-                          <Edit2 size={12} />
-                        </button>
-                        <button 
-                          type="button"
-                          onClick={() => handleDelete(item.id)} 
-                          className="p-1.5 bg-slate-100 hover:bg-rose-50 text-rose-600 rounded-lg transition-all cursor-pointer"
-                          title="Hapus Data"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      </>
-                    )}
-                  </div>
+                  {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
+                    <div className="flex items-center gap-1.5">
+                      <button 
+                        type="button"
+                        onClick={() => handleEdit(item)} 
+                        className="p-1.5 bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)]"
+                        title="Edit Data"
+                      >
+                        <Edit2 size={13} />
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => handleDelete(item.id)} 
+                        className="p-1.5 bg-slate-100 text-rose-600 rounded-[var(--ui-radius-small)]"
+                        title="Hapus Data"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -997,21 +972,19 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
       </div>
 
       {/* Seamless Integrated Footer Pagination */}
-      <div className="flex flex-col sm:flex-row justify-between items-center p-3 sm:p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80 gap-2.5">
-        <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto text-xs text-slate-500 font-bold">
-          <div className="flex items-center gap-1.5">
-            <span>Tampilkan</span>
-            <UISelect 
-              value={itemsPerPageSurat} 
-              onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
-              className="px-2 py-1 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500 shadow-xs"
-            >
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </UISelect>
-          </div>
-          <span>dari {filteredItems.length} data</span>
+      <div className="flex flex-col sm:flex-row justify-between items-center p-3.5 px-4 bg-slate-50/60 border-t border-slate-200/80 gap-3">
+        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-xs text-slate-500 font-bold text-center">
+          <span>Tampilkan</span>
+          <UISelect 
+            value={itemsPerPageSurat} 
+            onChange={e => { setItemsPerPageSurat(Number(e.target.value)); setCurrentPageSurat(1); }}
+            className="px-2 py-1 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)] text-slate-700 text-xs font-bold focus:outline-none focus:border-emerald-500 shadow-xs"
+          >
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </UISelect>
+          <span>data dari {filteredItems.length}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <Button 
