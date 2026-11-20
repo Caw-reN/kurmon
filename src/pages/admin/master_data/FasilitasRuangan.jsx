@@ -14,7 +14,7 @@ export default function FasilitasRuangan(props) {
   ];
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full animate-in fade-in duration-300 relative z-10">
+    <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
       
       <div className="space-y-4 mb-4">
         <PageHeader 
@@ -66,7 +66,7 @@ export default function FasilitasRuangan(props) {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="w-full">
         {activeTab ==="ruangan" && (
           <MasterDataRuangan
             rooms={props.rooms}

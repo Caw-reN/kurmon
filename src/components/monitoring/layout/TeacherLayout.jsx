@@ -111,7 +111,7 @@ const TeacherLayout = () => {
       <div className="flex flex-col flex-1 h-screen overflow-hidden relative">
         
         {/* Mobile Header (Hidden on Desktop) */}
-        <header className="md:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between flex-shrink-0 z-10">
+        <header className="md:hidden bg-white border-b border-slate-200 px-4 pt-[max(0.75rem,calc(env(safe-area-inset-top,0px)+0.5rem))] pb-3 flex items-center justify-between flex-shrink-0 z-10">
           <div>
             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">PKL Monitor</p>
             <p className="text-sm font-bold text-[var(--ui-primary)] leading-tight">

@@ -25,7 +25,7 @@ export default function DataPegawai(props) {
   ];
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full animate-in fade-in duration-300 relative z-10">
+    <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
       
       <PageHeader 
         title="Data Pegawai"
@@ -35,7 +35,7 @@ export default function DataPegawai(props) {
       />
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="w-full">
         {currentTab === "guru" && (
           <MasterDataGuru
             {...props}

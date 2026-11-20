@@ -146,7 +146,7 @@ export default function PublicLayout() {
             </div>
 
             {/* Mobile Header (Judul & Tombol Back di Bagian Atas) */}
-            <header className="md:hidden w-full fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between shadow-2xs print:hidden transition-all">
+            <header className="md:hidden w-full fixed top-0 left-0 right-0 z-50 h-[calc(4rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)] bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between shadow-2xs print:hidden transition-all">
               <button 
                 type="button"
                 onClick={() => {
@@ -193,7 +193,7 @@ export default function PublicLayout() {
       })()}
 
       {/* MAIN CONTENT AREA */}
-      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 pt-24 md:pt-36 pb-28 md:pb-16'}`}>
+      <main className={`flex-1 w-full flex flex-col z-30 ${location.pathname === '/' ? 'px-0 pt-0 pb-0' : 'w-full max-w-[1400px] mx-auto px-4 sm:px-6 md:px-8 pt-[calc(5.5rem+env(safe-area-inset-top,0px))] md:pt-36 pb-28 md:pb-16'}`}>
         <Outlet context={{ appSettings, setIsLoginModalOpen, setModalViewMode }} />
       </main>
 

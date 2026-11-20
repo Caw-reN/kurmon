@@ -4548,7 +4548,7 @@ export default function App() {
 
   /* --- APP WRAPPER (Logged In) --- */
   const accessibilityClass = appSettings.touchTargetSize === "besar" ? "accessibility-touch-large" : "";
-  return <div className={`app-shell flex h-screen w-full ${uiFontClass} ${accessibilityClass} overflow-hidden print:h-auto print:overflow-visible print:block bg-background`} style={{
+  return <div className={`app-shell flex h-screen h-[100dvh] w-full ${uiFontClass} ${accessibilityClass} overflow-hidden print:h-auto print:overflow-visible print:block bg-background`} style={{
     ...uiTheme,
     "--ui-primary": appSettings.primaryColor || "#064e3b",
     "--ui-accent": appSettings.themeAccentColor || "#f59e0b",
@@ -4591,7 +4591,7 @@ export default function App() {
 
 
     {/* Main Layout Area */}
-    <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden print:overflow-visible print:block relative z-0 bg-background">
+    <main className="flex-1 flex flex-col min-w-0 h-screen h-[100dvh] overflow-hidden print:overflow-visible print:block relative z-0 bg-background">
       <AdminHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} toggleSidebar={toggleSidebar} isSidebarCollapsed={isSidebarCollapsed} onOpenProfile={() => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); }} currentUser={currentUser} activeRoleLabel={activeRoleLabel} appSettings={appSettings} workspaceGuide={workspaceGuide} onOpenGuide={() => setShowGuideModal(true)} activeTab={activeTab} dashboardMessages={dashboardMessages} schedule={schedule} handleLogout={handleLogout} />
 
       <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto px-2.5 sm:px-4 md:px-6 pb-[calc(84px+env(safe-area-inset-bottom,0px))] md:pb-6 pt-2.5 sm:pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>

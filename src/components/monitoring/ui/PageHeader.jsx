@@ -39,7 +39,7 @@ export default function PageHeader({
 
       {/* Mobile Sub-Nav Tabs (Shown on Mobile screens when not plain and mappedTabs has items) */}
       {!isPlain && mappedTabs.length > 0 && (
-        <div className="sm:hidden w-full -mt-0.5 mb-1.5">
+        <div className="sm:hidden w-full pt-1 mb-2">
           <div className={cn("grid gap-1.5 w-full", mappedTabs.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
             {mappedTabs.map((tab, idx) => {
               const TabIcon = tab.icon;

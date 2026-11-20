@@ -238,6 +238,8 @@
     color: var(--ui-text, #0f172a) !important;
     border-bottom: 1px solid var(--ui-border-soft, #e2e8f0) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    min-height: calc(3.5rem + env(safe-area-inset-top, 0px)) !important;
   }
   .header-primary header h1,
   .header-primary header p,
@@ -662,6 +664,8 @@ aside {
   background: rgba(255, 255, 255, 0.92);
   border-color: rgba(212, 221, 233, 0.6);
   backdrop-filter: blur(24px);
+  padding-top: env(safe-area-inset-top, 0px);
+  min-height: calc(3.5rem + env(safe-area-inset-top, 0px));
 }
 
 .app-content {

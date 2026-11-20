@@ -382,7 +382,7 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
   const notifCount = (todayClasses?.length || 0) + unreadMessagesCount;
 
   return (
-    <header className="app-header flex h-14 bg-background px-3 sm:px-5 md:px-8 items-center justify-between shrink-0 relative z-[60] border-none shadow-none !border-none !shadow-none print:hidden">
+    <header className="app-header flex min-h-[calc(3.5rem+env(safe-area-inset-top,0px))] h-[calc(3.5rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)] bg-background px-3 sm:px-5 md:px-8 items-center justify-between shrink-0 relative z-[60] border-b border-slate-200/80 shadow-2xs print:hidden">
       
       {/* Left: Desktop Sidebar Toggle & Brand/Keterangan */}
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 mr-2">

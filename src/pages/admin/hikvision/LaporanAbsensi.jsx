@@ -16,7 +16,7 @@ export default function LaporanAbsensi({ classes = [], students = [] }) {
   ];
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full animate-in fade-in duration-300 relative z-10">
+    <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
       <PageHeader 
         title="Laporan Kehadiran"
         description="Pantau dan ekspor laporan kehadiran dari mesin absensi Hikvision."
@@ -27,7 +27,7 @@ export default function LaporanAbsensi({ classes = [], students = [] }) {
       />
 
       {/* Content Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="w-full">
         {activeTab ==="guru" && <HikvisionTeacherReport isNested={true} />}
         {activeTab ==="karyawan" && <HikvisionStaffReport classes={classes} isNested={true} />}
         {activeTab ==="siswa" && <HikvisionStudentReport classes={classes} students={students} isNested={true} />}
