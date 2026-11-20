@@ -4529,10 +4529,6 @@ const server = createServer(async (req, res) => {
       }
       return;
     }
-      }
-      return;
-    }
-
 
     // === API: CLOUDFLARE R2 MANUAL BACKUP ===
     if (req.method === "POST" && url.pathname === "/api/backup-r2") {
