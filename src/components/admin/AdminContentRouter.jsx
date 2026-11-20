@@ -9,6 +9,7 @@ const ManajemenPiket = lazy(() => import('../../pages/kedisiplinan/ManajemenPike
 const BKDashboard = lazy(() => import('../../pages/kedisiplinan/BKDashboard.jsx'));
 const KedisiplinanHub = lazy(() => import('../../pages/kedisiplinan/KedisiplinanHub.jsx'));
 const JurnalHarianGuru = lazy(() => import('../../pages/kedisiplinan/JurnalHarianGuru.jsx'));
+const RekapJurnalKelas = lazy(() => import('../../pages/kedisiplinan/RekapJurnalKelas.jsx'));
 const CatatanWaliKelas = lazy(() => import('../../pages/kedisiplinan/CatatanWaliKelas.jsx'));
 
 
@@ -897,7 +898,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </Suspense>;
       case"rekap_jurnal_kelas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat rekap jurnal kelas...</div>}>
-          <JurnalHarianGuru classes={classes} teachers={teachers} schedule={schedule} onBack={() => setActiveTab('dashboard')} initialView="rekap_kelas" />
+          <RekapJurnalKelas classes={classes} teachers={teachers} schedule={schedule} onBack={() => setActiveTab('dashboard')} />
         </Suspense>;
       case"catatan_walikelas":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat catatan walas...</div>}>

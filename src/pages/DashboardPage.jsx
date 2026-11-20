@@ -1943,7 +1943,7 @@ export default function DashboardPage({
             <div className="flex items-center gap-2 pt-0.5">
               <button
                 type="button"
-                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || 'absensi')}
+                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || (isWalas ? 'walas_report' : 'kedisiplinan_absensi'))}
                 className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
               >
                 <CheckCircle2 size={14} strokeWidth={2.5} />
@@ -3355,7 +3355,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {/* ── Panel Guru ── */}
         {canSeeTeacherAttendance && (
           <button
-            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
+            type="button"
+            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || (isWaka && activeDivision === 'kurikulum') ? 'laporan_absensi' : 'absensiguru')}
             className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
@@ -3415,7 +3416,8 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {/* ── Panel Karyawan ── */}
         {canSeeTeacherAttendance && (
           <button
-            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || isWaka ? 'laporan_absensi' : 'absensiguru')}
+            type="button"
+            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek ? 'laporan_absensi' : 'absensiguru')}
             className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
@@ -3474,7 +3476,18 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
           const totalSiswaDenominator = Math.max(siswaStats.totalSiswaInSchool || siswaStats.total || 1, 1);
           return (
             <button
-              onClick={() => setActiveTab(isSuperAdmin || isWaka || isKepsek ? 'kedisiplinan_absensi' : (isTU || isKaryawan ? 'laporan_absensi' : 'absensi'))}
+              type="button"
+              onClick={() => {
+                if (isWalasMember) {
+                  setActiveTab('walas_report');
+                } else if (isSuperAdmin || isKepsek || isKesiswaanStaff || isBKMember || (isWaka && activeDivision === 'kesiswaan')) {
+                  setActiveTab('hikvision_report_siswa');
+                } else if (isTU || isKaryawan) {
+                  setActiveTab('hikvision_report_siswa');
+                } else {
+                  setActiveTab('kedisiplinan_absensi');
+                }
+              }}
               className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
             >
               <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1.5 sm:gap-2">
