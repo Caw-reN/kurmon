@@ -8,7 +8,14 @@ function Table({
   ...props
 }) {
   return (
-    <div data-slot="table-container" className="relative w-full overflow-x-auto">
+    <div
+      data-slot="table-container"
+      tabIndex={0}
+      role="region"
+      aria-label={props["aria-label"] || "Tabel data"}
+      style={{ containerType: "inline-size" }}
+      className="relative w-full overflow-x-auto overscroll-x-contain focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 rounded-xl"
+    >
       <table
         data-slot="table"
         className={cn("w-full caption-bottom text-xs", className)}
@@ -24,7 +31,7 @@ function TableHeader({
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn("sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xs [&_tr]:border-b", className)}
       {...props} />
   );
 }
@@ -74,6 +81,7 @@ function TableHead({
   return (
     <th
       data-slot="table-head"
+      scope="col"
       className={cn("h-11 px-4 text-left align-middle font-bold text-xs uppercase tracking-wider text-muted-foreground/80 whitespace-nowrap [&:has([role=checkbox])]:pr-0",
         className
       )}

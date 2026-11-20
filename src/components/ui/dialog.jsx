@@ -22,7 +22,7 @@ function DialogOverlay({ className, onClick, ...props }) {
   return (
     <div
       data-slot="dialog-overlay"
-      className={cn('fixed inset-0 isolate z-50 bg-black/70 backdrop-blur-sm', className)}
+      className={cn('fixed inset-0 isolate z-50 bg-slate-950/60 backdrop-blur-xs overscroll-contain overflow-hidden', className)}
       onClick={onClick}
       {...props}
     />
@@ -45,8 +45,10 @@ function DialogContent({ className, children, showCloseButton = true, onClose, .
       <DialogOverlay onClick={onClose} />
       <div
         ref={ref}
+        role="dialog"
+        aria-modal="true"
         data-slot="dialog-content"
-        className={cn('fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[var(--ui-radius-card)] bg-white p-4 text-xs/relaxed text-slate-800 shadow-[var(--ui-shadow-modal)] border border-[var(--ui-border-muted)] outline-none animate-in fade-in-0 zoom-in-95',
+        className={cn('fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[var(--ui-radius-card)] bg-white p-4 text-xs/relaxed text-slate-800 shadow-[var(--ui-shadow-modal)] border border-[var(--ui-border-muted)] outline-none overscroll-contain animate-in fade-in-0 zoom-in-95',
           className
         )}
         {...props}

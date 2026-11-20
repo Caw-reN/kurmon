@@ -410,7 +410,7 @@ export function useAdminTableRenderer(context) {
 
           {/* Table */}
           <div className="overflow-x-auto flex-1">
-            <Table>
+            <Table label={title}>
               <TableHeader className="bg-muted/50 sticky top-0 z-10">
                 <TableRow className="border-border">
                   <TableHead className="w-10 text-center px-3">
