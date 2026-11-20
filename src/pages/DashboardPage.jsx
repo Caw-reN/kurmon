@@ -939,40 +939,41 @@ export default function DashboardPage({
         { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
       ];
     } else if (isWalas) {
-      // Guru yang bertugas sebagai Wali Kelas
+      // Guru yang bertugas sebagai Wali Kelas: Fokus pada siswa binaan & kegiatan KBM
       shortcuts = [
+        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-emerald-50 text-emerald-600", tab: "walas_report" },
+        { label: "Surat Izin/Sakit", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
+        { label: "Catatan Walas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
+        { label: "Rekap Jurnal", icon: "/icons/092-file.svg", color: "bg-cyan-50 text-cyan-600", tab: "rekap_jurnal_kelas" },
         { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
-        { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", tab: "walas_report" },
-        { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
-        { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "kedisiplinan_absensi" },
-        { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
+        { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-indigo-50 text-indigo-600", tab: "generate" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
-        { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
-        ...(canPiket ? [{ label: "Piket & Disiplin", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
-        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
-        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-rose-50 text-rose-600", tab: "akademik" },
       ];
     } else {
       // Guru Pengajar Biasa (Bukan Walas, Bukan Tim Khusus)
       shortcuts = [
-        { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
-        { label: "Jurnal", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", tab: "jurnal_harian" },
+        { label: "Jadwal KBM", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600", tab: "generate" },
         { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", tab: "silabusguru" },
-        { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
+        { label: "Presensi Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "absensiguru" },
         { label: "Ketersediaan", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "ketersediaan" },
-        { label: "Beban Mengajar", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600", tab: "beban" },
-        ...(canPiket ? [{ label: "Piket & Disiplin", icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", tab: "kedisiplinan_piket" }] : []),
-        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
-        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" },
+        { label: "Beban KBM", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600", tab: "beban" },
+        { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-rose-50 text-rose-600", tab: "akademik" },
+        { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-cyan-50 text-cyan-600", tab: "pesan" },
       ];
     }
-    return ensureFourOrEightShortcuts(shortcuts, checkIsAllowed, [
+    const fallbackPriority = isWalas ? [
+      { label: "Rekap Jurnal", icon: "/icons/092-file.svg", color: "bg-cyan-50 text-cyan-600", tab: "rekap_jurnal_kelas" },
+      { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", tab: "hikvision_report_siswa" },
+      { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" }
+    ] : [
       { label: "Ketersediaan", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600", tab: "ketersediaan" },
       { label: "Beban KBM", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600", tab: "beban" },
-      { label: "Catatan Kelas", icon: "/icons/023-pencil.svg", color: "bg-amber-50 text-amber-600", tab: "catatan_walikelas" },
-      { label: "Kehadiran Siswa", icon: "/icons/079-checklist.svg", color: "bg-cyan-50 text-cyan-600", tab: "kedisiplinan_absensi" },
-      { label: "Prestasi Siswa", icon: "/icons/063-follow.svg", color: "bg-violet-50 text-violet-600", tab: "riwayat_prestasi" },
-    ]);
+      { label: "Kalender", icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", tab: "akademik" },
+      { label: "Pesan", icon: "/icons/087-chat.svg", color: "bg-indigo-50 text-indigo-600", tab: "pesan" }
+    ];
+    return ensureFourOrEightShortcuts(shortcuts, checkIsAllowed, fallbackPriority);
   }, [isTeacher, currentUser?.subrole, currentUser?.isWalas, currentUser?.walasClass, checkIsAllowed]);
 
   const myStudentsCount = useMemo(() => {
@@ -2223,32 +2224,32 @@ export default function DashboardPage({
                 ];
               } else if (isWalas) {
                 dynamicShortcuts = [
-                  { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
                   { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                  { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
-                  { label: "Izin & Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                  { label: "Surat Izin/Sakit", icon: "/icons/079-checklist.svg", tab: "kedisiplinan_absensi" },
+                  { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
+                  { label: "Rekap Jurnal", icon: "/icons/092-file.svg", tab: "rekap_jurnal_kelas" },
                   { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
                   { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
-                  { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
+                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
+                  { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
                 ];
               } else if (activeRole === 'karyawan') {
                 dynamicShortcuts = [
-                  { label: "Absen Pegawai", icon: "/icons/045-account.svg", tab: "absensiguru" },
+                  { label: "Presensi Saya", icon: "/icons/045-account.svg", tab: "absensiguru" },
                   { label: "Rekap Kehadiran", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
                   { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
                   { label: "Pengumuman", icon: "/icons/087-chat.svg", tab: "pesan" },
                 ];
               } else {
                 dynamicShortcuts = [
-                  { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
-                  { label: "Jurnal", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
-                  { label: "Absensi", icon: "/icons/045-account.svg", tab: "absensi" },
-                  { label: "Catatan", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                  { label: "Piket", icon: "/icons/013-shield.svg", tab: "kedisiplinan_piket" },
+                  { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                  { label: "Jadwal KBM", icon: "/icons/011-schedule.svg", tab: "generate" },
+                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
+                  { label: "Presensi Guru", icon: "/icons/079-checklist.svg", tab: "absensiguru" },
+                  { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
+                  { label: "Beban KBM", icon: "/icons/035-graph bar.svg", tab: "beban" },
                   { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                  { label: "Modul", icon: "/icons/066-education.svg", tab: "modul_ajar" },
-                  { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                  { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                 ];
               }
 
