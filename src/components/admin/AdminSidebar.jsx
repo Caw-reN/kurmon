@@ -611,7 +611,10 @@ export default function AdminSidebar({
       if (item.id === 'dashboard') continue; // Rendered explicitly at the top of menu
       if (item.specialCondition === 'walas_only') {
         if (isPureWalas) continue;
-        if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
+        const isWalasPermitted = typeof checkIsAllowed === 'function'
+          ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
+          : true;
+        if (!isWalasPermitted) {
           continue;
         }
       }
@@ -622,7 +625,10 @@ export default function AdminSidebar({
       }
 
       // Pastikan item yang tidak diizinkan untuk role ini tidak masuk ke grup menu
-      if (typeof checkIsAllowed === 'function' && !checkIsAllowed(item.id, item.featureKey)) {
+      const isItemPermitted = typeof checkIsAllowed === 'function'
+        ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
+        : true;
+      if (!isItemPermitted) {
         continue;
       }
 
