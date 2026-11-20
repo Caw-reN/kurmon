@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore';
 import { useAuthToken } from '../../../hooks/useAuthToken.js';
-import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table } from 'lucide-react';
+import { FileText, UserX, FileSpreadsheet, Search, UserCheck, AlertTriangle, X, CheckCircle2, ChevronLeft, PieChart, Users, Wand2, ArrowUpDown, Printer, Calendar, Edit2, ExternalLink, Clock, Eye, Trash2, RefreshCw, Zap, AlertCircle, Award, Settings2, Sparkles, Info, Shield, Filter, LayoutGrid, Table, Activity } from 'lucide-react';
 import { useAppStore } from '../../../store/useAppStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
@@ -238,6 +238,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   }, [viewMode, selectedWeek, daysInMonth, filter.month, filter.year]);
 
   const [mobileViewMode, setMobileViewMode] = useState('card');
+  const [todayCardFilter, setTodayCardFilter] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'tidak_masuk'
   const [selectedStudentDetail, setSelectedStudentDetail] = useState(null);
   const [selectedCell, setSelectedCell] = useState(null); // { nis, name, day }
   const [permissionForm, setPermissionForm] = useState({ status: "Sakit", keterangan: "", fileData: null, fileName: null, fileSizeKB: null });
@@ -1106,7 +1107,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   // Reset page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, filter.month, filter.year, filter.class_name, sortBy, sortDir]);
+  }, [search, filter.month, filter.year, filter.class_name, sortBy, sortDir, todayCardFilter]);
 
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [printPeriod, setPrintPeriod] = useState("bulanan"); // "harian" | "mingguan" | "bulanan" | "semester"
@@ -1630,6 +1631,180 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
         && (Boolean(dayData.in) || Boolean(dayData.out) || dayData.status === "Hadir");
     });
   }, [data, isCurrentMonthYear, todayNum]);
+
+  const getTodayAttendanceSummary = useCallback((student) => {
+    if (!student || !student.days) return null;
+    const todayDateStr = `${filter.year}-${String(filter.month).padStart(2, '0')}-${String(todayNum).padStart(2, '0')}`;
+    const holidayInfo = getHolidayInfoForDate(academicCalendar, calendarCategories, todayDateStr, student.class_name);
+    const dayData = student.days[todayNum];
+
+    // Cek jika hari ini libur sekolah resmi / kalender
+    const isHoliday = Boolean(holidayInfo) || isHolidayOrWeekendToday || dayData?.isHoliday || dayData?.status === "Libur" || dayData?.in === "Libur";
+
+    if (!dayData) {
+      if (isHoliday) {
+        return {
+          type: 'holiday',
+          label: 'HARI LIBUR SEKOLAH',
+          detail: holidayInfo?.reason || 'Bebas KBM / Kalender Akademik',
+          badgeText: 'Libur',
+          badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+          dotClass: 'bg-slate-400',
+          inTime: null
+        };
+      }
+      return {
+        type: 'absent',
+        label: 'BELUM MASUK / TIDAK HADIR',
+        detail: 'Belum ada data scan masuk hari ini',
+        badgeText: 'Belum Masuk',
+        badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+        dotClass: 'bg-rose-500',
+        inTime: null
+      };
+    }
+
+    const inTime = formatAttendanceTime(dayData.in);
+    const outTime = formatAttendanceTime(dayData.out);
+    const status = String(dayData.status || '').trim();
+
+    if (isHoliday && !inTime && !outTime) {
+      return {
+        type: 'holiday',
+        label: 'HARI LIBUR SEKOLAH',
+        detail: holidayInfo?.reason || dayData.note || 'Bebas KBM / Kalender Akademik',
+        badgeText: 'Libur',
+        badgeClass: 'bg-slate-100 text-slate-700 border-slate-200',
+        dotClass: 'bg-slate-400',
+        inTime: null
+      };
+    }
+
+    if (status === 'Sakit') {
+      return {
+        type: 'sakit',
+        label: 'SAKIT HARI INI',
+        detail: dayData.note ? `Ket: ${dayData.note}` : 'Surat / keterangan sakit tercatat',
+        badgeText: 'Sakit',
+        badgeClass: 'bg-sky-50 text-sky-800 border-sky-200',
+        dotClass: 'bg-sky-500',
+        inTime: null
+      };
+    }
+
+    if (status === 'Izin') {
+      return {
+        type: 'izin',
+        label: 'IZIN HARI INI',
+        detail: dayData.note ? `Ket: ${dayData.note}` : 'Izin resmi tercatat di sistem',
+        badgeText: 'Izin',
+        badgeClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+        dotClass: 'bg-indigo-500',
+        inTime: null
+      };
+    }
+
+    if (status === 'Dispensasi' || String(dayData.note || '').toLowerCase().includes('dispensasi')) {
+      return {
+        type: 'dispensasi',
+        label: 'DISPENSASI SEKOLAH',
+        detail: dayData.note || 'Tugas / kegiatan perwakilan sekolah',
+        badgeText: 'Dispensasi',
+        badgeClass: 'bg-teal-50 text-teal-800 border-teal-200',
+        dotClass: 'bg-teal-500',
+        inTime: inTime || null
+      };
+    }
+
+    if (status === 'PKL' || status === 'PraPKL' || dayData.isPkl) {
+      return {
+        type: 'pkl',
+        label: status === 'PraPKL' ? 'PRA-PKL' : 'PKL (PRAKTIK INDUSTRI)',
+        detail: dayData.note || 'Praktik Kerja Lapangan di industri',
+        badgeText: 'PKL',
+        badgeClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+        dotClass: 'bg-indigo-500',
+        inTime: inTime || null
+      };
+    }
+
+    if (status === 'Alpa' || dayData.in === 'Alpa') {
+      return {
+        type: 'absent',
+        label: 'ALPA (TIDAK MASUK)',
+        detail: dayData.note || 'Tidak hadir tanpa keterangan',
+        badgeText: 'Alpa',
+        badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+        dotClass: 'bg-rose-500',
+        inTime: null
+      };
+    }
+
+    if (dayData.isLate || status === 'Terlambat') {
+      return {
+        type: 'terlambat',
+        label: inTime ? `TERLAMBAT MASUK (${inTime} WIB)` : 'TERLAMBAT MASUK',
+        detail: outTime ? `Scan Pulang: ${outTime} WIB` : 'Sudah tap masuk mesin biometrik',
+        badgeText: 'Terlambat',
+        badgeClass: 'bg-amber-50 text-amber-800 border-amber-300',
+        dotClass: 'bg-amber-500',
+        inTime: inTime || null
+      };
+    }
+
+    if (inTime || status === 'Hadir') {
+      return {
+        type: 'hadir',
+        label: inTime ? `HADIR MASUK (${inTime} WIB)` : 'HADIR TEPAT WAKTU',
+        detail: outTime ? `Scan Pulang: ${outTime} WIB` : 'Tap masuk biometrik berhasil',
+        badgeText: 'Masuk Tepat',
+        badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+        dotClass: 'bg-emerald-500',
+        inTime: inTime || null
+      };
+    }
+
+    if (!inTime && outTime) {
+      return {
+        type: 'terlambat',
+        label: `TAP PULANG SAJA (${outTime} WIB)`,
+        detail: 'Tidak ada data tap masuk pagi',
+        badgeText: 'Tdk Absen Pagi',
+        badgeClass: 'bg-amber-50 text-amber-900 border-amber-300',
+        dotClass: 'bg-amber-500',
+        inTime: null
+      };
+    }
+
+    return {
+      type: 'absent',
+      label: 'BELUM MASUK / TIDAK HADIR',
+      detail: 'Belum ada data scan masuk hari ini',
+      badgeText: 'Belum Masuk',
+      badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+      dotClass: 'bg-rose-500',
+      inTime: null
+    };
+  }, [filter.year, filter.month, todayNum, academicCalendar, calendarCategories, isHolidayOrWeekendToday]);
+
+  const activeDisplayData = React.useMemo(() => {
+    if (!isCurrentMonthYear || todayCardFilter === 'all') return filteredData;
+    return filteredData.filter(d => {
+      const summary = getTodayAttendanceSummary(d);
+      if (!summary) return true;
+      if (todayCardFilter === 'hadir') return summary.type === 'hadir';
+      if (todayCardFilter === 'terlambat') return summary.type === 'terlambat';
+      if (todayCardFilter === 'tidak_masuk') return summary.type === 'absent' || summary.type === 'sakit' || summary.type === 'izin' || summary.type === 'alpa';
+      return true;
+    });
+  }, [filteredData, isCurrentMonthYear, todayCardFilter, getTodayAttendanceSummary]);
+
+  const cardPaginatedData = React.useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return activeDisplayData.slice(startIndex, startIndex + itemsPerPage);
+  }, [activeDisplayData, currentPage, itemsPerPage]);
+
+  const cardTotalPages = Math.ceil(activeDisplayData.length / itemsPerPage) || 1;
 
   if (user?.isWalas && !user.walasClass && !isKesiswaanOrAdmin) {
     return (
@@ -2568,89 +2743,226 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
             {/* Mobile Compact Card View */}
             {mobileViewMode === 'card' && (
-              <div className="md:hidden p-2.5 space-y-2 bg-slate-50/50">
-                {loading ? (
-                  <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
-                    Memuat data absen...
-                  </div>
-                ) : paginatedData.length === 0 ? (
-                  <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
-                    Tidak ada data untuk filter ini.
-                  </div>
-                ) : (
-                  paginatedData.map((d, idx) => {
-                    const v = checkViolation(d, daysToRender);
-                    return (
-                      <div
-                        key={d.nis}
-                        onClick={() => setSelectedStudentDetail(d)}
-                        className={`p-3 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white hover:border-emerald-300 ${v.level === 4 ? 'border-rose-300 bg-rose-50/20' :
-                          v.level === 3 ? 'border-rose-200 bg-rose-50/10' :
-                            v.level === 2 ? 'border-orange-200 bg-orange-50/10' :
-                              v.level === 1 ? 'border-amber-200 bg-amber-50/10' :
-                                'border-slate-200/90'
-                          }`}
+              <div className="md:hidden flex flex-col bg-slate-50/50">
+                {/* Mobile Filter Chips Status Hari Ini */}
+                {isCurrentMonthYear && (
+                  <div className="px-3 pt-2.5 pb-2 border-b border-slate-200/80 bg-white">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-black text-slate-700 uppercase tracking-wider">
+                        Filter Status Hari Ini
+                      </span>
+                      <span className="text-[9px] font-bold text-slate-400">
+                        {todayNum} {monthOptions.find(m => m.value === filter.month)?.label || ''} {filter.year}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                      <button
+                        type="button"
+                        onClick={() => { setTodayCardFilter('all'); setCurrentPage(1); }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 cursor-pointer ${
+                          todayCardFilter === 'all'
+                            ? 'bg-slate-800 text-white border-slate-800 shadow-2xs'
+                            : 'bg-slate-50 text-slate-600 border-slate-200/90 hover:bg-slate-100'
+                        }`}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-black text-slate-400">
-                                #{(currentPage - 1) * itemsPerPage + idx + 1}
-                              </span>
-                              <h4 className="font-black text-xs text-slate-900 truncate">
-                                {d.name}
-                              </h4>
-                              {d.is_mutasi && (
-                                <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-rose-100 text-rose-700 border border-rose-200">
-                                  MUTASI
-                                </span>
-                              )}
-                              {v.level > 0 && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-50 text-amber-700 border border-amber-200">
-                                  <AlertTriangle size={10} className="shrink-0 text-amber-600" />
-                                  <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pelanggaran Berat' : v.level === 2 ? 'Pelanggaran Sedang' : 'Peringatan'}</span>
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-[10px] font-semibold text-slate-500 mt-0.5 truncate">
-                              {d.class_name || 'Tanpa Kelas'} {d.nis ? `• NIS ${d.nis}` : ''}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-1 shrink-0">
-                            <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/70">
-                              Detail &rsaquo;
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* 5 Compact Stat Badges */}
-                        <div className="grid grid-cols-5 gap-1.5 mt-2.5 pt-2 border-t border-slate-100">
-                          <div className="text-center bg-emerald-50/70 border border-emerald-100 rounded-lg py-1">
-                            <div className="text-[8px] font-black uppercase text-emerald-700">Hadir</div>
-                            <div className="text-xs font-black text-emerald-800">{d.total_hadir || 0}</div>
-                          </div>
-                          <div className="text-center bg-amber-50/70 border border-amber-100 rounded-lg py-1">
-                            <div className="text-[8px] font-black uppercase text-amber-700">Telat</div>
-                            <div className="text-xs font-black text-amber-800">{d.total_terlambat || 0}</div>
-                          </div>
-                          <div className="text-center bg-indigo-50/70 border border-indigo-100 rounded-lg py-1">
-                            <div className="text-[8px] font-black uppercase text-indigo-700">Izin</div>
-                            <div className="text-xs font-black text-indigo-800">{d.total_izin || 0}</div>
-                          </div>
-                          <div className="text-center bg-sky-50/70 border border-sky-100 rounded-lg py-1">
-                            <div className="text-[8px] font-black uppercase text-sky-700">Sakit</div>
-                            <div className="text-xs font-black text-sky-800">{d.total_sakit || 0}</div>
-                          </div>
-                          <div className="text-center bg-rose-50/70 border border-rose-100 rounded-lg py-1">
-                            <div className="text-[8px] font-black uppercase text-rose-700">Alpa</div>
-                            <div className="text-xs font-black text-rose-800">{d.total_alpa || 0}</div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
+                        Semua ({filteredData.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTodayCardFilter('hadir'); setCurrentPage(1); }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+                          todayCardFilter === 'hadir'
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                            : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                        }`}
+                      >
+                        <CheckCircle2 size={11} strokeWidth={2.4} />
+                        <span>Hadir ({presentStudentsToday.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTodayCardFilter('terlambat'); setCurrentPage(1); }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+                          todayCardFilter === 'terlambat'
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                            : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                        }`}
+                      >
+                        <Clock size={11} strokeWidth={2.4} />
+                        <span>Telat ({lateStudentsToday.length})</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTodayCardFilter('tidak_masuk'); setCurrentPage(1); }}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black border transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
+                          todayCardFilter === 'tidak_masuk'
+                            ? 'bg-rose-600 text-white border-rose-600 shadow-2xs'
+                            : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
+                        }`}
+                      >
+                        <UserX size={11} strokeWidth={2.4} />
+                        <span>Belum Masuk ({absentStudentsToday.length})</span>
+                      </button>
+                    </div>
+                  </div>
                 )}
+
+                <div className="p-2.5 space-y-2.5">
+                  {loading ? (
+                    <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
+                      Memuat data absen...
+                    </div>
+                  ) : cardPaginatedData.length === 0 ? (
+                    <div className="py-12 text-center text-slate-500 font-bold text-xs bg-white rounded-xl border border-slate-200">
+                      Tidak ada data siswa untuk filter ini.
+                    </div>
+                  ) : (
+                    cardPaginatedData.map((d, idx) => {
+                      const v = checkViolation(d, daysToRender);
+                      const todaySummary = getTodayAttendanceSummary(d);
+                      const isTodayPresent = todaySummary?.type === 'hadir';
+                      const isTodayLate = todaySummary?.type === 'terlambat';
+                      const isTodayAbsent = todaySummary?.type === 'absent';
+
+                      return (
+                        <div
+                          key={d.nis}
+                          onClick={() => setSelectedStudentDetail(d)}
+                          className={`p-3 rounded-xl border transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-2xs bg-white ${
+                            isTodayPresent ? 'border-emerald-200/90 hover:border-emerald-400' :
+                            isTodayLate ? 'border-amber-300/90 hover:border-amber-400 bg-amber-50/15' :
+                            isTodayAbsent ? 'border-rose-200 hover:border-rose-300 bg-rose-50/15' :
+                            'border-slate-200/90 hover:border-slate-300'
+                          }`}
+                        >
+                          {/* Baris Atas: Nomor, Nama Siswa, & Tombol Detail */}
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[10px] font-black text-slate-400 shrink-0">
+                                  #{(currentPage - 1) * itemsPerPage + idx + 1}
+                                </span>
+                                <h4 className="font-black text-xs text-slate-900 truncate">
+                                  {d.name}
+                                </h4>
+                                {d.is_mutasi && (
+                                  <span className="px-1.5 py-0.2 text-[8px] font-black uppercase rounded bg-rose-100 text-rose-700 border border-rose-200">
+                                    MUTASI
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                <p className="text-[10px] font-semibold text-slate-500 truncate">
+                                  {d.class_name || 'Tanpa Kelas'} {d.nis ? `• NIS ${d.nis}` : ''}
+                                </p>
+                                {v.level > 0 && (
+                                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8.5px] font-black bg-amber-50 text-amber-700 border border-amber-200">
+                                    <AlertTriangle size={10} className="shrink-0 text-amber-600" />
+                                    <span>{v.level === 4 ? 'SP' : v.level === 3 ? 'Pelanggaran Berat' : v.level === 2 ? 'Pelanggaran Sedang' : 'Peringatan'}</span>
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <span className="text-[9.5px] font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80">
+                                Detail &rsaquo;
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* HIGHLIGHT UTAMA: Status Presensi Hari Ini */}
+                          {todaySummary && (
+                            <div className={`p-2.5 rounded-lg border flex items-center justify-between gap-2 mb-2.5 shadow-2xs ${
+                              todaySummary.type === 'hadir'
+                                ? 'bg-emerald-50/90 border-emerald-200/90 text-emerald-950'
+                                : todaySummary.type === 'terlambat'
+                                ? 'bg-amber-50/90 border-amber-300/90 text-amber-950'
+                                : todaySummary.type === 'sakit'
+                                ? 'bg-sky-50/90 border-sky-200/90 text-sky-950'
+                                : todaySummary.type === 'izin'
+                                ? 'bg-indigo-50/90 border-indigo-200/90 text-indigo-950'
+                                : todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl'
+                                ? 'bg-teal-50/90 border-teal-200/90 text-teal-950'
+                                : todaySummary.type === 'holiday'
+                                ? 'bg-slate-50 border-slate-200 text-slate-800'
+                                : 'bg-rose-50/90 border-rose-200/90 text-rose-950'
+                            }`}>
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                                  todaySummary.type === 'hadir' ? 'bg-emerald-100 border-emerald-300 text-emerald-700' :
+                                  todaySummary.type === 'terlambat' ? 'bg-amber-100 border-amber-300 text-amber-700' :
+                                  todaySummary.type === 'sakit' ? 'bg-sky-100 border-sky-300 text-sky-700' :
+                                  todaySummary.type === 'izin' ? 'bg-indigo-100 border-indigo-300 text-indigo-700' :
+                                  todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl' ? 'bg-teal-100 border-teal-300 text-teal-700' :
+                                  todaySummary.type === 'holiday' ? 'bg-slate-100 border-slate-300 text-slate-600' :
+                                  'bg-rose-100 border-rose-300 text-rose-700'
+                                }`}>
+                                  {todaySummary.type === 'hadir' && <CheckCircle2 size={16} strokeWidth={2.4} />}
+                                  {todaySummary.type === 'terlambat' && <Clock size={16} strokeWidth={2.4} />}
+                                  {todaySummary.type === 'sakit' && <Activity size={16} strokeWidth={2.4} />}
+                                  {todaySummary.type === 'izin' && <FileText size={16} strokeWidth={2.4} />}
+                                  {(todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl') && <Zap size={16} strokeWidth={2.4} />}
+                                  {todaySummary.type === 'holiday' && <Calendar size={16} strokeWidth={2.4} />}
+                                  {todaySummary.type === 'absent' && <UserX size={16} strokeWidth={2.4} />}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400">Hari Ini:</span>
+                                    <span className="text-[11.5px] font-black truncate">{todaySummary.label}</span>
+                                  </div>
+                                  <p className="text-[9.5px] font-medium opacity-80 truncate mt-0.5">{todaySummary.detail}</p>
+                                </div>
+                              </div>
+
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-black shrink-0 border ${
+                                todaySummary.type === 'hadir' ? 'bg-emerald-100/80 text-emerald-800 border-emerald-300' :
+                                todaySummary.type === 'terlambat' ? 'bg-amber-100/80 text-amber-900 border-amber-300' :
+                                todaySummary.type === 'sakit' ? 'bg-sky-100/80 text-sky-800 border-sky-300' :
+                                todaySummary.type === 'izin' ? 'bg-indigo-100/80 text-indigo-800 border-indigo-300' :
+                                todaySummary.type === 'dispensasi' || todaySummary.type === 'pkl' ? 'bg-teal-100/80 text-teal-800 border-teal-300' :
+                                todaySummary.type === 'holiday' ? 'bg-slate-100 text-slate-700 border-slate-300' :
+                                'bg-rose-100/80 text-rose-800 border-rose-300'
+                              }`}>
+                                {todaySummary.badgeText}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* 5 Compact Stat Badges (Akumulasi Bulan Ini) */}
+                          <div className="pt-2 border-t border-slate-100">
+                            <div className="flex items-center justify-between text-[8px] font-extrabold uppercase tracking-wider text-slate-400 mb-1.5">
+                              <span>Akumulasi Bulan Ini</span>
+                              <span>{monthOptions.find(m => m.value === filter.month)?.label || ''} {filter.year}</span>
+                            </div>
+                            <div className="grid grid-cols-5 gap-1.5">
+                              <div className="text-center bg-emerald-50/70 border border-emerald-100 rounded-lg py-1">
+                                <div className="text-[8px] font-black uppercase text-emerald-700">Hadir</div>
+                                <div className="text-xs font-black text-emerald-800">{d.total_hadir || 0}</div>
+                              </div>
+                              <div className="text-center bg-amber-50/70 border border-amber-100 rounded-lg py-1">
+                                <div className="text-[8px] font-black uppercase text-amber-700">Telat</div>
+                                <div className="text-xs font-black text-amber-800">{d.total_terlambat || 0}</div>
+                              </div>
+                              <div className="text-center bg-indigo-50/70 border border-indigo-100 rounded-lg py-1">
+                                <div className="text-[8px] font-black uppercase text-indigo-700">Izin</div>
+                                <div className="text-xs font-black text-indigo-800">{d.total_izin || 0}</div>
+                              </div>
+                              <div className="text-center bg-sky-50/70 border border-sky-100 rounded-lg py-1">
+                                <div className="text-[8px] font-black uppercase text-sky-700">Sakit</div>
+                                <div className="text-xs font-black text-sky-800">{d.total_sakit || 0}</div>
+                              </div>
+                              <div className="text-center bg-rose-50/70 border border-rose-100 rounded-lg py-1">
+                                <div className="text-[8px] font-black uppercase text-rose-700">Alpa</div>
+                                <div className="text-xs font-black text-rose-800">{d.total_alpa || 0}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             )}
 
@@ -2665,11 +2977,26 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">IZN</th>
                     <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">SKT</th>
                     <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">ALP</th>
-                    {daysToRender.map((dayNum) => (
-                      <th key={dayNum} className="px-2 py-3 font-black text-center min-w-[70px] border-r border-slate-200">
-                        {dayNum}
-                      </th>
-                    ))}
+                    {daysToRender.map((dayNum) => {
+                      const isTodayCol = isCurrentMonthYear && dayNum === todayNum;
+                      return (
+                        <th
+                          key={dayNum}
+                          className={`px-2 py-2 sm:py-3 font-black text-center min-w-[70px] border-r border-slate-200 transition-colors ${
+                            isTodayCol ? 'bg-emerald-100/90 text-emerald-950 font-black' : ''
+                          }`}
+                        >
+                          <div className="flex flex-col items-center">
+                            <span className={isTodayCol ? 'text-xs font-black text-emerald-950' : ''}>{dayNum}</span>
+                            {isTodayCol && (
+                              <span className="text-[7.5px] uppercase font-black tracking-tight text-emerald-800 bg-emerald-200/90 px-1 py-0.2 rounded mt-0.5 shadow-2xs">
+                                Hari Ini
+                              </span>
+                            )}
+                          </div>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody className="text-sm font-medium text-slate-700">
@@ -2982,8 +3309,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
             <TablePagination
               currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filteredData.length}
+              totalPages={mobileViewMode === 'card' && isCurrentMonthYear && todayCardFilter !== 'all' ? cardTotalPages : totalPages}
+              totalItems={mobileViewMode === 'card' && isCurrentMonthYear && todayCardFilter !== 'all' ? activeDisplayData.length : filteredData.length}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
               onItemsPerPageChange={(val) => { setItemsPerPage(val); setCurrentPage(1); }}
