@@ -2409,7 +2409,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                       onChange={val => setFilter({ ...filter, class_name: val })}
                       options={[
                         { value: "all", label: "Semua Kelas" },
-                        ...(user?.walasClass ? [{ value: user.walasClass, label: `⭐ Kelas Ampuan Saya (${user.walasClass})` }] : []),
+                        ...(user?.walasClass ? [{ value: user.walasClass, label: `[Kelas Saya] ${user.walasClass}` }] : []),
                         ...((classes && classes.length > 0)
                           ? classes.map(c => ({ value: c.name || c.kelas || c.id, label: c.name || c.kelas || c.id })).filter(c => c.value && c.value !== user?.walasClass)
                           : Array.from(new Set(data.map(d => d.class_name).filter(Boolean))).sort().map(c => ({ value: c, label: c })).filter(c => c.value !== user?.walasClass)
@@ -2957,7 +2957,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                           </td>
                           <td className={`px-2.5 sm:px-3.5 py-2 sm:py-2.5 sticky left-0 border-r z-10 min-w-[125px] sm:min-w-[190px] ${v.stickyBgClass}`}>
                             <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
-                              <span className={`font-bold text-xs truncate max-w-[95px] sm:max-w-[140px] ${v.textClass}`} title={d.name}>{d.name}</span>
+                              <span onClick={() => openStudentDetail(d)} className={`font-bold text-xs truncate max-w-[95px] sm:max-w-[140px] ${v.textClass} cursor-pointer hover:underline hover:text-emerald-700 transition-colors`} title={`Klik untuk melihat detail & kalender presensi: ${d.name}`}>{d.name}</span>
                               {d.is_mutasi && (
                                 <span className="px-1 py-0.2 text-[8px] font-black uppercase rounded-[var(--ui-radius-small)] bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
                                   MUTASI

@@ -944,26 +944,51 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
                     </button>
                   </div>
 
-                  {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
-                    <div className="flex items-center gap-1.5">
-                      <button 
-                        type="button"
-                        onClick={() => handleEdit(item)} 
-                        className="p-1.5 bg-slate-100 text-slate-600 rounded-[var(--ui-radius-small)]"
-                        title="Edit Data"
-                      >
-                        <Edit2 size={13} />
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => handleDelete(item.id)} 
-                        className="p-1.5 bg-slate-100 text-rose-600 rounded-[var(--ui-radius-small)]"
-                        title="Hapus Data"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    {hasApprovalPermission && isPending && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleApproveReject(item.id, 'approve')}
+                          className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10.5px] font-black rounded-[var(--ui-radius-control)] shadow-2xs flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                          title="Setujui Surat"
+                        >
+                          <CheckCircle2 size={11} strokeWidth={2.5} />
+                          <span>ACC</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApproveReject(item.id, 'reject')}
+                          className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10.5px] font-black rounded-[var(--ui-radius-control)] shadow-2xs flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                          title="Tolak Surat"
+                        >
+                          <X size={11} strokeWidth={2.5} />
+                          <span>Tolak</span>
+                        </button>
+                      </>
+                    )}
+
+                    {(hasApprovalPermission || (item.approval_status === "pending" && String(item.pelapor_id) === String(user?.id))) && (
+                      <>
+                        <button 
+                          type="button"
+                          onClick={() => handleEdit(item)} 
+                          className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-[var(--ui-radius-small)] transition-all cursor-pointer"
+                          title="Edit Data"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => handleDelete(item.id)} 
+                          className="p-1.5 bg-slate-100 hover:bg-rose-50 text-rose-600 rounded-[var(--ui-radius-small)] transition-all cursor-pointer"
+                          title="Hapus Data"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             );

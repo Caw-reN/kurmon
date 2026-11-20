@@ -460,10 +460,10 @@ export default function AdminStrukturOrganisasi({ appSettings, setAppSettings, o
                         <CustomSelect 
                           value={item.parentId || ""}
                           onChange={(val) => handleUpdate(index, 'parentId', val)}
-                          placeholder="⭐ - Paling Atas (Pucuk / Kepala) -"
+                          placeholder="[Pucuk] - Paling Atas (Kepala) -"
                           searchable={false}
                           options={[
-                            { value: "", label: "⭐ - Paling Atas (Pucuk / Kepala) -" },
+                            { value: "", label: "[Pucuk] - Paling Atas (Kepala) -" },
                             ...struktur
                               .filter(s => s.id !== item.id)
                               .map(s => ({

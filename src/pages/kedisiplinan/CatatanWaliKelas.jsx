@@ -109,7 +109,7 @@ function CatatanModal({ catatan, students = [], classes = [], riwayatPoin = [], 
   const classModalOptions = useMemo(() => {
     return [
       { value: 'all', label: 'Semua Kelas' },
-      ...(walasClass ? [{ value: walasClass, label: `⭐ Kelas Ampuan (${walasClass})` }] : []),
+      ...(walasClass ? [{ value: walasClass, label: `[Kelas Saya] ${walasClass}` }] : []),
       ...classes.map(c => ({ value: c.name, label: c.name })).filter(c => c.value !== walasClass)
     ];
   }, [classes, walasClass]);
