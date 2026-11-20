@@ -102,6 +102,16 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     class_name: defaultClassName
   });
 
+  // Calculate lists for today if selected month/year is current month/year
+  const today = React.useMemo(() => new Date(), []);
+  const todayNum = today.getDate();
+  const isCurrentMonthYear = Boolean(filter.month === (today.getMonth() + 1) && filter.year === today.getFullYear());
+
+  const academicCalendarRaw = useAppStore(state => state.academicCalendar);
+  const calendarCategoriesRaw = useAppStore(state => state.calendarCategories);
+  const academicCalendar = academicCalendarRaw || [];
+  const calendarCategories = calendarCategoriesRaw || [];
+
   const [dailyDetailModal, setDailyDetailModal] = useState(null); // 'present' | 'late' | 'absent' | null
   const [dailySearchQuery, setDailySearchQuery] = useState('');
 
@@ -222,9 +232,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
       }
     }
 
-    const today = new Date();
-    const isCurrentMonthYear = filter.month === (today.getMonth() + 1) && filter.year === today.getFullYear();
-
     if (isCurrentMonthYear && viewMode === "monthly") {
       const currentDay = today.getDate();
       const pastDays = [];
@@ -235,7 +242,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
 
     return list.reverse();
-  }, [viewMode, selectedWeek, daysInMonth, filter.month, filter.year]);
+  }, [viewMode, selectedWeek, daysInMonth, isCurrentMonthYear, today]);
 
   const [mobileViewMode, setMobileViewMode] = useState('card');
   const [todayCardFilter, setTodayCardFilter] = useState('all'); // 'all' | 'hadir' | 'terlambat' | 'tidak_masuk'
@@ -1549,15 +1556,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const currentYear = new Date().getFullYear();
   const yearOptions = [currentYear - 1, currentYear, currentYear + 1];
 
-  // Calculate lists for today if selected month/year is current month/year
-  const today = React.useMemo(() => new Date(), []);
-  const todayNum = today.getDate();
-  const isCurrentMonthYear = filter.month === (today.getMonth() + 1) && filter.year === today.getFullYear();
 
-  const academicCalendarRaw = useAppStore(state => state.academicCalendar);
-  const calendarCategoriesRaw = useAppStore(state => state.calendarCategories);
-  const academicCalendar = academicCalendarRaw || [];
-  const calendarCategories = calendarCategoriesRaw || [];
 
   const isWeekendToday = (() => {
     const day = today.getDay();
