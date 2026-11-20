@@ -4,7 +4,8 @@ import {
   Users, CheckCircle2, XCircle, Search, Upload, Download, 
   ChevronRight, X, AlertCircle, Building2, Filter, RefreshCw, ArrowUpDown,
   GraduationCap, Check,
-  Compass, FileSpreadsheet, CheckCheck
+  Compass, FileSpreadsheet, CheckCheck,
+  LayoutDashboard, Briefcase, Wand2
 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 
@@ -644,6 +645,14 @@ const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, 
         icon={Users}
         title="Data Siswa PKL"
         description={`Manajemen ${pklStudents.length} siswa kelas ${eligibleClass} sinkron otomatis dari Master Data.`}
+        tabs={[
+          { id: 'pkl_dashboard', label: 'Dashboard Monitoring', icon: LayoutDashboard },
+          { id: 'pkl_data_siswa', label: 'Data Siswa PKL', icon: Users },
+          { id: 'pkl_data_perusahaan', label: 'Data Perusahaan (DUDI)', icon: Briefcase },
+          { id: 'pkl_penugasan', label: 'Penugasan Guru', icon: Wand2 },
+        ]}
+        activeTab={activeTab || 'pkl_data_siswa'}
+        onTabChange={setActiveTab}
         rightContent={
           <div className="flex items-center gap-2 flex-wrap">
             <Button

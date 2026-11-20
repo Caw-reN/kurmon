@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from 'react';
 import { 
   UserCheck, Wand2, Users, CheckCircle2, AlertTriangle, AlertCircle, Building2, 
   ChevronDown, Info, Search, X, Edit2, ChevronLeft, ChevronRight, Check, RefreshCw,
-  GraduationCap, Sparkles, Filter
+  GraduationCap, Sparkles, Filter,
+  LayoutDashboard, Briefcase
 } from 'lucide-react';
 import usePenugasanStore from '../../../store/monitoring/penugasanStore';
 import useAuthStore from '../../../store/monitoring/authStore';
@@ -19,7 +20,7 @@ const getToken = () => {
   return null;
 };
 
-const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
+const PenugasanGuru = ({ teachers = [], students = [], readOnly, activeTab: topActiveTab = 'pkl_penugasan', setActiveTab: setTopActiveTab }) => {
   const [locations, setLocations] = useState([]);
   const [pklStudentsMapping, setPklStudentsMapping] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState(new Set());
@@ -418,6 +419,14 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly }) => {
         icon={UserCheck}
         title="Penugasan Guru Pembimbing"
         description="Tugaskan guru pembimbing ke siswa secara terpusat per perusahaan atau otomatis."
+        tabs={[
+          { id: 'pkl_dashboard', label: 'Dashboard Monitoring', icon: LayoutDashboard },
+          { id: 'pkl_data_siswa', label: 'Data Siswa PKL', icon: Users },
+          { id: 'pkl_data_perusahaan', label: 'Data Perusahaan (DUDI)', icon: Briefcase },
+          { id: 'pkl_penugasan', label: 'Penugasan Guru', icon: Wand2 },
+        ]}
+        activeTab={topActiveTab || 'pkl_penugasan'}
+        onTabChange={setTopActiveTab}
       />
 
       {/* 3 Responsive Stat Cards */}

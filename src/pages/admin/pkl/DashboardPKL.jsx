@@ -3,7 +3,8 @@ import {
   Users, Clock, Building, FileBarChart2, MapPin, 
   RefreshCw, MapIcon, CheckCircle2, AlertTriangle, 
   ExternalLink, ChevronRight, Layers, ArrowUpRight,
-  Sparkles, GraduationCap, Compass, ListFilter
+  Sparkles, GraduationCap, Compass, ListFilter,
+  LayoutDashboard, Briefcase, Wand2
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -67,7 +68,7 @@ function ChangeMapView({ center, zoom }) {
   return null;
 }
 
-export default function DashboardPKL() {
+export default function DashboardPKL({ activeTab = 'pkl_dashboard', setActiveTab }) {
   const [stats, setStats] = useState({
     totalSiswa: 0,
     totalPerusahaan: 0,
@@ -189,6 +190,14 @@ export default function DashboardPKL() {
         icon={FileBarChart2}
         title="Dashboard PKL"
         description="Monitoring sebaran penempatan Praktek Kerja Lapangan dan aktivitas logbook siswa secara real-time."
+        tabs={[
+          { id: 'pkl_dashboard', label: 'Dashboard Monitoring', icon: LayoutDashboard },
+          { id: 'pkl_data_siswa', label: 'Data Siswa PKL', icon: Users },
+          { id: 'pkl_data_perusahaan', label: 'Data Perusahaan (DUDI)', icon: Briefcase },
+          { id: 'pkl_penugasan', label: 'Penugasan Guru', icon: Wand2 },
+        ]}
+        activeTab={activeTab || 'pkl_dashboard'}
+        onTabChange={setActiveTab}
         rightContent={
           <div className="flex items-center gap-3">
             {lastUpdated && (

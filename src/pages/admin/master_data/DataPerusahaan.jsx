@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Building2, Upload, Download, Plus, Search, CheckCircle2, Clock, 
   MapPin, Users, Edit3, Trash2, Filter, X, ArrowUpDown, 
-  Compass, ListFilter, AlertCircle, Phone, Sparkles, Check, RefreshCw
+  Compass, ListFilter, AlertCircle, Phone, Sparkles, Check, RefreshCw,
+  LayoutDashboard, Briefcase, Wand2
 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import L from 'leaflet';
@@ -95,7 +96,7 @@ function ChangeMapView({ center, zoom }) {
   return null;
 }
 
-const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
+const DataPerusahaan = ({ students = [], readOnly = false, majors = [], activeTab = 'pkl_data_perusahaan', setActiveTab }) => {
   const schoolProfile = useDataStore(state => state.schoolProfile) || {};
   const attendanceSettings = useAppStore(state => state.attendanceSettings) || {};
   const schoolLat = parseFloat(attendanceSettings.schoolLat || schoolProfile.lat || -6.2383);
@@ -396,6 +397,14 @@ const DataPerusahaan = ({ students = [], readOnly = false, majors = [] }) => {
         icon={Building2}
         title="Data Perusahaan PKL"
         description={`Direktori ${locations.length} mitra DUDI (${verifiedCount} Terverifikasi, ${pendingCount} Menunggu).`}
+        tabs={[
+          { id: 'pkl_dashboard', label: 'Dashboard Monitoring', icon: LayoutDashboard },
+          { id: 'pkl_data_siswa', label: 'Data Siswa PKL', icon: Users },
+          { id: 'pkl_data_perusahaan', label: 'Data Perusahaan (DUDI)', icon: Briefcase },
+          { id: 'pkl_penugasan', label: 'Penugasan Guru', icon: Wand2 },
+        ]}
+        activeTab={activeTab || 'pkl_data_perusahaan'}
+        onTabChange={setActiveTab}
         rightContent={
           !readOnly && (
             <div className="flex items-center gap-2">

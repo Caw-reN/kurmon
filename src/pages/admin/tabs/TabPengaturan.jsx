@@ -1,8 +1,6 @@
 import { Button } from '../../../components/ui.jsx';
-import { Clock } from'lucide-react';
-import { Plus, Trash2, Upload, Copy, Wand2, Edit2 } from'lucide-react';
+import { Clock, Calendar, FileSpreadsheet, Settings, SlidersHorizontal, Plus, Trash2, Upload, Copy, Wand2, Edit2 } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
 
 
 export default function TabPengaturan(props) {
@@ -16,6 +14,15 @@ return (
       title="Konfigurasi Waktu"
       description={tabSubtitles["pengaturan"]}
       icon={Clock}
+      tabs={[
+        { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+        { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+        { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+        { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+        { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+      ]}
+      activeTab={props.activeTab || 'pengaturan'}
+      onTabChange={props.setActiveTab}
     />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
       <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 md:p-6 flex flex-col h-[80vh] min-h-0">

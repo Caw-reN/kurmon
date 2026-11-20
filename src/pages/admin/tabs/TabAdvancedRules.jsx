@@ -1,7 +1,6 @@
 import { Button } from '../../../components/ui.jsx';
-import { SlidersHorizontal } from'lucide-react';
+import { SlidersHorizontal, Calendar, Clock, FileSpreadsheet, Settings } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
 
 
 export default function TabAdvancedRules(props) {
@@ -15,6 +14,15 @@ return (
       title="Aturan Penjadwalan Lanjutan"
       description={tabSubtitles["advanced_rules"]}
       icon={SlidersHorizontal}
+      tabs={[
+        { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+        { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+        { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+        { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+        { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+      ]}
+      activeTab={props.activeTab || 'advanced_rules'}
+      onTabChange={props.setActiveTab}
     />
     <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 md:p-6 flex flex-col">
       <form

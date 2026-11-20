@@ -1,6 +1,6 @@
 import { Button, TablePagination, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import { useState, useEffect, useCallback } from'react';
-import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X, Zap, ClipboardList } from'lucide-react';
+import { MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, Cpu, RefreshCw, Server, Activity, Clock, X, Zap, ClipboardList, LayoutDashboard, HardDrive } from'lucide-react';
 import useAuthStore from'../../../store/monitoring/authStore';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
@@ -60,7 +60,7 @@ const DeviceTypeBadge = ({ type }) => {
   );
 };
 
-export default function HikvisionDashboard() {
+export default function HikvisionDashboard({ activeTab = 'hikvision', setActiveTab }) {
   const [devices, setDevices] = useState([]);
   const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -295,6 +295,13 @@ export default function HikvisionDashboard() {
         title="Mesin Absensi (Hikvision)"
         icon={MonitorSmartphone}
         description="Monitoring status perangkat dan sinkronisasi log kehadiran wajah."
+        tabs={[
+          { id: 'hikvision', label: 'Dashboard Mesin', icon: LayoutDashboard },
+          { id: 'hikvision_devices', label: 'Pengaturan Alat', icon: HardDrive },
+          { id: 'hikvision_students', label: 'Pengguna Mesin', icon: Users },
+        ]}
+        activeTab={activeTab || 'hikvision'}
+        onTabChange={setActiveTab}
       />
       <div className="ui-card p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

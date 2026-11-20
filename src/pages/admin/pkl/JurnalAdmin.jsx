@@ -2,7 +2,8 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { 
   BookOpen, CheckCircle2, XCircle, Clock, Search, Download, 
   ChevronUp, ChevronDown, Check, X, Building2, Calendar, User, 
-  Clock3, MessageSquare, AlertCircle, RefreshCw
+  Clock3, MessageSquare, AlertCircle, RefreshCw,
+  PieChart, FileText, Settings
 } from 'lucide-react';
 import { saveAs } from 'file-saver';
 import { PageHeader, Avatar } from '../../../components/monitoring/ui/index.js';
@@ -23,7 +24,7 @@ const STATUS_MAP = {
   revision: { label: 'Revisi', cls: 'bg-rose-50 text-rose-700 border-rose-200/80' }
 };
 
-const JurnalAdmin = ({ readOnly }) => {
+const JurnalAdmin = ({ readOnly, activeTab = 'pkl_jurnal', setActiveTab }) => {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('Semua');
   const [localJurnal, setLocalJurnal] = useState([]);
@@ -137,6 +138,14 @@ const JurnalAdmin = ({ readOnly }) => {
         icon={BookOpen}
         title="Jurnal Siswa PKL"
         description="Monitoring dan validasi jurnal aktivitas harian kerja industri siswa."
+        tabs={[
+          { id: 'pkl_jurnal', label: 'Jurnal Siswa PKL', icon: BookOpen },
+          { id: 'pkl_laporan', label: 'Laporan PKL', icon: PieChart },
+          { id: 'pkl_administrasi', label: 'Administrasi PKL', icon: FileText },
+          { id: 'pkl_absensi_setting', label: 'Pengaturan GPS PKL', icon: Settings },
+        ]}
+        activeTab={activeTab || 'pkl_jurnal'}
+        onTabChange={setActiveTab}
         rightContent={
           <Button
             variant="outline"

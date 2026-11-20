@@ -766,24 +766,24 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <TabKeamanan {...tabProps} />;
       case"pkl_dashboard":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <DashboardPKL />
+          <DashboardPKL activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_data_siswa":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringDataSiswa students={students} teachers={teachers} readOnly={isTabReadOnly("pkl_data_siswa")} appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} setActiveTab={setActiveTab} />
+          <MonitoringDataSiswa students={students} teachers={teachers} readOnly={isTabReadOnly("pkl_data_siswa")} appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_import":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringImportData teachers={teachers} students={students} authToken={currentUser?.authToken || ''} setActiveTab={setActiveTab} />
+          <MonitoringImportData teachers={teachers} students={students} authToken={currentUser?.authToken || ''} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"dataperusahaan":
       case"pkl_data_perusahaan":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringDataPerusahaan students={students} readOnly={isTabReadOnly("pkl_data_perusahaan")} majors={majors} />
+          <MonitoringDataPerusahaan students={students} readOnly={isTabReadOnly("pkl_data_perusahaan")} majors={majors} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_penugasan":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringPenugasan students={students} teachers={teachers} readOnly={isTabReadOnly("pkl_penugasan")} />
+          <MonitoringPenugasan students={students} teachers={teachers} readOnly={isTabReadOnly("pkl_penugasan")} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_lokasi":
         // Redirect pkl_lokasi → pkl_data_perusahaan (merged)
@@ -791,27 +791,27 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return null;
       case"pkl_administrasi":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <KelolaAdministrasiPKL readOnly={isTabReadOnly("pkl_administrasi")} appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} />
+          <KelolaAdministrasiPKL readOnly={isTabReadOnly("pkl_administrasi")} appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_jurnal":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringJurnal readOnly={isTabReadOnly("pkl_jurnal")} />
+          <MonitoringJurnal readOnly={isTabReadOnly("pkl_jurnal")} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_laporan":
         return <Suspense fallback={<div className="p-8 text-center">
           <span className="w-6 h-6 border-2 border-[var(--ui-primary)] border-t-transparent rounded-full animate-spin inline-block"></span>
         </div>}>
-          <MonitoringLaporan readOnly={isTabReadOnly("pkl_laporan")} students={students} teachers={teachers} />
+          <MonitoringLaporan readOnly={isTabReadOnly("pkl_laporan")} students={students} teachers={teachers} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"pkl_absensi_setting":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
-          <MonitoringAbsensiSettings readOnly={isTabReadOnly("pkl_absensi_setting")} />
+          <MonitoringAbsensiSettings readOnly={isTabReadOnly("pkl_absensi_setting")} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"hikvision":
         return <Suspense fallback={<div className="p-8 text-center text-slate-400">
           Memuat Hikvision...
         </div>}>
-          <HikvisionDashboard />
+          <HikvisionDashboard activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"laporan_absensi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Laporan Absensi...</div>}>
@@ -821,7 +821,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <Suspense fallback={<div className="p-8 text-center text-slate-400">
           Memuat Mesin...
         </div>}>
-          <HikvisionDevices />
+          <HikvisionDevices activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"hikvision_report_guru":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi guru...</div>}>
@@ -1001,7 +1001,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
           Memuat Beban Mengajar...
         </div>}>
-          <MasterDataBeban teachingLoads={teachingLoads} teachers={teachers} subjects={subjects} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} isSuperAdminRole={isSuperAdminRole} currentUser={currentUser} getTeacherName={getTeacherName} normalizeText={normalizeText} searchTerm={searchTerm} loadFilters={loadFilters} csvValueMatches={csvValueMatches} parseTeacherCodes={parseTeacherCodes} getActiveSortConfig={getActiveSortConfig} TABLE_SORT_OPTIONS={TABLE_SORT_OPTIONS} selectedRows={selectedRows} getTableSort={getTableSort} getLoadKey={getLoadKey} teacherAvailability={teacherAvailability} recommendedLoads={recommendedLoads} parsePositiveInt={parsePositiveInt} openImportGuide={openImportGuide} downloadMasterTemplate={downloadMasterTemplate} applyRecommendations={applyRecommendations} handleBulkDelete={handleBulkDelete} setSearchTerm={setSearchTerm} setLoadFilters={setLoadFilters} majors={majors} setTableSorts={setTableSorts} DEFAULT_TABLE_SORTS={DEFAULT_TABLE_SORTS} csvValuesIntersect={csvValuesIntersect} />
+          <MasterDataBeban activeTab={activeTab} setActiveTab={setActiveTab} teachingLoads={teachingLoads} teachers={teachers} subjects={subjects} classes={classes} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} isSuperAdminRole={isSuperAdminRole} currentUser={currentUser} getTeacherName={getTeacherName} normalizeText={normalizeText} searchTerm={searchTerm} loadFilters={loadFilters} csvValueMatches={csvValueMatches} parseTeacherCodes={parseTeacherCodes} getActiveSortConfig={getActiveSortConfig} TABLE_SORT_OPTIONS={TABLE_SORT_OPTIONS} selectedRows={selectedRows} getTableSort={getTableSort} getLoadKey={getLoadKey} teacherAvailability={teacherAvailability} recommendedLoads={recommendedLoads} parsePositiveInt={parsePositiveInt} openImportGuide={openImportGuide} downloadMasterTemplate={downloadMasterTemplate} applyRecommendations={applyRecommendations} handleBulkDelete={handleBulkDelete} setSearchTerm={setSearchTerm} setLoadFilters={setLoadFilters} majors={majors} setTableSorts={setTableSorts} DEFAULT_TABLE_SORTS={DEFAULT_TABLE_SORTS} csvValuesIntersect={csvValuesIntersect} />
         </Suspense>;
       default:
         return <div className="flex flex-col items-center justify-center h-full text-slate-500 py-12">

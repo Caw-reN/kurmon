@@ -607,6 +607,7 @@ export default function AdminSidebar({
     const sectionMap = {};
     for (const item of MENU_REGISTRY) {
       if (item.adminOnly) continue;
+      if (item.hideInSidebar) continue;
       if (item.id === 'dashboard') continue; // Rendered explicitly at the top of menu
       if (item.specialCondition === 'walas_only') {
         if (isPureWalas) continue;
@@ -742,7 +743,8 @@ export default function AdminSidebar({
     const rootItems = [];
 
     for (const item of MENU_REGISTRY) {
-      if (!item.adminGroupKey) {
+      if (item.hideInSidebar) continue;
+      if (!item.adminGroupKey || !item.adminGroup) {
         if (!item.adminOnly || isSuperAdminRole(activeUserRole)) {
           rootItems.push(item);
         }

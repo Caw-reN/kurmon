@@ -1,5 +1,5 @@
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
-import { Trash2, Settings, Info, AlertCircle, Printer, Search, ChevronLeft, Calendar, Wand2, Edit3, Plus, Sparkles, CheckCircle2, Download, Upload } from 'lucide-react';
+import { Trash2, Settings, Info, AlertCircle, Printer, Search, ChevronLeft, Calendar, Wand2, Edit3, Plus, Sparkles, CheckCircle2, Download, Upload, Clock, FileSpreadsheet, SlidersHorizontal } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -92,6 +92,15 @@ export default function TabGenerate(props) {
         title="Jadwal Pelajaran"
         description="Jadwal Mengajar Guru & Jadwal Pelajaran Kelas Tersinkronisasi"
         icon={Calendar}
+        tabs={[
+          { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+          { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+          { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+          { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+          { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+        ]}
+        activeTab={props.activeTab || 'generate'}
+        onTabChange={setActiveTab}
         onBack={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
       />
 

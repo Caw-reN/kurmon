@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { 
   FileBarChart2, FileSpreadsheet, Calendar, Search, Filter, 
   Download, Trash2, CheckCircle2, Clock, ChevronLeft, ChevronRight, 
-  AlertCircle, Users, BookOpen, GraduationCap, Building2, Eye
+  AlertCircle, Users, BookOpen, GraduationCap, Building2, Eye,
+  PieChart, FileText, Settings
 } from 'lucide-react';
 import { saveAs } from "file-saver";
 import useAuthStore from "../../../store/monitoring/authStore";
@@ -24,7 +25,7 @@ const LAPORAN_TYPES = [
   { key: "rekap_guru", label: "Rekap per Guru", icon: GraduationCap },
 ];
 
-const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
+const LaporanAdmin = ({ students = [], teachers = [], readOnly, activeTab = 'pkl_laporan', setActiveTab }) => {
   const user = useAuthStore(state => state.user);
   const [selectedType, setSelectedType] = useState("kehadiran");
   const [filterJurusan, setFilterJurusan] = useState("Semua");
@@ -244,6 +245,14 @@ const LaporanAdmin = ({ students = [], teachers = [], readOnly }) => {
         icon={FileBarChart2}
         title="Monitoring & Laporan PKL"
         description="Pantau rekap kehadiran siswa, jurnal kegiatan industri, dan evaluasi guru pembimbing."
+        tabs={[
+          { id: 'pkl_jurnal', label: 'Jurnal Siswa PKL', icon: BookOpen },
+          { id: 'pkl_laporan', label: 'Laporan PKL', icon: PieChart },
+          { id: 'pkl_administrasi', label: 'Administrasi PKL', icon: FileText },
+          { id: 'pkl_absensi_setting', label: 'Pengaturan GPS PKL', icon: Settings },
+        ]}
+        activeTab={activeTab || 'pkl_laporan'}
+        onTabChange={setActiveTab}
         rightContent={
           <Button
             variant="outline"

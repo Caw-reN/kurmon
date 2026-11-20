@@ -1,10 +1,8 @@
 import { Button } from '../../../components/ui.jsx';
 import { useState } from'react';
-import { Clock } from'lucide-react';
+import { Clock, Calendar, FileSpreadsheet, Settings, SlidersHorizontal, Search, BookOpen } from'lucide-react';
 import { isSuperAdminRole } from'../../../utils/constants.js';
-import { Search, BookOpen } from'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
-;
 
 
 export default function TabKetersediaan({
@@ -14,7 +12,9 @@ export default function TabKetersediaan({
   setTeacherAvailability,
   days,
   openModal,
-  tabSubtitles
+  tabSubtitles,
+  activeTab = 'ketersediaan',
+  setActiveTab
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,6 +84,15 @@ export default function TabKetersediaan({
         title="Ketersediaan Guru"
         description={tabSubtitles["ketersediaan"]}
         icon={Clock}
+        tabs={[
+          { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+          { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+          { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+          { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+          { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+        ]}
+        activeTab={activeTab || 'ketersediaan'}
+        onTabChange={setActiveTab}
       >
         <Button variant="outline" onClick={() =>openModal("bulk","add")} >
           <BookOpen className="w-4 h-4 mr-2" />

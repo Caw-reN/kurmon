@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   CheckCircle2, XCircle, FileText, RefreshCw, AlertCircle, 
   GitMerge, MapPin, Building2, Trash2, Printer, Check, Settings, 
-  Search, Users, Calendar, ArrowRight, ShieldCheck, ChevronRight
+  Search, Users, Calendar, ArrowRight, ShieldCheck, ChevronRight,
+  BookOpen, PieChart
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { getDatabaseSnapshot, setDatabaseSnapshot } from '../../../utils/dataSource.js';
@@ -17,10 +18,10 @@ const getToken = () => {
   return null;
 };
 
-const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, setAppSettings, onSave }) => {
+const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, setAppSettings, onSave, activeTab: topActiveTab = 'pkl_administrasi', setActiveTab: setTopActiveTab }) => {
   const { user: storeUser } = useAuthStore();
   const currentUser = propsUser || storeUser;
-  const [activeTab, setActiveTab] = useState("surat");
+  const [adminSubTab, setAdminSubTab] = useState("surat");
   const [suratList, setSuratList] = useState([]);
   const [mutasiList, setMutasiList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -95,9 +96,9 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
   };
 
   useEffect(() => {
-    if (activeTab === "surat") fetchSurat();
-    if (activeTab === "mutasi") fetchMutasi();
-  }, [activeTab]);
+    if (adminSubTab === "surat") fetchSurat();
+    if (adminSubTab === "mutasi") fetchMutasi();
+  }, [adminSubTab]);
 
   const accSurat = (id) => {
     const num = generateFormattedNumber(formatTemplate, nextIndex, padding, monthStyle);
@@ -226,6 +227,14 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
         icon={FileText}
         title="Administrasi PKL"
         description="Kelola permohonan surat pengantar resmi dan mutasi lokasi PKL siswa."
+        tabs={[
+          { id: 'pkl_jurnal', label: 'Jurnal Siswa PKL', icon: BookOpen },
+          { id: 'pkl_laporan', label: 'Laporan PKL', icon: PieChart },
+          { id: 'pkl_administrasi', label: 'Administrasi PKL', icon: FileText },
+          { id: 'pkl_absensi_setting', label: 'Pengaturan GPS PKL', icon: Settings },
+        ]}
+        activeTab={topActiveTab || 'pkl_administrasi'}
+        onTabChange={setTopActiveTab}
       />
 
       {/* Unified Tab Navigator & Action Bar */}
@@ -233,9 +242,9 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
         <div className="flex items-center p-1 bg-[var(--ui-surface-muted)] rounded-[var(--ui-radius-control)] border border-[var(--ui-border-muted)] w-full sm:w-auto">
           <button
             type="button"
-            onClick={() => setActiveTab('surat')}
+            onClick={() => setAdminSubTab('surat')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
-              activeTab === 'surat'
+              adminSubTab === 'surat'
                 ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
@@ -246,9 +255,9 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
 
           <button
             type="button"
-            onClick={() => setActiveTab('mutasi')}
+            onClick={() => setAdminSubTab('mutasi')}
             className={`flex-1 sm:flex-none px-3.5 py-1.5 rounded-[var(--ui-radius-small)] text-xs font-black transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
-              activeTab === 'mutasi'
+              adminSubTab === 'mutasi'
                 ? 'bg-white text-slate-800 shadow-xs'
                 : 'bg-transparent text-slate-500 hover:text-slate-800'
             }`}
@@ -258,7 +267,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
           </button>
         </div>
 
-        {activeTab === "surat" && !readOnly && (
+        {adminSubTab === "surat" && !readOnly && (
           <button
             type="button"
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
@@ -271,7 +280,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
       </div>
 
       {/* Quick KPI Stat Cards */}
-      {activeTab === "surat" ? (
+      {adminSubTab === "surat" ? (
         <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
           <div className="bg-white rounded-[var(--ui-radius-card)] p-3.5 sm:p-5 border border-slate-200/80 shadow-[var(--ui-shadow-card)] flex flex-col justify-between">
             <span className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-400 block mb-0.5 truncate">
@@ -338,7 +347,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
       )}
 
       {/* ── TAB 1: SURAT PENGANTAR ── */}
-      {activeTab === "surat" && (
+      {adminSubTab === "surat" && (
         <div className="space-y-4">
           {/* Format Settings Panel */}
           {isSettingsOpen && (
@@ -490,7 +499,7 @@ const KelolaAdministrasiPKL = ({ currentUser: propsUser, readOnly, appSettings, 
       )}
 
       {/* ── TAB 2: MUTASI PKL ── */}
-      {activeTab === "mutasi" && (
+      {adminSubTab === "mutasi" && (
         <div className="space-y-3.5">
           {mutasiList.map(mutasi => (
             <div 

@@ -1,5 +1,5 @@
 import React, { memo } from'react';
-import { BookOpen } from'lucide-react';
+import { BookOpen, Calendar, Clock, FileSpreadsheet, Settings, SlidersHorizontal } from'lucide-react';
 import { Download, Upload, Plus, Wand2, Trash2, Search, ArrowUpDown, Info, Edit2 } from'lucide-react';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 import { UISelect, Button } from'../../../components/ui.jsx';
@@ -40,7 +40,9 @@ const MasterDataBeban = memo(function MasterDataBeban({
   majors,
   setTableSorts,
   DEFAULT_TABLE_SORTS,
-  csvValuesIntersect
+  csvValuesIntersect,
+  activeTab = 'beban',
+  setActiveTab
 }) {
   const userRole = String(currentUser?.role || '').toLowerCase().trim();
   const userSubrole = String(currentUser?.subrole || '').toLowerCase().trim();
@@ -104,6 +106,15 @@ const MasterDataBeban = memo(function MasterDataBeban({
               title="Beban Mengajar"
               icon={BookOpen}
               description="Kelola alokasi guru untuk setiap mata pelajaran dan kelas."
+              tabs={[
+                { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+                { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+                { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+                { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+                { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+              ]}
+              activeTab={activeTab || 'beban'}
+              onTabChange={setActiveTab}
             />
             
             <section className="ui-card flex flex-col p-4 md:p-5">

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { 
   MapPin, Camera, QrCode, PenLine, Save, Settings, 
   ShieldCheck, Info, RotateCcw, Clock, CheckCircle2, AlertCircle, 
-  Check, Sparkles, Navigation, CalendarRange, Calendar, CheckSquare
+  Check, Sparkles, Navigation, CalendarRange, Calendar, CheckSquare,
+  BookOpen, PieChart, FileText
 } from 'lucide-react';
 import useAbsensiStore from '../../../store/monitoring/absensiStore';
 import { PageHeader, Toggle } from '../../../components/monitoring/ui/index.js';
@@ -63,7 +64,7 @@ const PRESETS_PERIODE = [
   { label: "Semester Ganjil (1 Jul - 31 Des)", start: "2026-07-01", end: "2026-12-31", months: 6 },
 ];
 
-const AbsensiSettings = ({ readOnly }) => {
+const AbsensiSettings = ({ readOnly, activeTab = 'pkl_absensi_setting', setActiveTab }) => {
   const { metode, gpsConfig, toggleMetode, setGpsRadius, resetMetode } = useAbsensiStore();
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -185,6 +186,14 @@ const AbsensiSettings = ({ readOnly }) => {
         icon={Settings}
         title="Pengaturan Absensi PKL"
         description="Kelola metode validasi absensi harian siswa (Radius GPS, Foto Selfie, QR Code, dan Jam Kerja PKL)."
+        tabs={[
+          { id: 'pkl_jurnal', label: 'Jurnal Siswa PKL', icon: BookOpen },
+          { id: 'pkl_laporan', label: 'Laporan PKL', icon: PieChart },
+          { id: 'pkl_administrasi', label: 'Administrasi PKL', icon: FileText },
+          { id: 'pkl_absensi_setting', label: 'Pengaturan GPS PKL', icon: Settings },
+        ]}
+        activeTab={activeTab || 'pkl_absensi_setting'}
+        onTabChange={setActiveTab}
         rightContent={
           <span className={`inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1.5 rounded-[var(--ui-radius-pill)] border shadow-xs ${
             activeCount > 0 
