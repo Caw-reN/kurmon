@@ -52,10 +52,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   const [activeLogTab, setActiveLogTab] = useState(isSiswa ? 'kehadiran_siswa' : 'siswa_terlambat');
   const [dashLogs, setDashLogs] = useState(() => {
     try {
-      const raw = sessionStorage.getItem('kurmon_shared_dash_logs');
+      const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      const raw = localStorage.getItem('kurmon_shared_dash_logs') || sessionStorage.getItem('kurmon_shared_dash_logs');
       if (raw) {
         const parsed = JSON.parse(raw);
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
         if (parsed && parsed._cachedDate === todayStr && parsed.data) {
           return parsed.data;
         }
@@ -65,10 +65,10 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   });
   const [logsLoading, setLogsLoading] = useState(() => {
     try {
-      const raw = sessionStorage.getItem('kurmon_shared_dash_logs');
+      const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+      const raw = localStorage.getItem('kurmon_shared_dash_logs') || sessionStorage.getItem('kurmon_shared_dash_logs');
       if (raw) {
         const parsed = JSON.parse(raw);
-        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
         if (parsed && parsed._cachedDate === todayStr && parsed.data) {
           return false;
         }
@@ -167,7 +167,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           if (onLogsFetched) onLogsFetched(payload);
           try {
             const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
-            sessionStorage.setItem('kurmon_shared_dash_logs', JSON.stringify({ _cachedDate: todayStr, data: payload }));
+            const cacheVal = JSON.stringify({ _cachedDate: todayStr, data: payload });
+            sessionStorage.setItem('kurmon_shared_dash_logs', cacheVal);
+            localStorage.setItem('kurmon_shared_dash_logs', cacheVal);
           } catch {}
         }
       })
@@ -176,9 +178,17 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   }, [user?.authToken, onLogsFetched]);
 
   useEffect(() => {
+    // Timeout batas maksimal 4 detik agar user tidak tertahan di loading screen
+    const timer = setTimeout(() => {
+      setLogsLoading(false);
+    }, 4000);
+
     fetchLogs();
     const interval = setInterval(fetchLogs, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [fetchLogs]);
 
   const fmtTime = (ts) => {
@@ -792,10 +802,36 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
 
   if (logsLoading && !dashLogs) {
     return (
-      <div className="bg-white rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center min-h-[260px] border border-slate-200/80 shadow-2xs">
-        <Loader2 className="animate-spin text-emerald-600 mb-3" size={26} strokeWidth={2.4} />
-        <p className="text-xs font-black text-slate-700">Memuat Log Monitor & Aktivitas...</p>
-        <p className="text-[11px] font-medium text-slate-400 mt-0.5">Mengambil sinkronisasi terbaru dari sistem</p>
+      <div className="bg-white rounded-xl p-4 sm:p-5 flex flex-col gap-3 min-h-[220px] border border-slate-200/80 shadow-xs animate-pulse">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+              <Loader2 className="animate-spin text-emerald-600" size={16} strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="h-3.5 w-32 bg-slate-200 rounded-md mb-1" />
+              <div className="h-2.5 w-44 bg-slate-100 rounded-md" />
+            </div>
+          </div>
+          <div className="h-6 w-20 bg-slate-100 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-7 bg-slate-50 border border-slate-100 rounded-lg" />
+          ))}
+        </div>
+        <div className="flex flex-col gap-2 pt-2">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-10 bg-slate-50/70 border border-slate-100 rounded-lg flex items-center px-3 gap-3">
+              <div className="w-6 h-6 rounded-full bg-slate-200" />
+              <div className="flex-1">
+                <div className="h-3 w-36 bg-slate-200 rounded mb-1" />
+                <div className="h-2 w-24 bg-slate-100 rounded" />
+              </div>
+              <div className="h-5 w-14 bg-slate-200 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

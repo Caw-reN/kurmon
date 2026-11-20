@@ -813,6 +813,57 @@ export default function DashboardPage({
 
   const selectedClass = todayClasses[selectedTodayClassIdx] || todayClasses[activeClassIdx] || todayClasses[0];
 
+  const myAttendanceInfo = useMemo(() => {
+    const todayWib = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
+    const myCode = String(teacherCode || currentUser?.username || currentUser?.id || '').trim().toLowerCase();
+    const myName = String(currentUser?.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    // Cek log biometrik hari ini dari dashLogs
+    const biometricLogs = [...(dashLogs?.teacherLogs || []), ...(dashLogs?.staffLogs || [])];
+    const myBio = biometricLogs.find(l => {
+      const lCode = String(l.employee_id || l.username || l.nis || '').trim().toLowerCase();
+      const lName = String(l.name || l.student_name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const lDate = String(l.timestamp || l.created_at || '').slice(0, 10);
+      return (lCode === myCode || (myName && lName && lName === myName)) && (!lDate || lDate === todayWib);
+    });
+
+    if (myBio) {
+      const rawTime = String(myBio.timestamp || myBio.created_at || '').replace('T', ' ');
+      const timeStr = rawTime.length >= 16 ? rawTime.substring(11, 16) : 'Tercatat';
+      const isLate = myBio.status === 'terlambat';
+      return {
+        isAttended: true,
+        status: isLate ? 'Terlambat' : 'Hadir',
+        time: timeStr !== 'Tercatat' ? `${timeStr} WIB` : 'Tercatat',
+        source: 'Mesin Biometrik'
+      };
+    }
+
+    // Cek record manual di attendanceRecords
+    const myRecord = (attendanceRecords || []).find(r => {
+      const rCode = String(r.teacherCode || r.username || '').trim().toLowerCase();
+      const rDate = String(r.date || '').slice(0, 10);
+      return (rCode === myCode) && rDate === todayWib;
+    });
+
+    if (myRecord) {
+      const isLate = String(myRecord.status || '').toLowerCase() === 'terlambat';
+      return {
+        isAttended: true,
+        status: isLate ? 'Terlambat' : (myRecord.status || 'Hadir'),
+        time: myRecord.time ? `${String(myRecord.time).slice(0, 5)} WIB` : 'Tercatat',
+        source: myRecord.mode || 'Presensi Mandiri'
+      };
+    }
+
+    return {
+      isAttended: false,
+      status: 'Belum Presensi',
+      time: '--:--',
+      source: 'Belum Scan'
+    };
+  }, [teacherCode, currentUser, dashLogs, attendanceRecords]);
+
   // Hooks harus selalu dipanggil di level atas komponen (bukan di dalam conditional)
   const students = useDataStore((state) => state.students) || [];
   // staffsStore dan studentsStore untuk view Kepsek/Admin — harus di level atas agar tidak melanggar Rules of Hooks
@@ -1292,42 +1343,88 @@ export default function DashboardPage({
               </div>
             </div>
 
-            {/* Jam Kerja & Akses Presensi Cepat (Mengisi Space Kosong Kolom Kiri) */}
-            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3 sm:p-3.5 flex flex-col gap-2.5">
+            {/* Status Presensi & Agenda Mengajar Personal */}
+            <div className="ui-card bg-white border border-slate-200/80 rounded-xl p-3 sm:p-3.5 flex flex-col gap-2.5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight flex items-center gap-1.5">
-                  <Clock size={14} className="text-emerald-600" /> Jam Kerja &amp; Presensi
+                  <UserCheck size={14} className="text-emerald-600" /> Presensi &amp; Agenda Saya
                 </h3>
-                <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 py-0.2 rounded-md">
-                  Aktif
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 border ${
+                  myAttendanceInfo.isAttended
+                    ? myAttendanceInfo.status === 'Terlambat'
+                      ? "text-amber-700 bg-amber-50 border-amber-200/80"
+                      : "text-emerald-700 bg-emerald-50 border-emerald-200/80"
+                    : "text-slate-600 bg-slate-50 border-slate-200/80"
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    myAttendanceInfo.isAttended
+                      ? myAttendanceInfo.status === 'Terlambat' ? "bg-amber-500" : "bg-emerald-500"
+                      : "bg-slate-400"
+                  }`} />
+                  {myAttendanceInfo.status}
                 </span>
               </div>
 
-              {/* Grid 3 Kolom Jam Kerja */}
-              <div className="grid grid-cols-3 gap-1.5">
-                <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-2 text-center flex flex-col justify-center">
-                  <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Masuk</span>
-                  <span className="text-[11px] font-extrabold text-slate-800 mt-0.5">07:00</span>
-                  <span className="text-[8px] text-slate-400">WIB</span>
+              {/* Grid 2 Kolom: Jam Masuk & Total KBM */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-slate-50/80 border border-slate-200/60 rounded-lg p-2 flex flex-col justify-center">
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Clock size={10} className="text-slate-400" /> Masuk Hari Ini
+                  </span>
+                  <span className="text-[12px] font-extrabold text-slate-800 mt-0.5">{myAttendanceInfo.time}</span>
+                  <span className="text-[8px] text-slate-400 truncate">{myAttendanceInfo.source}</span>
                 </div>
-                <div className="bg-amber-50/70 border border-amber-200/60 rounded-lg p-2 text-center flex flex-col justify-center">
-                  <span className="text-[8.5px] font-bold text-amber-700 uppercase tracking-wider">Toleransi</span>
-                  <span className="text-[11px] font-extrabold text-amber-900 mt-0.5">07:15</span>
-                  <span className="text-[8px] text-amber-600/80">WIB</span>
-                </div>
-                <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-2 text-center flex flex-col justify-center">
-                  <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Pulang</span>
-                  <span className="text-[11px] font-extrabold text-slate-800 mt-0.5">15:30</span>
-                  <span className="text-[8px] text-slate-400">WIB</span>
+                <div className="bg-slate-50/80 border border-slate-200/60 rounded-lg p-2 flex flex-col justify-center">
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <BookOpen size={10} className="text-slate-400" /> Jadwal Mengajar
+                  </span>
+                  <span className="text-[12px] font-extrabold text-slate-800 mt-0.5">
+                    {todayClasses.length > 0 ? `${todayClasses.length} Jam Pelajaran` : 'Tidak Ada KBM'}
+                  </span>
+                  <span className="text-[8px] text-slate-400">
+                    {todayClasses.length > 0 ? 'Hari ini' : 'Bebas KBM'}
+                  </span>
                 </div>
               </div>
+
+              {/* Agenda / Kelas Terdekat */}
+              {todayClasses.length > 0 && selectedClass ? (
+                <div className="bg-slate-50/80 border border-slate-200/70 rounded-lg p-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-md bg-emerald-100/80 border border-emerald-200/60 flex items-center justify-center shrink-0">
+                      <BookOpen size={12} className="text-emerald-700" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold text-slate-800 truncate">
+                        {selectedClass.className} • {selectedClass.subject}
+                      </p>
+                      <p className="text-[8.5px] text-slate-500 font-medium truncate">
+                        Jam Ke-{selectedClass.jamStart} • {selectedClass.room}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('jurnal_harian')}
+                    className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[9px] font-bold rounded-md shrink-0 transition-colors cursor-pointer"
+                    title="Buka Jurnal KBM"
+                  >
+                    Jurnal
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-slate-50/60 border border-slate-200/60 rounded-lg p-2 text-center text-slate-500 text-[9.5px] font-medium flex items-center justify-center gap-1.5">
+                  <CheckCircle2 size={12} className="text-slate-400" />
+                  <span>Tidak ada agenda tatap muka hari ini</span>
+                </div>
+              )}
 
               {/* Tombol Akses Cepat Presensi Mandiri / Kalender */}
               <div className="flex items-center gap-1.5 pt-0.5">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('absen_mandiri_guru')}
-                  className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] rounded-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1"
+                  onClick={() => setActiveTab('absensiguru')}
+                  className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10.5px] rounded-lg transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                 >
                   <CheckCircle2 size={12} strokeWidth={2.4} />
                   <span>Presensi Mandiri</span>

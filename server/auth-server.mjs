@@ -3132,25 +3132,28 @@ const server = createServer(async (req, res) => {
             lateQ += ` ORDER BY created_at DESC LIMIT 50 `;
             lateRes = await dbPool.query(lateQ, lateP);
             
-            hLateRes = await dbPool.query(`
+            const hLateLogs = await dbPool.query(`
               SELECT l.employee_id as nis, 'terlambat' as status, l.timestamp as created_at
               FROM hikvision_logs l
               WHERE l.timestamp::date = (NOW() AT TIME ZONE 'Asia/Jakarta')::date
                 AND l.employee_id !~* '^k'
-                AND EXISTS (
-                  SELECT 1 FROM mst_students ms 
-                  WHERE ms.id = l.employee_id 
-                     OR ms.payload->>'nis' = l.employee_id 
-                     OR ms.payload->>'code' = l.employee_id 
-                     OR (CHAR_LENGTH(l.employee_id) >= 6 AND (ms.payload->>'nis' LIKE ('%' || l.employee_id) OR l.employee_id LIKE ('%' || (ms.payload->>'nis'))))
-                )
-                AND NOT EXISTS(SELECT 1 FROM mst_staffs WHERE payload->>'staff_code' = l.employee_id OR payload->>'code' = l.employee_id OR id = l.employee_id)
-                AND NOT EXISTS(SELECT 1 FROM mst_teachers WHERE payload->>'code' = l.employee_id OR payload->>'nip' = l.employee_id OR id = l.employee_id)
                 AND l.employee_id !~* '^[0-9]{1,3}$'
                 AND CAST(l.timestamp AS TIME) > $1::time
                 AND CAST(l.timestamp AS TIME) <= $2::time
-              ORDER BY l.timestamp DESC LIMIT 50
+              ORDER BY l.timestamp DESC LIMIT 100
             `, [masukLate, masukClose]);
+
+            const filteredHLate = hLateLogs.rows.filter(r => {
+              const strId = String(r.nis || '').trim().toLowerCase();
+              const isTeacher = teachers.some(t => String(t.code || t.nip || t.id || '').trim().toLowerCase() === strId);
+              if (isTeacher) return false;
+              const isStaff = staffs.some(s => String(s.staff_code || s.code || s.id || '').trim().toLowerCase() === strId);
+              if (isStaff) return false;
+              const sInfo = getStudentInfo(r.nis);
+              return sInfo.name && sInfo.name !== '-' && sInfo.class_name;
+            }).slice(0, 50);
+
+            hLateRes = { rows: filteredHLate };
           }
           
           const combined = [...lateRes.rows, ...hLateRes.rows].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -3588,6 +3591,7 @@ const server = createServer(async (req, res) => {
           }
 
           const todayLogsRes = { rows: todayLogsRows };
+          const firstScanMap = new Map();
           todayLogsRes.rows.forEach(r => {
             const empId = String(r.canonical_nis || r.employee_id || '').trim().toLowerCase();
             if (!empId) return;
