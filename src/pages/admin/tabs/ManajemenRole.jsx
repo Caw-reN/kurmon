@@ -3,7 +3,7 @@ import {
   Shield, Users, UserCog, Search, ChevronDown, ChevronRight, Edit2, 
   Building2, AlertCircle, Sparkles, UserPlus, 
   RotateCcw, Info, BookOpen, GraduationCap, 
-  HeartHandshake, Landmark, ShieldCheck, Key, History
+  HeartHandshake, Landmark, ShieldCheck, Key, KeyRound, History
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button, UISelect, Modal } from '../../../components/ui.jsx';
@@ -692,6 +692,7 @@ export default function ManajemenRole(props) {
           { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
           { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
           { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
           { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
         ] : [
           { id: 'organogram', label: 'Bagan Struktur Sekolah', icon: Building2 },

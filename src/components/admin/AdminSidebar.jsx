@@ -1055,11 +1055,18 @@ export default function AdminSidebar({
                 {/* Config access for non-admin with granted config permissions */}
                 {hasAnyConfigAccess() && (
                   <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
-                    {renderNavItem({ id: "fitur", icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon, label: "Kontrol Fitur" })}
-                    {renderNavItem({ id: "hak_akses", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Hak Akses Role" })}
-                    {renderNavItem({ id: "manajemen_role", icon: MENU_REGISTRY.find(m => m.id === 'manajemen_role')?.icon || Shield, label: "Struktur & Jabatan" })}
-                    {renderNavItem({ id: "tampilan", icon: MENU_REGISTRY.find(m => m.id === 'tampilan')?.icon, label: "Tampilan Web" })}
-                    {renderNavItem({ id: "pengaturanuser", icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon, label: "Pengaturan User" })}
+                    {renderNavItem({
+                      id: "hak_akses",
+                      icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon || UserCog,
+                      label: "Hak Akses & Pengguna",
+                      activeIds: ['hak_akses', 'manajemen_role', 'pengaturanuser', 'status_password', 'log_password', 'audit_log']
+                    })}
+                    {renderNavItem({
+                      id: "fitur",
+                      icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon || SlidersHorizontal,
+                      label: "Sistem & Integrasi",
+                      activeIds: ['fitur', 'tampilan', 'api_keys', 'whatsapp', 'gdrive_backup']
+                    })}
                   </SidebarGroup>
                 )}
               </>
