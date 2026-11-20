@@ -3171,6 +3171,7 @@ export default function App() {
 
     let effectiveKey = activeRole;
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+    const activeSubrole = subrole;
     const div = (currentUser?.division || "").toLowerCase().trim();
     const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || subrole === 'walikelas');
     const KNOWN_SUBROLES = [
@@ -3363,12 +3364,12 @@ export default function App() {
     }
 
     if (["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(id)) {
-      if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek' || activeRole.includes('kepala') || activeSubrole.includes('kepala')) {
+      if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek' || activeRole.includes('kepala') || subrole.includes('kepala')) {
         return true;
       }
       if (isWalasUser) return true;
       if (id === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser || isKesiswaanTeam)) return true;
-      if (["catatan_walikelas", "walas_report"].includes(id) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam || activeSubrole.includes('sekretaris') || activeRole.includes('sekretaris') || div === 'sekretaris')) return true;
+      if (["catatan_walikelas", "walas_report"].includes(id) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam || subrole.includes('sekretaris') || activeRole.includes('sekretaris') || div === 'sekretaris')) return true;
       if (spLevel === "edit" || spLevel === "view" || spLevel === "otomatis" || spLevel === "full") return true;
       return false;
     }
