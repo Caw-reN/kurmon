@@ -616,94 +616,104 @@ export default function MyAttendancePage({ setActiveTab }) {
   return (
     <div className="w-full flex flex-col gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-12">
 
-      {/* HERO HEADER */}
+      {/* HERO HEADER: Compact & Responsive */}
       <div
-        className="rounded-2xl px-4 sm:px-6 py-4 sm:py-5 relative overflow-hidden text-white shadow-sm"
+        className="rounded-xl sm:rounded-2xl px-3.5 sm:px-6 py-3 sm:py-4 relative overflow-hidden text-white shadow-sm"
         style={{ background:'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, black) 100%)' }}
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 right-0 w-60 h-60 rounded-full border-[28px] border-white -mr-14 -mt-14" />
           <div className="absolute bottom-0 left-1/3 w-28 h-28 rounded-full border-[12px] border-white -mb-8" />
         </div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5">
-          <div className="flex items-start sm:items-center gap-3">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             {/* Tombol Back */}
             <button
               type="button"
               onClick={handleBack}
-              className="p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white rounded-xl transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
+              className="p-2 sm:p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white rounded-lg sm:rounded-xl transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
               title="Kembali ke Beranda"
               aria-label="Kembali ke Beranda"
             >
-              <ArrowLeft size={18} strokeWidth={2.5} />
+              <ArrowLeft size={16} strokeWidth={2.5} />
             </button>
 
-            <div>
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
-                  <Fingerprint size={12} className="text-white" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-[9px] sm:text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
+                  <Fingerprint size={10} className="text-white shrink-0" />
                   <span>Data Biometrik Hikvision</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
                 </span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">Absensi Saya</h1>
-              <p className="text-white/80 text-xs font-medium mt-0.5">
-                Rekap presensi personal • {teacherName} {teacherNIP ? `(NIP: ${teacherNIP})` : (teacherCode ? `(ID: ${teacherCode})` : '')} • {MONTH_NAMES[filter.month-1]} {filter.year}
+              <h1 className="text-base sm:text-2xl font-black tracking-tight leading-tight truncate">Absensi Saya</h1>
+              <p className="text-white/80 text-[10.5px] sm:text-xs font-medium truncate mt-0.5">
+                {teacherName} {teacherNIP ? `(NIP: ${teacherNIP})` : (teacherCode ? `(ID: ${teacherCode})` : '')} • {MONTH_NAMES[filter.month-1]} {filter.year}
               </p>
             </div>
           </div>
 
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 px-4 py-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white text-xs font-bold rounded-xl transition-all cursor-pointer w-fit shrink-0 self-end sm:self-auto shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl transition-all cursor-pointer w-fit shrink-0 self-end sm:self-auto shadow-xs"
           >
-            <Download size={14} strokeWidth={2.4} />
+            <Download size={13} strokeWidth={2.4} />
             <span>Download PDF</span>
           </button>
         </div>
       </div>
 
-      {/* STATS CARDS: Clean Modern Elevation Without Top Line Accent */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3">
+      {/* STATS CARDS: Compact 5-Column Single Row Layout (Mobile & Desktop) */}
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
         {[
           { 
             label: 'Hadir', 
+            shortLabel: 'Hadir',
             value: stats.hadir, 
             icon: CheckCircle2,
             iconBg: 'bg-emerald-50 border-emerald-200/80 text-emerald-700',
-            pillBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
+            textColor: 'text-emerald-700',
+            bg: 'bg-emerald-50/20 border-emerald-200/70',
             hoverBorder: 'hover:border-emerald-300'
           },
           { 
             label: 'Terlambat', 
+            shortLabel: 'Telat',
             value: stats.terlambat, 
             icon: Clock,
             iconBg: 'bg-amber-50 border-amber-200/80 text-amber-700',
-            pillBg: 'bg-amber-50 text-amber-800 border-amber-200/80',
+            textColor: 'text-amber-700',
+            bg: 'bg-amber-50/20 border-amber-200/70',
             hoverBorder: 'hover:border-amber-300'
           },
           { 
             label: 'Izin', 
+            shortLabel: 'Izin',
             value: stats.izin, 
             icon: FileText,
             iconBg: 'bg-indigo-50 border-indigo-200/80 text-indigo-700',
-            pillBg: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+            textColor: 'text-indigo-700',
+            bg: 'bg-indigo-50/20 border-indigo-200/70',
             hoverBorder: 'hover:border-indigo-300'
           },
           { 
             label: 'Sakit', 
+            shortLabel: 'Sakit',
             value: stats.sakit, 
             icon: HeartPulse,
             iconBg: 'bg-yellow-50 border-yellow-200/80 text-yellow-800',
-            pillBg: 'bg-yellow-50 text-yellow-800 border-yellow-200/80',
+            textColor: 'text-yellow-700',
+            bg: 'bg-yellow-50/20 border-yellow-200/70',
             hoverBorder: 'hover:border-yellow-300'
           },
           { 
             label: 'Alpa', 
+            shortLabel: 'Alpa',
             value: stats.alpa, 
             icon: AlertCircle,
             iconBg: 'bg-rose-50 border-rose-200/80 text-rose-700',
-            pillBg: 'bg-rose-50 text-rose-800 border-rose-200/80',
+            textColor: 'text-rose-700',
+            bg: 'bg-rose-50/20 border-rose-200/70',
             hoverBorder: 'hover:border-rose-300'
           },
         ].map(s => {
@@ -711,23 +721,24 @@ export default function MyAttendancePage({ setActiveTab }) {
           return (
             <div 
               key={s.label} 
-              className={`ui-card bg-white border border-slate-200/80 ${s.hoverBorder} rounded-xl sm:rounded-2xl p-3 sm:p-3.5 flex flex-col justify-between shadow-xs hover:shadow-sm transition-all group`}
+              className={`ui-card bg-white border ${s.bg} ${s.hoverBorder} rounded-xl sm:rounded-2xl p-1.5 sm:p-3 flex flex-col items-center sm:items-start justify-between shadow-2xs hover:shadow-xs transition-all group min-w-0`}
             >
-              <div className="flex items-center justify-between gap-1 mb-2">
-                <span className="text-[10px] sm:text-[10.5px] font-extrabold uppercase tracking-wider text-slate-400">
-                  {s.label}
+              <div className="flex items-center justify-between gap-1 w-full">
+                <span className="text-[8px] sm:text-[10.5px] font-black uppercase tracking-wider text-slate-500 truncate">
+                  <span className="sm:hidden">{s.shortLabel}</span>
+                  <span className="hidden sm:inline">{s.label}</span>
                 </span>
-                <div className={`w-7 h-7 rounded-lg border ${s.iconBg} flex items-center justify-center shrink-0 shadow-2xs`}>
-                  <Icon size={14} strokeWidth={2.4} />
+                <div className={`w-4 h-4 sm:w-6 sm:h-6 rounded sm:rounded-lg border ${s.iconBg} flex items-center justify-center shrink-0 shadow-2xs`}>
+                  <Icon size={11} strokeWidth={2.4} />
                 </div>
               </div>
 
-              <div className="flex items-baseline justify-between gap-2 mt-0.5">
-                <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight leading-none">
+              <div className="flex items-baseline justify-center sm:justify-start gap-1 mt-1 sm:mt-1.5 w-full">
+                <span className="text-sm sm:text-2xl font-black text-slate-800 tracking-tight leading-none">
                   {s.value}
                 </span>
-                <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md border ${s.pillBg}`}>
-                  {s.value} Hari
+                <span className="text-[7.5px] sm:text-[10px] font-bold text-slate-400 leading-none">
+                  hari
                 </span>
               </div>
             </div>
@@ -808,7 +819,7 @@ export default function MyAttendancePage({ setActiveTab }) {
         {/* Calendar Grid Cells */}
         <div className="grid grid-cols-7 divide-x divide-y divide-slate-100">
           {calendarGrid.map((day, idx) => {
-            if (day === null) return <div key={`e-${idx}`} className="min-h-[85px] sm:min-h-[96px] bg-slate-50/40" />;
+            if (day === null) return <div key={`e-${idx}`} className="min-h-[70px] sm:min-h-[96px] bg-slate-50/40" />;
 
             const dayData    = myData?.days?.[day];
             const style      = getStatusStyle(dayData);
@@ -831,7 +842,7 @@ export default function MyAttendancePage({ setActiveTab }) {
                 type="button"
                 onClick={() => openForm(day)}
                 className={`
-                  min-h-[85px] sm:min-h-[96px] w-full flex flex-col items-center pt-1.5 pb-2 px-1 gap-1
+                  min-h-[70px] sm:min-h-[96px] w-full flex flex-col items-center pt-1.5 pb-2 px-1 gap-1
                   transition-all cursor-pointer border-none text-left relative group
                   ${isSelected ? 'bg-emerald-50/60 ring-2 ring-inset ring-emerald-500 z-10' : isFuture ? 'bg-slate-50/40 hover:bg-slate-100/70' : isWeekend ? 'bg-slate-50/30 hover:bg-slate-100/60' : 'bg-white hover:bg-slate-50/90'}
                 `}
