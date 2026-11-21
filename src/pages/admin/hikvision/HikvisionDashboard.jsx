@@ -33,7 +33,7 @@ function formatDowntime(offlineSince) {
   } else if (diffMin > 0) {
     durationText = `${diffMin} menit`;
   } else {
-    durationText = 'Baru saja (< 1 mnt)';
+    durationText = '< 1 mnt';
   }
 
   const startTimeStr = start.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' WIB';
@@ -71,10 +71,9 @@ const DEVICE_TYPE_CONFIG = {
 const DeviceTypeBadge = ({ type }) => {
   const isStaff = ['guru', 'karyawan', 'staff'].includes(type);
   const cfg = isStaff ? DEVICE_TYPE_CONFIG.staff : (DEVICE_TYPE_CONFIG[type] || DEVICE_TYPE_CONFIG.siswa);
-  const Icon = cfg.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${cfg.color}`}>
-      <Icon size={11} /> {cfg.label}
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border ${cfg.color} shrink-0 leading-tight`}>
+      {cfg.label}
     </span>
   );
 };
@@ -86,7 +85,6 @@ export default function HikvisionDashboard({
   classes = [],
   students = []
 }) {
-  // Determine subTab based on router activeTab or initialSubTab
   const defaultTab = initialSubTab 
     ? initialSubTab 
     : activeTab === 'hikvision_devices' 
@@ -127,16 +125,13 @@ export default function HikvisionDashboard({
 
   const authToken = useAuthStore(state => state.user?.authToken);
 
-  // Sync subTab if router changes activeTab externally
   useEffect(() => {
     if (activeTab === 'hikvision_devices') {
       setCurrentSubTab('devices');
     } else if (activeTab === 'hikvision_students') {
       setCurrentSubTab('users');
-    } else if (activeTab === 'hikvision' && !initialSubTab) {
-      // keep currentSubTab or default to overview
     }
-  }, [activeTab, initialSubTab]);
+  }, [activeTab]);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -327,7 +322,6 @@ export default function HikvisionDashboard({
     setSavingConfig(false);
   };
 
-  // KPI Calculations
   const onlineDevicesCount = devices.filter(d => d.is_online === true).length;
   const offlineDevicesCount = devices.length - onlineDevicesCount;
   const todayDateStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' });
@@ -338,7 +332,6 @@ export default function HikvisionDashboard({
     }).length;
   }, [recentLogs, todayDateStr]);
 
-  // Filtered Logs
   const filteredLogs = useMemo(() => {
     let list = recentLogs;
     if (activeFilter === 'staff') {
@@ -399,7 +392,7 @@ export default function HikvisionDashboard({
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
       {/* Central Header */}
       <PageHeader 
         title="Pusat Kontrol & Manajemen Mesin Absensi"
@@ -409,195 +402,68 @@ export default function HikvisionDashboard({
         activeTab={currentSubTab}
         onTabChange={navigateToTab}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-2 border-amber-300 text-amber-800 hover:bg-amber-50 font-bold"
+            className="flex items-center gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-50 font-bold text-xs h-8 px-2.5"
             onClick={() => navigateToExternalReport('hikvision_report_siswa')}
           >
-            <ClipboardList size={15} className="text-amber-600" />
+            <ClipboardList size={14} className="text-amber-600" />
             <span className="hidden sm:inline">Keterangan Massal</span>
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-2" 
+            className="flex items-center gap-1.5 text-xs font-bold h-8 px-2.5" 
             onClick={fetchData}
             disabled={loading}
             title="Segarkan data status & log"
           >
-            <RefreshCw size={14} className={loading ? "animate-spin text-[var(--ui-primary)]" : ""} />
+            <RefreshCw size={13} className={loading ? "animate-spin text-[var(--ui-primary)]" : ""} />
             <span className="hidden sm:inline">Segarkan</span>
           </Button>
           <Button 
             size="sm" 
-            className="flex items-center gap-2 shadow-xs" 
+            className="flex items-center gap-1.5 text-xs font-bold shadow-2xs h-8 px-3" 
             onClick={handleSyncAll} 
             disabled={syncing} 
           >
-            <RefreshCw size={15} className={syncing ? "animate-spin" : ""} /> 
-            <span>{syncing ? 'Menarik Log...' : 'Tarik Data Semua'}</span>
+            <RefreshCw size={13} className={syncing ? "animate-spin" : ""} /> 
+            <span>{syncing ? 'Menarik...' : 'Tarik Data Semua'}</span>
           </Button>
         </div>
       </PageHeader>
 
-      {/* Top Executive KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI 1: Mesin Terhubung */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Mesin</span>
-            <div className="text-2xl font-black text-slate-800 mt-0.5 flex items-baseline gap-2">
-              <span>{devices.length}</span>
-              <span className="text-xs font-bold text-slate-500">Unit</span>
-            </div>
-            <div className="flex items-center gap-2 mt-1.5 text-xs font-semibold">
-              <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80 font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {onlineDevicesCount} Online
-              </span>
-              {offlineDevicesCount > 0 && (
-                <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/80 font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> {offlineDevicesCount} Offline
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200/80 shrink-0">
-            <Server size={24} />
-          </div>
-        </div>
-
-        {/* KPI 2: Status Konektivitas */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Konektivitas Jaringan</span>
-            <div className="text-lg font-black text-slate-800 mt-1 flex items-center gap-2">
-              {offlineDevicesCount === 0 && devices.length > 0 ? (
-                <span className="text-emerald-700 flex items-center gap-1.5">
-                  <CheckCircle2 size={18} className="text-emerald-600" />
-                  Semua Terhubung
-                </span>
-              ) : devices.length === 0 ? (
-                <span className="text-slate-400">Belum Ada Mesin</span>
-              ) : (
-                <span className="text-rose-700 flex items-center gap-1.5">
-                  <AlertTriangle size={18} className="text-rose-600" />
-                  {offlineDevicesCount} Mesin Terputus
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-1">
-              Protokol ISAPI TCP/IP Port 80
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-200/80 shrink-0">
-            <Radio size={24} />
-          </div>
-        </div>
-
-        {/* KPI 3: Scan Kehadiran Hari Ini */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Tap Scan Hari Ini</span>
-            <div className="text-2xl font-black text-slate-800 mt-0.5 flex items-baseline gap-2">
-              <span>{todayLogsCount}</span>
-              <span className="text-xs font-bold text-slate-500">Scan</span>
-            </div>
-            <p className="text-xs text-slate-500 font-medium mt-1.5 truncate max-w-[170px]">
-              {recentLogs[0]?.timestamp ? `Terakhir: ${new Date(recentLogs[0].timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB` : 'Belum ada log hari ini'}
-            </p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-200/80 shrink-0">
-            <Activity size={24} />
-          </div>
-        </div>
-
-        {/* KPI 4: Standar Integritas Biometrik */}
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Integritas Biometrik</span>
-            <div className="text-sm font-extrabold text-slate-800 mt-1">
-              Wajah & Sidik Jari
-            </div>
-            <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-emerald-700 font-bold">
-              <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
-              <span>Anti-Titip Kartu Aktif</span>
-            </div>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 border border-teal-200/80 shrink-0">
-            <Cpu size={24} />
-          </div>
-        </div>
-      </div>
-
-      {/* Sync Message Alert Banner */}
+      {/* Sync Message Alert Banner (Only when active) */}
       {syncMessage && (
-        <div className={`p-4 rounded-xl border shadow-xs backdrop-blur-sm ${syncMessage.type === 'success' ? 'bg-emerald-50/80 border-emerald-200/80 text-emerald-900' : 'bg-rose-50/80 border-rose-200/80 text-rose-900'}`}>
-          <div className="flex justify-between items-start">
-            <p className="font-extrabold text-sm">{syncMessage.text}</p>
-            <button onClick={() => setSyncMessage(null)} className="flex items-center justify-center p-1 hover:bg-black/5 rounded-full transition-colors border-none cursor-pointer">
-              <X size={16} className="opacity-70" />
+        <div className={`p-3 rounded-xl border shadow-2xs text-xs backdrop-blur-sm ${syncMessage.type === 'success' ? 'bg-emerald-50/80 border-emerald-200/80 text-emerald-900' : 'bg-rose-50/80 border-rose-200/80 text-rose-900'}`}>
+          <div className="flex justify-between items-center">
+            <p className="font-extrabold">{syncMessage.text}</p>
+            <button onClick={() => setSyncMessage(null)} className="p-1 hover:bg-black/5 rounded-full transition-colors border-none cursor-pointer">
+              <X size={14} className="opacity-70" />
             </button>
           </div>
           
           {syncMessage.stats && (
-            <div className="flex flex-wrap gap-4 mt-2.5 text-xs font-bold text-emerald-800 bg-white/80 p-3 rounded-lg border border-emerald-200/70">
-              <span className="flex items-center gap-1.5">
-                <Users size={14} className="text-emerald-600" /> User Baru: {syncMessage.stats.usersSynced}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Activity size={14} className="text-emerald-600" /> Log Masuk: {syncMessage.stats.logsPulled}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 size={14} className="text-emerald-600" /> Absensi Terproses: {syncMessage.stats.attendanceProcessed}
-              </span>
+            <div className="flex flex-wrap gap-3 mt-2 text-[11px] font-bold text-emerald-800 bg-white/80 p-2 rounded-lg border border-emerald-200/70">
+              <span className="flex items-center gap-1"><Users size={12} className="text-emerald-600" /> User Baru: {syncMessage.stats.usersSynced}</span>
+              <span className="flex items-center gap-1"><Activity size={12} className="text-emerald-600" /> Log Masuk: {syncMessage.stats.logsPulled}</span>
+              <span className="flex items-center gap-1"><CheckCircle2 size={12} className="text-emerald-600" /> Absensi Terproses: {syncMessage.stats.attendanceProcessed}</span>
             </div>
           )}
 
           {syncMessage.unmatchedCount > 0 && (
-            <div className="mt-3 p-3 bg-amber-50/90 border border-amber-200 text-amber-900 rounded-lg text-xs">
-              <p className="font-black flex items-center gap-1.5">
-                <AlertTriangle size={15} className="text-amber-600 shrink-0" />
-                Peringatan: {syncMessage.unmatchedCount} ID Tidak Dikenali Sistem
+            <div className="mt-2 p-2 bg-amber-50/90 border border-amber-200 text-amber-900 rounded-lg text-[11px]">
+              <p className="font-black flex items-center gap-1">
+                <AlertTriangle size={13} className="text-amber-600 shrink-0" />
+                {syncMessage.unmatchedCount} ID Tidak Dikenali Sistem
               </p>
-              <p className="mb-2 opacity-85 font-medium mt-0.5">ID pada mesin tidak ditemukan di database Siswa/Guru/Karyawan, log diabaikan.</p>
-              <ul className="list-disc pl-5 max-h-28 overflow-auto text-[11px] space-y-0.5">
+              <ul className="list-disc pl-4 max-h-20 overflow-auto text-[10.5px] mt-1 space-y-0.5">
                 {syncMessage.unmatched.map((u, i) => (
-                  <li key={i}>ID Mesin: <strong>{u.id}</strong> - Nama: {u.name} (Tipe: {u.type}, Alat: {u.device})</li>
+                  <li key={i}>ID: <strong>{u.id}</strong> - {u.name} ({u.device})</li>
                 ))}
               </ul>
-            </div>
-          )}
-
-          {syncMessage.results && (
-            <div className="mt-3 space-y-2">
-              <ul className="list-disc list-inside text-xs space-y-1 bg-white/80 p-2.5 rounded-lg border border-slate-200/80">
-                {syncMessage.results.map((res, i) => {
-                  const isFailed = String(res.status).toLowerCase().includes('fetch failed') || String(res.status).toLowerCase().includes('error');
-                  return (
-                    <li key={i} className={isFailed ? "text-rose-700 font-semibold" : "text-emerald-700 font-semibold"}>
-                      <span className="font-bold">{res.ip}</span>: {isFailed ? `Gagal Terhubung (${res.status})` : res.status}
-                      {res.logs_saved !== undefined && ` (${res.logs_saved} tersimpan)`}
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {syncMessage.results.some(r => String(r.status).toLowerCase().includes('fetch failed')) && (
-                <div className="p-3 bg-rose-50/90 border border-rose-200 text-rose-900 rounded-lg text-xs space-y-1.5">
-                  <p className="font-black flex items-center gap-1.5">
-                    <AlertTriangle size={15} className="text-rose-600 shrink-0" />
-                    Penyebab Utama "Error: fetch failed":
-                  </p>
-                  <ol className="list-decimal pl-4 space-y-1 font-semibold text-[11px] text-rose-800">
-                    <li><strong>Beda Jaringan (LAN/WiFi):</strong> Server aplikasi tidak berada dalam 1 router/jaringan lokal yang sama dengan IP mesin.</li>
-                    <li><strong>Mesin Mati / Kabel LAN Terlepas:</strong> Mesin fingerprint dalam keadaan mati atau kabel jaringan terlepas.</li>
-                    <li><strong>IP Address Berubah:</strong> IP mesin di jaringan berubah. Cek IP aktif pada layar menu mesin dan perbarui di tab <em>Pengaturan Alat</em>.</li>
-                    <li><strong>Firewall Router:</strong> Port ISAPI (80 / 8000) terblokir oleh router sekolah.</li>
-                  </ol>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -605,36 +471,106 @@ export default function HikvisionDashboard({
 
       {/* SUB-TAB 1: OVERVIEW (RINGKASAN & STATUS) */}
       {currentSubTab === 'overview' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Grid Status Mesin Fisik */}
+        <div className="space-y-4 animate-in fade-in duration-200">
+          {/* Top Ultra-Compact Metric Strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {/* KPI 1 */}
+            <div className="bg-white rounded-xl border border-slate-200/80 p-2.5 px-3 shadow-2xs flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+                <Server size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total Mesin</div>
+                <div className="text-sm font-black text-slate-800 leading-tight mt-1 flex items-baseline gap-1.5">
+                  <span>{devices.length} Unit</span>
+                  <span className="text-[10.5px] font-bold text-emerald-600">({onlineDevicesCount} Online)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* KPI 2 */}
+            <div className="bg-white rounded-xl border border-slate-200/80 p-2.5 px-3 shadow-2xs flex items-center gap-2.5">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${offlineDevicesCount === 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                <Radio size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Jaringan</div>
+                <div className="text-xs font-black text-slate-800 leading-tight mt-1 truncate">
+                  {offlineDevicesCount === 0 && devices.length > 0 ? (
+                    <span className="text-emerald-700 font-extrabold flex items-center gap-1">
+                      <CheckCircle2 size={13} className="text-emerald-600" /> Semua Online
+                    </span>
+                  ) : devices.length === 0 ? (
+                    <span className="text-slate-400">Belum Ada Mesin</span>
+                  ) : (
+                    <span className="text-rose-700 font-extrabold flex items-center gap-1">
+                      <AlertTriangle size={13} className="text-rose-600" /> {offlineDevicesCount} Offline
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* KPI 3 */}
+            <div className="bg-white rounded-xl border border-slate-200/80 p-2.5 px-3 shadow-2xs flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                <Activity size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Scan Hari Ini</div>
+                <div className="text-sm font-black text-slate-800 leading-tight mt-1 flex items-baseline gap-1.5">
+                  <span>{todayLogsCount} Scan</span>
+                  {recentLogs[0]?.timestamp && (
+                    <span className="text-[10.5px] text-slate-400 font-normal truncate">
+                      ({new Date(recentLogs[0].timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })})
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* KPI 4 */}
+            <div className="bg-white rounded-xl border border-slate-200/80 p-2.5 px-3 shadow-2xs flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                <ShieldCheck size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Biometrik</div>
+                <div className="text-xs font-extrabold text-slate-800 leading-tight mt-1 truncate">
+                  Wajah & Fingerprint
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid Status Mesin Fisik (Compact Cards) */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-                  <Server size={16} className="text-[var(--ui-primary)]" />
-                  Telemetri Status Perangkat Mesin
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                  <Server size={14} className="text-[var(--ui-primary)]" />
+                  Telemetri Perangkat Mesin ({devices.length} Unit)
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">Status kesehatan jaringan dan respon ping mesin absensi secara real-time.</p>
               </div>
               <button
                 type="button"
                 onClick={() => navigateToTab('devices')}
-                className="text-xs font-bold text-[var(--ui-primary)] hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-[11px] font-bold text-[var(--ui-primary)] hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 <span>Kelola Alat</span>
-                <ChevronRight size={14} />
+                <ChevronRight size={13} />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               {loading ? (
-                <div className="col-span-full p-8 text-center text-slate-400 bg-white rounded-xl border border-slate-200/80">
-                  <RefreshCw className="animate-spin mx-auto mb-2 text-slate-400" />
-                  <span>Memuat daftar mesin...</span>
+                <div className="col-span-full p-4 text-center text-xs text-slate-400 bg-white rounded-xl border border-slate-200/80">
+                  <RefreshCw className="animate-spin mx-auto mb-1 text-slate-400" size={14} />
+                  <span>Memuat status mesin...</span>
                 </div>
               ) : devices.length === 0 ? (
-                <div className="col-span-full p-8 text-center text-slate-500 bg-white rounded-xl border border-slate-200/80 font-bold">
-                  Belum ada perangkat terdaftar. Silakan tambahkan mesin di tab Pengaturan Alat.
+                <div className="col-span-full p-4 text-center text-xs text-slate-500 bg-white rounded-xl border border-slate-200/80 font-bold">
+                  Belum ada perangkat terdaftar.
                 </div>
               ) : (
                 devices.map(device => {
@@ -646,66 +582,45 @@ export default function HikvisionDashboard({
                   return (
                     <div 
                       key={device.id} 
-                      className={`bg-white rounded-xl border p-4 shadow-xs flex flex-col justify-between transition-all ${
-                        isOnline ? 'border-slate-200/80 hover:border-emerald-300' : 'border-rose-200/80 bg-rose-50/20'
+                      className={`bg-white rounded-xl border p-2.5 px-3 shadow-2xs flex items-center justify-between gap-2.5 transition-all ${
+                        isOnline ? 'border-slate-200/80 hover:border-emerald-300' : 'border-rose-200/80 bg-rose-50/25'
                       }`}
                     >
-                      <div>
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
-                              isOnline ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}>
-                              <HardDrive size={16} />
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-sm text-slate-800 leading-snug">{device.location}</h4>
-                              <div className="text-[11px] font-mono text-slate-500 mt-0.5">{device.ip_address}</div>
-                            </div>
-                          </div>
-                          <DeviceTypeBadge type={device.device_type || 'siswa'} />
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
+                          isOnline ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                        }`}>
+                          <HardDrive size={13} />
                         </div>
-
-                        {/* Status Bar */}
-                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                          <span className="text-slate-400 font-bold">Status:</span>
-                          {isOnline ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                              ONLINE
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                              {isSyncFailed ? "GAGAL TERHUBUNG" : "OFFLINE"}
-                            </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <h4 className="font-bold text-xs text-slate-800 truncate">{device.location}</h4>
+                          </div>
+                          <div className="text-[10.5px] font-mono text-slate-500 mt-0.5 flex items-center gap-1.5">
+                            <span>{device.ip_address}</span>
+                            <span className="text-[9.5px] text-slate-400 font-sans">p:80</span>
+                          </div>
+                          {downtime && (
+                            <div className="text-[9.5px] text-rose-700 font-bold mt-0.5 truncate">
+                              Mati: {downtime.durationText}
+                            </div>
                           )}
                         </div>
-
-                        {/* Downtime Info */}
-                        {downtime && (
-                          <div className="mt-2.5 p-2 rounded-lg bg-rose-50/80 border border-rose-200/70 text-[11px] text-rose-800 font-medium space-y-0.5">
-                            <div className="flex items-center gap-1">
-                              <Clock size={11} className="text-rose-500 shrink-0" />
-                              <span>Mati sejak: <strong>{downtime.startTimeFormatted}</strong></span>
-                            </div>
-                            <div className="pl-3.5">
-                              <span>Durasi: <strong>{downtime.durationText}</strong></span>
-                            </div>
-                          </div>
-                        )}
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <span className="text-[10px] text-slate-400 font-medium">Port 80 (ISAPI)</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-xs font-bold text-slate-600 hover:text-[var(--ui-primary)]"
-                          onClick={() => navigateToTab('devices')}
-                        >
-                          Kelola Alat
-                        </Button>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <DeviceTypeBadge type={device.device_type || 'siswa'} />
+                        {isOnline ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 leading-none">
+                            <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></span>
+                            ONLINE
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200 leading-none">
+                            <span className="w-1 h-1 rounded-full bg-rose-500"></span>
+                            OFFLINE
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -714,29 +629,26 @@ export default function HikvisionDashboard({
             </div>
           </div>
 
-          {/* Log Kehadiran Realtime Feed */}
-          <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* Log Kehadiran Realtime Feed (Compact Table) */}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            <div className="p-2.5 px-3.5 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                  <Clock size={16} className="text-[var(--ui-primary)]" />
-                  Log Kehadiran Mesin Absensi (Real-Time Feed)
+                <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                  <Clock size={14} className="text-[var(--ui-primary)]" />
+                  Log Kehadiran Mesin Absensi (Live Feed)
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  Audit data scan masuk & pulang dari seluruh mesin biometrik yang terpasang.
-                </p>
               </div>
 
               {/* Filter Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <div className="relative">
-                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Cari nama / NIS..."
                     value={searchLog}
                     onChange={(e) => { setSearchLog(e.target.value); setCurrentPage(1); }}
-                    className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:outline-none focus:border-[var(--ui-primary)]"
+                    className="pl-7 pr-2.5 py-1 text-xs rounded-lg border border-slate-200 bg-white font-medium focus:outline-none focus:border-[var(--ui-primary)] h-7 w-36 sm:w-44"
                   />
                 </div>
                 <div className="flex items-center gap-1">
@@ -746,7 +658,7 @@ export default function HikvisionDashboard({
                       size="sm"
                       key={opt.value}
                       onClick={() => { setActiveFilter(opt.value); setCurrentPage(1); }}
-                      className={`text-xs font-bold cursor-pointer ${activeFilter === opt.value ? 'bg-[var(--ui-primary)] text-white hover:bg-[var(--ui-primary-hover)] border-transparent' : ''}`}
+                      className={`text-[11px] font-bold h-7 px-2 cursor-pointer ${activeFilter === opt.value ? 'bg-[var(--ui-primary)] text-white hover:bg-[var(--ui-primary-hover)] border-transparent' : ''}`}
                     >
                       {opt.label}
                     </Button>
@@ -757,48 +669,48 @@ export default function HikvisionDashboard({
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs whitespace-nowrap">
-                <thead className="bg-white border-b border-slate-100 text-slate-400 uppercase tracking-wider font-bold">
+                <thead className="bg-white border-b border-slate-100 text-slate-400 uppercase tracking-wider font-bold text-[10.5px]">
                   <tr>
-                    <th className="px-3 py-3 w-12 text-center">No</th>
-                    <th className="px-4 py-3">Waktu Scan</th>
-                    <th className="px-4 py-3">Nama Pengguna & ID</th>
-                    <th className="px-4 py-3">Perangkat Mesin</th>
-                    <th className="px-4 py-3 text-right">Tipe</th>
+                    <th className="px-3 py-2 w-10 text-center">No</th>
+                    <th className="px-3 py-2">Waktu Scan</th>
+                    <th className="px-3 py-2">Nama Pengguna & ID</th>
+                    <th className="px-3 py-2">Perangkat Mesin</th>
+                    <th className="px-3 py-2 text-right">Tipe</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 font-semibold text-slate-700">
+                <tbody className="divide-y divide-slate-50 font-medium text-slate-700">
                   {loading ? (
-                    <tr><td colSpan={5} className="p-8 text-center text-slate-400 font-medium">Memuat audit log kehadiran...</td></tr>
+                    <tr><td colSpan={5} className="p-6 text-center text-slate-400 font-medium">Memuat audit log kehadiran...</td></tr>
                   ) : paginatedLogs.map((log, idx) => (
                     <tr key={log.id || idx} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-3 py-3 text-center text-slate-400 font-bold">
+                      <td className="px-3 py-2 text-center text-slate-400 font-bold text-[11px]">
                         {(currentPage - 1) * itemsPerPage + idx + 1}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-bold text-slate-800">
+                      <td className="px-3 py-2">
+                        <div className="font-bold text-slate-800 text-xs">
                           {new Date(log.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB
                         </div>
-                        <div className="text-[10px] text-slate-400 font-medium">
+                        <div className="text-[10px] text-slate-400">
                           {new Date(log.timestamp).toLocaleDateString('id-ID', { dateStyle: 'medium' })}
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-extrabold text-slate-800">{log.student_name || 'Tidak Dikenal'}</div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">NIS/ID: {log.employee_id}</div>
+                      <td className="px-3 py-2">
+                        <div className="font-bold text-slate-800 text-xs">{log.student_name || 'Tidak Dikenal'}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">ID: {log.employee_id}</div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="font-bold text-slate-700">
+                      <td className="px-3 py-2">
+                        <div className="font-bold text-slate-700 text-xs">
                           {devices.find(d => d.ip_address === log.ip_address)?.location || 'Mesin Hikvision'}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">{log.ip_address}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{log.ip_address}</div>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-3 py-2 text-right">
                         <DeviceTypeBadge type={log.true_person_type || log.person_type || log.device_type || 'siswa'} />
                       </td>
                     </tr>
                   ))}
                   {!loading && paginatedLogs.length === 0 && (
-                    <tr><td colSpan={5} className="p-8 text-center text-slate-400 font-medium">Tidak ada data log yang cocok.</td></tr>
+                    <tr><td colSpan={5} className="p-6 text-center text-slate-400 font-medium">Tidak ada data log yang cocok.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -838,185 +750,188 @@ export default function HikvisionDashboard({
         </div>
       )}
 
-      {/* SUB-TAB 4: BATAS WAKTU ABSENSI (SCHEDULE & CONFIG) */}
+      {/* SUB-TAB 4: BATAS WAKTU ABSENSI (SCHEDULE & CONFIG - COMPACT) */}
       {currentSubTab === 'schedule' && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden animate-in fade-in duration-200">
-          <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden animate-in fade-in duration-200">
+          <div className="p-3 px-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-2">
-                <Clock size={16} className="text-[var(--ui-primary)]" />
+              <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                <Clock size={14} className="text-[var(--ui-primary)]" />
                 Konfigurasi Jadwal & Batas Waktu Absensi
               </h3>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Atur jam masuk, toleransi keterlambatan, dan jam buka absen pulang per jenjang dan kampus.
+              <p className="text-[11px] text-slate-500 font-medium">
+                Atur jam masuk, batas keterlambatan, dan jam buka absen pulang per jenjang dan kampus.
               </p>
             </div>
             <button
               type="button"
               onClick={handleApplyPreset}
               title="Terapkan jadwal standar Kampus A (Jumat 11.50) & Kampus B (Jumat 15.30)"
-              className="text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+              className="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0"
             >
-              <Sparkles size={14} />
-              <span>Terapkan Preset Standar A/B</span>
+              <Sparkles size={13} />
+              <span>Preset Standar A/B</span>
             </button>
           </div>
 
-          <div className="p-5 space-y-5 max-w-4xl">
-            {/* Step 1: Pilihan Peran */}
-            <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">1. Pilih Kelompok Pengguna:</label>
-              <div className="flex border-b border-slate-200 gap-4">
-                {['siswa', 'guru', 'karyawan'].map(tab => (
-                  <button 
-                    key={tab}
-                    type="button"
-                    onClick={() => setActiveConfigTab(tab)}
-                    className={`pb-2.5 text-xs font-black capitalize transition-colors border-b-2 bg-transparent cursor-pointer flex items-center gap-1.5 ${
-                      activeConfigTab === tab 
-                        ? 'border-[var(--ui-primary)] text-[var(--ui-primary)]' 
-                        : 'border-transparent text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {tab === 'siswa' && <Users size={14} />}
-                    {tab === 'guru' && <UserCheck size={14} />}
-                    {tab === 'karyawan' && <Briefcase size={14} />}
-                    <span>{tab}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Step 2: Pilihan Kampus */}
-            <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">2. Pilih Lokasi Kampus:</label>
-              <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200/80 max-w-md">
-                {[
-                  { id: 'kampus_a', label: 'Kampus A' },
-                  { id: 'kampus_b', label: 'Kampus B' },
-                  { id: 'all', label: 'Semua / Umum' }
-                ].map(c => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setActiveCampusTab(c.id)}
-                    className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
-                      activeCampusTab === c.id
-                        ? 'bg-white text-slate-900 shadow-xs font-extrabold'
-                        : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                    }`}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Step 3: Pilihan Hari */}
-            {activeCampusTab !== 'all' && (
+          <div className="p-4 space-y-4 max-w-4xl">
+            {/* Filter toolbar row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-200/70">
+              {/* Step 1: Pilihan Peran */}
               <div>
-                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-2">3. Pilih Hari Operasional:</label>
-                <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200/80 max-w-md">
-                  {[
-                    { id: 'regular', label: 'Senin - Kamis' },
-                    { id: 'jumat', label: 'Jumat' },
-                    { id: 'sabtu', label: 'Sabtu' }
-                  ].map(d => (
-                    <button
-                      key={d.id}
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">1. Kelompok:</label>
+                <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
+                  {['siswa', 'guru', 'karyawan'].map(tab => (
+                    <button 
+                      key={tab}
                       type="button"
-                      onClick={() => setActiveDayTab(d.id)}
-                      className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all text-center cursor-pointer ${
-                        activeDayTab === d.id
-                          ? 'bg-[var(--ui-primary)] text-white font-extrabold shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                      onClick={() => setActiveConfigTab(tab)}
+                      className={`flex-1 py-1 text-xs font-bold capitalize transition-colors text-center cursor-pointer ${
+                        activeConfigTab === tab 
+                          ? 'bg-[var(--ui-primary)] text-white' 
+                          : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      {d.label}
+                      {tab}
                     </button>
                   ))}
                 </div>
               </div>
-            )}
+
+              {/* Step 2: Pilihan Kampus */}
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">2. Lokasi Kampus:</label>
+                <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
+                  {[
+                    { id: 'kampus_a', label: 'Kampus A' },
+                    { id: 'kampus_b', label: 'Kampus B' },
+                    { id: 'all', label: 'Umum' }
+                  ].map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setActiveCampusTab(c.id)}
+                      className={`flex-1 py-1 text-xs font-bold transition-all text-center cursor-pointer ${
+                        activeCampusTab === c.id
+                          ? 'bg-slate-800 text-white font-extrabold'
+                          : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Step 3: Pilihan Hari */}
+              {activeCampusTab !== 'all' ? (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">3. Hari Operasional:</label>
+                  <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
+                    {[
+                      { id: 'regular', label: 'Sen-Kam' },
+                      { id: 'jumat', label: 'Jumat' },
+                      { id: 'sabtu', label: 'Sabtu' }
+                    ].map(d => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setActiveDayTab(d.id)}
+                        className={`flex-1 py-1 text-xs font-bold transition-all text-center cursor-pointer ${
+                          activeDayTab === d.id
+                            ? 'bg-emerald-600 text-white font-extrabold'
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {d.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : <div></div>}
+            </div>
 
             {/* Info Banners */}
             {activeCampusTab === 'kampus_a' && activeDayTab === 'jumat' && (
-              <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-900 text-xs font-semibold leading-relaxed flex items-center gap-2">
-                <Zap size={16} className="text-indigo-600 shrink-0" />
-                <span><strong>Aturan Jumat Kampus A:</strong> Jam buka absen pulang disetel pukul <strong>11:50</strong>. Tap siswa mulai 11:50 otomatis tercatat sebagai absen Pulang.</span>
+              <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                <Zap size={14} className="text-indigo-600 shrink-0" />
+                <span><strong>Jumat Kampus A:</strong> Absen pulang dibuka pukul <strong>11:50</strong>.</span>
               </div>
             )}
             {activeCampusTab === 'kampus_b' && activeDayTab === 'jumat' && (
-              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs font-semibold leading-relaxed flex items-center gap-2">
-                <Zap size={16} className="text-amber-600 shrink-0" />
-                <span><strong>Aturan Jumat Kampus B:</strong> Jam buka absen pulang disetel pukul <strong>15:30</strong>.</span>
+              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                <Zap size={14} className="text-amber-600 shrink-0" />
+                <span><strong>Jumat Kampus B:</strong> Absen pulang dibuka pukul <strong>15:30</strong>.</span>
               </div>
             )}
 
-            {/* Jam Masuk Form */}
-            <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-3">
-              <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider block">Absen Masuk (Pagi)</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-[11px] text-slate-500 font-bold block mb-1">Buka Presensi (24J)</label>
-                  <UITimeInput24 
-                    placeholder="05:30" 
-                    value={getCurrentSchedule()?.masuk_open || ""} 
-                    onChange={e => updateCurrentSchedule('masuk_open', e.target.value)} 
-                  />
+            {/* Jam Masuk & Jam Pulang (Side by side 2-column) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* Masuk */}
+              <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+                <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Absen Masuk (Pagi)</h4>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
+                    <UITimeInput24 
+                      placeholder="05:30" 
+                      value={getCurrentSchedule()?.masuk_open || ""} 
+                      onChange={e => updateCurrentSchedule('masuk_open', e.target.value)} 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat (24J)</label>
+                    <UITimeInput24 
+                      placeholder="07:01" 
+                      value={getCurrentSchedule()?.masuk_late || ""} 
+                      onChange={e => updateCurrentSchedule('masuk_late', e.target.value)} 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
+                    <UITimeInput24 
+                      placeholder="11:00" 
+                      value={getCurrentSchedule()?.masuk_close || ""} 
+                      onChange={e => updateCurrentSchedule('masuk_close', e.target.value)} 
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[11px] text-slate-500 font-bold block mb-1">Batas Terlambat (24J)</label>
-                  <UITimeInput24 
-                    placeholder="07:01" 
-                    value={getCurrentSchedule()?.masuk_late || ""} 
-                    onChange={e => updateCurrentSchedule('masuk_late', e.target.value)} 
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-slate-500 font-bold block mb-1">Tutup Presensi (24J)</label>
-                  <UITimeInput24 
-                    placeholder="11:00" 
-                    value={getCurrentSchedule()?.masuk_close || ""} 
-                    onChange={e => updateCurrentSchedule('masuk_close', e.target.value)} 
-                  />
+              </div>
+
+              {/* Pulang */}
+              <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+                <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Absen Pulang (Sore)</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka Pulang (24J)</label>
+                    <UITimeInput24 
+                      placeholder={activeDayTab === 'jumat' && activeCampusTab === 'kampus_a' ? "11:50" : activeDayTab === 'jumat' && activeCampusTab === 'kampus_b' ? "15:30" : "14:00"} 
+                      value={getCurrentSchedule()?.pulang_open || ""} 
+                      onChange={e => updateCurrentSchedule('pulang_open', e.target.value)} 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup Pulang (24J)</label>
+                    <UITimeInput24 
+                      placeholder="16:30" 
+                      value={getCurrentSchedule()?.pulang_close || ""} 
+                      onChange={e => updateCurrentSchedule('pulang_close', e.target.value)} 
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Jam Pulang Form */}
-            <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-3">
-              <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider block">Absen Pulang (Sore)</h4>
+            {/* Notifikasi Izin / Sakit */}
+            <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+              <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Notifikasi Izin / Sakit Guru & Karyawan</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] text-slate-500 font-bold block mb-1">Buka Presensi Pulang (24J)</label>
-                  <UITimeInput24 
-                    placeholder={activeDayTab === 'jumat' && activeCampusTab === 'kampus_a' ? "11:50" : activeDayTab === 'jumat' && activeCampusTab === 'kampus_b' ? "15:30" : "14:00"} 
-                    value={getCurrentSchedule()?.pulang_open || ""} 
-                    onChange={e => updateCurrentSchedule('pulang_open', e.target.value)} 
-                  />
-                </div>
-                <div>
-                  <label className="text-[11px] text-slate-500 font-bold block mb-1">Tutup Presensi Pulang (24J)</label>
-                  <UITimeInput24 
-                    placeholder="16:30" 
-                    value={getCurrentSchedule()?.pulang_close || ""} 
-                    onChange={e => updateCurrentSchedule('pulang_close', e.target.value)} 
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Notifikasi Izin & Sakit Form */}
-            <div className="p-4 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-3">
-              <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider block">Notifikasi Izin / Sakit Guru & Karyawan</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[11px] text-slate-500 font-bold block mb-1">Tujuan Notifikasi Telegram / WhatsApp</label>
+                  <label className="text-[10px] text-slate-400 font-bold block mb-1">Tujuan Notifikasi Telegram / WhatsApp</label>
                   <UISelect 
                     value={config.notify_role || "none"} 
                     onChange={e => setConfig({...config, notify_role: e.target.value})} 
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold bg-white focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none"
+                    className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white focus:border-[var(--ui-primary)] outline-none"
                   >
                     <option value="none">Tidak Ada (none)</option>
                     <option value="kepsek">Kepala Sekolah (kepsek)</option>
@@ -1027,12 +942,12 @@ export default function HikvisionDashboard({
                 </div>
                 {config.notify_role === "custom" && (
                   <div>
-                    <label className="text-[11px] text-slate-500 font-bold block mb-1">Nomor WhatsApp Penerima</label>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Nomor WhatsApp Penerima</label>
                     <input 
                       type="text" 
                       value={config.notify_custom_phone || ""} 
                       onChange={e => setConfig({...config, notify_custom_phone: e.target.value})} 
-                      className="w-full border border-slate-200 bg-white rounded-lg px-3 py-2 text-xs font-bold focus:border-[var(--ui-primary)] focus:ring-1 focus:ring-[var(--ui-primary)] outline-none" 
+                      className="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 text-xs font-bold focus:border-[var(--ui-primary)] outline-none" 
                       placeholder="Contoh: 628123456789"
                     />
                   </div>
@@ -1040,124 +955,129 @@ export default function HikvisionDashboard({
               </div>
             </div>
 
-            <Button onClick={handleSaveConfig} disabled={savingConfig} className="w-full sm:w-auto px-6 font-bold shadow-xs">
-              {savingConfig ? "Menyimpan Konfigurasi..." : "Simpan Batas Waktu"}
+            <Button onClick={handleSaveConfig} disabled={savingConfig} size="sm" className="px-5 font-bold shadow-2xs">
+              {savingConfig ? "Menyimpan..." : "Simpan Batas Waktu"}
             </Button>
           </div>
         </div>
       )}
 
-      {/* SUB-TAB 5: PUSAT LAPORAN & REKAP (REPORTS HUB) */}
+      {/* SUB-TAB 5: PUSAT LAPORAN & REKAP (REPORTS HUB - COMPACT) */}
       {currentSubTab === 'reports' && (
-        <div className="space-y-4 animate-in fade-in duration-200">
+        <div className="space-y-3 animate-in fade-in duration-200">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-800 flex items-center gap-2">
-              <FileText size={16} className="text-[var(--ui-primary)]" />
+            <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+              <FileText size={14} className="text-[var(--ui-primary)]" />
               Pusat Laporan & Matriks Rekap Kehadiran
             </h3>
-            <p className="text-xs text-slate-500 font-medium">Akses langsung ke rekapitulasi kehadiran bulanan siswa, guru, dan karyawan.</p>
+            <p className="text-[11px] text-slate-500 font-medium">Akses langsung ke rekapitulasi kehadiran bulanan siswa, guru, dan karyawan.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {/* Report Card: Siswa */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-[var(--ui-primary)] transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center mb-3">
-                  <Users size={20} />
+            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center shrink-0">
+                  <Users size={16} />
                 </div>
-                <h4 className="font-extrabold text-slate-800 text-sm">Laporan Presensi Siswa</h4>
-                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                  Matriks absensi harian dan bulanan seluruh kelas, persentase hadir, izin, sakit, alpa, serta ekspor Excel resmi.
-                </p>
+                <div className="min-w-0">
+                  <h4 className="font-extrabold text-slate-800 text-xs">Presensi Siswa</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Matriks kehadiran bulanan siswa</p>
+                </div>
               </div>
               <Button 
+                size="sm"
                 onClick={() => navigateToExternalReport('hikvision_report_siswa')}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 font-bold text-xs"
+                className="font-bold text-xs h-7 px-2.5 shrink-0"
               >
-                <span>Buka Presensi Siswa</span>
-                <ArrowUpRight size={14} />
+                <span>Buka</span>
+                <ArrowUpRight size={12} className="ml-1" />
               </Button>
             </div>
 
             {/* Report Card: Guru */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-[var(--ui-primary)] transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-700 flex items-center justify-center mb-3">
-                  <UserCheck size={20} />
+            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0">
+                  <UserCheck size={16} />
                 </div>
-                <h4 className="font-extrabold text-slate-800 text-sm">Laporan Presensi Guru</h4>
-                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                  Rekapitulasi kehadiran guru, waktu tap scan masuk/pulang, keterlambatan, dan persetujuan izin resmi kurikulum.
-                </p>
+                <div className="min-w-0">
+                  <h4 className="font-extrabold text-slate-800 text-xs">Presensi Guru</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Rekap kehadiran & keterlambatan guru</p>
+                </div>
               </div>
               <Button 
+                size="sm"
                 onClick={() => navigateToExternalReport('hikvision_report_guru')}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 font-bold text-xs"
+                className="font-bold text-xs h-7 px-2.5 shrink-0"
               >
-                <span>Buka Presensi Guru</span>
-                <ArrowUpRight size={14} />
+                <span>Buka</span>
+                <ArrowUpRight size={12} className="ml-1" />
               </Button>
             </div>
 
             {/* Report Card: Karyawan */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-[var(--ui-primary)] transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200/80 text-purple-700 flex items-center justify-center mb-3">
-                  <Briefcase size={20} />
+            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200/80 text-purple-700 flex items-center justify-center shrink-0">
+                  <Briefcase size={16} />
                 </div>
-                <h4 className="font-extrabold text-slate-800 text-sm">Laporan Presensi Karyawan</h4>
-                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                  Audit absensi staf tata usaha, teknisi, sekuriti, dan tenaga kependidikan sekolah.
-                </p>
+                <div className="min-w-0">
+                  <h4 className="font-extrabold text-slate-800 text-xs">Presensi Karyawan</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Audit absensi staf tata usaha & TU</p>
+                </div>
               </div>
               <Button 
+                size="sm"
                 onClick={() => navigateToExternalReport('hikvision_report_karyawan')}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 font-bold text-xs"
+                className="font-bold text-xs h-7 px-2.5 shrink-0"
               >
-                <span>Buka Presensi Karyawan</span>
-                <ArrowUpRight size={14} />
+                <span>Buka</span>
+                <ArrowUpRight size={12} className="ml-1" />
               </Button>
             </div>
 
             {/* Report Card: Keterangan Massal */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-[var(--ui-primary)] transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center mb-3">
-                  <ClipboardList size={20} />
+            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0">
+                  <ClipboardList size={16} />
                 </div>
-                <h4 className="font-extrabold text-slate-800 text-sm">Keterangan Massal Absensi</h4>
-                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                  Entri massal dispensasi, kegiatan lomba, magang PKL, atau libur khusus per rombel siswa.
-                </p>
+                <div className="min-w-0">
+                  <h4 className="font-extrabold text-slate-800 text-xs">Keterangan Massal</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Dispensasi lomba, magang, libur</p>
+                </div>
               </div>
               <Button 
                 variant="outline"
+                size="sm"
                 onClick={() => navigateToExternalReport('hikvision_report_siswa')}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 font-bold text-xs"
+                className="font-bold text-xs h-7 px-2.5 shrink-0"
               >
-                <span>Entri Keterangan Massal</span>
-                <ArrowUpRight size={14} />
+                <span>Buka</span>
+                <ArrowUpRight size={12} className="ml-1" />
               </Button>
             </div>
 
             {/* Report Card: Izin & Sakit Siswa */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between hover:border-[var(--ui-primary)] transition-all">
-              <div>
-                <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200/80 text-sky-700 flex items-center justify-center mb-3">
-                  <ShieldCheck size={20} />
+            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200/80 text-sky-700 flex items-center justify-center shrink-0">
+                  <ShieldCheck size={16} />
                 </div>
-                <h4 className="font-extrabold text-slate-800 text-sm">Izin & Sakit Siswa (BK/Walas)</h4>
-                <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
-                  Manajemen surat izin dan dokter siswa dengan hierarki persetujuan di atas scan mesin fisik.
-                </p>
+                <div className="min-w-0">
+                  <h4 className="font-extrabold text-slate-800 text-xs">Izin & Sakit Siswa</h4>
+                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Surat izin & dokter resmi BK/Walas</p>
+                </div>
               </div>
               <Button 
                 variant="outline"
+                size="sm"
                 onClick={() => navigateToExternalReport('kedisiplinan_absensi')}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 font-bold text-xs"
+                className="font-bold text-xs h-7 px-2.5 shrink-0"
               >
-                <span>Kelola Izin & Sakit</span>
-                <ArrowUpRight size={14} />
+                <span>Buka</span>
+                <ArrowUpRight size={12} className="ml-1" />
               </Button>
             </div>
           </div>
@@ -1166,8 +1086,8 @@ export default function HikvisionDashboard({
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-xl shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
-          {toast.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+        <div className={`fixed bottom-6 right-6 px-3.5 py-2 rounded-xl shadow-md font-bold text-xs flex items-center gap-2 animate-in slide-in-from-bottom-5 text-white z-[100] ${toast.type === 'error' ? 'bg-rose-600' : 'bg-emerald-600'}`}>
+          {toast.type === 'error' ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
           <span>{toast.message}</span>
         </div>
       )}

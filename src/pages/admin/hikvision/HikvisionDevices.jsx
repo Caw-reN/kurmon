@@ -213,108 +213,120 @@ export default function HikvisionDevices({ activeTab = 'hikvision_devices', setA
           </div>
         </PageHeader>
       ) : (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-          <div>
-            <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
-              <HardDrive size={18} className="text-[var(--ui-primary)]" />
-              Kelola Perangkat Mesin Absensi
-            </h3>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              Daftar mesin fisik Hikvision, konfigurasi IP address, dan status koneksi alat.
-            </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200/80">
+              <HardDrive size={16} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-slate-800">Daftar Perangkat Mesin Absensi</h3>
+                <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                  {devices.length} Mesin ({devices.filter(d => (d.device_type||'siswa')==='siswa').length} Siswa · {devices.filter(d => (d.device_type||'siswa')!=='siswa').length} Guru/Staf)
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">Konfigurasi IP address, protokol ISAPI port 80, dan akses mesin.</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button 
               variant="outline"
+              size="sm"
               onClick={() => fetchData()}
               disabled={loading}
-              className="shrink-0 flex items-center gap-1.5"
+              className="shrink-0 flex items-center gap-1.5 text-xs font-bold"
               title="Segarkan Data Mesin"
             >
-              <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : "text-slate-600"} />
+              <RefreshCw size={12} className={loading ? "animate-spin text-emerald-600" : "text-slate-600"} />
               <span>Segarkan</span>
             </Button>
             <Button 
+              size="sm"
               onClick={() => handleOpenModal()} 
-              className="shrink-0"
+              className="shrink-0 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
             >
-              <Plus size={14} className="mr-2" /> Tambah Mesin
+              <Plus size={13} /> Tambah Mesin
             </Button>
           </div>
         </div>
       )}
 
-      {/* Stat cards per type */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {grouped.map(g => {
-          const Icon = g.icon;
-          return (
-            <div key={g.value} className="bg-white rounded-xl shadow-xs border border-slate-200/80 p-4 flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center ${g.color} border`}>
-                <Icon size={20} />
+      {/* Stat cards per type (only when not embedded) */}
+      {!embedded && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {grouped.map(g => {
+            const Icon = g.icon;
+            return (
+              <div key={g.value} className="bg-white rounded-xl shadow-xs border border-slate-200/80 p-4 flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center ${g.color} border`}>
+                  <Icon size={20} />
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-slate-800">{g.devices.length}</div>
+                  <div className="text-xs font-bold text-slate-500">Mesin {g.label}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-black text-slate-800">{g.devices.length}</div>
-                <div className="text-xs font-bold text-slate-500">Mesin {g.label}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-slate-50 border-b border-slate-100 text-slate-500">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead className="bg-slate-50 border-b border-slate-100 text-slate-400 uppercase tracking-wider font-bold">
               <tr>
-                <th className="px-3 py-2.5 font-bold text-center w-12">No</th>
-                <th className="px-4 py-2.5 font-bold">Lokasi</th>
-                <th className="px-4 py-2.5 font-bold">IP Address</th>
-                <th className="px-4 py-2.5 font-bold">Username</th>
-                <th className="px-4 py-2.5 font-bold">Tipe</th>
-                <th className="px-4 py-2.5 font-bold text-right">Aksi</th>
+                <th className="px-3 py-2.5 text-center w-12">No</th>
+                <th className="px-4 py-2.5">Lokasi</th>
+                <th className="px-4 py-2.5">IP Address</th>
+                <th className="px-4 py-2.5">Username</th>
+                <th className="px-4 py-2.5">Tipe</th>
+                <th className="px-4 py-2.5 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 font-medium text-slate-700">
               {loading ? (
                 <tr><td colSpan={6} className="p-8 text-center text-slate-400">Memuat data mesin...</td></tr>
               ) : devices.map((device, idx) => (
-                <tr key={device.id} className="hover:bg-slate-50">
-                  <td className="px-3 py-2.5 text-center text-slate-400 font-bold text-xs">{idx + 1}</td>
-                  <td className="px-4 py-2.5">
-                    <div className="font-bold text-slate-800 flex items-center gap-2">
-                      <HardDrive size={16} className="text-slate-400" /> {device.location}
+                <tr key={device.id} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="px-3 py-2 text-center text-slate-400 font-bold">{idx + 1}</td>
+                  <td className="px-4 py-2 font-bold text-slate-800">
+                    <div className="flex items-center gap-2">
+                      <HardDrive size={14} className="text-slate-400 shrink-0" />
+                      <span>{device.location}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-2.5 font-medium text-slate-600 font-mono text-xs">{device.ip_address}</td>
-                  <td className="px-4 py-2.5 text-slate-500">{device.username}</td>
-                  <td className="px-4 py-2.5">
-                    <DeviceTypeBadge type={device.device_type ||'siswa'} />
+                  <td className="px-4 py-2 font-mono text-[11px] text-slate-600 font-bold">{device.ip_address}</td>
+                  <td className="px-4 py-2 text-slate-500 font-mono text-[11px]">{device.username}</td>
+                  <td className="px-4 py-2">
+                    <DeviceTypeBadge type={device.device_type || 'siswa'} />
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-2 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button 
                         variant="ghost"
                         size="icon"
+                        className="h-7 w-7 text-slate-500 hover:text-slate-900"
                         onClick={() => handleOpenModal(device)} 
                         title="Edit Mesin"
                       >
-                        <Edit2 size={14} />
+                        <Edit2 size={13} />
                       </Button>
                       <Button 
                         variant="ghost"
                         size="icon"
+                        className="h-7 w-7 text-rose-500 hover:text-rose-700 hover:bg-rose-50"
                         onClick={() => handleDelete(device.id)} 
                         title="Hapus Mesin"
                       >
-                        <Trash2 size={14} className="text-rose-500" />
+                        <Trash2 size={13} />
                       </Button>
                     </div>
                   </td>
                 </tr>
               ))}
               {!loading && devices.length === 0 && (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Belum ada perangkat terdaftar.</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-slate-400 font-semibold">Belum ada perangkat terdaftar.</td></tr>
               )}
             </tbody>
           </table>

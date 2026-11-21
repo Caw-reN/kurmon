@@ -326,50 +326,50 @@ function TabSiswa({ classes, authToken, showToast }) {
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       
-      {/* 1. KPI Cards Header */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 1. KPI Cards Header (Compact) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         
         {/* Total Siswa */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
-            <Users size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+            <Users size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Siswa di Mesin</p>
-            <p className="text-lg sm:text-xl font-black text-slate-800">{students.length}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Siswa di Mesin</p>
+            <p className="text-base font-black text-slate-800">{students.length}</p>
           </div>
         </div>
 
         {/* Terhubung & Sinkron */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
-            <p className="text-lg sm:text-xl font-black text-emerald-700">{fullyConnectedCount}</p>
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung</p>
+            <p className="text-base font-black text-emerald-700">{fullyConnectedCount}</p>
           </div>
         </div>
 
         {/* Belum Ada di Mesin */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <Wifi size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Wifi size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Belum Ada di Mesin</p>
-            <p className="text-lg sm:text-xl font-black text-sky-700">{notOnDeviceCount}</p>
+            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">Belum di Mesin</p>
+            <p className="text-base font-black text-sky-700">{notOnDeviceCount}</p>
           </div>
         </div>
 
         {/* Belum Ada di Master */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <AlertCircle size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <AlertCircle size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Belum Ada di Master</p>
-            <p className="text-lg sm:text-xl font-black text-amber-700">{notInMasterCount}</p>
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Belum di Master</p>
+            <p className="text-base font-black text-amber-700">{notInMasterCount}</p>
           </div>
         </div>
 
@@ -950,50 +950,50 @@ function TabStaff({ authToken, showToast, type = 'guru' }) {
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       
-      {/* 1. KPI Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      {/* 1. KPI Stats Cards (Compact) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         
         {/* Total */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
-            <Icon size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0">
+            <Icon size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total {cfg.label}</p>
-            <p className="text-lg sm:text-xl font-black text-slate-800">{staff.length}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total {cfg.label}</p>
+            <p className="text-base font-black text-slate-800">{staff.length}</p>
           </div>
         </div>
 
         {/* Terhubung & Sinkron */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung (Mesin & Master)</p>
-            <p className="text-lg sm:text-xl font-black text-emerald-700">{fullyConnectedCount}</p>
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Terhubung</p>
+            <p className="text-base font-black text-emerald-700">{fullyConnectedCount}</p>
           </div>
         </div>
 
         {/* Belum Ada di Mesin */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <Wifi size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Wifi size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-sky-600 uppercase tracking-wider">Belum Ada di Mesin</p>
-            <p className="text-lg sm:text-xl font-black text-sky-700">{notOnDeviceCount}</p>
+            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider">Belum di Mesin</p>
+            <p className="text-base font-black text-sky-700">{notOnDeviceCount}</p>
           </div>
         </div>
 
         {/* Belum Ada di Master */}
-        <div className="ui-card p-3.5 sm:p-4 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <AlertCircle size={20} strokeWidth={2.2} />
+        <div className="ui-card p-2.5 px-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <AlertCircle size={16} strokeWidth={2.2} />
           </div>
           <div>
-            <p className="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Belum Ada di Master</p>
-            <p className="text-lg sm:text-xl font-black text-amber-700">{notInMasterCount}</p>
+            <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Belum di Master</p>
+            <p className="text-base font-black text-amber-700">{notInMasterCount}</p>
           </div>
         </div>
 
