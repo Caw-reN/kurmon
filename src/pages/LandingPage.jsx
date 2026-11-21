@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun, Trophy } from 'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun, Trophy, Droplets, Wind, Umbrella, Bell, AlertTriangle, RefreshCw, Compass } from 'lucide-react';
 import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info, ArrowDown, KeyRound } from 'lucide-react';
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
@@ -644,7 +644,17 @@ export default function LandingPage() {
     window.open(waUrl,"_blank");
   };
 
-  // ── SISTEM CUACA DINAMIS BEKASI (REAL-TIME OTOMATIS + PILIHAN MANUAL) ──
+  // ── SISTEM CUACA DINAMIS PRESIFIKASI TITIK SEKOLAH & REAL-TIME SATELIT ──
+  // Titik Lokasi Resmi: SMK Karya Guna 2 Bekasi (Jl. Karang Satria No. 503, Duren Jaya, Bekasi Timur)
+  const SCHOOL_DEFAULT_LAT = -6.2328;
+  const SCHOOL_DEFAULT_LNG = 107.0292;
+  const targetSchoolLat = Number(appSettings?.schoolLat || appSettings?.schoolProfile?.lat || SCHOOL_DEFAULT_LAT);
+  const targetSchoolLng = Number(appSettings?.schoolLng || appSettings?.schoolProfile?.lng || SCHOOL_DEFAULT_LNG);
+  const validLat = (!isNaN(targetSchoolLat) && targetSchoolLat !== 0 && targetSchoolLat !== -6.2) ? targetSchoolLat : SCHOOL_DEFAULT_LAT;
+  const validLng = (!isNaN(targetSchoolLng) && targetSchoolLng !== 0 && targetSchoolLng !== 106.816666) ? targetSchoolLng : SCHOOL_DEFAULT_LNG;
+  const rawCityName = appSettings?.weatherCity || appSettings?.schoolProfile?.kota || 'Bekasi';
+  const locationDisplayName = rawCityName.toLowerCase().includes('timur') ? rawCityName : `${rawCityName} Timur`;
+
   const [liveWeather, setLiveWeather] = useState(() => {
     try {
       const now = new Date();
@@ -659,77 +669,186 @@ export default function LandingPage() {
       return 'cloudy';
     }
   });
-  const [manualWeather, setManualWeather] = useState(null); // null = Mode Otomatis (Cuaca Asli Bekasi)
+  const [manualWeather, setManualWeather] = useState(null); // null = Mode Otomatis (Cuaca Asli Sekolah)
   const [weatherTemp, setWeatherTemp] = useState(null);
+  const [weatherDetails, setWeatherDetails] = useState({
+    temp: null,
+    humidity: null,
+    precipitation: 0,
+    rain: 0,
+    showers: 0,
+    windSpeed: 0,
+    cloudCover: 0,
+    weatherCode: 0,
+    intensityLabel: 'Cerah Berawan',
+    isActualRain: false,
+    lastUpdated: null,
+  });
+  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
+  const [isRainAlertDismissed, setIsRainAlertDismissed] = useState(false);
+  const [isRefreshingWeather, setIsRefreshingWeather] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(
+    typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
+  );
 
   // Kondisi cuaca aktif (manual jika dipilih, atau live otomatis)
   const weatherCondition = manualWeather || liveWeather;
 
-  useEffect(() => {
-    let isMounted = true;
-    const WEATHER_CACHE_KEY = 'kurmon_weather_bekasi';
+  // Notifikasi Browser Hujan (Aman Cooldown & Anti-Spam)
+  const triggerRainNotification = (intensity, precip) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission !== 'granted') return;
+
+    const NOTIF_COOLDOWN_KEY = 'kurmon_rain_notif_last_sent';
+    const lastSent = sessionStorage.getItem(NOTIF_COOLDOWN_KEY);
+    const now = Date.now();
+    if (lastSent && now - Number(lastSent) < 20 * 60 * 1000) {
+      return; // Cooldown 20 menit per sesi
+    }
+
+    try {
+      new Notification("Peringatan Cuaca Hujan - KG2 School", {
+        body: `Terpantau ${intensity || 'Hujan'} di sekitar titik SMK Karya Guna 2 Bekasi (${precip || 0} mm/jam). Sedia payung/jas hujan dan utamakan keselamatan berkendara.`,
+        icon: '/mobile_header_logo.png',
+        badge: '/mobile_header_logo.png',
+        tag: 'rain-alert-kg2'
+      });
+      sessionStorage.setItem(NOTIF_COOLDOWN_KEY, String(now));
+    } catch (err) {
+      console.debug('Notification error:', err);
+    }
+  };
+
+  const handleRequestNotifPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    try {
+      const res = await Notification.requestPermission();
+      setNotifPermission(res);
+      if (res === 'granted' && (weatherCondition === 'rain' || weatherDetails.isActualRain)) {
+        triggerRainNotification(weatherDetails.intensityLabel, weatherDetails.precipitation);
+      }
+    } catch (e) {
+      console.debug(e);
+    }
+  };
+
+  const fetchWeatherData = async (force = false) => {
+    const WEATHER_CACHE_KEY = 'kurmon_weather_bekasi_v3';
     const WEATHER_CACHE_TTL = 5 * 60 * 1000; // 5 menit
 
-    // Cek cache sessionStorage dulu — hindari fetch berulang saat re-mount
-    try {
-      const cached = sessionStorage.getItem(WEATHER_CACHE_KEY);
-      if (cached) {
-        const { ts, condition, temp } = JSON.parse(cached);
-        if (Date.now() - ts < WEATHER_CACHE_TTL) {
-          if (isMounted) {
-            setLiveWeather(condition);
-            if (temp !== undefined) setWeatherTemp(temp);
+    if (!force) {
+      try {
+        const cached = sessionStorage.getItem(WEATHER_CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Date.now() - parsed.ts < WEATHER_CACHE_TTL) {
+            setLiveWeather(parsed.condition);
+            if (parsed.temp !== undefined) setWeatherTemp(parsed.temp);
+            if (parsed.details) setWeatherDetails(parsed.details);
+            return;
           }
-          return () => { isMounted = false; };
         }
+      } catch { /* abaikan */ }
+    }
+
+    setIsRefreshingWeather(true);
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${validLat}&longitude=${validLng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m&timezone=Asia%2FJakarta`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!data?.current) return;
+
+      const {
+        rain = 0,
+        precipitation = 0,
+        showers = 0,
+        weather_code = 0,
+        temperature_2m = 28,
+        relative_humidity_2m = 75,
+        wind_speed_10m = 5,
+        cloud_cover = 50
+      } = data.current;
+
+      const now = new Date();
+      const jktHour = parseInt(
+        new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }).format(now),
+        10
+      );
+      const isDaytimeHour = (jktHour >= 6 && jktHour < 18);
+      const isMiddayPeak = (jktHour >= 11 && jktHour <= 14);
+
+      // Kriteria hujan nyata (Measurable ground rain anti false-positive)
+      // Mencegah kelembapan tipis / virga / gerimis tak terdeteksi memicu status hujan
+      const isThunderstorm = [95, 96, 99].includes(weather_code) && precipitation >= 0.3;
+      const isHeavyRain = [65, 82].includes(weather_code) && (precipitation >= 0.5 || rain >= 0.4 || showers >= 0.5);
+      const isModerateRain = [63, 81].includes(weather_code) && (precipitation >= 0.8 || rain >= 0.5 || showers >= 0.8);
+      const isLightRain = [61, 80].includes(weather_code) && (precipitation >= 1.2 || rain >= 0.8 || showers >= 1.0);
+      const isRawHeavyPrecipitation = (precipitation >= 1.5 || rain >= 1.0);
+
+      const isActualRain = isThunderstorm || isHeavyRain || isModerateRain || isLightRain || isRawHeavyPrecipitation;
+
+      let detected = 'cloudy';
+      let intensity = 'Cerah Berawan';
+
+      if (isActualRain) {
+        detected = 'rain';
+        if (isThunderstorm) intensity = 'Hujan Badai Petir';
+        else if (isHeavyRain || precipitation >= 4.0 || rain >= 3.0) intensity = 'Hujan Lebat';
+        else if (isModerateRain || precipitation >= 2.0 || rain >= 1.5) intensity = 'Hujan Sedang';
+        else intensity = 'Hujan Ringan';
+      } else if (!isDaytimeHour) {
+        detected = 'night';
+        intensity = cloud_cover > 75 ? 'Malam Berawan' : 'Malam Cerah';
+      } else if (isMiddayPeak && (temperature_2m >= 32 || ([0, 1].includes(weather_code) && cloud_cover < 30))) {
+        detected = 'hot';
+        intensity = 'Panas Terik';
+      } else {
+        detected = 'cloudy';
+        intensity = cloud_cover > 70 ? 'Mendung Tebal' : cloud_cover > 40 ? 'Cerah Berawan' : 'Cerah';
       }
-    } catch { /* abaikan */ }
 
-    // Koordinat Bekasi: Lat -6.2383, Lon 106.9756
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.2383&longitude=106.9756&current=temperature_2m,is_day,precipitation,rain,weather_code&timezone=Asia%2FJakarta')
-      .then(res => res.json())
-      .then(data => {
-        if (!isMounted || !data?.current) return;
-        const { rain, precipitation, weather_code, temperature_2m } = data.current;
-        if (temperature_2m !== undefined) setWeatherTemp(Math.round(temperature_2m));
-        
-        const now = new Date();
-        const jktHour = parseInt(
-          new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }).format(now),
-          10
-        );
-        // Proteksi ketat: Jam 06:00 - 17:59 WIB PASTI SIANG/PAGI HARI (Kelelawar tidak boleh muncul)
-        const isDaytimeHour = (jktHour >= 6 && jktHour < 18);
+      const details = {
+        temp: Math.round(temperature_2m),
+        humidity: relative_humidity_2m,
+        windSpeed: wind_speed_10m,
+        precipitation: Number(precipitation.toFixed(1)),
+        rain: Number(rain.toFixed(1)),
+        showers: Number(showers.toFixed(1)),
+        cloudCover: cloud_cover,
+        weatherCode: weather_code,
+        intensityLabel: intensity,
+        isActualRain,
+        lastUpdated: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      };
 
-        const isMiddayPeak = (jktHour >= 11 && jktHour <= 14);
+      setLiveWeather(detected);
+      setWeatherTemp(Math.round(temperature_2m));
+      setWeatherDetails(details);
 
-        let detected = 'cloudy';
-        if (rain > 0.1 || precipitation > 0.1 || [51,53,55,61,63,65,80,81,82,95,96,99].includes(weather_code)) {
-          detected = 'rain';
-        } else if (!isDaytimeHour) {
-          detected = 'night';
-        } else if (isMiddayPeak && (temperature_2m >= 32 || [0, 1].includes(weather_code))) {
-          detected = 'hot';
-        } else {
-          detected = 'cloudy';
-        }
-        if (isMounted) {
-          setLiveWeather(detected);
-          // Simpan ke sessionStorage agar tidak fetch ulang dalam 5 menit
-          try {
-            sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
-              ts: Date.now(),
-              condition: detected,
-              temp: Math.round(temperature_2m)
-            }));
-          } catch { /* abaikan */ }
-        }
-      })
-      .catch(() => {
-        // Fallback otomatis berdasarkan jam Jakarta
-      });
+      try {
+        sessionStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({
+          ts: Date.now(),
+          condition: detected,
+          temp: Math.round(temperature_2m),
+          details
+        }));
+      } catch { /* abaikan */ }
+
+      if (isActualRain) {
+        triggerRainNotification(intensity, Number(precipitation.toFixed(1)));
+      }
+    } catch (err) {
+      console.debug('Weather fetch error:', err);
+    } finally {
+      setIsRefreshingWeather(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchWeatherData(false);
     return () => { isMounted = false; };
-  }, []);
+  }, [validLat, validLng]);
 
   // Pause semua CSS animations saat browser tab tidak aktif (hemat CPU)
   useEffect(() => {
@@ -749,7 +868,12 @@ export default function LandingPage() {
     const options = [null, 'night', 'rain', 'hot', 'cloudy'];
     const currentIdx = options.indexOf(manualWeather);
     const nextIdx = (currentIdx + 1) % options.length;
-    setManualWeather(options[nextIdx]);
+    const next = options[nextIdx];
+    setManualWeather(next);
+    if (next === 'rain') {
+      setIsRainAlertDismissed(false);
+      triggerRainNotification('Simulasi Hujan', 2.5);
+    }
   };
 
   const handleExtraFeatureClick = (label) => {
@@ -1576,15 +1700,15 @@ export default function LandingPage() {
             {/* 1. LOKASI PILL (POJOK KIRI ATAS) */}
             <div className="pointer-events-auto flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-[10.5px] font-black tracking-wide shadow-sm">
               <MapPin size={11} className="text-rose-400 shrink-0" />
-              <span>Bekasi</span>
+              <span>{locationDisplayName}</span>
             </div>
 
-            {/* 2. WEATHER PILL (POJOK KANAN ATAS - OTOMATIS LIVE BEKASI / BISA KLIK SIMULASI MANUAL) */}
+            {/* 2. WEATHER PILL (POJOK KANAN ATAS - OTOMATIS LIVE SEKOLAH / BISA KLIK LIHAT TELEMETRI SATELIT) */}
             <button
               type="button"
-              onClick={handleCycleWeather}
+              onClick={() => setIsWeatherModalOpen(true)}
               className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[10.5px] font-black tracking-wide shadow-sm cursor-pointer transition-all duration-300"
-              title={manualWeather ? "Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis" : "Mode Otomatis: Sinkron cuaca asli Bekasi. Klik untuk simulasi manual."}
+              title="Lihat Telemetri Satelit Cuaca Presisi Sekolah"
             >
               {weatherCondition === 'night' && <Moon size={11} className="text-amber-200" />}
               {weatherCondition === 'rain' && <CloudRain size={11} className="text-sky-300 animate-bounce" />}
@@ -1592,12 +1716,19 @@ export default function LandingPage() {
               {weatherCondition === 'cloudy' && <CloudSun size={11} className="text-emerald-300" />}
               <span>
                 {weatherTemp ? `${weatherTemp}°C ` : ''}{
-                  weatherCondition === 'night' ? 'Malam' :
-                  weatherCondition === 'rain' ? 'Hujan' :
-                  weatherCondition === 'hot' ? 'Panas' : 'Cerah'
+                  weatherCondition === 'night' ? (weatherDetails.intensityLabel || 'Malam') :
+                  weatherCondition === 'rain' ? (weatherDetails.intensityLabel || 'Hujan') :
+                  weatherCondition === 'hot' ? 'Panas' : (weatherDetails.intensityLabel || 'Cerah')
                 }
               </span>
-              <span className={`text-[9px] font-extrabold px-1 py-0.2 rounded leading-tight ${manualWeather ? 'bg-amber-500/80 text-white' : 'bg-emerald-500/80 text-white'}`}>
+              <span 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCycleWeather();
+                }}
+                className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded leading-tight transition-transform active:scale-90 ${manualWeather ? 'bg-amber-500/80 text-white' : 'bg-emerald-500/80 text-white'}`}
+                title="Klik untuk simulasi siklus cuaca"
+              >
                 {manualWeather ? 'Manual' : 'Live'}
               </span>
             </button>
@@ -1630,6 +1761,45 @@ export default function LandingPage() {
         <div className="relative w-full flex-1 bg-white px-5 pt-1 sm:pt-1.5 pb-[115px] flex flex-col items-center z-30 -mt-[2px]">
           
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
+            
+            {/* MOBILE RAIN ALERT BANNER */}
+            {weatherCondition === 'rain' && !isRainAlertDismissed && (
+              <div className="w-full mb-3 px-3 py-2.5 rounded-2xl bg-gradient-to-r from-sky-950/90 to-blue-950/90 text-white shadow-md border border-sky-400/30 backdrop-blur-md flex items-center justify-between gap-2.5 animate-fadeIn">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0 text-sky-300">
+                    <CloudRain size={16} className="animate-bounce" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-black text-sky-200 tracking-wide uppercase">Peringatan Hujan</span>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-sky-500/30 border border-sky-400/30 text-sky-100 font-bold">
+                        {weatherDetails.intensityLabel || 'Hujan'}
+                      </span>
+                    </div>
+                    <p className="text-[10.5px] text-slate-200 truncate">
+                      Terpantau {weatherDetails.precipitation > 0 ? `${weatherDetails.precipitation} mm/j` : 'hujan'} di area {locationDisplayName}. Sedia payung!
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsWeatherModalOpen(true)}
+                    className="px-2 py-1 rounded-lg bg-sky-600/90 hover:bg-sky-500 text-[10px] font-bold text-white transition-all cursor-pointer"
+                  >
+                    Detail
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsRainAlertDismissed(true)}
+                    className="p-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    title="Tutup Peringatan"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
             
             {/* Judul: Layanan Publik */}
             <div className="flex items-center justify-center gap-1.5 pt-2 pb-1 mb-3.5">
@@ -1804,6 +1974,58 @@ export default function LandingPage() {
       {/* DESKTOP VIEW RESPONSIVE NATURAL WRAPPER */}
       <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[106px] lg:pt-[116px] pb-6 lg:pb-8 desktop-layout-wrapper">
 
+        {/* DESKTOP RAIN ALERT BANNER */}
+        {weatherCondition === 'rain' && !isRainAlertDismissed && (
+          <div className="w-full mb-5 px-4 py-3 rounded-2xl bg-gradient-to-r from-sky-950/90 via-slate-900/90 to-blue-950/90 text-white shadow-lg border border-sky-400/30 backdrop-blur-md flex items-center justify-between gap-4 animate-fadeIn">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0 text-sky-300">
+                <CloudRain size={20} className="animate-bounce" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-sky-200 tracking-wider uppercase">Peringatan Cuaca Hujan</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/30 border border-sky-400/30 text-sky-100 font-extrabold">
+                    {weatherDetails.intensityLabel || 'Hujan'} ({weatherDetails.precipitation || 0} mm/jam)
+                  </span>
+                  <span className="text-[11px] text-slate-300 hidden lg:inline">
+                    Titik Pantau: SMK Karya Guna 2 ({locationDisplayName})
+                  </span>
+                </div>
+                <p className="text-xs text-slate-200 mt-0.5 truncate">
+                  Saat ini terdeteksi hujan di sekitar lingkungan sekolah. Bagi siswa, guru, dan tamu yang menuju atau hendak pulang, harap sedia payung/jas hujan dan berhati-hati berkendara.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {notifPermission === 'default' && (
+                <button
+                  type="button"
+                  onClick={handleRequestNotifPermission}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-xs font-bold text-sky-200 transition-all cursor-pointer"
+                >
+                  <Bell size={13} />
+                  <span>Nyalakan Notif</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsWeatherModalOpen(true)}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white shadow-xs transition-all cursor-pointer"
+              >
+                <Info size={13} />
+                <span>Detail Telemetri</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRainAlertDismissed(true)}
+                className="p-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                title="Tutup Notifikasi"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* TOP ROW: HERO AKADEMIK & AKSES AKUN CARD */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-10 lg:gap-14 pt-4 md:pt-6 lg:pt-8 pb-12 md:pb-16 lg:pb-20 min-h-0 relative z-10">
@@ -1836,25 +2058,34 @@ export default function LandingPage() {
               {/* Live Weather Badge */}
               <button
                 type="button"
-                onClick={handleCycleWeather}
+                onClick={() => setIsWeatherModalOpen(true)}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[11px] font-bold shadow-xs cursor-pointer transition-all"
                 style={{ borderRadius: '12px' }}
-                title={manualWeather ? t("Mode Manual: Klik untuk mengganti atau kembali ke Cuaca Otomatis", "Manual Mode: Click to cycle or return to Auto Weather") : t("Mode Otomatis: Sinkron cuaca asli. Klik untuk simulasi manual.", "Auto Mode: Synced with live weather. Click for manual simulation.")}
+                title="Klik untuk membuka data telemetri satelit cuaca presisi sekolah"
               >
                 {weatherCondition === 'night' && <Moon size={12} className="text-amber-200 shrink-0" />}
                 {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-300 shrink-0 animate-bounce" />}
                 {weatherCondition === 'hot' && <Sun size={12} className="text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
                 {weatherCondition === 'cloudy' && <CloudSun size={12} className="text-emerald-300 shrink-0" />}
                 <span>
-                  {appSettings.weatherCity || 'Bekasi'} {weatherTemp ? `${weatherTemp}°C` : ''}
+                  {locationDisplayName} {weatherTemp ? `${weatherTemp}°C` : ''} - {
+                    weatherCondition === 'night' ? (weatherDetails.intensityLabel || 'Malam') :
+                    weatherCondition === 'rain' ? (weatherDetails.intensityLabel || 'Hujan') :
+                    weatherCondition === 'hot' ? 'Panas' : (weatherDetails.intensityLabel || 'Cerah')
+                  }
                 </span>
                 <span 
-                  className="text-[9.5px] font-black px-1.5 py-0.5 rounded-md"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCycleWeather();
+                  }}
+                  className="text-[9.5px] font-black px-1.5 py-0.5 rounded-md transition-transform active:scale-90"
                   style={{
-                    backgroundColor: accentColor || '#a3e635',
-                    color: '#064e3b',
+                    backgroundColor: manualWeather ? '#f59e0b' : (accentColor || '#a3e635'),
+                    color: manualWeather ? '#ffffff' : '#064e3b',
                     borderRadius: '6px'
                   }}
+                  title="Klik untuk simulasi siklus cuaca"
                 >
                   {manualWeather ? 'Manual' : 'Live'}
                 </span>
@@ -2275,6 +2506,183 @@ export default function LandingPage() {
         navigate={navigate}
         setIsLoginModalOpen={setIsLoginModalOpen}
       />
+
+      {/* WEATHER DETAIL & RADAR TELEMETRY MODAL */}
+      {isWeatherModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shadow-xs">
+                  {weatherCondition === 'rain' ? <CloudRain size={20} className="text-sky-200 animate-bounce" /> :
+                   weatherCondition === 'night' ? <Moon size={20} className="text-amber-200" /> :
+                   weatherCondition === 'hot' ? <Sun size={20} className="text-amber-300" /> :
+                   <CloudSun size={20} className="text-emerald-200" />}
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">Stasiun Cuaca Real-Time</h3>
+                  <p className="text-[11px] text-emerald-100 font-medium">SMK Karya Guna 2 Bekasi</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWeatherModalOpen(false)}
+                className="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                title="Tutup Modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4">
+              {/* Titik Lokasi Presisi */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-800">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin size={14} className="text-rose-500 shrink-0" />
+                    Titik Presisi Sekolah
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-extrabold border border-emerald-200">
+                    GPS Terkunci
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                  Jl. Karang Satria No. 503, Duren Jaya, {locationDisplayName}
+                </p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  Koordinat: {validLat.toFixed(4)}° S, {validLng.toFixed(4)}° E
+                </p>
+              </div>
+
+              {/* Status Kondisi Utama */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80">
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Kondisi Cuaca</span>
+                  <span className="text-base font-black text-emerald-950 mt-1 block truncate">
+                    {weatherDetails.intensityLabel || (weatherCondition === 'rain' ? 'Hujan' : weatherCondition === 'night' ? 'Malam' : weatherCondition === 'hot' ? 'Panas' : 'Cerah Berawan')}
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-medium block mt-0.5">
+                    Mode: {manualWeather ? 'Simulasi Manual' : 'Satelit Live'}
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200/80">
+                  <span className="text-[10px] font-bold text-sky-800 uppercase tracking-wider block">Suhu Udara</span>
+                  <span className="text-base font-black text-sky-950 mt-1 block">
+                    {weatherDetails.temp !== null ? `${weatherDetails.temp}°C` : (weatherTemp ? `${weatherTemp}°C` : '--')}
+                  </span>
+                  <span className="text-[10px] text-sky-700 font-medium block mt-0.5">
+                    Sensasi: {weatherDetails.temp ? `${weatherDetails.temp + 3}°C` : '--'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Telemetri Satelit Grid */}
+              <div className="grid grid-cols-3 gap-2.5">
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <Droplets size={16} className="mx-auto text-sky-600 mb-1" />
+                  <span className="text-[9.5px] text-slate-500 font-medium block">Curah Hujan</span>
+                  <span className="text-xs font-black text-slate-800 block mt-0.5">
+                    {weatherDetails.precipitation} <span className="text-[9px] font-normal text-slate-400">mm/j</span>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <Wind size={16} className="mx-auto text-teal-600 mb-1" />
+                  <span className="text-[9.5px] text-slate-500 font-medium block">Kecepatan Angin</span>
+                  <span className="text-xs font-black text-slate-800 block mt-0.5">
+                    {weatherDetails.windSpeed} <span className="text-[9px] font-normal text-slate-400">km/j</span>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
+                  <Compass size={16} className="mx-auto text-amber-600 mb-1" />
+                  <span className="text-[9.5px] text-slate-500 font-medium block">Kelembapan</span>
+                  <span className="text-xs font-black text-slate-800 block mt-0.5">
+                    {weatherDetails.humidity || 75}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Push Notification Setting */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-700">
+                    <Bell size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-800">Notifikasi Browser Hujan</p>
+                    <p className="text-[10.5px] text-slate-500 truncate">Peringatan otomatis saat hujan di sekolah</p>
+                  </div>
+                </div>
+                {notifPermission === 'granted' ? (
+                  <span className="text-[10.5px] font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+                    Aktif
+                  </span>
+                ) : notifPermission === 'denied' ? (
+                  <span className="text-[10.5px] font-extrabold px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+                    Diblokir
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleRequestNotifPermission}
+                    className="text-[11px] font-bold px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shrink-0 shadow-xs"
+                  >
+                    Aktifkan
+                  </button>
+                )}
+              </div>
+
+              {/* Simulasi Cuaca Manual Selector */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[10.5px] font-bold text-slate-700 block mb-2">Simulasi Kondisi Cuaca:</span>
+                <div className="grid grid-cols-5 gap-1.5">
+                  {[
+                    { key: null, label: 'Otomatis' },
+                    { key: 'cloudy', label: 'Cerah' },
+                    { key: 'rain', label: 'Hujan' },
+                    { key: 'hot', label: 'Panas' },
+                    { key: 'night', label: 'Malam' },
+                  ].map((item) => (
+                    <button
+                      key={String(item.key)}
+                      type="button"
+                      onClick={() => {
+                        setManualWeather(item.key);
+                        if (item.key === 'rain') {
+                          setIsRainAlertDismissed(false);
+                          triggerRainNotification('Simulasi Hujan', 2.5);
+                        }
+                      }}
+                      className={`px-1.5 py-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer ${
+                        manualWeather === item.key 
+                          ? 'bg-emerald-600 text-white shadow-xs' 
+                          : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/70'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                <span>Diperbarui: {weatherDetails.lastUpdated || 'Baru saja'}</span>
+                <button
+                  type="button"
+                  onClick={() => fetchWeatherData(true)}
+                  disabled={isRefreshingWeather}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw size={12} className={isRefreshingWeather ? "animate-spin" : ""} />
+                  <span>Segarkan Satelit</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* PUBLIC HELP BOTTOM SHEET */}
       <PublicHelpModal
