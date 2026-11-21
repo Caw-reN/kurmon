@@ -1219,7 +1219,7 @@ const TABS = [
   { id: 'karyawan', label: 'Karyawan', icon: Briefcase },
 ];
 
-export default function HikvisionStudents({ classes = [] }) {
+export default function HikvisionStudents({ classes = [], embedded = false }) {
   const [activeTab, setActiveTab] = useState('siswa');
   const [toast, setToast] = useState({ message: "", type: "info" });
   const authToken = useAuthStore(state => state.user?.authToken);
@@ -1229,17 +1229,52 @@ export default function HikvisionStudents({ classes = [] }) {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in relative flex flex-col h-full pb-16 sm:pb-8">
+    <div className={`space-y-5 animate-fade-in relative flex flex-col h-full ${embedded ? '' : 'pb-16 sm:pb-8'}`}>
       {/* Header with Navigation Tabs */}
-      <PageHeader 
-        title="Data Pengguna Mesin Absensi"
-        icon={Fingerprint}
-        description="Kelola dan pantau data sinkronisasi pengguna mesin absensi Hikvision dengan Master Data (Siswa, Guru, dan Karyawan)."
-        tabs={TABS}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onBack={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
-      />
+      {!embedded ? (
+        <PageHeader 
+          title="Data Pengguna Mesin Absensi"
+          icon={Fingerprint}
+          description="Kelola dan pantau data sinkronisasi pengguna mesin absensi Hikvision dengan Master Data (Siswa, Guru, dan Karyawan)."
+          tabs={TABS}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onBack={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}
+        />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <Users size={18} className="text-[var(--ui-primary)]" />
+              Data Pengguna & Biometrik Mesin
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Pemetaan ID mesin ke NIS siswa / NIP guru & karyawan, auto-link, serta status biometrik wajah & sidik jari.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {TABS.map(tab => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    isActive 
+                      ? 'bg-[var(--ui-primary)] text-white shadow-xs' 
+                      : 'text-slate-600 hover:text-slate-900 bg-white border border-slate-200/80 hover:bg-slate-50'
+                  }`}
+                >
+                  <Icon size={14} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Tab Content Panels */}
       <div className="flex-1 min-h-0">

@@ -37,7 +37,7 @@ const DeviceTypeBadge = ({ type }) => {
   );
 };
 
-export default function HikvisionDevices({ activeTab = 'hikvision_devices', setActiveTab }) {
+export default function HikvisionDevices({ activeTab = 'hikvision_devices', setActiveTab, embedded = false }) {
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -179,45 +179,77 @@ export default function HikvisionDevices({ activeTab = 'hikvision_devices', setA
   ];
 
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
-      <PageHeader 
-        title="Data Mesin Absensi"
-        description="Kelola perangkat absensi wajah untuk Siswa, Guru, dan Karyawan."
-        icon={MonitorSmartphone}
-        tabs={[
-          { id: 'hikvision', label: 'Dashboard Mesin', icon: LayoutDashboard },
-          { id: 'hikvision_devices', label: 'Pengaturan Alat', icon: HardDrive },
-          { id: 'hikvision_students', label: 'Pengguna Mesin', icon: Users },
-        ]}
-        activeTab={activeTab || 'hikvision_devices'}
-        onTabChange={setActiveTab}
-      >
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => fetchData()}
-            disabled={loading}
-            className="shrink-0 flex items-center gap-1.5"
-            title="Segarkan Data Mesin"
-          >
-            <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : "text-slate-600"} />
-            <span>Segarkan</span>
-          </Button>
-          <Button 
-            onClick={() => handleOpenModal()} 
-            className="shrink-0"
-          >
-            <Plus size={14} className="mr-2" /> Tambah Mesin
-          </Button>
+    <div className="flex flex-col gap-5 animate-in fade-in duration-300">
+      {!embedded ? (
+        <PageHeader 
+          title="Data Mesin Absensi"
+          description="Kelola perangkat absensi wajah untuk Siswa, Guru, dan Karyawan."
+          icon={MonitorSmartphone}
+          tabs={[
+            { id: 'hikvision', label: 'Dashboard Mesin', icon: LayoutDashboard },
+            { id: 'hikvision_devices', label: 'Pengaturan Alat', icon: HardDrive },
+            { id: 'hikvision_students', label: 'Pengguna Mesin', icon: Users },
+          ]}
+          activeTab={activeTab || 'hikvision_devices'}
+          onTabChange={setActiveTab}
+        >
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => fetchData()}
+              disabled={loading}
+              className="shrink-0 flex items-center gap-1.5"
+              title="Segarkan Data Mesin"
+            >
+              <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : "text-slate-600"} />
+              <span>Segarkan</span>
+            </Button>
+            <Button 
+              onClick={() => handleOpenModal()} 
+              className="shrink-0"
+            >
+              <Plus size={14} className="mr-2" /> Tambah Mesin
+            </Button>
+          </div>
+        </PageHeader>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <HardDrive size={18} className="text-[var(--ui-primary)]" />
+              Kelola Perangkat Mesin Absensi
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Daftar mesin fisik Hikvision, konfigurasi IP address, dan status koneksi alat.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => fetchData()}
+              disabled={loading}
+              className="shrink-0 flex items-center gap-1.5"
+              title="Segarkan Data Mesin"
+            >
+              <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : "text-slate-600"} />
+              <span>Segarkan</span>
+            </Button>
+            <Button 
+              onClick={() => handleOpenModal()} 
+              className="shrink-0"
+            >
+              <Plus size={14} className="mr-2" /> Tambah Mesin
+            </Button>
+          </div>
         </div>
-      </PageHeader>
+      )}
 
       {/* Stat cards per type */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {grouped.map(g => {
           const Icon = g.icon;
           return (
-            <div key={g.value} className="bg-white rounded-[var(--ui-radius-card)] shadow-sm border-none p-4 flex items-center gap-3">
+            <div key={g.value} className="bg-white rounded-xl shadow-xs border border-slate-200/80 p-4 flex items-center gap-3">
               <div className={`w-10 h-10 rounded-[var(--ui-radius-small)] flex items-center justify-center ${g.color} border`}>
                 <Icon size={20} />
               </div>
@@ -230,7 +262,7 @@ export default function HikvisionDevices({ activeTab = 'hikvision_devices', setA
         })}
       </div>
 
-      <div className="bg-white rounded-[var(--ui-radius-small)] shadow-sm border-none overflow-hidden">
+      <div className="bg-white rounded-xl shadow-xs border border-slate-200/80 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500">
