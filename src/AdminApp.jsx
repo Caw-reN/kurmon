@@ -3448,9 +3448,9 @@ export default function App() {
     return <SidebarNavItem id={id} icon={icon} label={label} badge={badge} isActive={isActive} onClick={setActiveTab} collapsed={isCollapsed} />;
   };
     const hasAnyConfigAccess = () => {
-    const configTabs = ["fitur", "hak_akses", "manajemen_role", "tampilan", "pengaturanuser", "api_keys", "whatsapp", "gdrive_backup", "audit_log"];
+    const configTabs = ["fitur", "hak_akses", "manajemen_role", "tampilan", "pengaturanuser", "api_keys", "whatsapp", "gdrive_backup"];
     const activeRole = normalizeUserRole(currentUser?.role);
-    if (activeRole === "superadmin" || activeRole === "admin") return false;
+    if (activeRole === "superadmin" || activeRole === "admin" || activeRole === "kepsek") return false;
     const checkAllowed = roleKey => {
       const perms = rolePermissions?.[roleKey];
       if (!perms) return false;

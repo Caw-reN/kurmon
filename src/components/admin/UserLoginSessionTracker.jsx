@@ -390,7 +390,7 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
           {onNavigateTab && (
             <button
               type="button"
-              onClick={() => onNavigateTab('keamanan')}
+              onClick={() => onNavigateTab('audit_log')}
               className="text-[10.5px] font-black text-[var(--ui-primary)] hover:underline flex items-center gap-0.5 cursor-pointer ml-1"
             >
               Audit Log Lengkap <ChevronRight size={12} />

@@ -125,7 +125,7 @@ export const ALL_SHORTCUT_CANDIDATES = [
   { label: "Jurnal KBM", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600 border-teal-100", tab: "jurnal_harian" },
   { label: "Laporan Walas", icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "walas_report" },
   { label: "Jadwal", icon: "/icons/011-schedule.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100", tab: "generate" },
-  { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600 border-purple-100", tab: "silabusguru" },
+  { label: "Modul Ajar", icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600 border-purple-100", tab: "modul_ajar" },
   { label: "Kehadiran Guru", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600 border-sky-100", tab: "absensiguru" },
   { label: "Ketersediaan", icon: "/icons/086-calendar.svg", color: "bg-amber-50 text-amber-600 border-amber-100", tab: "ketersediaan" },
   { label: "Beban Mengajar", icon: "/icons/035-graph bar.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100", tab: "beban" },
@@ -1098,7 +1098,6 @@ export default function DashboardPage({
                     onClick={() => {
                       setShowMobileProfileModal(false);
                       if (onOpenProfile) onOpenProfile();
-                      else if (setActiveTab) setActiveTab('profile');
                     }}
                     className="w-full py-2.5 px-3 rounded-[var(--ui-radius-control)] bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--ui-border-soft)] active:scale-98"
                   >
@@ -2185,29 +2184,29 @@ export default function DashboardPage({
                     { label: "Jurnal PKL", icon: "/icons/092-file.svg", tab: "pkl_jurnal" },
                     { label: "Administrasi", icon: "/icons/092-file.svg", tab: "pkl_administrasi" },
                     { label: "Laporan PKL", icon: "/icons/063-follow.svg", tab: "pkl_laporan" },
-                    { label: "Presensi Siswa", icon: "/icons/079-checklist.svg", tab: "hikvision_report_siswa" },
+                    { label: "Presensi PKL", icon: "/icons/079-checklist.svg", tab: "pkl_absensi_setting" },
                     { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                   ];
                 } else if (activeDivision === 'sarpras') {
                   dynamicShortcuts = [
                     { label: "Data Ruangan", icon: "/icons/016-map pin.svg", tab: "ruangan" },
                     { label: "Denah Sekolah", icon: "/icons/008-warehouse.svg", tab: "denah" },
-                    { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
+                    { label: "Sarana Fasilitas", icon: "/icons/008-warehouse.svg", tab: "fasilitas" },
                     { label: "Pantau Jadwal", icon: "/icons/086-calendar.svg", tab: "generate" },
-                    { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                    { label: "Laporan Walas", icon: "/icons/063-follow.svg", tab: "walas_report" },
-                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                    { label: "Data Kelas", icon: "/icons/008-warehouse.svg", tab: "kelas" },
                     { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
+                    { label: "Pengumuman", icon: "/icons/023-pencil.svg", tab: "pesan" },
+                    { label: "Presensi Mandiri", icon: "/icons/079-checklist.svg", tab: "absensiguru" },
                   ];
                 } else if (activeDivision === 'humas') {
                   dynamicShortcuts = [
                     { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                     { label: "Tampilan Web", icon: "/icons/063-follow.svg", tab: "tampilan" },
                     { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
-                    { label: "Silabus", icon: "/icons/092-file.svg", tab: "silabus" },
+                    { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
                     { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
-                    { label: "Catatan Walas", icon: "/icons/023-pencil.svg", tab: "catatan_walikelas" },
-                    { label: "Laporan", icon: "/icons/063-follow.svg", tab: "walas_report" },
+                    { label: "Presensi", icon: "/icons/079-checklist.svg", tab: "absensiguru" },
+                    { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
                     { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                   ];
                 }
@@ -2230,24 +2229,24 @@ export default function DashboardPage({
                   { label: "Rekap Jurnal", icon: "/icons/092-file.svg", tab: "rekap_jurnal_kelas" },
                   { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                   { label: "Jadwal", icon: "/icons/011-schedule.svg", tab: "generate" },
-                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
+                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
                   { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
                 ];
               } else if (activeRole === 'karyawan') {
                 dynamicShortcuts = [
                   { label: "Presensi Saya", icon: "/icons/045-account.svg", tab: "absensiguru" },
-                  { label: "Rekap Kehadiran", icon: "/icons/079-checklist.svg", tab: "laporan_absensi" },
                   { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
                   { label: "Pengumuman", icon: "/icons/087-chat.svg", tab: "pesan" },
+                  { label: "Pusat Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                 ];
               } else {
                 dynamicShortcuts = [
                   { label: "Jurnal KBM", icon: "/icons/092-file.svg", tab: "jurnal_harian" },
                   { label: "Jadwal KBM", icon: "/icons/011-schedule.svg", tab: "generate" },
-                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "silabusguru" },
+                  { label: "Modul Ajar", icon: "/icons/066-education.svg", tab: "modul_ajar" },
                   { label: "Presensi Guru", icon: "/icons/079-checklist.svg", tab: "absensiguru" },
                   { label: "Ketersediaan", icon: "/icons/086-calendar.svg", tab: "ketersediaan" },
-                  { label: "Beban KBM", icon: "/icons/035-graph bar.svg", tab: "beban" },
+                  { label: "Jadwal Saya", icon: "/icons/011-schedule.svg", tab: "generate" },
                   { label: "Kalender", icon: "/icons/086-calendar.svg", tab: "akademik" },
                   { label: "Pesan", icon: "/icons/087-chat.svg", tab: "pesan" },
                 ];

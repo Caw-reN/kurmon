@@ -181,9 +181,9 @@ export const MENU_REGISTRY = [
     icon: FileSpreadsheet,
     label: 'Keterangan Massal',
     section: 'Kesiswaan',
-    adminGroup: null,
-    adminGroupKey: null,
-    hideInSidebar: true,
+    adminGroup: 'Kesiswaan',
+    adminGroupIcon: Users,
+    adminGroupKey: 'kesiswaan',
   },
 
   // ─── KESISWAAN ───────────────────────────────────────────────────────────────
@@ -229,9 +229,9 @@ export const MENU_REGISTRY = [
     icon: ClipboardList,
     label: 'Piket & Pelanggaran',
     section: 'Kesiswaan',
-    adminGroup: null,
-    adminGroupKey: null,
-    hideInSidebar: true,
+    adminGroup: 'Kesiswaan',
+    adminGroupIcon: Users,
+    adminGroupKey: 'kesiswaan',
   },
   {
     id: 'kedisiplinan_bpbk',

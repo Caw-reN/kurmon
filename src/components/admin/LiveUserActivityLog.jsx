@@ -551,7 +551,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
             {onNavigateTab && (
               <button
                 type="button"
-                onClick={() => onNavigateTab('keamanan')}
+                onClick={() => onNavigateTab('audit_log')}
                 className="text-[10.5px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer ml-1 py-1 px-2 rounded-lg hover:bg-emerald-50/60 transition-colors"
               >
                 <span>Audit Log Lengkap</span>
