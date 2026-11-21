@@ -40,7 +40,11 @@ export default function PageHeader({
       {/* Mobile Sub-Nav Tabs (Shown on Mobile screens when not plain and mappedTabs has items) */}
       {!isPlain && mappedTabs.length > 0 && (
         <div className="sm:hidden w-full pt-1 mb-2">
-          <div className={cn("grid gap-1.5 w-full", mappedTabs.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+          <div 
+            role="tablist" 
+            aria-label={title || "Navigasi Sub-Tab"}
+            className={cn("grid gap-1.5 w-full", mappedTabs.length === 1 ? "grid-cols-1" : "grid-cols-2")}
+          >
             {mappedTabs.map((tab, idx) => {
               const TabIcon = tab.icon;
               const isLastOdd = mappedTabs.length % 2 !== 0 && idx === mappedTabs.length - 1;
@@ -48,6 +52,8 @@ export default function PageHeader({
                 <button
                   key={tab.id || tab.label}
                   type="button"
+                  role="tab"
+                  aria-selected={tab.isActive}
                   onClick={tab.onClick}
                   className={cn(
                     "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px] shadow-2xs",
@@ -121,7 +127,11 @@ export default function PageHeader({
         {/* Actions or Tabs */}
         {(mappedTabs.length > 0 || actions || children) && (
           <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10 shrink-0">
-            <div className="flex items-center gap-2 w-max md:w-auto shrink-0">
+            <div 
+              role={mappedTabs.length > 0 ? "tablist" : undefined}
+              aria-label={title || "Navigasi Sub-Tab"}
+              className="flex items-center gap-2 w-max md:w-auto shrink-0"
+            >
               {mappedTabs.map((tab) => {
                 const isActive = tab.isActive;
                 const isPrimaryHeader = headerStyle === 'primary';
@@ -130,6 +140,8 @@ export default function PageHeader({
                   <button
                     key={tab.id || tab.label}
                     type="button"
+                    role="tab"
+                    aria-selected={isActive}
                     onClick={tab.onClick}
                     className={cn(
                       "shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shadow-2xs",

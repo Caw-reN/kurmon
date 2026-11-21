@@ -241,7 +241,7 @@ export function useAdminTableRenderer(context) {
     return (
       <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
         {actualPageHeader}
-        <section className="ui-card rounded-xl bg-white border border-slate-200/80 flex flex-col flex-1 overflow-hidden">
+        <section className="ui-card rounded-xl bg-white border border-slate-200/80 flex flex-col flex-1 overflow-hidden layout-contained">
           {options.customTabs && (
             <div className="px-4 pt-4 pb-2 border-b border-border bg-muted/30">
               {options.customTabs}
@@ -249,7 +249,7 @@ export function useAdminTableRenderer(context) {
           )}
 
           {/* Toolbar */}
-          <div className="p-3.5 md:p-4 border-b border-border bg-white flex flex-col gap-3 shrink-0">
+          <div className="p-3.5 md:p-4 border-b border-border bg-white flex flex-col gap-3 shrink-0 filter-reflow-isolated">
             {/* Top Toolbar Row: Search Input + Primary Actions */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
               {/* Search Bar */}

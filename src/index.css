@@ -1919,3 +1919,34 @@ dialog::backdrop,
   inset-block-start: 0;
   z-index: 10;
 }
+
+/* Defer rendering for off-screen content (Modern Web Guidance) */
+.content-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+
+/* Layout Containment for Fast Interactions & Low INP (Modern Web Guidance) */
+.layout-contained {
+  contain: layout paint;
+}
+
+.filter-reflow-isolated {
+  contain: layout;
+}
+
+/* User-Friendly Form Validation (Modern Web Guidance: validate-input-after-interaction) */
+/* Only triggers error state after user interaction/blur, avoiding premature errors on empty load */
+input:not([type="checkbox"]):not([type="radio"]):user-invalid,
+select:user-invalid,
+textarea:user-invalid {
+  border-color: rgb(244 63 94 / 0.8) !important;
+  background-color: rgb(255 241 242 / 0.35) !important;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):user-invalid:focus,
+select:user-invalid:focus,
+textarea:user-invalid:focus {
+  outline: 2px solid rgb(244 63 94 / 0.4) !important;
+  outline-offset: 1px !important;
+}

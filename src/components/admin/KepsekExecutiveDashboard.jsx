@@ -1180,7 +1180,7 @@ export default function KepsekExecutiveDashboard({
       </div>
 
       {/* ═══════════════ BARIS 2: PRESENTASE PER JURUSAN & KELAS (LEBAR PENUH 100%) ═══════════════ */}
-      <div className="w-full">
+      <div className="w-full content-deferred">
         <JurusanKelasAttendanceSummary 
           students={students} 
           classes={classes} 
@@ -1190,7 +1190,7 @@ export default function KepsekExecutiveDashboard({
       </div>
 
       {/* ═══════════════ BARIS 3: 3 BOX LOG & MONITOR AKTIVITAS SEJAJAR (RATA 100%) ═══════════════ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch content-deferred">
         {/* Box 1: Live Log Aktivitas Pengguna */}
         <div className="flex flex-col h-full">
           <LiveUserActivityLog onNavigateTab={gotoTab} />
