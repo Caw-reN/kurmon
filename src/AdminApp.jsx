@@ -450,7 +450,12 @@ export default function App() {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [activeTab]);
+    if (typeof window !== 'undefined') {
+      window.activeTab = activeTab;
+      window.__activeTab = activeTab;
+      window.__setActiveTab = setActiveTab;
+    }
+  }, [activeTab, setActiveTab]);
 
   // Auto-Backup otomatis dinonaktifkan — backup tersedia secara manual via tombol di sidebar.
   // Sebelumnya: setInterval setiap 30 menit memanggil exportAllDataToExcel() → menyebabkan

@@ -7,6 +7,17 @@ import App from './App.jsx';
 import { registerSW } from 'virtual:pwa-register';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 
+// Global fallback safety nets for runtime tab identifiers
+if (typeof window !== 'undefined') {
+  window.activeTab = 'dashboard';
+  window.__activeTab = 'dashboard';
+  window.setActiveTab = (tab) => {
+    if (typeof window.__setActiveTab === 'function') {
+      window.__setActiveTab(tab);
+    }
+  };
+}
+
 // Register Service Worker for PWA with auto-update
 const updateSW = registerSW({
   immediate: true,

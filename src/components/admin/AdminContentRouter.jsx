@@ -73,13 +73,13 @@ const TabKeamanan = lazy(() => import('../../pages/admin/tabs/TabKeamanan.jsx'))
 const ManajemenRole = lazy(() => import('../../pages/admin/tabs/ManajemenRole.jsx'));
 const KeteranganMasalAbsensi = lazy(() => import('../../pages/KeteranganMasalAbsensi.jsx'));
 
-export default function AdminContentRouter({ context, checkIsAllowed: checkIsAllowedProp }) {
-  const tabProps = context;
+export default function AdminContentRouter({ context = {}, checkIsAllowed: checkIsAllowedProp }) {
+  const tabProps = context || {};
   const {
-    activeTab, currentUser, isSuperAdminRole, hasFeature, getTabPermissionLevel, hasPiket,
+    activeTab: rawActiveTab, currentUser, isSuperAdminRole, hasFeature, getTabPermissionLevel, hasPiket,
     checkIsAllowed: checkIsAllowedFromContext,
     normalizeUserRole, rolePermissions, saveDatabaseNow, classes, teachers, subjects,
-    rooms, schedule, teachingLoads, openModal, setActiveTab, renderTable, checkDependencies,
+    rooms, schedule, teachingLoads, openModal, setActiveTab: rawSetActiveTab, renderTable, checkDependencies,
     handleDelete, updateSelectionForTab, appSettings, setAppSettings, showNotification,
     teacherAvailability, getTableSort, getActiveSortConfig, selectedRows, searchTerm,
     activeUserRole, handleBulkDelete,
@@ -89,7 +89,21 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
     adminUser, setAdminUser, syncAuthSnapshotNow,
     setSearchTerm, setTableSorts, setLoadFilters, loadFilters, applyRecommendations, recommendedLoads,
     openImportGuide, downloadMasterTemplate,
-  } = context;
+  } = tabProps;
+
+  const activeTab = rawActiveTab || 'dashboard';
+  const setActiveTab = rawSetActiveTab || ((tab) => {
+    if (typeof window !== 'undefined' && typeof window.__setActiveTab === 'function') {
+      window.__setActiveTab(tab);
+    }
+  });
+
+  // Sync window global fallback for runtime safety
+  if (typeof window !== 'undefined') {
+    window.activeTab = activeTab;
+    window.__activeTab = activeTab;
+    if (setActiveTab) window.__setActiveTab = setActiveTab;
+  }
 
   // Support kedua pola: checkIsAllowed sebagai prop terpisah (baru) atau dari dalam context (lama)
   const checkIsAllowed = checkIsAllowedProp ?? checkIsAllowedFromContext;
