@@ -309,7 +309,11 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
       <header role="banner" className="landing-navbar fixed top-0 left-0 right-0 w-full z-50 flex flex-col shadow-xs select-none">
         {/* 1. TOP RIBBON: SMK KARYA GUNA 2 BEKASI & PORTAL LAYANAN */}
         <div 
-          className="w-full text-white text-[11px] font-bold py-2 border-b transition-colors"
+          className={`w-full text-white text-[11px] font-bold border-b transition-all duration-300 ${
+            scrolled 
+              ? 'max-h-0 py-0 opacity-0 overflow-hidden border-b-0 pointer-events-none' 
+              : 'max-h-12 py-2 opacity-100'
+          }`}
           style={{ 
             backgroundColor: appSettings?.topRibbonColor || primaryColor || '#153f32',
             borderBottomColor: 'rgba(255, 255, 255, 0.15)'
@@ -326,8 +330,16 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
         </div>
 
         {/* 2. MAIN NAVBAR: LOGO, BRAND, NAV LINKS, IMPROVED LANGUAGE SWITCHER & MASUK BUTTON */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-2xs">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-8 h-[68px] sm:h-[72px] flex items-center justify-between">
+        <div 
+          className={`w-full transition-all duration-300 ${
+            scrolled 
+              ? 'bg-white/40 hover:bg-white/70 backdrop-blur-md border-b border-slate-200/40 shadow-xs' 
+              : 'bg-white/95 backdrop-blur-xl border-b border-slate-200/90 shadow-2xs'
+          }`}
+        >
+          <div className={`max-w-[1400px] mx-auto px-6 md:px-8 flex items-center justify-between transition-all duration-300 ${
+            scrolled ? 'h-[60px] sm:h-[64px]' : 'h-[68px] sm:h-[72px]'
+          }`}>
             {/* Kiri: Logo Kotak Hijau & Teks Brand */}
             <Link to="/" className="flex items-center gap-3.5 select-none no-underline group">
               <div 
@@ -384,7 +396,9 @@ export default function HeaderNavbar({ setIsLoginModalOpen, appSettings, schoolP
               {/* Improved Language Switcher (Segmented Control dengan Radius Serasi) */}
               {showLangSwitch && (
                 <div 
-                  className="inline-flex items-center p-1 rounded-xl bg-slate-100/90 border border-slate-200/90 shadow-2xs"
+                  className={`inline-flex items-center p-1 rounded-xl shadow-2xs transition-all duration-300 ${
+                    scrolled ? 'bg-slate-100/60 border border-slate-200/60' : 'bg-slate-100/90 border border-slate-200/90'
+                  }`}
                   style={{ borderRadius: '12px' }}
                 >
                   <button
