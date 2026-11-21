@@ -172,9 +172,9 @@ export const MENU_REGISTRY = [
     icon: CheckCircle2,
     label: 'Izin & Sakit Siswa',
     section: 'Kesiswaan',
-    adminGroup: null,
-    adminGroupKey: null,
-    hideInSidebar: true,
+    adminGroup: 'Kesiswaan',
+    adminGroupIcon: Users,
+    adminGroupKey: 'kesiswaan',
   },
   {
     id: 'keterangan_massal',
@@ -560,6 +560,25 @@ export const MENU_REGISTRY = [
     adminGroupIcon: MessageSquare,
     adminGroupKey: 'informasiUmum',
     adminOnly: true,
+  },
+  // ─── AKTIVITAS & KEAMANAN ────────────────────────────────────────────────────
+  {
+    id: 'audit_log',
+    icon: Activity,
+    label: 'Log Aktivitas',
+    section: 'Aktivitas',
+    adminGroup: 'Konfigurasi Sistem',
+    adminGroupIcon: Settings,
+    adminGroupKey: 'sistem',
+  },
+  {
+    id: 'keamanan',
+    icon: Shield,
+    label: 'Keamanan Akun',
+    section: 'Aktivitas',
+    adminGroup: 'Konfigurasi Sistem',
+    adminGroupIcon: Settings,
+    adminGroupKey: 'sistem',
   },
 ];
 

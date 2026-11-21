@@ -3580,10 +3580,11 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
                   setActiveTab('walas_report');
                 } else if (isSuperAdmin || isKepsek || isKesiswaanStaff || isBKMember || (isWaka && activeDivision === 'kesiswaan')) {
                   setActiveTab('hikvision_report_siswa');
-                } else if (isTU || isKaryawan) {
+                } else if (isTU) {
                   setActiveTab('hikvision_report_siswa');
                 } else {
-                  setActiveTab('kedisiplinan_absensi');
+                  // Jangan mengalihkan ke tab terlarang jika user tidak memiliki izin
+                  return;
                 }
               }}
               className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"

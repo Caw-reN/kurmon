@@ -341,6 +341,9 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
             "siswa", "datasiswa", "siswa_keluar", "tatib_skor", "kedisiplinan_piket",
             "kedisiplinan_bpbk", "kedisiplinan_hub", "laporan_absensi", "absensi"
           ];
+          if (activeTab === "kedisiplinan_piket" && context?.hasPiket) {
+            return true;
+          }
           if (forbiddenTabs.includes(activeTab)) {
             return false;
           }

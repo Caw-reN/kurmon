@@ -3310,11 +3310,22 @@ export default function App() {
     const wLevel = isWalasUser ? getRoleLevel('walikelas') : null;
     const gLevel = (activeRole === 'guru' || effectiveKey === 'guru') ? getRoleLevel('guru') : null;
 
-    // 0. Strict Role Integrity: Modul Kesiswaan, BK, & Master Data
+    // 0. Specialized role capability overrides for Piket & BK
+    if (id === 'kedisiplinan_piket') {
+      if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
+        return true;
+      }
+      const isPiketTeam = isKesiswaanTeam || ['bpbk', 'pembina_osis', 'sekretaris_kesiswaan', 'anggota_kesiswaan'].includes(subrole) || isBKTeam;
+      if (isPiketTeam || hasPiket) return true;
+      if (spLevel === "edit" || spLevel === "full" || spLevel === "view" || spLevel === "otomatis") return true;
+      return false;
+    }
+
+    // Strict Role Integrity: Modul Kesiswaan, BK, & Master Data
     // Regular Guru and Walikelas MUST NOT access Keterangan Massal, Riwayat Prestasi, Presensi Siswa global, Data Siswa, Beban Mengajar, dll.
     const forbiddenForPureGuruWalas = [
       'beban', 'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa',
-      'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor', 'kedisiplinan_piket',
+      'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor',
       'kedisiplinan_bpbk', 'kedisiplinan_hub', 'laporan_absensi', 'absensi'
     ];
     if (forbiddenForPureGuruWalas.includes(id)) {
@@ -3429,7 +3440,7 @@ export default function App() {
     featureKey,
     activeIds
   }) => {
-    const isPermitted = checkIsAllowed(id, featureKey) || (Array.isArray(activeIds) && activeIds.some(aid => checkIsAllowed(aid, featureKey)));
+    const isPermitted = checkIsAllowed(id, featureKey);
     if (!isPermitted) return null;
 
     const isActive = activeIds ? activeIds.includes(activeTab) : activeTab === id;

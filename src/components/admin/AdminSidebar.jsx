@@ -362,7 +362,7 @@ export default function AdminSidebar({
     const q = searchQuery.toLowerCase().trim();
     return MENU_REGISTRY.filter(item => {
       const isAllowed = typeof checkIsAllowed === 'function'
-        ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
+        ? checkIsAllowed(item.id, item.featureKey)
         : true;
       if (!isAllowed) return false;
 
@@ -563,24 +563,25 @@ export default function AdminSidebar({
       if (item.adminOnly) continue;
       if (item.hideInSidebar) continue;
       if (item.id === 'dashboard') continue; // Rendered explicitly at the top of menu
+
+      // If user has walas responsibilities, walas-specific items are isolated inside the Wali Kelas accordion
+      if (isWalasUser && role !== 'kepsek' && ['catatan_walikelas', 'walas_report', 'rekap_jurnal_kelas', 'kedisiplinan_absensi'].includes(item.id)) {
+        continue;
+      }
+
       if (item.specialCondition === 'walas_only') {
-        if (isPureWalas) continue;
-        const isWalasPermitted = typeof checkIsAllowed === 'function'
-          ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
-          : true;
-        if (!isWalasPermitted) {
+        if (!isWalasUser && role !== 'kepsek' && !isKesiswaanTeam && !isBKTeam && !isAdmin) {
+          continue;
+        }
+        const isPermitted = typeof checkIsAllowed === 'function' ? checkIsAllowed(item.id, item.featureKey) : true;
+        if (!isPermitted) {
           continue;
         }
       }
 
-      // If pure walas, kedisiplinan_absensi is handled inside the Wali Kelas group
-      if (isPureWalas && item.id === 'kedisiplinan_absensi') {
-        continue;
-      }
-
       // Pastikan item yang tidak diizinkan untuk role ini tidak masuk ke grup menu
       const isItemPermitted = typeof checkIsAllowed === 'function'
-        ? (checkIsAllowed(item.id, item.featureKey) || (Array.isArray(item.activeIds) && item.activeIds.some(aid => checkIsAllowed(aid, item.featureKey))))
+        ? checkIsAllowed(item.id, item.featureKey)
         : true;
       if (!isItemPermitted) {
         continue;
@@ -653,9 +654,9 @@ export default function AdminSidebar({
       );
     }
 
-    // Special: Wali Kelas accordion group (for pure walas teachers)
-    if (isPureWalas) {
-      const walasItemIds = ['catatan_walikelas', 'walas_report', 'kedisiplinan_absensi'];
+    // Special: Wali Kelas accordion group (for all walas teachers)
+    if (isWalasUser && role !== 'kepsek') {
+      const walasItemIds = ['catatan_walikelas', 'walas_report', 'rekap_jurnal_kelas', 'kedisiplinan_absensi'];
       const walasItems = MENU_REGISTRY.filter(i => walasItemIds.includes(i.id));
       const renderedWalas = walasItems.map(item =>
         renderNavItem({
