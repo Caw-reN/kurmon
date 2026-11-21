@@ -1,33 +1,29 @@
 import { Button } from '../../../components/ui.jsx';
-
-import { Plus, Edit2, Trash2 } from'lucide-react';
-
+import { Plus, Edit2, Trash2, BookOpen } from 'lucide-react';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
 export default function TabKategoriSilabus(props) {
-  const { openModal, syllabusCategories, handleRemoveSyllabusCategorySafe } = props;
+  const { openModal, syllabusCategories, handleRemoveSyllabusCategorySafe, setActiveTab } = props;
   const { ...allProps } = props;
   // Destructure specific props as needed in the component
 
-return (
-  <div className="flex flex-col gap-6 h-full  w-full animate-in fade-in duration-300 relative z-10">
-    <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 flex flex-col flex-1 overflow-hidden min-h-0">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-            Kategori Modul Ajar
-          </h2>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Kelola kategori untuk mengelompokkan materi modul ajar.
-          </p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Button variant="outline"
-            onClick={() =>openModal("kategori_silabus","add")}
-            
+  return (
+    <div className="flex flex-col gap-4 h-full w-full animate-in fade-in duration-300 relative z-10 pb-10">
+      <PageHeader
+        title="Kategori Modul Ajar"
+        icon={BookOpen}
+        description="Kelola kategori untuk mengelompokkan materi modul ajar."
+        onBack={setActiveTab ? () => setActiveTab("modul_ajar") : undefined}
+      />
+      <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 sm:p-6 flex flex-col flex-1 overflow-hidden min-h-0">
+        <div className="flex items-center justify-end mb-4">
+          <Button
+            variant="primary"
+            onClick={() => openModal("kategori_silabus", "add")}
           >
-            <Plus size={14} strokeWidth={3} /> Tambah Kategori</Button>
+            <Plus size={14} strokeWidth={3} /> Tambah Kategori
+          </Button>
         </div>
-      </div>
       <div className="overflow-x-auto flex-1 custom-scrollbar">
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="bg-slate-50/70 border-b border-slate-200/80 sticky top-0 z-10">

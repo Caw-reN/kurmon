@@ -172,9 +172,9 @@ export const MENU_REGISTRY = [
     icon: CheckCircle2,
     label: 'Izin & Sakit Siswa',
     section: 'Kesiswaan',
-    adminGroup: null,
-    adminGroupKey: null,
-    hideInSidebar: true,
+    adminGroup: 'Kesiswaan',
+    adminGroupIcon: Users,
+    adminGroupKey: 'kesiswaan',
   },
   {
     id: 'keterangan_massal',

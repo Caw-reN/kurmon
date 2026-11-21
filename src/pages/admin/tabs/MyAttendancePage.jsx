@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { 
   ChevronLeft, ChevronRight, Clock, MinusCircle, Fingerprint, 
   Download, Send, X, FileText, ArrowLeft, HeartPulse, Building2, 
@@ -616,52 +617,22 @@ export default function MyAttendancePage({ setActiveTab }) {
   return (
     <div className="w-full flex flex-col gap-3.5 animate-in fade-in duration-300 pb-28 sm:pb-12">
 
-      {/* HERO HEADER: Compact & Responsive */}
-      <div
-        className="rounded-xl sm:rounded-2xl px-3.5 sm:px-6 py-3 sm:py-4 relative overflow-hidden text-white shadow-sm"
-        style={{ background:'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 75%, black) 100%)' }}
-      >
-        <div className="absolute inset-0 opacity-10 pointer-events-none">
-          <div className="absolute top-0 right-0 w-60 h-60 rounded-full border-[28px] border-white -mr-14 -mt-14" />
-          <div className="absolute bottom-0 left-1/3 w-28 h-28 rounded-full border-[12px] border-white -mb-8" />
-        </div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-3.5">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            {/* Tombol Back */}
-            <button
-              type="button"
-              onClick={handleBack}
-              className="p-2 sm:p-2.5 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white rounded-lg sm:rounded-xl transition-all cursor-pointer shrink-0 flex items-center justify-center shadow-xs"
-              title="Kembali ke Beranda"
-              aria-label="Kembali ke Beranda"
-            >
-              <ArrowLeft size={16} strokeWidth={2.5} />
-            </button>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-[9px] sm:text-[10px] font-black uppercase tracking-wider backdrop-blur-xs">
-                  <Fingerprint size={10} className="text-white shrink-0" />
-                  <span>Data Biometrik Hikvision</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                </span>
-              </div>
-              <h1 className="text-base sm:text-2xl font-black tracking-tight leading-tight truncate">Absensi Saya</h1>
-              <p className="text-white/80 text-[10.5px] sm:text-xs font-medium truncate mt-0.5">
-                {teacherName} {teacherNIP ? `(NIP: ${teacherNIP})` : (teacherCode ? `(ID: ${teacherCode})` : '')} • {MONTH_NAMES[filter.month-1]} {filter.year}
-              </p>
-            </div>
-          </div>
-
+      {/* HERO HEADER: Standardized PageHeader */}
+      <PageHeader
+        title="Absensi Saya"
+        icon={Fingerprint}
+        description={`${teacherName} ${teacherNIP ? `(NIP: ${teacherNIP})` : (teacherCode ? `(ID: ${teacherCode})` : '')} • ${MONTH_NAMES[filter.month-1]} ${filter.year}`}
+        onBack={handleBack}
+        actions={
           <button
             onClick={handleDownloadPDF}
-            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl transition-all cursor-pointer w-fit shrink-0 self-end sm:self-auto shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/15 hover:bg-white/25 active:scale-95 border border-white/25 text-white text-[11px] sm:text-xs font-bold rounded-lg sm:rounded-xl transition-all cursor-pointer w-fit shrink-0 shadow-xs"
           >
             <Download size={13} strokeWidth={2.4} />
             <span>Download PDF</span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* STATS CARDS: Compact 5-Column Single Row Layout (Mobile & Desktop) */}
       <div className="grid grid-cols-5 gap-1.5 sm:gap-3">

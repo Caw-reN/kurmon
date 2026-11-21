@@ -1,47 +1,32 @@
 import { Button } from '../../../components/ui.jsx';
-
-import { CalendarDays, BookOpen, Upload, Plus, Edit2, Trash2 } from'lucide-react';
-
+import { CalendarDays, BookOpen, Upload, Plus, Edit2, Trash2 } from 'lucide-react';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
 export default function TabKategoriKalender(props) {
   const { setActiveTab, openImportGuide, openModal, calendarCategories, handleRemoveCalendarCategorySafe } = props;
   const { ...allProps } = props;
   // Destructure specific props as needed in the component
 
-return (
-  <div className="flex flex-col gap-6 h-full  w-full animate-in fade-in duration-300 relative z-10">
-    <div className="ui-card bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] rounded-[var(--ui-radius-card)] p-6 flex flex-col flex-1 overflow-hidden min-h-0">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
-            Kategori Kalender Akademik
-          </h2>
-          <p className="text-sm text-slate-500 font-medium mt-1">
-            Kelola kategori untuk mengelompokkan kegiatan akademik
-            sekolah.
-          </p>
+  return (
+    <div className="flex flex-col gap-4 h-full w-full animate-in fade-in duration-300 relative z-10 pb-10">
+      <PageHeader
+        title="Kategori Kalender Akademik"
+        icon={CalendarDays}
+        description="Kelola kategori untuk mengelompokkan kegiatan akademik sekolah."
+        onBack={() => setActiveTab("akademik")}
+      />
+      <div className="ui-card bg-white border border-slate-200/80 shadow-xs rounded-[var(--ui-radius-card)] p-4 sm:p-6 flex flex-col flex-1 overflow-hidden min-h-0">
+        <div className="flex flex-wrap items-center justify-end mb-4 gap-2">
+          <Button variant="outline" onClick={openImportGuide}>
+            <BookOpen size={14} /> Panduan
+          </Button>
+          <Button variant="outline" onClick={() => openModal("bulk", "add")}>
+            <Upload size={14} /> Import Excel
+          </Button>
+          <Button variant="primary" onClick={() => openModal("kategori_kalender", "add")}>
+            <Plus size={14} strokeWidth={3} /> Tambah Kategori
+          </Button>
         </div>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
-          <Button variant="outline"
-            onClick={() =>setActiveTab("akademik")}
-            
-          >
-            <CalendarDays size={14} /> Kembali ke Kalender</Button>
-          <Button variant="outline"
-            onClick={openImportGuide}
-           ><BookOpen size={14} /> Panduan</Button>
-          <Button variant="outline"
-            onClick={() =>openModal("bulk","add")}
-            
-          >
-            <Upload size={14} /> Import Excel</Button>
-          <Button variant="outline"
-            onClick={() =>openModal("kategori_kalender","add")}
-            
-          >
-            <Plus size={14} strokeWidth={3} /> Tambah Kategori</Button>
-        </div>
-      </div>
       <div className="overflow-x-auto flex-1 custom-scrollbar">
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead className="bg-slate-50/70 border-b border-slate-200/80 sticky top-0 z-10">

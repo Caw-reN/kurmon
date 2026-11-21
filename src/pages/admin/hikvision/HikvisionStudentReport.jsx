@@ -137,21 +137,15 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   // Sinkronisasi tab saat navigasi menu sidebar dipanggil
   React.useEffect(() => {
-    if (isWalasReport || isWalasUser) {
-      if (activeTab === "surat") {
-        setActiveTab("matriks");
-      }
+    if (activeTab === "surat") {
+      setActiveTab("matriks");
     }
     if (isWalasReport) {
       setActiveTab("matriks");
     } else if (routeTab === "keterangan_massal") {
       setActiveTab("keterangan");
-    } else if (routeTab === "hikvision_report_siswa" && activeTab !== "keterangan") {
-      if (isWalasUser && activeTab === "surat") {
-        setActiveTab("matriks");
-      }
     }
-  }, [routeTab, isWalasReport, isWalasUser, activeTab]);
+  }, [routeTab, isWalasReport, activeTab]);
 
   // Fallback pengamanan hak akses tab keterangan massal
   React.useEffect(() => {
@@ -1935,16 +1929,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
             >
               MATRIKS BULANAN
             </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('surat')}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'surat'
-                ? 'bg-white text-emerald-700 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-700 bg-transparent'
-                }`}
-            >
-              MANAJEMEN SURAT
-            </button>
             {canManageBulkRemarks && (
               <button
                 type="button"
@@ -1997,7 +1981,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 ? []
                 : [
                     { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
-                    ...(!isWalasUser ? [{ id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }] : []),
                     ...(canManageBulkRemarks ? [{ id: 'keterangan', label: 'Keterangan Massal', icon: Sparkles }] : [])
                   ].filter((_t, _idx, arr) => arr.length > 1)
             }
