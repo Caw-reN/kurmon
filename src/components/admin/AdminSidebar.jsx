@@ -361,9 +361,11 @@ export default function AdminSidebar({
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase().trim();
     const isAdmin = isSuperAdminRole(activeUserRole);
+    const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || activeUserRole === 'walikelas');
     return MENU_REGISTRY.filter(item => {
       if (item.adminOnly && !isAdmin) return false;
-      if (item.hideInSidebar) return false;
+      const isWalasAllowedItem = isWalasUser && item.id === 'kedisiplinan_absensi';
+      if (item.hideInSidebar && !isWalasAllowedItem) return false;
 
       const isAllowed = typeof checkIsAllowed === 'function'
         ? checkIsAllowed(item.id, item.featureKey)

@@ -21,7 +21,12 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const { authToken, user: tokenUser } = useAuthToken();
   const authStoreUser = useAuthStore(state => state.user);
   const user = tokenUser || authStoreUser;
-  const [activeTab, setActiveTab] = useState(() => routeTab === "keterangan_massal" ? "keterangan" : "matriks"); // "matriks" | "surat" | "keterangan"
+  const isWalasReportRoute = routeTab === "walas_report" || routeTab === "laporan_rekap_walas";
+  const [activeTab, setActiveTab] = useState(() => {
+    if (isWalasReportRoute) return "matriks";
+    if (routeTab === "keterangan_massal") return "keterangan";
+    return "matriks";
+  }); // "matriks" | "surat" | "keterangan"
   const [exportMode, setExportMode] = useState("summary");
   const [isSuperAdminModalOpen, setIsSuperAdminModalOpen] = useState(false);
 
@@ -123,14 +128,23 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
     }
   }, [routeTab, user?.walasClass, filter.class_name]);
 
+  // ─── Validasi Harian Absensi oleh Wali Kelas ───
+  const isWalasUser = Boolean(user?.isWalas || user?.walasClass || roleStr === 'walas' || roleStr === 'walikelas' || subroleStr === 'walikelas');
+  const isWalasReport = routeTab === "walas_report" || routeTab === "laporan_rekap_walas" || (isWalasUser && !isKesiswaanOrAdmin && routeTab !== "keterangan_massal");
+  const activeWalasClass = user?.walasClass || (filter.class_name !== 'all' && filter.class_name !== 'none' ? filter.class_name : '');
+  const todayIsoKey = new Date().toISOString().slice(0, 10);
+  const walasValidationKey = `walas_attendance_validated_${user?.id || user?.username || 'user'}_${activeWalasClass}_${todayIsoKey}`;
+
   // Sinkronisasi tab saat navigasi menu sidebar dipanggil
   React.useEffect(() => {
-    if (routeTab === "keterangan_massal") {
+    if (isWalasReport) {
+      setActiveTab("matriks");
+    } else if (routeTab === "keterangan_massal") {
       setActiveTab("keterangan");
-    } else if (routeTab === "hikvision_report_siswa" || routeTab === "walas_report" || routeTab === "laporan_rekap_walas") {
+    } else if (routeTab === "hikvision_report_siswa") {
       setActiveTab("matriks");
     }
-  }, [routeTab]);
+  }, [routeTab, isWalasReport]);
 
   // Fallback pengamanan hak akses tab keterangan massal
   React.useEffect(() => {
@@ -142,12 +156,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   const [viewMode, setViewMode] = useState("monthly"); //"monthly" |"weekly"
   const [selectedWeek, setSelectedWeek] = useState(1); // 1 to 5
   const [showMobileFilterOptions, setShowMobileFilterOptions] = useState(false);
-
-  // ─── Validasi Harian Absensi oleh Wali Kelas ───
-  const isWalasUser = Boolean(user?.isWalas || user?.walasClass || roleStr === 'walas' || roleStr === 'walikelas' || subroleStr === 'walikelas');
-  const activeWalasClass = user?.walasClass || (filter.class_name !== 'all' && filter.class_name !== 'none' ? filter.class_name : '');
-  const todayIsoKey = new Date().toISOString().slice(0, 10);
-  const walasValidationKey = `walas_attendance_validated_${user?.id || user?.username || 'user'}_${activeWalasClass}_${todayIsoKey}`;
 
   const [isAttendanceValidated, setIsAttendanceValidated] = useState(() => {
     try {
@@ -1906,74 +1914,86 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
   return (
     <div className="space-y-2.5 sm:space-y-6 animate-fade-in w-full pb-20 sm:pb-6">
       {/* Mobile Segmented Tabs */}
-      <div className="sm:hidden p-1 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
-        {/* Segmented Pill Tabs */}
-        <div className="bg-slate-100/90 rounded-xl p-1 flex items-center gap-1 border border-slate-200/60">
-          <button
-            type="button"
-            onClick={() => setActiveTab('matriks')}
-            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'matriks'
-              ? 'bg-white text-emerald-700 shadow-2xs'
-              : 'text-slate-500 hover:text-slate-700 bg-transparent'
-              }`}
-          >
-            MATRIKS BULANAN
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('surat')}
-            className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'surat'
-              ? 'bg-white text-emerald-700 shadow-2xs'
-              : 'text-slate-500 hover:text-slate-700 bg-transparent'
-              }`}
-          >
-            MANAJEMEN SURAT
-          </button>
-          {canManageBulkRemarks && (
+      {!isNested && !isWalasReport && (
+        <div className="sm:hidden p-1 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+          {/* Segmented Pill Tabs */}
+          <div className="bg-slate-100/90 rounded-xl p-1 flex items-center gap-1 border border-slate-200/60">
             <button
               type="button"
-              onClick={() => setActiveTab('keterangan')}
-              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'keterangan'
+              onClick={() => setActiveTab('matriks')}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'matriks'
                 ? 'bg-white text-emerald-700 shadow-2xs'
                 : 'text-slate-500 hover:text-slate-700 bg-transparent'
                 }`}
             >
-              KETERANGAN
+              MATRIKS BULANAN
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => setActiveTab('surat')}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'surat'
+                ? 'bg-white text-emerald-700 shadow-2xs'
+                : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                }`}
+            >
+              MANAJEMEN SURAT
+            </button>
+            {canManageBulkRemarks && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('keterangan')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border-none cursor-pointer text-center ${activeTab === 'keterangan'
+                  ? 'bg-white text-emerald-700 shadow-2xs'
+                  : 'text-slate-500 hover:text-slate-700 bg-transparent'
+                  }`}
+              >
+                KETERANGAN
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Desktop Header */}
       {!isNested && (
         <div className="hidden sm:block">
           <PageHeader
             title={
-              activeTab === 'matriks'
-                ? "Laporan Kehadiran Siswa"
-                : activeTab === 'keterangan'
-                  ? "Keterangan Massal Absensi"
-                  : "Manajemen Surat Izin/Sakit"
+              isWalasReport
+                ? (user?.walasClass ? `Laporan Rekap Wali Kelas (${user.walasClass})` : "Laporan Rekap Wali Kelas")
+                : activeTab === 'matriks'
+                  ? "Laporan Kehadiran Siswa"
+                  : activeTab === 'keterangan'
+                    ? "Keterangan Massal Absensi"
+                    : "Manajemen Surat Izin/Sakit"
             }
             icon={
-              activeTab === 'matriks'
+              isWalasReport
                 ? FileText
-                : activeTab === 'keterangan'
-                  ? Sparkles
-                  : UserX
+                : activeTab === 'matriks'
+                  ? FileText
+                  : activeTab === 'keterangan'
+                    ? Sparkles
+                    : UserX
             }
             description={
-              activeTab === 'matriks'
-                ? "Rekap kehadiran siswa per bulan dalam bentuk matriks."
-                : activeTab === 'keterangan'
-                  ? "Kelola penandaan keterangan massal presensi siswa per kelas dan rentang tanggal kegiatan."
-                  : "Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."
+              isWalasReport
+                ? (user?.walasClass ? `Rekap presensi bulanan siswa kelas ${user.walasClass} dalam bentuk matriks.` : "Rekap kehadiran siswa per bulan dalam bentuk matriks.")
+                : activeTab === 'matriks'
+                  ? "Rekap kehadiran siswa per bulan dalam bentuk matriks."
+                  : activeTab === 'keterangan'
+                    ? "Kelola penandaan keterangan massal presensi siswa per kelas dan rentang tanggal kegiatan."
+                    : "Rekap data ketidakhadiran harian siswa dan manajemen file surat izin/sakit."
             }
-            tabs={[
-              { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
-              { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
-              ...(canManageBulkRemarks ? [{ id: 'keterangan', label: 'Keterangan Massal', icon: Sparkles }] : [])
-            ]}
+            tabs={
+              isWalasReport
+                ? []
+                : [
+                    { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
+                    { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
+                    ...(canManageBulkRemarks ? [{ id: 'keterangan', label: 'Keterangan Massal', icon: Sparkles }] : [])
+                  ]
+            }
             activeTab={activeTab}
             onTabChange={setActiveTab}
           />
