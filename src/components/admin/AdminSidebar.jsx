@@ -768,11 +768,27 @@ export default function AdminSidebar({
         lastSection = sectionLabel;
       }
 
-      renderedGroups.push(
-        <SidebarGroup key={groupKey} label={group.label} icon={group.icon} groupKey={groupKey}>
-          {renderedItems}
-        </SidebarGroup>
-      );
+      if (renderedItems.length === 1) {
+        // Jika grup hanya memiliki 1 item (seperti Mesin Absensi), tampilkan langsung sebagai root nav item tanpa sub-menu/accordion
+        const singleItem = group.items[0];
+        renderedGroups.push(
+          <React.Fragment key={groupKey}>
+            {renderNavItem({
+              id: singleItem.id,
+              icon: group.icon || singleItem.icon,
+              label: group.label || singleItem.label,
+              featureKey: singleItem.featureKey,
+              activeIds: singleItem.activeIds,
+            })}
+          </React.Fragment>
+        );
+      } else {
+        renderedGroups.push(
+          <SidebarGroup key={groupKey} label={group.label} icon={group.icon} groupKey={groupKey}>
+            {renderedItems}
+          </SidebarGroup>
+        );
+      }
     }
 
     // Render any remaining custom/extra groups not in groupOrder so nothing is ever dropped
@@ -788,11 +804,26 @@ export default function AdminSidebar({
         })
       ).filter(Boolean);
       if (renderedItems.length === 0) continue;
-      renderedGroups.push(
-        <SidebarGroup key={groupKey} label={group.label} icon={group.icon} groupKey={groupKey}>
-          {renderedItems}
-        </SidebarGroup>
-      );
+      if (renderedItems.length === 1) {
+        const singleItem = group.items[0];
+        renderedGroups.push(
+          <React.Fragment key={groupKey}>
+            {renderNavItem({
+              id: singleItem.id,
+              icon: group.icon || singleItem.icon,
+              label: group.label || singleItem.label,
+              featureKey: singleItem.featureKey,
+              activeIds: singleItem.activeIds,
+            })}
+          </React.Fragment>
+        );
+      } else {
+        renderedGroups.push(
+          <SidebarGroup key={groupKey} label={group.label} icon={group.icon} groupKey={groupKey}>
+            {renderedItems}
+          </SidebarGroup>
+        );
+      }
     }
 
     return (

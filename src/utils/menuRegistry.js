@@ -460,8 +460,8 @@ export const MENU_REGISTRY = [
   // ─── MESIN ABSENSI (Hikvision) ───────────────────────────────────────────────
   {
     id: 'hikvision',
-    icon: LayoutDashboard,
-    label: 'Manajemen Mesin Absensi',
+    icon: MonitorSmartphone,
+    label: 'Mesin Absensi',
     section: 'Mesin Absensi',
     adminGroup: 'Mesin Absensi',
     adminGroupIcon: MonitorSmartphone,
