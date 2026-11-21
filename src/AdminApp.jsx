@@ -3251,7 +3251,8 @@ export default function App() {
         "gdrive_backup", "status_password", "pengaturanuser", "log_password",
         "absensi", "absensiguru", "catatan_walikelas", "walas_report", "keamanan",
         "jurnal_harian", "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_piket",
-        "tatib_skor", "esurat", "kartu_pelajar", "pkl_jurnal"
+        "tatib_skor", "esurat", "kartu_pelajar", "pkl_jurnal",
+        "hikvision", "hikvision_students", "hikvision_devices", "tampilan", "profil_sekolah"
       ];
       if (forbiddenForKepsek.includes(checkId)) return false;
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;

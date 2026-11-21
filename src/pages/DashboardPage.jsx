@@ -1966,7 +1966,7 @@ export default function DashboardPage({
       : isBK ? [allStatCards.layananBK, allStatCards.presensiSiswa, allStatCards.siswa, allStatCards.prestasiSiswa]
       : isTU ? [allStatCards.absen, allStatCards.siswa, allStatCards.guru, allStatCards.esurat]
       : isWalas ? [allStatCards.walasReport, allStatCards.jurnalHarian, allStatCards.modulAjar, allStatCards.jadwal]
-      : isKaryawan ? [allStatCards.presensiMandiri, allStatCards.kalender, allStatCards.pesan, allStatCards.absen]
+      : isKaryawan ? [allStatCards.presensiMandiri, allStatCards.kalender, allStatCards.pesan, { ...allStatCards.presensiMandiri, label: "Status Kehadiran", sub: "Kehadiran Mandiri", tab: "absensiguru" }]
       : [allStatCards.jadwal, allStatCards.jurnalHarian, allStatCards.modulAjar, allStatCards.presensiMandiri];
 
   if (isKepsek) {

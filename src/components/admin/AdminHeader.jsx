@@ -447,13 +447,12 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
 
       {/* Right: Notifications & User Profile */}
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-        {appSettings?.maintenance?.isActive && (
+        {appSettings?.maintenance?.isActive && isSuperAdminRole(currentUser?.role) && (
           <button
             type="button"
             onClick={() => {
               if (typeof window !== 'undefined' && window.__setActiveTab) {
-                const isAdmin = isSuperAdminRole(currentUser?.role);
-                window.__setActiveTab(isAdmin ? 'fitur' : 'pesan');
+                window.__setActiveTab('fitur');
               }
             }}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 text-rose-800 border border-rose-300 text-[10px] sm:text-[11px] font-black tracking-tight uppercase hover:bg-white active:scale-95 transition-all cursor-pointer shrink-0"

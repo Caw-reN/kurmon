@@ -360,7 +360,11 @@ export default function AdminSidebar({
   const filteredSearchItems = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase().trim();
+    const isAdmin = isSuperAdminRole(activeUserRole);
     return MENU_REGISTRY.filter(item => {
+      if (item.adminOnly && !isAdmin) return false;
+      if (item.hideInSidebar) return false;
+
       const isAllowed = typeof checkIsAllowed === 'function'
         ? checkIsAllowed(item.id, item.featureKey)
         : true;
@@ -372,7 +376,7 @@ export default function AdminSidebar({
       const idMatch = item.id?.toLowerCase().includes(q);
       return labelMatch || groupMatch || sectionMatch || idMatch;
     });
-  }, [searchQuery, checkIsAllowed]);
+  }, [searchQuery, checkIsAllowed, isSuperAdminRole, activeUserRole]);
 
   const SidebarSection = ({ label }) => {
     if (isCollapsed) return null;
@@ -1016,22 +1020,30 @@ export default function AdminSidebar({
                 {renderDynamicMenu()}
 
                 {/* Config access for non-admin with granted config permissions */}
-                {hasAnyConfigAccess() && (
-                  <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
-                    {renderNavItem({
+                {typeof hasAnyConfigAccess === 'function' && hasAnyConfigAccess() && (() => {
+                  const configNavItems = [
+                    renderNavItem({
                       id: "hak_akses",
                       icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon || UserCog,
                       label: "Hak Akses & Pengguna",
                       activeIds: ['hak_akses', 'manajemen_role', 'pengaturanuser', 'status_password', 'log_password', 'audit_log']
-                    })}
-                    {renderNavItem({
+                    }),
+                    renderNavItem({
                       id: "fitur",
                       icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon || SlidersHorizontal,
                       label: "Sistem & Integrasi",
                       activeIds: ['fitur', 'tampilan', 'api_keys', 'whatsapp', 'gdrive_backup']
-                    })}
-                  </SidebarGroup>
-                )}
+                    })
+                  ].filter(Boolean);
+
+                  if (configNavItems.length === 0) return null;
+
+                  return (
+                    <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
+                      {configNavItems}
+                    </SidebarGroup>
+                  );
+                })()}
               </>
             )}
           </div>
