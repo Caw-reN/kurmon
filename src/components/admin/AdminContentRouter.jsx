@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BookOpen, AlertCircle, Shield, Edit2, Lock, Trash2 } from 'lucide-react';
 import { parseCsvList, normalizeText, csvValueMatches, csvValuesIntersect, parseTeacherCodes, parsePositiveInt, getLoadKey } from '../../utils/adminHelpers.js';
-import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS } from '../../utils/constants.js';
+import { FEATURE_TOGGLE_OPTIONS, DEFAULT_TABLE_SORTS, TABLE_SORT_OPTIONS, normalizeTabId } from '../../utils/constants.js';
 import { PageHeader } from '../monitoring/ui/index.js';
 
 const AbsensiSiswa = lazy(() => import('../../pages/kedisiplinan/AbsensiSiswa.jsx'));
@@ -220,14 +220,15 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
       return activeUserRole === "kepsek";
     };
     const isTabAllowed = () => {
+      const canonicalTab = normalizeTabId(activeTab);
       if (typeof checkIsAllowed === "function") {
-        return checkIsAllowed(activeTab);
+        return checkIsAllowed(canonicalTab);
       }
       const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || currentUser?.subrole === 'walikelas');
       if (role ==="admin" || role ==="superadmin") return true;
-      if (activeTab ==="dashboard" || activeTab ==="akademik" || activeTab ==="kalender" || activeTab ==="kalender_akademik") return true;
-      if (activeTab === "kedisiplinan_bpbk" || activeTab === "kedisiplinan_hub") {
-        const bpbkLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(activeTab) : null;
+      if (canonicalTab ==="dashboard" || canonicalTab ==="akademik" || canonicalTab ==="kalender" || canonicalTab ==="kalender_akademik") return true;
+      if (canonicalTab === "kedisiplinan_bpbk" || canonicalTab === "kedisiplinan_hub") {
+        const bpbkLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(canonicalTab) : null;
         if (bpbkLevel === "nonaktif" || bpbkLevel === "none" || bpbkLevel === "off") return false;
         const div = (currentUser?.division || "").toLowerCase().trim();
         const subrole = (currentUser?.subrole || "").toLowerCase().trim();
@@ -247,8 +248,8 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         if (isBK || isKesiswaan || role === "admin" || role === "superadmin" || role === "kepsek") return true;
         return false;
       }
-      if (activeTab === "kedisiplinan_piket") {
-        const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(activeTab) : null;
+      if (canonicalTab === "kedisiplinan_piket") {
+        const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(canonicalTab) : null;
         if (piketLevel === "nonaktif" || piketLevel === "none" || piketLevel === "off") return false;
         if (role === "admin" || role === "superadmin" || role === "kepsek") return true;
         const div = (currentUser?.division || "").toLowerCase().trim();
@@ -269,13 +270,13 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         if (isBK || isKesiswaan || hasPiket) return true;
         return piketLevel === "edit" || piketLevel === "view" || piketLevel === "otomatis";
       }
-      if (activeTab ==="jurnal_harian" && role ==="guru") return true;
+      if (canonicalTab ==="jurnal_harian" && role ==="guru") return true;
 
       // Absensi mandiri dapat diakses oleh seluruh guru dan pegawai
-      if (activeTab === "absensiguru") return true;
+      if (canonicalTab === "absensiguru") return true;
 
       // Tab presensi & rekap untuk TU, Kepsek, & Waka sesuai perannya
-      if (["laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru", "hikvision_report_karyawan", "absensi"].includes(activeTab)) {
+      if (["laporan_absensi", "hikvision_report_siswa", "hikvision_report_guru", "hikvision_report_karyawan", "absensi"].includes(canonicalTab)) {
         if (role === "tu" || role === "tata_usaha" || role === "kepsek") {
           return true;
         }
@@ -516,8 +517,10 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </p>
       </div>;
     }
-    switch (activeTab) {
-      case"dashboard":
+    const currentTab = normalizeTabId(activeTab);
+    switch (currentTab) {
+      case "dashboard":
+      case "dashboard_utama":
         return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} staffs={staffs} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} handleLogout={context.handleLogout} onOpenProfile={context.onOpenProfile} checkIsAllowed={context.checkIsAllowed} />;
       case"fitur":
         return <FiturManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
@@ -740,9 +743,10 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </div>}>
           <FasilitasRuangan rooms={rooms} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} tabProps={tabProps} />
         </Suspense>;
-      case"ketersediaan":
+      case "ketersediaan":
         return <TabKetersediaan {...tabProps} />;
-      case"generate":
+      case "jadwal":
+      case "generate":
         return <TabGenerate {...tabProps} />;
       case"pengaturan":
         return <TabPengaturan {...tabProps} />;
@@ -885,7 +889,8 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
             hasPiket={hasPiket}
           />
         </Suspense>;
-      case"kedisiplinan_hub":
+      case "buku_konseling":
+      case "kedisiplinan_hub":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat modul kedisiplinan...</div>}>
           <KedisiplinanHub 
             initialTab="ringkasan"

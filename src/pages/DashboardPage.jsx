@@ -1935,15 +1935,25 @@ export default function DashboardPage({
   const allStatCards = {
     siswa: { label: "Total Siswa", value: students.length, icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Siswa Aktif", subIcon: Users, tab: "siswa" },
     kelas: { label: "Total Kelas", value: classes.length, icon: "/icons/008-warehouse.svg", color: "bg-[var(--ui-primary)]/10 text-indigo-500", sub: `${majorCount} Jurusan aktif`, subIcon: TrendingUp, tab: "kelas" },
-    guru: { label: "Total Guru", value: teachers.length, icon: "/icons/066-education.svg", color: "bg-emerald-50 text-emerald-500", sub: `${productiveTeachers} Produktif`, subIcon: TrendingUp, tab: "guru" },
+    guru: { label: "Total Guru", value: teachers.length, icon: "/icons/066-education.svg", color: "bg-emerald-50 text-emerald-500", sub: `${productiveTeachers} Produktif`, subIcon: TrendingUp, tab: "data_pegawai" },
     mapel: { label: "Total Mapel", value: subjects.length, icon: "/icons/092-file.svg", color: "bg-purple-50 text-purple-500", sub: `${practiceSubjects} Praktik`, subIcon: Activity, tab: "mapel" },
     ruangan: { label: "Total Ruangan", value: rooms.length, icon: "/icons/016-map pin.svg", color: "bg-amber-50 text-amber-500", sub: `${roomUsagePercent}% Terpakai`, subIcon: TrendingUp, tab: "ruangan" },
     jadwal: { label: "Slot Jadwal", value: scheduleSlots, icon: "/icons/086-calendar.svg", color: "bg-[var(--ui-primary)]/10 text-indigo-500", sub: "Aktif", subIcon: CheckCircle2, tab: "generate" },
-    absen: { label: "Kehadiran", value: "98%", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-500", sub: "Hari Ini", subIcon: Activity, tab: "absensi" },
+    absen: { label: "Kehadiran", value: "98%", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-500", sub: "Hari Ini", subIcon: Activity, tab: "laporan_absensi" },
+    presensiSiswa: { label: "Presensi Siswa", value: `${siswaStats?.Hadir || 0} Hadir`, icon: "/icons/079-checklist.svg", color: "bg-emerald-50 text-emerald-600", sub: "Hari Ini", subIcon: CheckCircle2, tab: "hikvision_report_siswa" },
     beban: { label: "Total JP", value: teachingLoads.reduce((sum, load) => sum + (Number(load.duration) || 0), 0), icon: "/icons/035-graph bar.svg", color: "bg-rose-50 text-rose-500", sub: "Beban Mengajar", subIcon: BookOpen, tab: "beban" },
     pklSiswa: { label: "Siswa PKL", value: dashLogs ? (dashLogs.latestStudentLogs?.length || 0) : 0, icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Aktif", subIcon: Activity, tab: "pkl_data_siswa" },
     pklMitra: { label: "Mitra DUDI", value: 0, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-500", sub: "Terdaftar", subIcon: TrendingUp, tab: "pkl_data_perusahaan" },
-    pklJurnal: { label: "Jurnal PKL", value: 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-500", sub: "Pending", subIcon: AlertTriangle, tab: "pkl_jurnal" }
+    pklJurnal: { label: "Jurnal PKL", value: 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-500", sub: "Pending", subIcon: AlertTriangle, tab: "pkl_jurnal" },
+    modulAjar: { label: "Modul Ajar", value: syllabuses?.length || 0, icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", sub: "Perangkat Ajar", subIcon: BookOpen, tab: "modul_ajar" },
+    jurnalHarian: { label: "Jurnal Mengajar", value: todayClasses?.length || 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", sub: "Sesi Hari Ini", subIcon: CheckCircle2, tab: "jurnal_harian" },
+    presensiMandiri: { label: "Presensi Mandiri", value: "Tepat Waktu", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", sub: "Kehadiran Guru", subIcon: Activity, tab: "absensiguru" },
+    walasReport: { label: "Laporan Walas", value: myStudentsCount || 0, icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", sub: `Kelas ${currentUser?.walasClass || ''}`, subIcon: Users, tab: "walas_report" },
+    layananBK: { label: "Pusat BK", value: dashLogs?.problematicStudentLogs?.length || 0, icon: "/icons/013-shield.svg", color: "bg-rose-50 text-rose-600", sub: "Perlu Binaan", subIcon: AlertTriangle, tab: "kedisiplinan_hub" },
+    prestasiSiswa: { label: "Prestasi Siswa", value: dashLogs?.achievingStudentLogs?.length || 0, icon: "/icons/014-award.svg", color: "bg-violet-50 text-violet-600", sub: "Siswa Berprestasi", subIcon: Activity, tab: "riwayat_prestasi" },
+    kalender: { label: "Kalender", value: todayShort, icon: "/icons/086-calendar.svg", color: "bg-emerald-50 text-emerald-600", sub: "Agenda Sekolah", subIcon: Calendar, tab: "akademik" },
+    pesan: { label: "Pengumuman", value: dashboardMessages?.length || 0, icon: "/icons/087-chat.svg", color: "bg-cyan-50 text-cyan-600", sub: "Informasi", subIcon: MessageSquare, tab: "pesan" },
+    esurat: { label: "E-Surat", value: "Aktif", icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", sub: "Administrasi", subIcon: FileText, tab: "esurat" },
   };
 
   const topCards = isKepsek ? [allStatCards.guru, allStatCards.pklSiswa, allStatCards.absen, allStatCards.jadwal]
@@ -1951,10 +1961,13 @@ export default function DashboardPage({
       activeDivision === "kurikulum" ? [allStatCards.jadwal, allStatCards.beban, allStatCards.mapel, allStatCards.guru]
         : activeDivision === "sarpras" ? [allStatCards.ruangan, allStatCards.kelas, allStatCards.jadwal, allStatCards.guru]
           : activeDivision === "hubin" ? [allStatCards.pklSiswa, allStatCards.pklMitra, allStatCards.pklJurnal, allStatCards.guru]
-            : [allStatCards.siswa, allStatCards.absen, allStatCards.kelas, allStatCards.jadwal]
+            : [allStatCards.siswa, allStatCards.presensiSiswa, allStatCards.layananBK, allStatCards.prestasiSiswa]
     )
-      : isTU ? [allStatCards.absen, allStatCards.kelas, allStatCards.guru, allStatCards.jadwal]
-        : [allStatCards.jadwal, allStatCards.pklSiswa, allStatCards.ruangan, allStatCards.guru];
+      : isBK ? [allStatCards.layananBK, allStatCards.presensiSiswa, allStatCards.siswa, allStatCards.prestasiSiswa]
+      : isTU ? [allStatCards.absen, allStatCards.siswa, allStatCards.guru, allStatCards.esurat]
+      : isWalas ? [allStatCards.walasReport, allStatCards.jurnalHarian, allStatCards.modulAjar, allStatCards.jadwal]
+      : isKaryawan ? [allStatCards.presensiMandiri, allStatCards.kalender, allStatCards.pesan, allStatCards.absen]
+      : [allStatCards.jadwal, allStatCards.jurnalHarian, allStatCards.modulAjar, allStatCards.presensiMandiri];
 
   if (isKepsek) {
     return (
@@ -2038,11 +2051,11 @@ export default function DashboardPage({
             <div className="flex items-center gap-2 pt-0.5">
               <button
                 type="button"
-                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || (isWalas ? 'walas_report' : 'kedisiplinan_absensi'))}
+                onClick={() => setActiveTab(dashboardMode.actions?.[0]?.tab || (isWalas ? 'walas_report' : 'absensiguru'))}
                 className="flex-1 py-2 px-3 bg-primary text-white font-bold text-xs rounded-[var(--ui-radius-control)] flex items-center justify-center gap-1.5 cursor-pointer hover:bg-primary-hover active:scale-98 transition-all border-none"
               >
                 <CheckCircle2 size={14} strokeWidth={2.5} />
-                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : "Pantau Presensi Hari Ini"}</span>
+                <span>{dashboardMode.actions?.[0]?.label ? `Buka ${dashboardMode.actions[0].label}` : (isWalas ? "Buka Laporan Walas" : "Presensi Mandiri Guru")}</span>
               </button>
             </div>
           </div>

@@ -1012,3 +1012,22 @@ export const getMajorAbbreviation = (name, fallbackIdx = 1) => {
   return `0${fallbackIdx}`;
 };
 
+/**
+ * Normalizes legacy tab aliases to their canonical tab IDs.
+ * Prevents redirect bounces and access check discrepancies.
+ */
+export const normalizeTabId = (tab) => {
+  if (!tab) return 'dashboard';
+  const t = String(tab).trim();
+  if (t === 'silabus' || t === 'silabusguru' || t === 'rpp_guru') return 'modul_ajar';
+  if (t === 'datasiswa') return 'siswa';
+  if (t === 'dataguru') return 'data_pegawai';
+  if (t === 'dataperusahaan') return 'pkl_data_perusahaan';
+  if (t === 'kalender' || t === 'kalender_akademik') return 'akademik';
+  if (t === 'jadwal') return 'generate';
+  if (t === 'kedisiplinan_bpbk' || t === 'buku_konseling') return 'kedisiplinan_hub';
+  if (t === 'laporan_rekap_walas') return 'walas_report';
+  return t;
+};
+
+

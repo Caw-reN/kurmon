@@ -9,7 +9,7 @@ import { hashPassword, normalizeAdminUser, normalizeTeachers } from './utils/aut
 import { assessGenerateReadiness } from './utils/scheduleGeneration.js';
 import { sanitizeHtml } from './utils/sanitizeHtml.js'; // FE-SEC-B FIX
 import { DAYS as DATA_DAYS, INITIAL_CLASSES as DATA_INITIAL_CLASSES, INITIAL_ROOMS as DATA_INITIAL_ROOMS, INITIAL_SUBJECTS as DATA_INITIAL_SUBJECTS, INITIAL_TEACHERS as DATA_INITIAL_TEACHERS, INITIAL_TEACHER_AVAILABILITY as DATA_INITIAL_TEACHER_AVAILABILITY, INITIAL_TEACHING_LOADS as DATA_INITIAL_TEACHING_LOADS, MAJORS as DATA_MAJORS, TIME_SLOTS as DATA_TIME_SLOTS } from './data.js';
-import { DEFAULT_SIDEBAR_GROUPS, SIDEBAR_GROUP_BY_TAB, DEFAULT_TABLE_SORTS, ATTENDANCE_MODE_OPTIONS, DASHBOARD_MESSAGE_PRIORITIES, DASHBOARD_MESSAGE_TARGETS, WAKA_DIVISION_OPTIONS, WORKSPACE_GUIDES, normalizeUserRole, isSuperAdminRole, isLeadershipRole, getWakaDivisionOption, ROLE_KEY_LABELS } from './utils/constants.js';
+import { DEFAULT_SIDEBAR_GROUPS, SIDEBAR_GROUP_BY_TAB, DEFAULT_TABLE_SORTS, ATTENDANCE_MODE_OPTIONS, DASHBOARD_MESSAGE_PRIORITIES, DASHBOARD_MESSAGE_TARGETS, WAKA_DIVISION_OPTIONS, WORKSPACE_GUIDES, normalizeUserRole, isSuperAdminRole, isLeadershipRole, getWakaDivisionOption, ROLE_KEY_LABELS, normalizeTabId } from './utils/constants.js';
 import { PageHeader } from './components/monitoring/ui/index.js';
 import { buildAttendanceQrPayload, getJakartaDateParts, getAttendanceSessions, getActiveAttendanceSession, getAttendanceStatusFromSession, getTableRowKey, getTableSearchText, compareTableValues, normalizeText, sameText, getClassKey, getRoomKey, getTeacherKey, getSubjectKey, getLoadKey, parseTeacherCodes, parseCsvList, serializeCsvList, isAllLike, csvIncludesText, csvValueMatches, csvValuesIntersect, csvTextHasAny, removeCsvTextValues, parsePositiveInt, reconcileSubjectCatalog, createClientId, formatExcelSerialDate, getCappedClassCount, writeSessionUser } from './utils/adminHelpers.js';
 import { useAdminRenderers } from './components/admin/useAdminRenderers.jsx';
@@ -398,9 +398,9 @@ export default function App() {
   const [tampilanTab, setTampilanTab] = useState("umum");
   const [activeTab, _setActiveTab] = useState(() => {
     const hash = window.location.hash.replace("#", "");
-    if (hash) return hash;
+    if (hash) return normalizeTabId(hash);
     const saved = sessionStorage.getItem("admin_active_tab");
-    if (saved) return saved;
+    if (saved) return normalizeTabId(saved);
     return loadInitialState("activeTab", "dashboard");
   });
   const [showGuideModal, setShowGuideModal] = useState(false);
@@ -417,12 +417,13 @@ export default function App() {
     }
   };
   const setActiveTab = useCallback(tab => {
-    _setActiveTab(tab);
+    const canonical = normalizeTabId(tab);
+    _setActiveTab(canonical);
     setTablePage(1);
-    sessionStorage.setItem("admin_active_tab", tab);
+    sessionStorage.setItem("admin_active_tab", canonical);
     // Use history.replaceState to avoid browser scroll-to-top on hash change
-    history.replaceState(null, '', '#' + tab);
-    logTabAccess(tab);
+    history.replaceState(null, '', '#' + canonical);
+    logTabAccess(canonical);
   }, []);
 
   useEffect(() => {
@@ -436,10 +437,11 @@ export default function App() {
     const handleHashChange = () => {
       const hash = window.location.hash.replace("#", "");
       if (hash) {
-        _setActiveTab(hash);
+        const canonical = normalizeTabId(hash);
+        _setActiveTab(canonical);
         setTablePage(1);
-        sessionStorage.setItem("admin_active_tab", hash);
-        logTabAccess(hash);
+        sessionStorage.setItem("admin_active_tab", canonical);
+        logTabAccess(canonical);
       }
     };
     window.addEventListener("hashchange", handleHashChange);
@@ -3170,22 +3172,7 @@ export default function App() {
   };
   const checkIsAllowed = (id, featureKey) => {
     // 0. Canonical Tab ID Normalization to prevent bounce redirects
-    let checkId = id;
-    if (checkId === 'silabus' || checkId === 'silabusguru' || checkId === 'rpp_guru') {
-      checkId = 'modul_ajar';
-    } else if (checkId === 'datasiswa') {
-      checkId = 'siswa';
-    } else if (checkId === 'dataguru') {
-      checkId = 'data_pegawai';
-    } else if (checkId === 'dataperusahaan') {
-      checkId = 'pkl_data_perusahaan';
-    } else if (checkId === 'kalender' || checkId === 'kalender_akademik') {
-      checkId = 'akademik';
-    } else if (checkId === 'jadwal') {
-      checkId = 'generate';
-    } else if (checkId === 'kedisiplinan_bpbk' || checkId === 'buku_konseling') {
-      checkId = 'kedisiplinan_hub';
-    }
+    const checkId = normalizeTabId(id);
 
     const activeRole = normalizeUserRole(currentUser?.role);
 
@@ -3262,7 +3249,9 @@ export default function App() {
       const forbiddenForKepsek = [
         "fitur", "hak_akses", "manajemen_role", "api_keys", "whatsapp",
         "gdrive_backup", "status_password", "pengaturanuser", "log_password",
-        "absensi", "absensiguru", "catatan_walikelas", "walas_report", "keamanan"
+        "absensi", "absensiguru", "catatan_walikelas", "walas_report", "keamanan",
+        "jurnal_harian", "kedisiplinan_absensi", "keterangan_massal", "kedisiplinan_piket",
+        "tatib_skor", "esurat", "kartu_pelajar", "pkl_jurnal"
       ];
       if (forbiddenForKepsek.includes(checkId)) return false;
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
