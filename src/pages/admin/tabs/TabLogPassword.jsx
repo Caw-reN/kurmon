@@ -393,7 +393,7 @@ export default function TabLogPassword(props) {
         </div>
 
         {/* Sudah Ganti Password */}
-        <div className="bg-white rounded-[var(--ui-radius-card,16px)] p-4 border border-emerald-200/80 shadow-2xs flex items-center justify-between bg-gradient-to-br from-emerald-50/30 to-white">
+        <div className="bg-white rounded-[var(--ui-radius-card,16px)] p-4 border border-slate-200/80 shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">Sudah Ganti Sandi</span>
             <div className="text-2xl font-black text-emerald-900 mt-1 leading-none">{summary.totalChanged.toLocaleString('id-ID')}</div>
@@ -404,19 +404,19 @@ export default function TabLogPassword(props) {
               <span className="text-[11px] font-medium text-emerald-700">Tingkat Adopsi Mandiri</span>
             </div>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs">
             <CheckCircle2 size={20} strokeWidth={2.4} />
           </div>
         </div>
 
         {/* Belum Pernah Ganti (Default / Rentan) */}
-        <div className="bg-white rounded-[var(--ui-radius-card,16px)] p-4 border border-amber-200/80 shadow-2xs flex items-center justify-between bg-gradient-to-br from-amber-50/30 to-white">
+        <div className="bg-white rounded-[var(--ui-radius-card,16px)] p-4 border border-slate-200/80 shadow-2xs flex items-center justify-between">
           <div>
             <span className="text-[10px] font-black uppercase tracking-wider text-amber-700">Sandi Bawaan (Default)</span>
             <div className="text-2xl font-black text-amber-900 mt-1 leading-none">{summary.totalDefault.toLocaleString('id-ID')}</div>
             <span className="text-[11px] font-medium text-amber-700 mt-1 block">Rentan belum diperbarui</span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center shrink-0 shadow-2xs">
             <AlertTriangle size={20} strokeWidth={2.4} />
           </div>
         </div>

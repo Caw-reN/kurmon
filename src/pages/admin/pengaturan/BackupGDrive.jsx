@@ -466,9 +466,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
           {/* Quick Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* SQL Dump */}
-            <div className="p-5 rounded-[var(--ui-radius-card)] bg-gradient-to-br from-indigo-50/50 via-white to-white border border-indigo-100 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
               <div className="flex items-start gap-3.5">
-                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-200">
+                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 border border-indigo-200/80">
                   <DatabaseBackup size={22} />
                 </div>
                 <div>
@@ -490,9 +490,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             </div>
 
             {/* Excel Master Data */}
-            <div className="p-5 rounded-[var(--ui-radius-card)] bg-gradient-to-br from-emerald-50/50 via-white to-white border border-emerald-100 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
               <div className="flex items-start gap-3.5">
-                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200/80">
                   <FileSpreadsheet size={22} />
                 </div>
                 <div>
@@ -514,9 +514,9 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
             </div>
 
             {/* JSON Full Snapshot */}
-            <div className="p-5 rounded-[var(--ui-radius-card)] bg-gradient-to-br from-amber-50/50 via-white to-white border border-amber-200 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
+            <div className="p-5 rounded-[var(--ui-radius-card)] bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between gap-4 hover:shadow-md transition-all">
               <div className="flex items-start gap-3.5">
-                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
+                <div className="w-11 h-11 rounded-[var(--ui-radius-small)] bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200/80">
                   <FileJson size={22} />
                 </div>
                 <div>
@@ -708,11 +708,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {/* ── 2. TAB: GOOGLE DRIVE ── */}
       {activeTab === 'gdrive' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <div className={`p-6 rounded-[var(--ui-radius-card)] border shadow-xs ${
-            isGDriveConfigured 
-              ? 'bg-gradient-to-br from-teal-50/40 via-white to-white border-teal-200' 
-              : 'bg-white border-slate-200/80'
-          }`}>
+          <div className="p-6 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-white shadow-xs">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
               <div className="flex items-start gap-4">
                 <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${
@@ -789,11 +785,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {/* ── 3. TAB: CLOUDFLARE R2 ── */}
       {activeTab === 'r2' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <div className={`p-6 rounded-[var(--ui-radius-card)] border shadow-xs ${
-            isR2Configured 
-              ? 'bg-gradient-to-br from-amber-50/40 via-white to-white border-amber-200' 
-              : 'bg-white border-slate-200/80'
-          }`}>
+          <div className="p-6 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-white shadow-xs">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
               <div className="flex items-start gap-4">
                 <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${
@@ -867,11 +859,7 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       {/* ── 4. TAB: TELEGRAM BOT ── */}
       {activeTab === 'telegram' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <div className={`p-6 rounded-[var(--ui-radius-card)] border shadow-xs ${
-            botStatus?.isRunning 
-              ? 'bg-gradient-to-br from-sky-50/50 via-white to-white border-sky-200' 
-              : 'bg-white border-slate-200/80'
-          }`}>
+          <div className="p-6 rounded-[var(--ui-radius-card)] border border-slate-200/80 bg-white shadow-xs">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
               <div className="flex items-start gap-4">
                 <div className={`w-14 h-14 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 border ${

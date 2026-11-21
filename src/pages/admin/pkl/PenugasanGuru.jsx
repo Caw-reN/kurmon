@@ -680,7 +680,7 @@ const PenugasanGuru = ({ teachers = [], students = [], readOnly, activeTab: topA
       {activeTab === 'auto' && (
         <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-300">
           {/* Engine Parameters Card */}
-          <div className="bg-gradient-to-br from-indigo-50/60 via-white to-white rounded-[var(--ui-radius-card)] p-5 sm:p-6 border border-indigo-200/80 shadow-[var(--ui-shadow-card)] space-y-5">
+          <div className="bg-white rounded-[var(--ui-radius-card)] p-5 sm:p-6 border border-slate-200/80 shadow-[var(--ui-shadow-card)] space-y-5">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm">

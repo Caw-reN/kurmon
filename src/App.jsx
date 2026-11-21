@@ -442,7 +442,7 @@ export default function App() {
         <BrowserRouter>
           {/* Banner Peringatan Elegan untuk Admin saat Mode Maintenance Aktif */}
           {isMaintenanceActive && isAdmin && (
-            <div className="w-full bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 border-b border-amber-300/80 px-3 sm:px-6 py-2 text-amber-950 backdrop-blur-md z-50 shrink-0 shadow-2xs">
+            <div className="w-full bg-amber-50 border-b border-amber-300/80 px-3 sm:px-6 py-2 text-amber-950 backdrop-blur-md z-50 shrink-0 shadow-2xs">
               <div className="flex items-center justify-between gap-3 max-w-7xl mx-auto w-full text-xs font-bold">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-500/20 text-amber-800 shrink-0 border border-amber-300/60 shadow-2xs">

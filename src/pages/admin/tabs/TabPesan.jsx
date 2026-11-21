@@ -244,7 +244,7 @@ export default function TabPesan(props) {
           {/* Form Buat Pesan */}
           {canEdit && (
             <section className="ui-card h-fit flex flex-col bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden">
-              <div className="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/60 to-white flex items-center justify-between gap-3">
+              <div className="p-4 md:p-5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-[var(--ui-radius-control)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center shrink-0 shadow-2xs">
                     <MessageSquare size={18} strokeWidth={2.2} />
@@ -416,7 +416,7 @@ export default function TabPesan(props) {
 
           {/* Daftar Pesan */}
           <section className="ui-card flex flex-col h-full min-h-[420px] bg-white border border-[var(--ui-card-border-color,var(--ui-border-soft))] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] overflow-hidden">
-            <div className="p-4 md:p-5 border-b border-slate-100 bg-gradient-to-b from-slate-50/60 to-white flex items-center justify-between gap-4">
+            <div className="p-4 md:p-5 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-base md:text-lg font-black text-slate-800 tracking-tight leading-tight">
                   Daftar Pengumuman
@@ -587,7 +587,7 @@ export default function TabPesan(props) {
             {/* Header Box & Toggle Status Switch */}
             <div className={`p-4 sm:p-5 rounded-[var(--ui-radius-card)] border transition-all ${
               broadcastForm.isActive 
-                ? 'bg-gradient-to-r from-amber-50/90 via-yellow-50/30 to-amber-50/90 border-amber-200/90 ring-1 ring-amber-400/20 shadow-xs' 
+                ? 'bg-amber-50/80 border-amber-200/90 shadow-xs' 
                 : 'bg-slate-50/80 border-slate-200/90'
             }`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -877,8 +877,8 @@ export default function TabPesan(props) {
             {/* Status Switch Box (Card Pastel Modern) */}
             <div className={`p-4 sm:p-5 rounded-[var(--ui-radius-card)] border transition-all ${
               maintenanceForm.isActive 
-                ? 'bg-gradient-to-r from-rose-50/90 via-amber-50/40 to-rose-50/90 border-rose-200/90 ring-1 ring-rose-400/20 shadow-xs' 
-                : 'bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-emerald-50/90 border-emerald-200/90 shadow-xs'
+                ? 'bg-rose-50/80 border-rose-200/90 shadow-xs' 
+                : 'bg-emerald-50/80 border-emerald-200/90 shadow-xs'
             }`}>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">

@@ -64,7 +64,7 @@ const TeacherDashboard = () => {
       </PageHeader>
 
         {jadwalPiket.length > 0 && (
-          <div className="bg-gradient-to-r from-amber-500 to-orange-400 rounded-[var(--ui-radius-small)] p-4 md:p-6 text-white shadow-sm flex items-center justify-between">
+          <div className="bg-amber-600 rounded-[var(--ui-radius-small)] p-4 md:p-6 text-white shadow-xs flex items-center justify-between border border-amber-500">
              <div>
                 <h2 className="font-bold text-lg mb-1 flex items-center gap-2">
                    <Clock size={20}/> Pengingat Jadwal Piket

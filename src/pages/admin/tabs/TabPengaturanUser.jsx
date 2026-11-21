@@ -344,7 +344,7 @@ export default function TabPengaturanUser(props) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* SuperAdmin Card */}
-        <div className="lg:col-span-4 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 rounded-[var(--ui-radius-card)] p-4 text-white shadow-sm flex items-center justify-between border border-slate-700/60 relative overflow-hidden">
+        <div className="lg:col-span-4 bg-slate-900 rounded-[var(--ui-radius-card)] p-4 text-white shadow-sm flex items-center justify-between border border-slate-800 relative overflow-hidden">
           <div className="flex items-center gap-3.5 relative z-10 min-w-0">
             <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-xs">
               <Shield size={22} className="text-white" />

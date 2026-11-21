@@ -156,7 +156,7 @@ export function AcademicCalendarGuideModal({ isOpen, onClose }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Panduan Kalender Akademik" maxWidth="max-w-4xl">
       <div className="space-y-6 text-sm text-slate-600 font-medium">
-        <div className="bg-gradient-to-r from-[var(--ui-primary)]/10 to-[var(--ui-accent)]/20 border border-[var(--ui-accent)]/40 rounded-[var(--ui-radius-small)] p-4">
+        <div className="bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-small)] p-4">
           <p className="font-bold text-slate-800 leading-relaxed">
             Panduan ini dibuat sangat sederhana agar nyaman dipakai oleh semua usia. Ikuti langkah di bawah, lalu import file Excel bila datanya sudah siap.
           </p>

@@ -5,7 +5,7 @@ const variantClasses = {
   default:'',
   elevated:'shadow-xs',
   outlined:'bg-transparent shadow-none',
-  gradient:'bg-gradient-to-br from-primary to-primary-mid text-primary-foreground border-none shadow-xs',
+  gradient: 'bg-primary text-primary-foreground border-none shadow-xs',
   accent:'bg-accent/10 border border-accent',
 };
 

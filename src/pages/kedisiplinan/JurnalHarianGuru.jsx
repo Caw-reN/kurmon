@@ -593,7 +593,7 @@ function ExportSemesterModal({
     <Modal isOpen={isOpen} onClose={onClose} title="Cetak &amp; Rekap Jurnal KBM (PDF)" maxWidth="max-w-xl">
       <div className="space-y-4">
         {/* Banner Info */}
-        <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/80 shadow-xs flex items-start gap-2.5">
+        <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-xs flex items-start gap-2.5">
           <FileText size={18} className="text-emerald-700 shrink-0 mt-0.5" />
           <div className="min-w-0">
             <p className="text-xs font-black text-slate-800">
@@ -1141,7 +1141,7 @@ function JurnalModal({
       <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 relative">
         
         {/* TOP COMPACT UNIFIED HERO CARD */}
-        <div className="shrink-0 p-3 bg-gradient-to-r from-emerald-50 via-teal-50/40 to-slate-50 border-b border-emerald-200/80 shadow-xs space-y-2">
+        <div className="shrink-0 p-3 bg-slate-50 border-b border-slate-200/80 shadow-xs space-y-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap min-w-0">
               {jurnal?.isManual ? (
@@ -2535,7 +2535,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
             <>
               {/* Alert Banner for Missed Past Journals - Mobile Slim Banner */}
               {missedPastSlots.length > 0 && (
-                <div className="sm:hidden px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/70 border border-amber-300/80 flex items-center justify-between gap-2 shadow-2xs">
+                <div className="sm:hidden px-3.5 py-2.5 rounded-[var(--ui-radius-card)] bg-amber-50/90 border border-amber-200/90 flex items-center justify-between gap-2 shadow-2xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                       <AlertCircle size={15} strokeWidth={2.5} />
@@ -2569,7 +2569,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
               {missedPastSlots.length > 0 && (
                 <div 
                   onClick={() => setHarianSubView('terlewat')}
-                  className="hidden sm:flex p-3 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/90 items-center justify-between gap-3 shadow-xs animate-in fade-in cursor-pointer hover:border-amber-300 transition-all group"
+                  className="hidden sm:flex p-3 rounded-[var(--ui-radius-card)] bg-amber-50/80 border border-amber-200/90 items-center justify-between gap-3 shadow-xs animate-in fade-in cursor-pointer hover:border-amber-300 transition-all group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -2999,7 +2999,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
           {harianSubView === 'terlewat' && (
             <div className="flex flex-col gap-4 animate-in fade-in duration-200">
               {/* Header card for missed journals */}
-              <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white border border-amber-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="ui-card p-4 rounded-[var(--ui-radius-card)] bg-amber-50/70 border border-amber-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <AlertCircle size={20} strokeWidth={2.5} />

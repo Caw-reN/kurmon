@@ -1504,7 +1504,7 @@ export default function KepsekExecutiveDashboard({
           <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
             
             {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-500 text-white flex items-center justify-center font-bold">
                   <BookOpen size={18} />
@@ -1871,7 +1871,7 @@ export default function KepsekExecutiveDashboard({
           <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
             
             {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-teal-500/10 via-teal-50/50 to-white">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-teal-600 text-white flex items-center justify-center font-bold">
                   <GraduationCap size={18} />

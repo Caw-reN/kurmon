@@ -127,12 +127,7 @@
 
   body {
     font-family: 'Plus Jakarta Sans', 'Plus Jakarta Sans Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-    /* Antigravity: background off-white kebiruan agar card putih murni terlihat mengambang */
-    background-color: var(--ui-bg-page, #eef2f7);
-    background-image:
-      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--ui-accent, #bbf7d0) 22%, transparent) 0, transparent 30rem),
-      radial-gradient(circle at 100% 0%, rgba(99, 179, 237, 0.10) 0, transparent 28rem),
-      radial-gradient(circle at 50% 100%, rgba(148, 163, 184, 0.06) 0, transparent 24rem);
+    background-color: var(--ui-bg-page, #f8fafc);
     color: var(--ui-text, #0f172a);
     scrollbar-width: none;
     @apply bg-background text-foreground;
@@ -260,23 +255,36 @@
   box-shadow: none !important;
 }
 
-/* 4. Background Grids */
-.bg-grid-dots {
-  background-image: radial-gradient(color-mix(in srgb, var(--ui-primary) 20%, transparent) 1px, transparent 1px) !important;
+/* 4. Background Grids & Plain Styles */
+.bg-grid-plain,
+.bg-grid-plain body,
+.bg-grid-plain .app-shell,
+.bg-grid-plain .app-content,
+.bg-grid-plain main {
+  background-image: none !important;
+  background-color: var(--ui-bg-page, #f8fafc) !important;
+}
+
+.bg-grid-dots,
+.bg-grid-dots body,
+.bg-grid-dots .app-shell {
+  background-image: radial-gradient(color-mix(in srgb, var(--ui-primary, #064e3b) 12%, transparent) 1px, transparent 1px) !important;
   background-size: 24px 24px !important;
 }
-.bg-grid-lines {
-  background-image: linear-gradient(to right, color-mix(in srgb, var(--ui-primary) 5%, transparent) 1px, transparent 1px),
-                    linear-gradient(to bottom, color-mix(in srgb, var(--ui-primary) 5%, transparent) 1px, transparent 1px) !important;
+
+.bg-grid-lines,
+.bg-grid-lines body,
+.bg-grid-lines .app-shell {
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--ui-primary, #064e3b) 5%, transparent) 1px, transparent 1px),
+                    linear-gradient(to bottom, color-mix(in srgb, var(--ui-primary, #064e3b) 5%, transparent) 1px, transparent 1px) !important;
   background-size: 32px 32px !important;
 }
-.bg-grid-gradient {
-  background-image: radial-gradient(circle at top left, color-mix(in srgb, var(--ui-primary) 10%, transparent) 0%, transparent 50%),
-                    radial-gradient(circle at bottom right, color-mix(in srgb, var(--ui-accent) 15%, transparent) 0%, transparent 50%) !important;
-}
-.bg-grid-plain {
-  background-image: none !important;
-  background-color: var(--ui-bg-page) !important;
+
+.bg-grid-gradient,
+.bg-grid-gradient body,
+.bg-grid-gradient .app-shell {
+  background-image: radial-gradient(circle at top left, color-mix(in srgb, var(--ui-primary, #064e3b) 8%, transparent) 0%, transparent 50%),
+                    radial-gradient(circle at bottom right, color-mix(in srgb, var(--ui-accent, #ffcc2a) 10%, transparent) 0%, transparent 50%) !important;
 }
 
 /* 5. Layout Mode (Boxed vs Full) */
@@ -643,11 +651,7 @@
 
 
 .app-shell {
-  background-color: var(--ui-bg-page, #eef2f7);
-  background-image:
-    radial-gradient(circle at 0 0, color-mix(in srgb, var(--ui-accent, #bbf7d0) 28%, transparent) 0, transparent 28rem),
-    radial-gradient(circle at 100% 0, rgba(99, 179, 237, 0.10) 0, transparent 25rem),
-    radial-gradient(circle at 50% 100%, rgba(148, 163, 184, 0.06) 0, transparent 20rem);
+  background-color: var(--ui-bg-page, #f8fafc);
 }
 
 .app-sidebar,

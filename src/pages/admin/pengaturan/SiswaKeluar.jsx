@@ -747,7 +747,7 @@ export default function SiswaKeluar() {
         <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 p-4 sm:p-6 shadow-xs space-y-5 animate-in fade-in duration-200">
           
           {/* Banner Edukasi Sistem Restore */}
-          <div className="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="p-4 bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
             <div className="flex items-start gap-3">
               <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-emerald-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs mt-0.5 sm:mt-0">
                 <ShieldCheck size={20} />
@@ -1053,7 +1053,7 @@ export default function SiswaKeluar() {
 
                 {/* Card Siswa Terpilih */}
                 {selectedStudent && (
-                  <div className="p-3.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 border border-emerald-200 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-xs animate-in zoom-in-95 duration-200">
+                  <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-[var(--ui-radius-card)] flex items-center justify-between shadow-xs animate-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
                         {(selectedStudent.namaSiswa || selectedStudent.name || 'S').charAt(0)}

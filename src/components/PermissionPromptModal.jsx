@@ -387,7 +387,8 @@ export default function PermissionPromptModal() {
                 type="button"
                 onClick={handleRequestAll}
                 disabled={isRequesting}
-                className="w-full py-2.5 px-4 rounded-[var(--ui-radius-control)] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-[0.98] text-white text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation disabled:opacity-60"
+                className="w-full py-2.5 px-4 rounded-[var(--ui-radius-control)] active:scale-[0.98] text-white text-xs font-black shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation disabled:opacity-60 hover:opacity-90"
+                style={{ backgroundColor: 'var(--ui-primary, #064e3b)' }}
               >
                 {isRequesting ? (
                   <>

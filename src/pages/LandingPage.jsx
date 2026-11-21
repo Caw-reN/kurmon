@@ -1764,7 +1764,7 @@ export default function LandingPage() {
             
             {/* MOBILE RAIN ALERT BANNER */}
             {weatherCondition === 'rain' && !isRainAlertDismissed && (
-              <div className="w-full mb-3 px-3 py-2.5 rounded-2xl bg-gradient-to-r from-sky-950/90 to-blue-950/90 text-white shadow-md border border-sky-400/30 backdrop-blur-md flex items-center justify-between gap-2.5 animate-fadeIn">
+              <div className="w-full mb-3 px-3 py-2.5 rounded-2xl bg-slate-900/95 text-white shadow-md border border-slate-700/80 backdrop-blur-md flex items-center justify-between gap-2.5 animate-fadeIn">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0 text-sky-300">
                     <CloudRain size={16} className="animate-bounce" />
@@ -1976,7 +1976,7 @@ export default function LandingPage() {
 
         {/* DESKTOP RAIN ALERT BANNER */}
         {weatherCondition === 'rain' && !isRainAlertDismissed && (
-          <div className="w-full mb-5 px-4 py-3 rounded-2xl bg-gradient-to-r from-sky-950/90 via-slate-900/90 to-blue-950/90 text-white shadow-lg border border-sky-400/30 backdrop-blur-md flex items-center justify-between gap-4 animate-fadeIn">
+          <div className="w-full mb-5 px-4 py-3 rounded-2xl bg-slate-900/95 text-white shadow-lg border border-slate-700/80 backdrop-blur-md flex items-center justify-between gap-4 animate-fadeIn">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0 text-sky-300">
                 <CloudRain size={20} className="animate-bounce" />
@@ -2512,7 +2512,10 @@ export default function LandingPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp">
             {/* Modal Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-center justify-between">
+            <div 
+              className="px-5 py-4 text-white flex items-center justify-between"
+              style={{ backgroundColor: 'var(--ui-primary, #064e3b)' }}
+            >
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shadow-xs">
                   {weatherCondition === 'rain' ? <CloudRain size={20} className="text-sky-200 animate-bounce" /> :

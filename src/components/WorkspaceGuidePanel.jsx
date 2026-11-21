@@ -7,10 +7,10 @@ export const WorkspaceGuidePanel = ({ guide, onManage }) => {
 
   return (
     <section className="bg-white overflow-hidden print:hidden animate-in fade-in duration-300">
-      <div className="p-4 md:px-5 md:py-4 bg-gradient-to-br from-[var(--ui-primary)]/10 via-white to-[var(--ui-accent)]/20 border-b border-slate-100">
+      <div className="p-4 md:px-5 md:py-4 bg-slate-50/80 border-b border-slate-200/80">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-white text-[var(--ui-primary)] border border-white shadow-sm flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-white text-[var(--ui-primary)] border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0">
               <Icon size={19} />
             </div>
             <div>

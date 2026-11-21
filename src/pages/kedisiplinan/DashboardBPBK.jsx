@@ -1351,7 +1351,7 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
               </div>
 
               {highRiskStudents.length === 0 ? (
-                <div className="py-12 flex flex-col items-center justify-center text-center gap-3 bg-gradient-to-b from-slate-50/50 to-emerald-50/20 rounded-[var(--ui-radius-card)] border border-slate-100/80 my-1">
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-3 bg-slate-50/70 rounded-[var(--ui-radius-card)] border border-slate-200/80 my-1">
                   <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-emerald-100/80 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shadow-xs">
                     <ShieldCheck size={28} strokeWidth={2.2} />
                   </div>
@@ -3268,7 +3268,7 @@ export default function DashboardBPBK({ students = [], classes = [], teachers = 
         >
           <div className="p-4 sm:p-6 space-y-4 max-h-[80vh] overflow-y-auto">
             {/* Header Profil & Quick Stats */}
-            <div className="p-4 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-slate-900 to-slate-800 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-sm">
+            <div className="p-4 rounded-[var(--ui-radius-card)] bg-slate-900 border border-slate-800 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-xs">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-[var(--ui-radius-small)] bg-white/10 text-white flex items-center justify-center font-black text-sm border border-white/20">
                   {getInitials(dossierStudent.name)}

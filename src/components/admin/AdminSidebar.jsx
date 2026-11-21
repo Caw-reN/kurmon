@@ -957,10 +957,10 @@ export default function AdminSidebar({
       >
         {/* Subtle Top & Bottom Gradient Masks for Modern Depth */}
         {!isCollapsed && hasOverflow && scrollProgress > 0.02 && (
-          <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-white to-transparent z-20 pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-[var(--sidebar-bg,white)] to-transparent z-20 pointer-events-none opacity-80" />
         )}
         {!isCollapsed && hasOverflow && scrollProgress < 0.98 && (
-          <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white to-transparent z-20 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-[var(--sidebar-bg,white)] to-transparent z-20 pointer-events-none opacity-80" />
         )}
 
         <nav
