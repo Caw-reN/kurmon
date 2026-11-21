@@ -2009,7 +2009,7 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
       {activeTab === 'keterangan' && canManageBulkRemarks ? (
         <React.Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Keterangan Massal Absensi...</div>}>
-          <KeteranganMasalAbsensi authToken={authToken} classes={classes} />
+          <KeteranganMasalAbsensi authToken={authToken} classes={classes} isNested={true} />
         </React.Suspense>
       ) : activeTab === 'surat' ? (
         <AbsensiSiswa students={students} classes={classes} hideTabs={true} externalSearch={search} onExternalSearchChange={setSearch} />

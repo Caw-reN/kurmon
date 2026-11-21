@@ -28,6 +28,7 @@ import {
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useDataStore } from '../../../store/useDataStore';
 import { Button, TablePagination } from '../../../components/ui.jsx';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { CustomSelect } from '../../../components/CustomSelect.jsx';
 
 import { saveAs } from 'file-saver';
@@ -525,7 +526,12 @@ export default function AbsensiGuruStaff({ personType = 'guru' }) {
   };
 
   return (
-    <div className="flex flex-col w-full gap-4 animate-in fade-in duration-300 relative z-10">
+    <div className="flex flex-col w-full gap-4 animate-in fade-in duration-300 relative z-10 pb-10">
+      <PageHeader
+        title={!canApproveGuru && !canApproveKaryawan ? "Absen Mandiri Guru & Staf" : "Presensi & Surat Izin Guru/Staf"}
+        icon={CheckCircle2}
+        description={!canApproveGuru && !canApproveKaryawan ? "Rekap kehadiran dan permohonan izin/sakit mandiri tenaga pendidik dan kependidikan." : "Kelola data kehadiran harian, dispensasi, dan verifikasi izin/sakit guru dan staf sekolah."}
+      />
       
       {/* Toast Notification */}
       {toastMsg && (

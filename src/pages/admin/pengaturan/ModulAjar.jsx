@@ -765,7 +765,7 @@ export default function ModulAjar(props) {
         title="Administrasi & Perangkat Ajar"
         description="Kelola Modul Ajar (Perangkat Administrasi Guru) dan Materi Pembelajaran Siswa dalam satu halaman praktis."
         icon={BookOpen}
-        tabs={tabs}
+        tabs={tabs.length > 1 ? tabs : []}
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />

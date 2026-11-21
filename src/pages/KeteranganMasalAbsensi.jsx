@@ -16,6 +16,7 @@ import {
   Settings2
 } from 'lucide-react';
 import { Modal, Button } from '../components/ui.jsx';
+import { PageHeader } from '../components/monitoring/ui/index.js';
 import { isSuperAdminRole } from '../utils/constants.js';
 import { fetchAttendancePresets, DEFAULT_BULK_REMARK_PRESETS } from '../utils/attendancePresets.js';
 import ManageBulkRemarkPresetsModal from '../components/admin/attendance/ManageBulkRemarkPresetsModal.jsx';
@@ -95,7 +96,7 @@ const PRESETS = [
   }
 ];
 
-export default function KeteranganMasalAbsensi({ authToken: propToken, username: propUsername, classes = [], user: propUser }) {
+export default function KeteranganMasalAbsensi({ authToken: propToken, username: propUsername, classes = [], user: propUser, isNested = false }) {
   const session = getSession();
   const currentUser = propUser || session;
   const token = propToken || session?.authToken;
@@ -315,7 +316,14 @@ export default function KeteranganMasalAbsensi({ authToken: propToken, username:
   const upcomingCount = processedRemarks.filter(r => r.statusTime === 'upcoming').length;
 
   return (
-    <div className="flex flex-col gap-5 w-full animate-in fade-in duration-300">
+    <div className="flex flex-col gap-5 w-full animate-in fade-in duration-300 pb-10">
+      {!isNested && (
+        <PageHeader
+          title="Keterangan Massal Absensi Siswa"
+          icon={FileSpreadsheet}
+          description="Pemberian keterangan hadir kegiatan / dispensasi massal untuk seluruh rombel kelas."
+        />
+      )}
       
       {/* Toast Notification */}
       {toast && (

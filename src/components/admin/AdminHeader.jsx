@@ -39,7 +39,9 @@ function getInitials(name ="Admin") {
 }
 
 const getTabLabel = (tabId) => {
-  const regItem = MENU_REGISTRY.find(m => m.id === tabId || (Array.isArray(m.activeIds) && m.activeIds.includes(tabId)));
+  const exactItem = MENU_REGISTRY.find(m => m.id === tabId);
+  if (exactItem?.label) return exactItem.label;
+  const regItem = MENU_REGISTRY.find(m => Array.isArray(m.activeIds) && m.activeIds.includes(tabId));
   if (regItem?.label) return regItem.label;
 
   const labels = {
@@ -129,7 +131,11 @@ const getParentGroupLabel = (tabId, user = null) => {
     return "Wali Kelas";
   }
 
-  const regItem = MENU_REGISTRY.find(m => m.id === tabId || (Array.isArray(m.activeIds) && m.activeIds.includes(tabId)));
+  const exactItem = MENU_REGISTRY.find(m => m.id === tabId);
+  if (exactItem?.adminGroup) return exactItem.adminGroup;
+  if (exactItem?.section) return exactItem.section;
+
+  const regItem = MENU_REGISTRY.find(m => Array.isArray(m.activeIds) && m.activeIds.includes(tabId));
   if (regItem?.adminGroup) return regItem.adminGroup;
   if (regItem?.section) return regItem.section;
 

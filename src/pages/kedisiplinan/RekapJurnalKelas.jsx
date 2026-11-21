@@ -14,6 +14,7 @@ import { useAppStore } from '../../store/useAppStore.js';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { UISelect, Modal, Button } from '../../components/ui.jsx';
 import { PaginationControls } from '../../components/ui/PaginationControls.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 import { getJurnalSubmissionStatus } from '../../utils/jurnalHelpers.js';
 import { drawKopSurat, getPrimaryColorRgb } from '../../utils/pdfHelpers.js';
 import { saveAs } from 'file-saver';
@@ -582,7 +583,13 @@ export default function RekapJurnalKelas({ classes = [], teachers = [], schedule
   }, [filteredJurnals, currentPage, itemsPerPage]);
 
   return (
-    <div className="space-y-4 w-full animate-in fade-in duration-300 font-sans">
+    <div className="space-y-4 w-full animate-in fade-in duration-300 font-sans pb-10">
+      <PageHeader
+        title={selectedKelas && selectedKelas !== 'all' ? `Rekap Jurnal KBM Kelas ${selectedKelas}` : (userWalasClass ? `Rekap Jurnal KBM (${userWalasClass})` : "Rekap Jurnal KBM Kelas")}
+        icon={BookOpen}
+        description="Rekapitulasi keterlaksanaan kegiatan belajar mengajar (KBM) dan monitoring jurnal guru di kelas."
+        onBack={onBack}
+      />
       
       {/* ── CARD 1: KONTROL FILTER KELAS & PERIODE (OVERHAULED UI) ── */}
       <div className="bg-white rounded-[var(--ui-radius-card)] p-4 sm:p-5 border border-slate-200/80 shadow-xs space-y-4">

@@ -9,6 +9,7 @@ import { compressImageFromFile } from '../../utils/imageUtils.js';
 import { isSuperAdminRole } from '../../utils/constants.js';
 import { fetchAttendancePresets, DEFAULT_STUDENT_ATTENDANCE_NOTES } from '../../utils/attendancePresets.js';
 import ManageAttendanceNotesModal from '../../components/admin/attendance/ManageAttendanceNotesModal.jsx';
+import { PageHeader } from '../../components/monitoring/ui/index.js';
 
 
 export default function AbsensiSiswa({ classes = [], students = [], hideTabs = false, externalSearch = undefined, onExternalSearchChange = null }) {
@@ -542,7 +543,16 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
   }, [isFullAccess, isWalas, walasClass, classOptions]);
 
   return (
-    <div className="flex flex-col w-full animate-in fade-in duration-300 relative z-10 ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
+    <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10 pb-10">
+      {!hideTabs && (
+        <PageHeader
+          title={isWalas && walasClass ? `Izin & Sakit Siswa (${walasClass})` : "Izin & Sakit Siswa"}
+          icon={CheckCircle2}
+          description="Pencatatan dan validasi surat permohonan izin, sakit, dan dispensasi presensi siswa."
+        />
+      )}
+
+      <div className="flex flex-col w-full ui-card bg-white border border-slate-200/80 rounded-[var(--ui-radius-card)] shadow-xs overflow-hidden">
       
       {/* Unified Header Toolbar (Pills + Controls in 1 Card) */}
       <div className="flex flex-col border-b border-slate-200/80 bg-slate-50/40">
@@ -1595,6 +1605,7 @@ export default function AbsensiSiswa({ classes = [], students = [], hideTabs = f
           }}
         />
       )}
+    </div>
     </div>
     </div>
   );

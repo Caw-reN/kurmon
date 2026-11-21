@@ -37,8 +37,8 @@ export default function PageHeader({
         </div>
       )}
 
-      {/* Mobile Sub-Nav Tabs (Shown on Mobile screens when not plain and mappedTabs has items) */}
-      {!isPlain && mappedTabs.length > 0 && (
+      {/* Mobile Sub-Nav Tabs (Shown on Mobile screens when not plain and mappedTabs has more than 1 item) */}
+      {!isPlain && mappedTabs.length > 1 && (
         <div className="sm:hidden w-full pt-1 mb-2">
           <div 
             role="tablist" 
@@ -125,14 +125,14 @@ export default function PageHeader({
         </div>
 
         {/* Actions or Tabs */}
-        {(mappedTabs.length > 0 || actions || children) && (
+        {(mappedTabs.length > 1 || actions || children) && (
           <div className="overflow-x-auto w-full md:w-auto scrollbar-none relative z-10 shrink-0">
             <div 
-              role={mappedTabs.length > 0 ? "tablist" : undefined}
+              role={mappedTabs.length > 1 ? "tablist" : undefined}
               aria-label={title || "Navigasi Sub-Tab"}
               className="flex items-center gap-2 w-max md:w-auto shrink-0"
             >
-              {mappedTabs.map((tab) => {
+              {mappedTabs.length > 1 && mappedTabs.map((tab) => {
                 const isActive = tab.isActive;
                 const isPrimaryHeader = headerStyle === 'primary';
                 
