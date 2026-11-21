@@ -15,7 +15,9 @@ export default function PageHeader({
   variant = "default",
   onBack,
   actions,
-  children
+  children,
+  className,
+  compact = false
 }) {
   const appSettings = useAppStore((state) => state.appSettings) || {};
 
@@ -76,29 +78,41 @@ export default function PageHeader({
       <div
         className={cn(
           !isPlain 
-            ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-slate-200/80 bg-white text-slate-900 shadow-xs transition-all'
-            : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-lg w-full p-0'
+            ? compact
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-xl w-full py-2.5 px-3.5 sm:py-3 sm:px-4 border border-slate-200/80 bg-white text-slate-900 shadow-2xs transition-all'
+              : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-slate-200/80 bg-white text-slate-900 shadow-xs transition-all'
+            : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-lg w-full p-0',
+          className
         )}
       >
-        <div className="flex items-center gap-3.5 relative z-10 w-full md:w-auto min-w-0">
+        <div className="flex items-center gap-3 relative z-10 w-full md:w-auto min-w-0">
           {Icon && (
             <div 
-              className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-all"
+              className={cn(
+                "rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-all",
+                compact ? "w-9 h-9" : "w-11 h-11"
+              )}
               style={{
                 backgroundColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 12%, transparent)',
                 color: 'var(--ui-primary, #064e3b)',
                 borderColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 25%, transparent)'
               }}
             >
-              <Icon size={20} className="shrink-0" strokeWidth={2.2} />
+              <Icon size={compact ? 18 : 20} className="shrink-0" strokeWidth={2.2} />
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="text-base md:text-lg font-black tracking-tight leading-tight truncate text-slate-900">
+            <h1 className={cn(
+              "font-black tracking-tight leading-tight truncate text-slate-900",
+              compact ? "text-sm sm:text-base" : "text-base md:text-lg"
+            )}>
               {title}
             </h1>
             {description && (
-              <p className="text-xs font-medium mt-0.5 line-clamp-2 md:line-clamp-none leading-relaxed text-slate-500">
+              <p className={cn(
+                "font-medium leading-relaxed text-slate-500",
+                compact ? "text-[11px] mt-0.5 line-clamp-1" : "text-xs mt-0.5 line-clamp-2 md:line-clamp-none"
+              )}>
                 {description}
               </p>
             )}
@@ -111,7 +125,7 @@ export default function PageHeader({
             <div 
               role={mappedTabs.length > 1 ? "tablist" : undefined}
               aria-label={title || "Navigasi Sub-Tab"}
-              className="flex items-center gap-2 w-max md:w-auto shrink-0"
+              className="flex items-center gap-1.5 sm:gap-2 w-max md:w-auto shrink-0"
             >
               {mappedTabs.length > 1 && mappedTabs.map((tab) => {
                 const isActive = tab.isActive;
@@ -124,7 +138,8 @@ export default function PageHeader({
                     aria-selected={isActive}
                     onClick={tab.onClick}
                     className={cn(
-                      "shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shadow-2xs",
+                      "shrink-0 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shadow-2xs",
+                      compact ? "px-3 py-1.5" : "px-3.5 py-1.5",
                       isActive
                         ? "text-white font-extrabold shadow-xs border-transparent"
                         : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/80 hover:bg-slate-50"
@@ -133,7 +148,7 @@ export default function PageHeader({
                   >
                     {tab.icon && (
                       <tab.icon 
-                        size={14} 
+                        size={compact ? 13 : 14} 
                         className={cn("shrink-0", isActive ? "text-white" : "text-slate-400")} 
                       />
                     )}

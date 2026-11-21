@@ -392,9 +392,10 @@ export default function HikvisionDashboard({
   };
 
   return (
-    <div className="flex flex-col gap-4 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-2.5 sm:gap-3 animate-in fade-in duration-300">
       {/* Central Header */}
       <PageHeader 
+        compact={true}
         title="Pusat Kontrol & Manajemen Mesin Absensi"
         icon={MonitorSmartphone}
         description="Monitoring telemetri perangkat, status gateway, manajemen mesin fisik, pemetaan biometrik pengguna, dan audit presensi."
@@ -406,30 +407,30 @@ export default function HikvisionDashboard({
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-50 font-bold text-xs h-8 px-2.5"
+            className="flex items-center gap-1.5 border-amber-300 text-amber-800 hover:bg-amber-50 font-bold text-xs h-7.5 px-2.5"
             onClick={() => navigateToExternalReport('hikvision_report_siswa')}
           >
-            <ClipboardList size={14} className="text-amber-600" />
+            <ClipboardList size={13} className="text-amber-600" />
             <span className="hidden sm:inline">Keterangan Massal</span>
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex items-center gap-1.5 text-xs font-bold h-8 px-2.5" 
+            className="flex items-center gap-1.5 text-xs font-bold h-7.5 px-2.5" 
             onClick={fetchData}
             disabled={loading}
             title="Segarkan data status & log"
           >
-            <RefreshCw size={13} className={loading ? "animate-spin text-[var(--ui-primary)]" : ""} />
+            <RefreshCw size={12} className={loading ? "animate-spin text-[var(--ui-primary)]" : ""} />
             <span className="hidden sm:inline">Segarkan</span>
           </Button>
           <Button 
             size="sm" 
-            className="flex items-center gap-1.5 text-xs font-bold shadow-2xs h-8 px-3" 
+            className="flex items-center gap-1.5 text-xs font-bold shadow-2xs h-7.5 px-3" 
             onClick={handleSyncAll} 
             disabled={syncing} 
           >
-            <RefreshCw size={13} className={syncing ? "animate-spin" : ""} /> 
+            <RefreshCw size={12} className={syncing ? "animate-spin" : ""} /> 
             <span>{syncing ? 'Menarik...' : 'Tarik Data Semua'}</span>
           </Button>
         </div>
