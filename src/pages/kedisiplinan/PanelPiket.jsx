@@ -265,31 +265,33 @@ export default function PanelPiket({ students = [], classes = [], canEdit = fals
       )}
 
       {/* MOBILE STEP TABS SWITCHER (< lg) */}
-      <div className="flex lg:hidden items-center gap-2 overflow-x-auto no-scrollbar shrink-0 mb-4">
-        <Button
-          variant={mobileTab === 'siswa' ? 'primary' : 'ghost'}
-          onClick={() => setMobileTab('siswa')}
-          className={`flex-1 ${mobileTab !== 'siswa' ? 'text-slate-500' : ''}`}
-        >
-          <User size={15} />
-          <span>1. Pilih Siswa ({selectedStudents.length})</span>
-        </Button>
-        <Button
-          variant={mobileTab === 'pelanggaran' ? 'primary' : 'ghost'}
-          onClick={() => setMobileTab('pelanggaran')}
-          className={`flex-1 ${mobileTab !== 'pelanggaran' ? 'text-slate-500' : ''}`}
-        >
-          <ShieldAlert size={15} />
-          <span>2. Pelanggaran ({selectedViolations.length})</span>
-        </Button>
-        <Button
-          variant={mobileTab === 'riwayat' ? 'primary' : 'ghost'}
-          onClick={() => setMobileTab('riwayat')}
-          className={`flex-1 ${mobileTab !== 'riwayat' ? 'text-slate-500' : ''}`}
-        >
-          <History size={15} />
-          <span>3. Riwayat</span>
-        </Button>
+      <div className="flex lg:hidden bg-white rounded-xl border border-slate-200/80 p-1.5 shadow-xs mb-4">
+        <div className="flex items-center gap-1.5 w-full">
+          <Button
+            variant={mobileTab === 'siswa' ? 'primary' : 'ghost'}
+            onClick={() => setMobileTab('siswa')}
+            className={`flex-1 ${mobileTab !== 'siswa' ? 'text-slate-500' : ''}`}
+          >
+            <User size={15} />
+            <span>1. Pilih Siswa ({selectedStudents.length})</span>
+          </Button>
+          <Button
+            variant={mobileTab === 'pelanggaran' ? 'primary' : 'ghost'}
+            onClick={() => setMobileTab('pelanggaran')}
+            className={`flex-1 ${mobileTab !== 'pelanggaran' ? 'text-slate-500' : ''}`}
+          >
+            <ShieldAlert size={15} />
+            <span>2. Pelanggaran ({selectedViolations.length})</span>
+          </Button>
+          <Button
+            variant={mobileTab === 'riwayat' ? 'primary' : 'ghost'}
+            onClick={() => setMobileTab('riwayat')}
+            className={`flex-1 ${mobileTab !== 'riwayat' ? 'text-slate-500' : ''}`}
+          >
+            <History size={15} />
+            <span>3. Riwayat</span>
+          </Button>
+        </div>
       </div>
 
       {/* MAIN CONTENT RESPONSIVE GRID */}

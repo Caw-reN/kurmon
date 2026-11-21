@@ -5,10 +5,10 @@ import {
   ChevronDown, X, RefreshCw, LogOut, ChevronsLeft, ChevronsRight, DatabaseBackup, Settings, Shield,
   LayoutDashboard, Calendar, CalendarDays, ClipboardList, MessageSquare, Trophy, Briefcase, Users, GraduationCap, Building2, Activity, FileText,
   CheckCircle2, FileSpreadsheet, Search, ChevronsUpDown, User,
-  BookOpen, Clock, Cpu, HardDrive, Palette, Database, FolderOpen
+  BookOpen, Clock, Cpu, HardDrive, Palette, Database, FolderOpen,
+  UserCog, SlidersHorizontal
 } from 'lucide-react';
 import { MENU_REGISTRY } from '@/utils/menuRegistry';
-import { normalizeUserRole } from '@/utils/constants';
 
 const SECTION_METADATA = {
   'Jadwal & Agenda': { key: 'jadwal_agenda', icon: Calendar, label: 'Jadwal & Agenda' },

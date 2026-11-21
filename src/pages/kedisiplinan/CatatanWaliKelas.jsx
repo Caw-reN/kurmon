@@ -1088,23 +1088,25 @@ export default function CatatanWaliKelas({
       </div>
 
       {/* Mobile Tab Switcher */}
-      <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-        <Button
-          variant={mobileTab === 'siswa' ? 'primary' : 'ghost'}
-          onClick={() => setMobileTab('siswa')}
-          className={`flex-1 shrink-0 ${mobileTab !== 'siswa' ? 'text-slate-500' : ''}`}
-        >
-          <Users size={15} />
-          <span>1. Siswa Binaan ({filteredStudents.length})</span>
-        </Button>
-        <Button
-          variant={mobileTab === 'catatan' ? 'primary' : 'ghost'}
-          onClick={() => setMobileTab('catatan')}
-          className={`flex-1 shrink-0 ${mobileTab !== 'catatan' ? 'text-slate-500' : ''}`}
-        >
-          <MessageSquare size={15} />
-          <span>2. Catatan ({filteredCatatan.length})</span>
-        </Button>
+      <div className="lg:hidden bg-white rounded-xl border border-slate-200/80 p-1.5 shadow-xs">
+        <div className="flex items-center gap-1.5">
+          <Button
+            variant={mobileTab === 'siswa' ? 'primary' : 'ghost'}
+            onClick={() => setMobileTab('siswa')}
+            className={`flex-1 shrink-0 ${mobileTab !== 'siswa' ? 'text-slate-500' : ''}`}
+          >
+            <Users size={15} />
+            <span>1. Siswa Binaan ({filteredStudents.length})</span>
+          </Button>
+          <Button
+            variant={mobileTab === 'catatan' ? 'primary' : 'ghost'}
+            onClick={() => setMobileTab('catatan')}
+            className={`flex-1 shrink-0 ${mobileTab !== 'catatan' ? 'text-slate-500' : ''}`}
+          >
+            <MessageSquare size={15} />
+            <span>2. Catatan ({filteredCatatan.length})</span>
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-12 gap-4 lg:gap-5 items-start">
