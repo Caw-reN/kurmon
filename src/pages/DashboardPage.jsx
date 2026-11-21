@@ -1940,7 +1940,7 @@ export default function DashboardPage({
     ruangan: { label: "Total Ruangan", value: rooms.length, icon: "/icons/016-map pin.svg", color: "bg-amber-50 text-amber-500", sub: `${roomUsagePercent}% Terpakai`, subIcon: TrendingUp, tab: "ruangan" },
     jadwal: { label: "Slot Jadwal", value: scheduleSlots, icon: "/icons/086-calendar.svg", color: "bg-[var(--ui-primary)]/10 text-indigo-500", sub: "Aktif", subIcon: CheckCircle2, tab: "generate" },
     absen: { label: "Kehadiran", value: "98%", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-500", sub: "Hari Ini", subIcon: Activity, tab: "laporan_absensi" },
-    presensiSiswa: { label: "Presensi Siswa", value: `${siswaStats?.Hadir || 0} Hadir`, icon: "/icons/079-checklist.svg", color: "bg-emerald-50 text-emerald-600", sub: "Hari Ini", subIcon: CheckCircle2, tab: "hikvision_report_siswa" },
+    presensiSiswa: { label: "Presensi Siswa", value: `${dashLogs?.hikvisionStudentToday?.length || 0} Hadir`, icon: "/icons/079-checklist.svg", color: "bg-emerald-50 text-emerald-600", sub: "Hari Ini", subIcon: CheckCircle2, tab: "hikvision_report_siswa" },
     beban: { label: "Total JP", value: teachingLoads.reduce((sum, load) => sum + (Number(load.duration) || 0), 0), icon: "/icons/035-graph bar.svg", color: "bg-rose-50 text-rose-500", sub: "Beban Mengajar", subIcon: BookOpen, tab: "beban" },
     pklSiswa: { label: "Siswa PKL", value: dashLogs ? (dashLogs.latestStudentLogs?.length || 0) : 0, icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Aktif", subIcon: Activity, tab: "pkl_data_siswa" },
     pklMitra: { label: "Mitra DUDI", value: 0, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-500", sub: "Terdaftar", subIcon: TrendingUp, tab: "pkl_data_perusahaan" },
