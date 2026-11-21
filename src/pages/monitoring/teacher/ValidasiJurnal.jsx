@@ -306,7 +306,7 @@ const ValidasiJurnal = () => {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+      <div className="ui-card bg-white rounded-xl border border-slate-200/80 p-2 sm:p-2.5 shadow-xs flex gap-2 overflow-x-auto hide-scrollbar">
         {[
           { key:'pending', label:'Pending', count: jurnalList.filter((j) => j.status ==='pending').length },
           { key:'approved', label:'Disetujui', count: jurnalList.filter((j) => j.status ==='approved').length },

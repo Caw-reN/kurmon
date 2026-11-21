@@ -432,30 +432,32 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
       />
       
       {/* SEGMENTED TAB BAR */}
-      <div className="flex gap-1.5 p-1.5 bg-slate-100/90 backdrop-blur-md rounded-[var(--ui-radius-card)] w-full max-w-full overflow-x-auto border border-slate-200/80 shadow-inner">
-        {TAB_ITEMS.map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-[var(--ui-radius-small)] font-bold text-xs transition-all duration-200 shrink-0 cursor-pointer ${
-                isActive
-                  ? 'bg-white shadow-xs text-slate-800 font-black scale-100 border border-slate-200/80'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
-              }`}
-            >
-              <tab.icon size={15} className={isActive ? 'text-emerald-600' : 'opacity-70'} />
-              <span>{tab.label}</span>
-              {tab.id !== 'local' && tab.id !== 'restore' && tab.id !== 'archive' && (
-                <span 
-                  className={`w-1.5 h-1.5 rounded-full ${tab.isConfigured ? 'bg-emerald-500' : 'bg-slate-300'}`} 
-                  title={tab.isConfigured ? "Terkonfigurasi" : "Belum Dikonfigurasi"} 
-                />
-              )}
-            </button>
-          );
-        })}
+      <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 shadow-xs">
+        <div className="flex gap-1.5 p-1 bg-slate-100/90 backdrop-blur-md rounded-[var(--ui-radius-control)] w-full max-w-full overflow-x-auto border border-slate-200/70 shadow-2xs">
+          {TAB_ITEMS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-[var(--ui-radius-small)] font-bold text-xs transition-all duration-200 shrink-0 cursor-pointer ${
+                  isActive
+                    ? 'bg-white shadow-xs text-slate-800 font-black scale-100 border border-slate-200/80'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-white/60'
+                }`}
+              >
+                <tab.icon size={15} className={isActive ? 'text-emerald-600' : 'opacity-70'} />
+                <span>{tab.label}</span>
+                {tab.id !== 'local' && tab.id !== 'restore' && tab.id !== 'archive' && (
+                  <span 
+                    className={`w-1.5 h-1.5 rounded-full ${tab.isConfigured ? 'bg-emerald-500' : 'bg-slate-300'}`} 
+                    title={tab.isConfigured ? "Terkonfigurasi" : "Belum Dikonfigurasi"} 
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── 1. TAB: BACKUP LOKAL & SQL ── */}

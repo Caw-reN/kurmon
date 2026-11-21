@@ -2412,118 +2412,121 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
       {/* === HARIAN VIEW === */}
       {activeView === 'harian' && (
         <>
-          {/* Sub-View Navigation on Mobile */}
-          <div className="sm:hidden grid grid-cols-3 gap-1.5 p-1 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/70 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setHarianSubView('hari_ini')}
-              className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                harianSubView === 'hari_ini'
-                  ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-1">
-                <Calendar size={13} strokeWidth={2.5} />
-                <span>Hari Ini</span>
-              </div>
-              <span className={`text-[10px] font-extrabold ${harianSubView === 'hari_ini' ? 'text-[var(--ui-primary)]' : 'text-slate-400'}`}>
-                {totalSlots} Slot
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setHarianSubView('terlewat')}
-              className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer relative ${
-                harianSubView === 'terlewat'
-                  ? 'bg-amber-600 text-white shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-1">
-                <AlertCircle size={13} strokeWidth={2.5} className={harianSubView === 'terlewat' ? 'text-white' : missedPastSlots.length > 0 ? 'text-amber-600' : 'text-slate-400'} />
-                <span>Terlewat</span>
-              </div>
-              {missedPastSlots.length > 0 ? (
-                <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black leading-none ${
-                  harianSubView === 'terlewat' ? 'bg-white text-amber-800' : 'bg-rose-500 text-white animate-pulse'
-                }`}>
-                  {missedPastSlots.length} slot
+          {/* Sub-View Navigation Bar (Unified White Box Container) */}
+          <div className="ui-card bg-white rounded-xl border border-slate-200/80 p-1.5 sm:p-2 shadow-xs">
+            {/* Sub-View Navigation on Mobile */}
+            <div className="sm:hidden grid grid-cols-3 gap-1.5 p-1 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/70 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setHarianSubView('hari_ini')}
+                className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                  harianSubView === 'hari_ini'
+                    ? 'bg-white text-[var(--ui-primary)] shadow-xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  <Calendar size={13} strokeWidth={2.5} />
+                  <span>Hari Ini</span>
+                </div>
+                <span className={`text-[10px] font-extrabold ${harianSubView === 'hari_ini' ? 'text-[var(--ui-primary)]' : 'text-slate-400'}`}>
+                  {totalSlots} Slot
                 </span>
-              ) : (
-                <span className={`text-[10px] font-extrabold ${harianSubView === 'terlewat' ? 'text-amber-100' : 'text-slate-400'}`}>
-                  0 slot
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setHarianSubView('terlewat')}
+                className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer relative ${
+                  harianSubView === 'terlewat'
+                    ? 'bg-amber-600 text-white shadow-xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  <AlertCircle size={13} strokeWidth={2.5} className={harianSubView === 'terlewat' ? 'text-white' : missedPastSlots.length > 0 ? 'text-amber-600' : 'text-slate-400'} />
+                  <span>Terlewat</span>
+                </div>
+                {missedPastSlots.length > 0 ? (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-black leading-none ${
+                    harianSubView === 'terlewat' ? 'bg-white text-amber-800' : 'bg-rose-500 text-white animate-pulse'
+                  }`}>
+                    {missedPastSlots.length} slot
+                  </span>
+                ) : (
+                  <span className={`text-[10px] font-extrabold ${harianSubView === 'terlewat' ? 'text-amber-100' : 'text-slate-400'}`}>
+                    0 slot
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setHarianSubView('riwayat')}
+                className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                  harianSubView === 'riwayat'
+                    ? 'bg-slate-800 text-white shadow-xs font-black'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-1">
+                  <ClipboardList size={13} strokeWidth={2.5} />
+                  <span>Riwayat</span>
+                </div>
+                <span className={`text-[10px] font-extrabold ${harianSubView === 'riwayat' ? 'text-slate-300' : 'text-slate-400'}`}>
+                  {jurnalList.length} total
                 </span>
-              )}
-            </button>
+              </button>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => setHarianSubView('riwayat')}
-              className={`py-2 px-1 rounded-[var(--ui-radius-small)] text-xs font-black flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                harianSubView === 'riwayat'
-                  ? 'bg-slate-800 text-white shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <div className="flex items-center gap-1">
-                <ClipboardList size={13} strokeWidth={2.5} />
-                <span>Riwayat</span>
-              </div>
-              <span className={`text-[10px] font-extrabold ${harianSubView === 'riwayat' ? 'text-slate-300' : 'text-slate-400'}`}>
-                {jurnalList.length} total
-              </span>
-            </button>
-          </div>
+            {/* Sub-View Navigation Pills on Desktop */}
+            <div className="hidden sm:flex items-center gap-2 overflow-x-auto no-scrollbar">
+              <button
+                type="button"
+                onClick={() => setHarianSubView('hari_ini')}
+                className={`px-4 py-2 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 ${
+                  harianSubView === 'hari_ini'
+                    ? 'bg-[var(--ui-primary)] text-white shadow-xs font-black'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/80 font-bold'
+                }`}
+              >
+                <Calendar size={14} />
+                <span>Jadwal Harian ({totalSlots} Slot)</span>
+              </button>
 
-          {/* Sub-View Navigation Pills on Desktop */}
-          <div className="hidden sm:flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <button
-              type="button"
-              onClick={() => setHarianSubView('hari_ini')}
-              className={`px-4 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 ${
-                harianSubView === 'hari_ini'
-                  ? 'bg-[var(--ui-primary)] text-white shadow-sm'
-                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
-              }`}
-            >
-              <Calendar size={14} />
-              <span>Jadwal Harian ({totalSlots} Slot)</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setHarianSubView('terlewat')}
+                className={`px-4 py-2 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 relative ${
+                  harianSubView === 'terlewat'
+                    ? 'bg-amber-600 text-white shadow-xs font-black'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/80 font-bold'
+                }`}
+              >
+                <AlertCircle size={14} className={harianSubView === 'terlewat' ? 'text-white' : 'text-amber-600'} />
+                <span>Jurnal Terlewat / Belum Diisi</span>
+                {missedPastSlots.length > 0 && (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-tight ${
+                    harianSubView === 'terlewat' ? 'bg-white text-amber-800' : 'bg-rose-500 text-white animate-pulse'
+                  }`}>
+                    {missedPastSlots.length}
+                  </span>
+                )}
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setHarianSubView('terlewat')}
-              className={`px-4 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 relative ${
-                harianSubView === 'terlewat'
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
-              }`}
-            >
-              <AlertCircle size={14} className={harianSubView === 'terlewat' ? 'text-white' : 'text-amber-600'} />
-              <span>Jurnal Terlewat / Belum Diisi</span>
-              {missedPastSlots.length > 0 && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-tight ${
-                  harianSubView === 'terlewat' ? 'bg-white text-amber-800' : 'bg-rose-500 text-white animate-pulse'
-                }`}>
-                  {missedPastSlots.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setHarianSubView('riwayat')}
-              className={`px-4 py-2.5 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 ${
-                harianSubView === 'riwayat'
-                  ? 'bg-slate-800 text-white shadow-sm'
-                  : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200/80'
-              }`}
-            >
-              <ClipboardList size={14} />
-              <span>Semua Riwayat Jurnal ({jurnalList.length})</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => setHarianSubView('riwayat')}
+                className={`px-4 py-2 rounded-[var(--ui-radius-control)] text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98 ${
+                  harianSubView === 'riwayat'
+                    ? 'bg-slate-800 text-white shadow-xs font-black'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200/80 font-bold'
+                }`}
+              >
+                <ClipboardList size={14} />
+                <span>Semua Riwayat Jurnal ({jurnalList.length})</span>
+              </button>
+            </div>
           </div>
 
           {/* ==================== SUB-VIEW 1: JADWAL HARI INI ==================== */}

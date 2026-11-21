@@ -712,8 +712,8 @@ export default function ManajemenRole(props) {
       />
 
       {/* Sub-view Switcher Toggle */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="inline-flex p-1 bg-slate-100/90 rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-2xs">
+      <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3 flex-wrap">
+        <div className="inline-flex p-1 bg-slate-100/90 rounded-[var(--ui-radius-control)] border border-slate-200/70 shadow-2xs">
           <button
             type="button"
             onClick={() => setActiveView('organogram')}

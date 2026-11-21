@@ -1572,26 +1572,28 @@ export default function HikvisionTeacherReport({ isNested = false }) {
 
       {/* When isNested, show Segmented Tabs at top so user can switch between Matriks and Surat */}
       {isNested && (
-        <div className="bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-card)] flex items-center gap-1.5 border border-slate-200/80 shadow-2xs">
-          {[
-            { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
-            { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
-            { id: 'perguru', label: 'Rapor Kinerja Guru', icon: Award }
-          ].map(t => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setSubTab(t.id)}
-              className={`flex-1 py-2.5 px-3.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
-                subTab === t.id
-                  ? 'bg-white text-emerald-700 font-black shadow-xs border border-slate-200/60'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent hover:bg-white/60'
-              }`}
-            >
-              <t.icon size={15} className={subTab === t.id ? 'text-emerald-600' : 'text-slate-400'} />
-              <span>{t.label}</span>
-            </button>
-          ))}
+        <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 shadow-xs">
+          <div className="bg-slate-100/90 p-1.5 rounded-[var(--ui-radius-control)] flex items-center gap-1.5 border border-slate-200/70 shadow-2xs">
+            {[
+              { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: Calendar },
+              { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
+              { id: 'perguru', label: 'Rapor Kinerja Guru', icon: Award }
+            ].map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setSubTab(t.id)}
+                className={`flex-1 py-2.5 px-3.5 rounded-[var(--ui-radius-small)] text-xs font-bold transition-all border-none cursor-pointer flex items-center justify-center gap-2 ${
+                  subTab === t.id
+                    ? 'bg-white text-emerald-700 font-black shadow-xs border border-slate-200/60'
+                    : 'text-slate-600 hover:text-slate-900 bg-transparent hover:bg-white/60'
+                }`}
+              >
+                <t.icon size={15} className={subTab === t.id ? 'text-emerald-600' : 'text-slate-400'} />
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
