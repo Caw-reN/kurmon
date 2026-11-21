@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
-import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun, Trophy, Droplets, Wind, Umbrella, Bell, AlertTriangle, RefreshCw, Compass } from 'lucide-react';
+import { Lock, User, CalendarDays, MapPin, BookOpenText, Calendar, Briefcase, HelpCircle, ShieldCheck, BookOpen, MessageSquare, MonitorSmartphone, Wifi, Palette, Users, Sparkles, LogIn, FileText, Sun, CloudRain, Moon, CloudSun, Trophy, Droplets, Wind, Umbrella, Bell, AlertTriangle, RefreshCw, Compass, CloudLightning, CloudDrizzle, SunMedium, Cloud } from 'lucide-react';
 import { X, Search, ArrowRight, ArrowUpRight, CheckCircle2, ChevronLeft, ChevronRight, Check, Info, ArrowDown, KeyRound } from 'lucide-react';
 import { PublicHelpModal } from '../components/landing/LandingModals.jsx';
 import HeaderNavbar from '../components/layout/HeaderNavbar.jsx';
@@ -662,11 +662,11 @@ export default function LandingPage() {
         new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', hour: 'numeric', hour12: false }).format(now),
         10
       );
-      if (jktHour >= 18 || jktHour < 6) return 'night';
-      if (jktHour >= 11 && jktHour <= 14) return 'hot';
-      return 'cloudy';
+      if (jktHour >= 18 || jktHour < 6) return 'malam';
+      if (jktHour >= 11 && jktHour <= 14) return 'terik';
+      return 'cerah';
     } catch {
-      return 'cloudy';
+      return 'cerah';
     }
   });
   const [manualWeather, setManualWeather] = useState(null); // null = Mode Otomatis (Cuaca Asli Sekolah)
@@ -691,8 +691,17 @@ export default function LandingPage() {
     typeof window !== 'undefined' && 'Notification' in window ? Notification.permission : 'unsupported'
   );
 
-  // Kondisi cuaca aktif (manual jika dipilih, atau live otomatis)
-  const weatherCondition = manualWeather || liveWeather;
+  // Normalisasi kondisi cuaca aktif (mendukung format baru: cerah, berawan, terik, hujan_ringan, hujan_lebat, badai, malam)
+  const rawWeather = manualWeather || liveWeather;
+  const weatherCondition = useMemo(() => {
+    if (rawWeather === 'night') return 'malam';
+    if (rawWeather === 'hot') return 'terik';
+    if (rawWeather === 'rain') return 'hujan_lebat';
+    if (rawWeather === 'cloudy') return 'cerah';
+    return rawWeather || 'cerah';
+  }, [rawWeather]);
+
+  const isRainyWeather = ['rain', 'hujan_ringan', 'hujan_lebat', 'badai'].includes(weatherCondition) || weatherDetails.isActualRain;
 
   // Notifikasi Browser Hujan (Aman Cooldown & Anti-Spam)
   const triggerRainNotification = (intensity, precip) => {
@@ -724,7 +733,7 @@ export default function LandingPage() {
     try {
       const res = await Notification.requestPermission();
       setNotifPermission(res);
-      if (res === 'granted' && (weatherCondition === 'rain' || weatherDetails.isActualRain)) {
+      if (res === 'granted' && isRainyWeather) {
         triggerRainNotification(weatherDetails.intensityLabel, weatherDetails.precipitation);
       }
     } catch (e) {
@@ -777,34 +786,39 @@ export default function LandingPage() {
       const isDaytimeHour = (jktHour >= 6 && jktHour < 18);
       const isMiddayPeak = (jktHour >= 11 && jktHour <= 14);
 
-      // Kriteria hujan nyata (Measurable ground rain anti false-positive)
-      // Mencegah kelembapan tipis / virga / gerimis tak terdeteksi memicu status hujan
-      const isThunderstorm = [95, 96, 99].includes(weather_code) && precipitation >= 0.3;
-      const isHeavyRain = [65, 82].includes(weather_code) && (precipitation >= 0.5 || rain >= 0.4 || showers >= 0.5);
+      // Kriteria deteksi cuaca satelit presisi tinggi:
+      const isThunderstorm = [95, 96, 99].includes(weather_code) && precipitation >= 0.2;
+      const isHeavyRain = ([65, 82].includes(weather_code) && (precipitation >= 0.5 || rain >= 0.4 || showers >= 0.5)) || precipitation >= 3.0 || rain >= 2.5;
       const isModerateRain = [63, 81].includes(weather_code) && (precipitation >= 0.8 || rain >= 0.5 || showers >= 0.8);
-      const isLightRain = [61, 80].includes(weather_code) && (precipitation >= 1.2 || rain >= 0.8 || showers >= 1.0);
+      const isLightRain = ([61, 80].includes(weather_code) && (precipitation >= 0.8 || rain >= 0.5 || showers >= 0.6)) || (precipitation >= 0.6 || rain >= 0.4);
       const isRawHeavyPrecipitation = (precipitation >= 1.5 || rain >= 1.0);
 
       const isActualRain = isThunderstorm || isHeavyRain || isModerateRain || isLightRain || isRawHeavyPrecipitation;
 
-      let detected = 'cloudy';
+      let detected = 'cerah';
       let intensity = 'Cerah Berawan';
 
-      if (isActualRain) {
-        detected = 'rain';
-        if (isThunderstorm) intensity = 'Hujan Badai Petir';
-        else if (isHeavyRain || precipitation >= 4.0 || rain >= 3.0) intensity = 'Hujan Lebat';
-        else if (isModerateRain || precipitation >= 2.0 || rain >= 1.5) intensity = 'Hujan Sedang';
-        else intensity = 'Hujan Ringan';
+      if (isThunderstorm) {
+        detected = 'badai';
+        intensity = 'Hujan Badai Petir';
+      } else if (isHeavyRain || isRawHeavyPrecipitation || precipitation >= 3.0) {
+        detected = 'hujan_lebat';
+        intensity = 'Hujan Lebat';
+      } else if (isActualRain) {
+        detected = 'hujan_ringan';
+        intensity = precipitation >= 1.2 ? 'Hujan Sedang' : 'Hujan Ringan';
       } else if (!isDaytimeHour) {
-        detected = 'night';
+        detected = 'malam';
         intensity = cloud_cover > 75 ? 'Malam Berawan' : 'Malam Cerah';
-      } else if (isMiddayPeak && (temperature_2m >= 32 || ([0, 1].includes(weather_code) && cloud_cover < 30))) {
-        detected = 'hot';
+      } else if (isMiddayPeak && (temperature_2m >= 32 || ([0, 1].includes(weather_code) && cloud_cover < 25))) {
+        detected = 'terik';
         intensity = 'Panas Terik';
+      } else if (cloud_cover >= 65) {
+        detected = 'berawan';
+        intensity = cloud_cover > 80 ? 'Mendung Tebal' : 'Teduh Berawan';
       } else {
-        detected = 'cloudy';
-        intensity = cloud_cover > 70 ? 'Mendung Tebal' : cloud_cover > 40 ? 'Cerah Berawan' : 'Cerah';
+        detected = 'cerah';
+        intensity = cloud_cover > 30 ? 'Cerah Berawan' : 'Cerah';
       }
 
       const details = {
@@ -864,15 +878,18 @@ export default function LandingPage() {
   }, []);
 
   const handleCycleWeather = () => {
-    // Siklus: Otomatis (null) -> Malam -> Hujan -> Panas Terik -> Cerah Berawan -> Kembali Otomatis
-    const options = [null, 'night', 'rain', 'hot', 'cloudy'];
+    // Siklus: Otomatis (null) -> Cerah -> Teduh Berawan -> Panas Terik -> Hujan Ringan -> Hujan Lebat -> Badai Petir -> Malam Hari -> Kembali Otomatis
+    const options = [null, 'cerah', 'berawan', 'terik', 'hujan_ringan', 'hujan_lebat', 'badai', 'malam'];
     const currentIdx = options.indexOf(manualWeather);
     const nextIdx = (currentIdx + 1) % options.length;
     const next = options[nextIdx];
     setManualWeather(next);
-    if (next === 'rain') {
+    if (['hujan_ringan', 'hujan_lebat', 'badai'].includes(next)) {
       setIsRainAlertDismissed(false);
-      triggerRainNotification('Simulasi Hujan', 2.5);
+      triggerRainNotification(
+        next === 'badai' ? 'Peringatan Hujan Badai Petir' : next === 'hujan_lebat' ? 'Peringatan Hujan Lebat' : 'Peringatan Hujan Ringan',
+        next === 'badai' ? 12.0 : next === 'hujan_lebat' ? 4.5 : 1.2
+      );
     }
   };
 
@@ -1108,20 +1125,36 @@ export default function LandingPage() {
         <div 
           className="absolute inset-0 pointer-events-none transition-all duration-700"
           style={{
-            background: weatherCondition === 'night' 
-              ? 'linear-gradient(180deg, rgba(10, 22, 38, 0.52) 0%, rgba(15, 23, 42, 0.32) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
-              : weatherCondition === 'rain'
-              ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.55) 0%, rgba(30, 41, 59, 0.35) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
-              : weatherCondition === 'hot'
-              ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.25) 0%, rgba(245, 158, 11, 0.15) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
-              : 'linear-gradient(180deg, rgba(0, 0, 0, 0.40) 0%, rgba(0, 0, 0, 0.18) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+            background: 
+              weatherCondition === 'malam'
+                ? 'linear-gradient(180deg, rgba(10, 22, 38, 0.58) 0%, rgba(15, 23, 42, 0.38) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+                : weatherCondition === 'badai'
+                ? 'linear-gradient(180deg, rgba(11, 15, 25, 0.68) 0%, rgba(30, 41, 59, 0.45) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+                : weatherCondition === 'hujan_lebat'
+                ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.58) 0%, rgba(30, 41, 59, 0.38) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+                : weatherCondition === 'hujan_ringan'
+                ? 'linear-gradient(180deg, rgba(30, 41, 59, 0.38) 0%, rgba(51, 65, 85, 0.22) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+                : weatherCondition === 'berawan'
+                ? 'linear-gradient(180deg, rgba(51, 65, 85, 0.32) 0%, rgba(71, 85, 105, 0.18) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+                : weatherCondition === 'terik'
+                ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.25) 0%, rgba(245, 158, 11, 0.15) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
+                : 'linear-gradient(180deg, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.15) 45%, rgba(255, 255, 255, 0.85) 82%, rgba(255, 255, 255, 1) 100%)'
           }}
         />
 
-        {/* Efek Spesifik Cuaca Desktop */}
-        {weatherCondition === 'night' && (
+        {/* ── EFEK SPESIFIK CUACA DESKTOP REALISTIS & DETAIL ── */}
+        
+        {/* 1. Malam Hari: Bintang Berkelip, Bulan Sabit Bercahaya & Bintang Jatuh */}
+        {weatherCondition === 'malam' && (
           <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
-            <div className="absolute top-6 right-24 w-36 h-36 rounded-full bg-radial from-sky-100/35 via-sky-200/10 to-transparent blur-2xl" />
+            {/* Bulan Sabit Halus & Halo Pendaran */}
+            <div className="absolute top-6 right-24 w-32 h-32 rounded-full bg-radial from-amber-100/35 via-amber-200/10 to-transparent blur-2xl" />
+            <div className="absolute top-9 right-28 w-10 h-10 rounded-full border-r-[2.5px] border-b-[2.5px] border-amber-100/90 shadow-[0_0_14px_rgba(254,240,138,0.7)] rotate-[-20deg]" />
+
+            {/* Bintang Jatuh Meluncur Anggun */}
+            <div className="absolute top-10 right-52 w-32 h-[1.5px] bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shooting-star" />
+
+            {/* Taburan Bintang Kerlap-Kerlip */}
             {[
               { t: '15%', l: '10%', s: 2, d: '0s' },
               { t: '25%', l: '24%', s: 2.5, d: '1.4s' },
@@ -1148,29 +1181,93 @@ export default function LandingPage() {
           </div>
         )}
 
-        {weatherCondition === 'rain' && (
+        {/* 2. Hujan Ringan (Gerimis Sejuk Desktop) */}
+        {weatherCondition === 'hujan_ringan' && (
           <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
-            {[...Array(14)].map((_, i) => (
+            {[...Array(20)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-[1.5px] h-10 bg-gradient-to-b from-transparent via-sky-200/40 to-white/60 rotate-[12deg] animate-rain-fall"
+                className="absolute w-[1.2px] h-7 bg-gradient-to-b from-transparent via-sky-200/40 to-white/60 rotate-[8deg] animate-rain-light"
                 style={{
-                  left: `${(i * 7) + (i % 3)}%`,
-                  top: '-40px',
-                  animationDuration: `${0.45 + ((i % 5) * 0.05)}s`,
-                  animationDelay: `-${(i % 6) * 0.12}s`
+                  left: `${(i * 5) + (i % 3)}%`,
+                  top: '-35px',
+                  animationDuration: `${0.80 + ((i % 5) * 0.08)}s`,
+                  animationDelay: `-${(i % 7) * 0.14}s`
                 }}
               />
             ))}
+            <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-white/15 via-sky-100/5 to-transparent blur-sm" />
           </div>
         )}
 
-        {weatherCondition === 'hot' && (
+        {/* 3. Hujan Lebat (Guyuran Deras & Kabut Splash Desktop) */}
+        {weatherCondition === 'hujan_lebat' && (
+          <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+            {[...Array(38)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-[1.8px] h-12 bg-gradient-to-b from-transparent via-sky-200/50 to-white/75 rotate-[15deg] animate-rain-heavy"
+                style={{
+                  left: `${(i * 2.7) + (i % 3)}%`,
+                  top: '-50px',
+                  animationDuration: `${0.34 + ((i % 5) * 0.04)}s`,
+                  animationDelay: `-${(i % 9) * 0.07}s`
+                }}
+              />
+            ))}
+            <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-white/25 via-sky-200/10 to-transparent blur-md animate-splash-mist" />
+          </div>
+        )}
+
+        {/* 4. Badai Petir (Hujan Angin Kencang, Kilatan Petir & Sambaran Listrik Desktop) */}
+        {weatherCondition === 'badai' && (
+          <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+            {/* Kilatan Petir Menyala di Langit */}
+            <div className="absolute inset-0 bg-sky-100/40 mix-blend-screen pointer-events-none animate-lightning-flash" />
+
+            {/* Sambaran Garis Kilat Petir */}
+            <div className="absolute top-4 right-1/4 w-32 h-44 pointer-events-none animate-lightning-bolt">
+              <svg viewBox="0 0 100 160" className="w-full h-full stroke-white fill-none drop-shadow-[0_0_14px_rgba(255,255,255,0.95)]" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M50 0 L32 60 L58 65 L28 135 L62 82 L38 78 Z" fill="rgba(255,255,255,0.9)" />
+              </svg>
+            </div>
+
+            {/* Tetesan Hujan Badai Miring & Cepat */}
+            {[...Array(46)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute w-[2.2px] h-16 bg-gradient-to-b from-transparent via-sky-100/60 to-white/85 rotate-[22deg] animate-rain-storm"
+                style={{
+                  left: `${(i * 2.3) + (i % 4)}%`,
+                  top: '-60px',
+                  animationDuration: `${0.26 + ((i % 5) * 0.03)}s`,
+                  animationDelay: `-${(i % 8) * 0.06}s`
+                }}
+              />
+            ))}
+            <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-white/30 via-sky-200/15 to-transparent blur-lg animate-splash-mist" />
+          </div>
+        )}
+
+        {/* 5. Panas Terik: Aureole Surya, Sunbeams & Gelombang Haze */}
+        {weatherCondition === 'terik' && (
           <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
             <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full bg-radial from-amber-300/35 via-yellow-200/15 to-transparent blur-3xl animate-pulse" style={{ animationDuration: '5s' }} />
-            <div className="absolute -top-20 -left-20 w-[600px] h-[600px] origin-top-left animate-sunbeam opacity-25">
-              <div className="w-full h-full bg-[conic-gradient(from_0deg_at_0%_0%,transparent_0deg,rgba(251,191,36,0.3)_15deg,transparent_30deg,rgba(251,191,36,0.2)_45deg,transparent_60deg,rgba(251,191,36,0.25)_75deg,transparent_90deg)] blur-xl" />
+            <div className="absolute -top-20 -left-20 w-[600px] h-[600px] origin-top-left animate-sunbeam opacity-30">
+              <div className="w-full h-full bg-[conic-gradient(from_0deg_at_0%_0%,transparent_0deg,rgba(251,191,36,0.35)_15deg,transparent_30deg,rgba(251,191,36,0.22)_45deg,transparent_60deg,rgba(251,191,36,0.28)_75deg,transparent_90deg)] blur-xl" />
             </div>
+            {/* Gelombang Fatamorgana Panas di Permukaan */}
+            <div className="absolute bottom-8 inset-x-0 h-16 pointer-events-none overflow-hidden animate-heat-haze">
+              <div className="w-full h-full bg-gradient-to-t from-amber-300/15 via-orange-200/5 to-transparent blur-sm" />
+            </div>
+          </div>
+        )}
+
+        {/* 6. Teduh / Berawan Tebal: Awan Mendung & Bayangan Sejuk */}
+        {weatherCondition === 'berawan' && (
+          <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+            <div className="absolute top-2 left-10 w-[700px] h-[220px] bg-slate-900/10 rounded-full blur-3xl animate-overcast-drift" />
+            <div className="absolute top-12 right-12 w-[600px] h-[200px] bg-slate-800/8 rounded-full blur-3xl animate-overcast-drift" style={{ animationDelay: '-12s' }} />
           </div>
         )}
 
@@ -1218,7 +1315,7 @@ export default function LandingPage() {
         {/* ── LIVING SKY LAYER (DESKTOP): Kawanan Burung, Kawanan Kelelawar, 1 Pesawat & 1 Roket Bergantian ── */}
         <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
           {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - Variasi Ketinggian: Belakang & Bawah) */}
-          {weatherCondition !== 'night' && (
+          {weatherCondition !== 'malam' && weatherCondition !== 'badai' && (
             <div className="absolute inset-0 pointer-events-none">
               {/* Kawanan 1: Formasi V 5 Burung Melintas di Belakang Area Tengah */}
               <div className="absolute top-44 left-0 animate-flock-east">
@@ -1282,8 +1379,8 @@ export default function LandingPage() {
             </div>
           )}
 
-          {/* 2. KAWANAN KELELAWAR (Malam Hari - Variasi Ketinggian: Belakang & Bawah) */}
-          {weatherCondition === 'night' && (
+          {/* 2. KAWANAN KELELAWAR (Malam Hari & Badai - Variasi Ketinggian: Belakang & Bawah) */}
+          {(weatherCondition === 'malam' || weatherCondition === 'badai') && (
             <div className="absolute inset-0 pointer-events-none">
               {/* Swarm 1: 4 Kelelawar Melintas di Area Tengah */}
               <div className="absolute top-48 right-0 animate-swarm-west">
@@ -1416,23 +1513,35 @@ export default function LandingPage() {
           />
 
           {/* Scrim Overlay Lembut Dinamis sesuai Cuaca */}
+          {/* Scrim Gradasi Transparan Dinamis Mobile */}
           <div 
             className="absolute inset-0 z-0 pointer-events-none transition-all duration-700"
             style={{
-              background: weatherCondition === 'night' 
-                ? 'linear-gradient(180deg, rgba(7, 14, 30, 0.90) 0%, rgba(15, 23, 42, 0.74) 35%, rgba(13, 37, 30, 0.65) 70%, rgba(4, 25, 14, 0.88) 100%)'
-                : weatherCondition === 'rain'
-                ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.82) 0%, rgba(30, 41, 59, 0.68) 35%, rgba(20, 60, 45, 0.60) 70%, rgba(6, 40, 20, 0.84) 100%)'
-                : weatherCondition === 'hot'
-                ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.32) 0%, rgba(245, 158, 11, 0.16) 35%, rgba(61, 170, 55, 0.28) 70%, rgba(6, 50, 20, 0.78) 100%)'
-                : 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
+              background: 
+                weatherCondition === 'malam'
+                  ? 'linear-gradient(180deg, rgba(7, 14, 30, 0.90) 0%, rgba(15, 23, 42, 0.74) 35%, rgba(13, 37, 30, 0.65) 70%, rgba(4, 25, 14, 0.88) 100%)'
+                  : weatherCondition === 'badai'
+                  ? 'linear-gradient(180deg, rgba(11, 15, 25, 0.92) 0%, rgba(30, 41, 59, 0.78) 35%, rgba(15, 30, 25, 0.65) 70%, rgba(4, 25, 14, 0.88) 100%)'
+                  : weatherCondition === 'hujan_lebat'
+                  ? 'linear-gradient(180deg, rgba(15, 23, 42, 0.86) 0%, rgba(30, 41, 59, 0.70) 35%, rgba(20, 60, 45, 0.60) 70%, rgba(6, 40, 20, 0.84) 100%)'
+                  : weatherCondition === 'hujan_ringan'
+                  ? 'linear-gradient(180deg, rgba(30, 41, 59, 0.70) 0%, rgba(51, 65, 85, 0.50) 35%, rgba(20, 60, 45, 0.50) 70%, rgba(6, 40, 20, 0.82) 100%)'
+                  : weatherCondition === 'berawan'
+                  ? 'linear-gradient(180deg, rgba(51, 65, 85, 0.62) 0%, rgba(71, 85, 105, 0.40) 35%, rgba(40, 90, 60, 0.40) 70%, rgba(6, 40, 20, 0.80) 100%)'
+                  : weatherCondition === 'terik'
+                  ? 'linear-gradient(180deg, rgba(234, 88, 12, 0.32) 0%, rgba(245, 158, 11, 0.16) 35%, rgba(61, 170, 55, 0.28) 70%, rgba(6, 50, 20, 0.78) 100%)'
+                  : 'linear-gradient(180deg, rgba(0, 0, 0, 0.52) 0%, rgba(0, 0, 0, 0.20) 35%, rgba(61, 170, 55, 0.30) 70%, rgba(6, 50, 20, 0.78) 100%)'
             }}
           />
 
-          {/* Efek Spesifik Cuaca (Mobile) */}
-          {weatherCondition === 'night' && (
+          {/* ── EFEK SPESIFIK CUACA (MOBILE) ── */}
+
+          {/* 1. Malam Hari Mobile: Bulan Sabit, Bintang Berkelip & Bintang Jatuh */}
+          {weatherCondition === 'malam' && (
             <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
-              <div className="absolute top-4 right-10 w-28 h-28 rounded-full bg-radial from-sky-100/30 via-sky-200/10 to-transparent blur-xl" />
+              <div className="absolute top-4 right-10 w-24 h-24 rounded-full bg-radial from-amber-100/30 via-amber-200/10 to-transparent blur-xl" />
+              <div className="absolute top-6 right-14 w-7 h-7 rounded-full border-r-2 border-b-2 border-amber-100/90 shadow-[0_0_10px_rgba(254,240,138,0.7)] rotate-[-20deg]" />
+              <div className="absolute top-8 right-32 w-20 h-[1px] bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shooting-star" />
               {[
                 { t: '12%', l: '15%', s: 2, d: '0s' },
                 { t: '22%', l: '35%', s: 2.5, d: '1.2s' },
@@ -1460,30 +1569,86 @@ export default function LandingPage() {
             </div>
           )}
 
-          {weatherCondition === 'rain' && (
+          {/* 2. Hujan Ringan Mobile */}
+          {weatherCondition === 'hujan_ringan' && (
             <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
-              {[...Array(12)].map((_, i) => (
+              {[...Array(15)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-[1.5px] h-9 bg-gradient-to-b from-transparent via-sky-200/50 to-white/70 rotate-[12deg] animate-rain-fall"
+                  className="absolute w-[1.2px] h-6 bg-gradient-to-b from-transparent via-sky-200/40 to-white/60 rotate-[8deg] animate-rain-light"
                   style={{
-                    left: `${(i * 8) + (i % 3)}%`,
-                    top: '-40px',
-                    animationDuration: `${0.42 + ((i % 5) * 0.05)}s`,
-                    animationDelay: `-${(i % 7) * 0.10}s`
+                    left: `${(i * 6.5) + (i % 3)}%`,
+                    top: '-30px',
+                    animationDuration: `${0.75 + ((i % 5) * 0.08)}s`,
+                    animationDelay: `-${(i % 6) * 0.12}s`
                   }}
                 />
               ))}
-              <div className="absolute bottom-0 inset-x-0 h-14 bg-gradient-to-t from-white/20 via-sky-100/10 to-transparent blur-md" />
+              <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-white/15 via-sky-100/5 to-transparent blur-sm" />
             </div>
           )}
 
-          {weatherCondition === 'hot' && (
+          {/* 3. Hujan Lebat Mobile */}
+          {weatherCondition === 'hujan_lebat' && (
+            <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+              {[...Array(24)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-[1.8px] h-10 bg-gradient-to-b from-transparent via-sky-200/50 to-white/75 rotate-[15deg] animate-rain-heavy"
+                  style={{
+                    left: `${(i * 4) + (i % 3)}%`,
+                    top: '-40px',
+                    animationDuration: `${0.35 + ((i % 5) * 0.04)}s`,
+                    animationDelay: `-${(i % 7) * 0.08}s`
+                  }}
+                />
+              ))}
+              <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-white/20 via-sky-100/10 to-transparent blur-md animate-splash-mist" />
+            </div>
+          )}
+
+          {/* 4. Badai Petir Mobile */}
+          {weatherCondition === 'badai' && (
+            <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+              <div className="absolute inset-0 bg-sky-100/35 mix-blend-screen pointer-events-none animate-lightning-flash" />
+              <div className="absolute top-2 right-12 w-20 h-28 pointer-events-none animate-lightning-bolt">
+                <svg viewBox="0 0 100 160" className="w-full h-full stroke-white fill-none drop-shadow-[0_0_10px_rgba(255,255,255,0.95)]" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M50 0 L32 60 L58 65 L28 135 L62 82 L38 78 Z" fill="rgba(255,255,255,0.9)" />
+                </svg>
+              </div>
+              {[...Array(30)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-[2px] h-12 bg-gradient-to-b from-transparent via-sky-100/60 to-white/85 rotate-[22deg] animate-rain-storm"
+                  style={{
+                    left: `${(i * 3.3) + (i % 3)}%`,
+                    top: '-50px',
+                    animationDuration: `${0.26 + ((i % 5) * 0.03)}s`,
+                    animationDelay: `-${(i % 8) * 0.06}s`
+                  }}
+                />
+              ))}
+              <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-white/25 via-sky-200/15 to-transparent blur-md animate-splash-mist" />
+            </div>
+          )}
+
+          {/* 5. Panas Terik Mobile */}
+          {weatherCondition === 'terik' && (
             <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
               <div className="absolute -top-12 -left-12 w-48 h-48 rounded-full bg-radial from-amber-300/45 via-yellow-200/20 to-transparent blur-2xl animate-pulse" style={{ animationDuration: '4s' }} />
               <div className="absolute -top-20 -left-20 w-[500px] h-[500px] origin-top-left animate-sunbeam opacity-30">
                 <div className="w-full h-full bg-[conic-gradient(from_0deg_at_0%_0%,transparent_0deg,rgba(251,191,36,0.35)_15deg,transparent_30deg,rgba(251,191,36,0.25)_45deg,transparent_60deg,rgba(251,191,36,0.3)_75deg,transparent_90deg)] blur-lg" />
               </div>
+              <div className="absolute bottom-6 inset-x-0 h-12 pointer-events-none overflow-hidden animate-heat-haze">
+                <div className="w-full h-full bg-gradient-to-t from-amber-300/15 via-orange-200/5 to-transparent blur-xs" />
+              </div>
+            </div>
+          )}
+
+          {/* 6. Teduh Berawan Mobile */}
+          {weatherCondition === 'berawan' && (
+            <div className="absolute inset-0 z-5 pointer-events-none overflow-hidden select-none">
+              <div className="absolute top-2 left-4 w-[380px] h-[140px] bg-slate-900/10 rounded-full blur-2xl animate-overcast-drift" />
             </div>
           )}
 
@@ -1533,7 +1698,7 @@ export default function LandingPage() {
           {/* ── LIVING SKY LAYER (MOBILE): Kawanan Burung, Kawanan Kelelawar, 1 Pesawat & 1 Roket Bergantian ── */}
           <div className="absolute inset-0 z-12 pointer-events-none overflow-hidden select-none">
             {/* 1. KAWANAN BURUNG (Pagi/Siang/Panas/Cerah/Hujan - Variasi Ketinggian: Belakang Logo & Bawah) */}
-            {weatherCondition !== 'night' && (
+            {weatherCondition !== 'malam' && weatherCondition !== 'badai' && (
               <div className="absolute inset-0 pointer-events-none">
                 {/* Kawanan 1: Melintas TEPAT DI BELAKANG LOGO SEKOLAH (Area Tengah Vertikal) */}
                 <div className="absolute top-[44%] -translate-y-1/2 left-0 animate-flock-east">
@@ -1594,8 +1759,8 @@ export default function LandingPage() {
               </div>
             )}
 
-            {/* 2. KAWANAN KELELAWAR (Malam Hari - Variasi Ketinggian: Belakang Logo & Bawah) */}
-            {weatherCondition === 'night' && (
+            {/* 2. KAWANAN KELELAWAR (Malam Hari & Badai - Variasi Ketinggian: Belakang Logo & Bawah) */}
+            {(weatherCondition === 'malam' || weatherCondition === 'badai') && (
               <div className="absolute inset-0 pointer-events-none">
                 {/* Swarm 1: Melintas TEPAT DI BELAKANG LOGO SEKOLAH */}
                 <div className="absolute top-[48%] -translate-y-1/2 right-0 animate-swarm-west">
@@ -1710,15 +1875,22 @@ export default function LandingPage() {
               className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/45 hover:bg-black/65 active:scale-95 backdrop-blur-md border border-white/20 text-white text-[10.5px] font-black tracking-wide shadow-sm cursor-pointer transition-all duration-300"
               title="Lihat Telemetri Satelit Cuaca Presisi Sekolah"
             >
-              {weatherCondition === 'night' && <Moon size={11} className="text-amber-200" />}
-              {weatherCondition === 'rain' && <CloudRain size={11} className="text-sky-300 animate-bounce" />}
-              {weatherCondition === 'hot' && <Sun size={11} className="text-amber-400 animate-spin" style={{ animationDuration: '10s' }} />}
-              {weatherCondition === 'cloudy' && <CloudSun size={11} className="text-emerald-300" />}
+              {weatherCondition === 'malam' && <Moon size={11} className="text-amber-200" />}
+              {weatherCondition === 'badai' && <CloudLightning size={11} className="text-amber-300 animate-pulse" />}
+              {weatherCondition === 'hujan_lebat' && <CloudRain size={11} className="text-sky-300 animate-bounce" />}
+              {weatherCondition === 'hujan_ringan' && <CloudDrizzle size={11} className="text-sky-200" />}
+              {weatherCondition === 'terik' && <Sun size={11} className="text-amber-400 animate-spin" style={{ animationDuration: '10s' }} />}
+              {weatherCondition === 'berawan' && <CloudSun size={11} className="text-slate-300" />}
+              {weatherCondition === 'cerah' && <SunMedium size={11} className="text-amber-300" />}
               <span>
                 {weatherTemp ? `${weatherTemp}°C ` : ''}{
-                  weatherCondition === 'night' ? (weatherDetails.intensityLabel || 'Malam') :
-                  weatherCondition === 'rain' ? (weatherDetails.intensityLabel || 'Hujan') :
-                  weatherCondition === 'hot' ? 'Panas' : (weatherDetails.intensityLabel || 'Cerah')
+                  weatherCondition === 'malam' ? (weatherDetails.intensityLabel || 'Malam') :
+                  weatherCondition === 'badai' ? 'Badai' :
+                  weatherCondition === 'hujan_lebat' ? 'Hujan Lebat' :
+                  weatherCondition === 'hujan_ringan' ? 'Hujan Ringan' :
+                  weatherCondition === 'terik' ? 'Panas Terik' :
+                  weatherCondition === 'berawan' ? (weatherDetails.intensityLabel || 'Teduh') :
+                  (weatherDetails.intensityLabel || 'Cerah')
                 }
               </span>
               <span 
@@ -1763,17 +1935,25 @@ export default function LandingPage() {
           <div className="w-full max-w-md mx-auto flex flex-col items-center">
             
             {/* MOBILE RAIN ALERT BANNER */}
-            {weatherCondition === 'rain' && !isRainAlertDismissed && (
+            {isRainyWeather && !isRainAlertDismissed && (
               <div className="w-full mb-3 px-3 py-2.5 rounded-2xl bg-slate-900/95 text-white shadow-md border border-slate-700/80 backdrop-blur-md flex items-center justify-between gap-2.5 animate-fadeIn">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0 text-sky-300">
-                    <CloudRain size={16} className="animate-bounce" />
+                    {weatherCondition === 'badai' ? (
+                      <CloudLightning size={16} className="text-amber-300 animate-pulse" />
+                    ) : weatherCondition === 'hujan_lebat' ? (
+                      <CloudRain size={16} className="text-sky-300 animate-bounce" />
+                    ) : (
+                      <CloudDrizzle size={16} className="text-sky-200" />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-black text-sky-200 tracking-wide uppercase">Peringatan Hujan</span>
+                      <span className="text-[11px] font-black text-sky-200 tracking-wide uppercase">
+                        {weatherCondition === 'badai' ? 'Peringatan Badai' : 'Peringatan Hujan'}
+                      </span>
                       <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-sky-500/30 border border-sky-400/30 text-sky-100 font-bold">
-                        {weatherDetails.intensityLabel || 'Hujan'}
+                        {weatherDetails.intensityLabel || (weatherCondition === 'badai' ? 'Badai Petir' : weatherCondition === 'hujan_lebat' ? 'Hujan Lebat' : 'Hujan')}
                       </span>
                     </div>
                     <p className="text-[10.5px] text-slate-200 truncate">
@@ -1975,24 +2155,34 @@ export default function LandingPage() {
       <div className="hidden md:flex flex-col w-full max-w-[1400px] mx-auto px-6 md:px-8 relative z-10 select-none pt-[106px] lg:pt-[116px] pb-6 lg:pb-8 desktop-layout-wrapper">
 
         {/* DESKTOP RAIN ALERT BANNER */}
-        {weatherCondition === 'rain' && !isRainAlertDismissed && (
+        {isRainyWeather && !isRainAlertDismissed && (
           <div className="w-full mb-5 px-4 py-3 rounded-2xl bg-slate-900/95 text-white shadow-lg border border-slate-700/80 backdrop-blur-md flex items-center justify-between gap-4 animate-fadeIn">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0 text-sky-300">
-                <CloudRain size={20} className="animate-bounce" />
+                {weatherCondition === 'badai' ? (
+                  <CloudLightning size={20} className="text-amber-300 animate-pulse" />
+                ) : weatherCondition === 'hujan_lebat' ? (
+                  <CloudRain size={20} className="text-sky-300 animate-bounce" />
+                ) : (
+                  <CloudDrizzle size={20} className="text-sky-300" />
+                )}
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-sky-200 tracking-wider uppercase">Peringatan Cuaca Hujan</span>
+                  <span className="text-xs font-black text-sky-200 tracking-wider uppercase">
+                    {weatherCondition === 'badai' ? 'Peringatan Cuaca Badai' : 'Peringatan Cuaca Hujan'}
+                  </span>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/30 border border-sky-400/30 text-sky-100 font-extrabold">
-                    {weatherDetails.intensityLabel || 'Hujan'} ({weatherDetails.precipitation || 0} mm/jam)
+                    {weatherDetails.intensityLabel || (weatherCondition === 'badai' ? 'Badai Petir' : weatherCondition === 'hujan_lebat' ? 'Hujan Lebat' : 'Hujan')} ({weatherDetails.precipitation || 0} mm/jam)
                   </span>
                   <span className="text-[11px] text-slate-300 hidden lg:inline">
                     Titik Pantau: SMK Karya Guna 2 ({locationDisplayName})
                   </span>
                 </div>
                 <p className="text-xs text-slate-200 mt-0.5 truncate">
-                  Saat ini terdeteksi hujan di sekitar lingkungan sekolah. Bagi siswa, guru, dan tamu yang menuju atau hendak pulang, harap sedia payung/jas hujan dan berhati-hati berkendara.
+                  {weatherCondition === 'badai'
+                    ? 'Terpantau hujan lebat disertai kilat petir di sekitar lingkungan sekolah. Harap berlindung di dalam gedung dan utamakan keselamatan.'
+                    : 'Saat ini terdeteksi hujan di sekitar lingkungan sekolah. Bagi siswa, guru, dan tamu yang menuju atau hendak pulang, harap sedia payung/jas hujan dan berhati-hati berkendara.'}
                 </p>
               </div>
             </div>
@@ -2063,15 +2253,22 @@ export default function LandingPage() {
                 style={{ borderRadius: '12px' }}
                 title="Klik untuk membuka data telemetri satelit cuaca presisi sekolah"
               >
-                {weatherCondition === 'night' && <Moon size={12} className="text-amber-200 shrink-0" />}
-                {weatherCondition === 'rain' && <CloudRain size={12} className="text-sky-300 shrink-0 animate-bounce" />}
-                {weatherCondition === 'hot' && <Sun size={12} className="text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
-                {weatherCondition === 'cloudy' && <CloudSun size={12} className="text-emerald-300 shrink-0" />}
+                {weatherCondition === 'malam' && <Moon size={12} className="text-amber-200 shrink-0" />}
+                {weatherCondition === 'badai' && <CloudLightning size={12} className="text-amber-300 shrink-0 animate-pulse" />}
+                {weatherCondition === 'hujan_lebat' && <CloudRain size={12} className="text-sky-300 shrink-0 animate-bounce" />}
+                {weatherCondition === 'hujan_ringan' && <CloudDrizzle size={12} className="text-sky-200 shrink-0" />}
+                {weatherCondition === 'terik' && <Sun size={12} className="text-amber-400 shrink-0 animate-spin" style={{ animationDuration: '12s' }} />}
+                {weatherCondition === 'berawan' && <CloudSun size={12} className="text-slate-300 shrink-0" />}
+                {weatherCondition === 'cerah' && <SunMedium size={12} className="text-amber-300 shrink-0" />}
                 <span>
                   {locationDisplayName} {weatherTemp ? `${weatherTemp}°C` : ''} - {
-                    weatherCondition === 'night' ? (weatherDetails.intensityLabel || 'Malam') :
-                    weatherCondition === 'rain' ? (weatherDetails.intensityLabel || 'Hujan') :
-                    weatherCondition === 'hot' ? 'Panas' : (weatherDetails.intensityLabel || 'Cerah')
+                    weatherCondition === 'malam' ? (weatherDetails.intensityLabel || 'Malam') :
+                    weatherCondition === 'badai' ? 'Badai' :
+                    weatherCondition === 'hujan_lebat' ? 'Hujan Lebat' :
+                    weatherCondition === 'hujan_ringan' ? 'Hujan Ringan' :
+                    weatherCondition === 'terik' ? 'Panas Terik' :
+                    weatherCondition === 'berawan' ? (weatherDetails.intensityLabel || 'Teduh') :
+                    (weatherDetails.intensityLabel || 'Cerah')
                   }
                 </span>
                 <span 
@@ -2518,10 +2715,13 @@ export default function LandingPage() {
             >
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shadow-xs">
-                  {weatherCondition === 'rain' ? <CloudRain size={20} className="text-sky-200 animate-bounce" /> :
-                   weatherCondition === 'night' ? <Moon size={20} className="text-amber-200" /> :
-                   weatherCondition === 'hot' ? <Sun size={20} className="text-amber-300" /> :
-                   <CloudSun size={20} className="text-emerald-200" />}
+                  {weatherCondition === 'badai' ? <CloudLightning size={20} className="text-amber-300 animate-pulse" /> :
+                   weatherCondition === 'hujan_lebat' ? <CloudRain size={20} className="text-sky-200 animate-bounce" /> :
+                   weatherCondition === 'hujan_ringan' ? <CloudDrizzle size={20} className="text-sky-200" /> :
+                   weatherCondition === 'malam' ? <Moon size={20} className="text-amber-200" /> :
+                   weatherCondition === 'terik' ? <Sun size={20} className="text-amber-300" /> :
+                   weatherCondition === 'berawan' ? <CloudSun size={20} className="text-slate-200" /> :
+                   <SunMedium size={20} className="text-amber-200" />}
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-white">Stasiun Cuaca Real-Time</h3>
@@ -2564,7 +2764,14 @@ export default function LandingPage() {
                 <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80">
                   <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Kondisi Cuaca</span>
                   <span className="text-base font-black text-emerald-950 mt-1 block truncate">
-                    {weatherDetails.intensityLabel || (weatherCondition === 'rain' ? 'Hujan' : weatherCondition === 'night' ? 'Malam' : weatherCondition === 'hot' ? 'Panas' : 'Cerah Berawan')}
+                    {weatherDetails.intensityLabel || (
+                      weatherCondition === 'badai' ? 'Badai Petir' :
+                      weatherCondition === 'hujan_lebat' ? 'Hujan Lebat' :
+                      weatherCondition === 'hujan_ringan' ? 'Hujan Ringan' :
+                      weatherCondition === 'malam' ? 'Malam Hari' :
+                      weatherCondition === 'terik' ? 'Panas Terik' :
+                      weatherCondition === 'berawan' ? 'Teduh Berawan' : 'Cerah'
+                    )}
                   </span>
                   <span className="text-[10px] text-emerald-700 font-medium block mt-0.5">
                     Mode: {manualWeather ? 'Simulasi Manual' : 'Satelit Live'}
@@ -2637,35 +2844,49 @@ export default function LandingPage() {
               </div>
 
               {/* Simulasi Cuaca Manual Selector */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                <span className="text-[10.5px] font-bold text-slate-700 block mb-2">Simulasi Kondisi Cuaca:</span>
-                <div className="grid grid-cols-5 gap-1.5">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                <span className="text-[11px] font-bold text-slate-700 block mb-2.5">
+                  Simulasi Kondisi Cuaca & Animasi:
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { key: null, label: 'Otomatis' },
-                    { key: 'cloudy', label: 'Cerah' },
-                    { key: 'rain', label: 'Hujan' },
-                    { key: 'hot', label: 'Panas' },
-                    { key: 'night', label: 'Malam' },
-                  ].map((item) => (
-                    <button
-                      key={String(item.key)}
-                      type="button"
-                      onClick={() => {
-                        setManualWeather(item.key);
-                        if (item.key === 'rain') {
-                          setIsRainAlertDismissed(false);
-                          triggerRainNotification('Simulasi Hujan', 2.5);
-                        }
-                      }}
-                      className={`px-1.5 py-1.5 rounded-lg text-[10px] font-bold text-center transition-all cursor-pointer ${
-                        manualWeather === item.key 
-                          ? 'bg-emerald-600 text-white shadow-xs' 
-                          : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/70'
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                    { key: null, label: 'Otomatis Satelit', icon: RefreshCw },
+                    { key: 'cerah', label: 'Cerah', icon: SunMedium },
+                    { key: 'berawan', label: 'Teduh Berawan', icon: CloudSun },
+                    { key: 'terik', label: 'Panas Terik', icon: Sun },
+                    { key: 'hujan_ringan', label: 'Hujan Ringan', icon: CloudDrizzle },
+                    { key: 'hujan_lebat', label: 'Hujan Lebat', icon: CloudRain },
+                    { key: 'badai', label: 'Badai Petir', icon: CloudLightning },
+                    { key: 'malam', label: 'Malam Hari', icon: Moon },
+                  ].map((item) => {
+                    const ItemIcon = item.icon;
+                    const isActive = manualWeather === item.key;
+                    return (
+                      <button
+                        key={String(item.key)}
+                        type="button"
+                        onClick={() => {
+                          setManualWeather(item.key);
+                          if (['hujan_ringan', 'hujan_lebat', 'badai'].includes(item.key)) {
+                            setIsRainAlertDismissed(false);
+                            triggerRainNotification(
+                              item.key === 'badai' ? 'Peringatan Hujan Badai Petir' : item.key === 'hujan_lebat' ? 'Peringatan Hujan Lebat' : 'Peringatan Hujan Ringan',
+                              item.key === 'badai' ? 12.0 : item.key === 'hujan_lebat' ? 4.5 : 1.2
+                            );
+                          }
+                        }}
+                        className={`flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-[10.5px] font-bold text-center transition-all cursor-pointer shadow-2xs ${
+                          isActive 
+                            ? 'text-white shadow-xs font-black' 
+                            : 'bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/80'
+                        }`}
+                        style={isActive ? { backgroundColor: 'var(--ui-primary, #064e3b)' } : undefined}
+                      >
+                        <ItemIcon size={13} className="shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

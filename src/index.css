@@ -1728,7 +1728,7 @@ input::-ms-clear {
   animation: starTwinkle 2.0s ease-in-out infinite;
 }
 
-/* ── HUJAN ── */
+/* ── HUJAN DASAR & VARIAN DETIL CUACA ── */
 @keyframes rainDropFall {
   0%   { transform: translate3d(0, -60px, 0); opacity: 0; }
   15%  { opacity: 0.65; }
@@ -1737,6 +1737,150 @@ input::-ms-clear {
 }
 .animate-rain-fall {
   animation: rainDropFall 0.52s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* 1. Hujan Ringan (Drizzle / Gerimis Lembut) */
+@keyframes lightRainDrop {
+  0%   { transform: translate3d(0, -35px, 0); opacity: 0; }
+  20%  { opacity: 0.45; }
+  85%  { opacity: 0.45; }
+  100% { transform: translate3d(-15px, 350px, 0); opacity: 0; }
+}
+.animate-rain-light {
+  animation: lightRainDrop 0.85s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* 2. Hujan Lebat (Heavy Rain / Guyuran Deras) */
+@keyframes heavyRainDrop {
+  0%   { transform: translate3d(0, -60px, 0); opacity: 0; }
+  15%  { opacity: 0.85; }
+  85%  { opacity: 0.85; }
+  100% { transform: translate3d(-45px, 420px, 0); opacity: 0; }
+}
+.animate-rain-heavy {
+  animation: heavyRainDrop 0.36s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* 3. Badai Petir (Thunderstorm / Hujan Badai Kencang) */
+@keyframes stormRainDrop {
+  0%   { transform: translate3d(0, -70px, 0); opacity: 0; }
+  10%  { opacity: 0.95; }
+  85%  { opacity: 0.95; }
+  100% { transform: translate3d(-60px, 440px, 0); opacity: 0; }
+}
+.animate-rain-storm {
+  animation: stormRainDrop 0.28s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* Efek Kilatan Petir di Langit (Realistic Strobe Flash) */
+@keyframes lightningFlashEffect {
+  0%, 88%, 93%, 97%, 100% {
+    opacity: 0;
+  }
+  89% {
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.2;
+  }
+  91% {
+    opacity: 0.95;
+  }
+  94% {
+    opacity: 0.55;
+  }
+}
+.animate-lightning-flash {
+  animation: lightningFlashEffect 7.5s ease-out infinite;
+  will-change: opacity;
+}
+
+/* Sambaran Garis Kilat Petir */
+@keyframes lightningBoltDraw {
+  0%, 88%, 95%, 100% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  89%, 91% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  92% {
+    opacity: 0.1;
+  }
+}
+.animate-lightning-bolt {
+  animation: lightningBoltDraw 7.5s ease-out infinite;
+  will-change: opacity, transform;
+}
+
+/* Kabut Percikan Air Hujan di Dasar (Splash Mist) */
+@keyframes splashMistPulse {
+  0%, 100% { opacity: 0.25; transform: scaleY(1); }
+  50%       { opacity: 0.6; transform: scaleY(1.25); }
+}
+.animate-splash-mist {
+  animation: splashMistPulse 2.4s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+/* 4. Panas Terik: Gelombang Fatamorgana Panas (Heat Haze Shimmer) */
+@keyframes heatHazeWave {
+  0%, 100% {
+    transform: translateY(0) scaleY(1);
+    opacity: 0.16;
+  }
+  50% {
+    transform: translateY(-5px) scaleY(1.08);
+    opacity: 0.32;
+  }
+}
+.animate-heat-haze {
+  animation: heatHazeWave 3.5s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* 5. Awan Mendung / Teduh: Awan Gelap Melintas (Overcast Drift) */
+@keyframes overcastDrift {
+  0% {
+    transform: translate3d(-60px, 0, 0);
+  }
+  50% {
+    transform: translate3d(50px, -4px, 0);
+  }
+  100% {
+    transform: translate3d(-60px, 0, 0);
+  }
+}
+.animate-overcast-drift {
+  animation: overcastDrift 24s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* 6. Bintang Jatuh di Malam Hari (Shooting Star Streak) */
+@keyframes shootingStarFly {
+  0%, 84% {
+    transform: translate3d(0, 0, 0) rotate(-35deg) scaleX(0);
+    opacity: 0;
+  }
+  85% {
+    transform: translate3d(0, 0, 0) rotate(-35deg) scaleX(1);
+    opacity: 0.9;
+  }
+  88% {
+    transform: translate3d(-190px, 170px, 0) rotate(-35deg) scaleX(0.4);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.animate-shooting-star {
+  animation: shootingStarFly 12s ease-out infinite;
   will-change: transform, opacity;
 }
 
@@ -1839,7 +1983,9 @@ input::-ms-clear {
 .animate-ufo-fly      { animation: ufoFlyAcross 34s ease-in-out infinite; will-change: transform, opacity; animation-play-state: var(--animation-play-state, running); }
 .animate-ufo-glow     { animation: ufoGlow 2.5s ease-in-out infinite; animation-play-state: var(--animation-play-state, running); }
 .animate-aerial-cloud-1, .animate-aerial-cloud-2, .animate-aerial-cloud-3, .animate-aerial-haze,
-.animate-star-twinkle, .animate-rain-fall, .animate-sunbeam, .animate-flag-wave {
+.animate-star-twinkle, .animate-rain-fall, .animate-rain-light, .animate-rain-heavy, .animate-rain-storm,
+.animate-lightning-flash, .animate-lightning-bolt, .animate-splash-mist, .animate-heat-haze, .animate-overcast-drift,
+.animate-shooting-star, .animate-sunbeam, .animate-flag-wave {
   animation-play-state: var(--animation-play-state, running);
 }
 
