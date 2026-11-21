@@ -741,7 +741,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">
           Memuat Fasilitas & Ruangan...
         </div>}>
-          <FasilitasRuangan rooms={rooms} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} tabProps={tabProps} />
+          <FasilitasRuangan rooms={rooms} updateSelectionForTab={updateSelectionForTab} openModal={openModal} checkDependencies={checkDependencies} handleDelete={handleDelete} renderTable={renderTable} tabProps={tabProps} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case "ketersediaan":
         return <TabKetersediaan {...tabProps} />;
@@ -826,7 +826,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         </Suspense>;
       case"laporan_absensi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Laporan Absensi...</div>}>
-          <LaporanAbsensi classes={classes} students={students} />
+          <LaporanAbsensi classes={classes} students={students} activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"hikvision_devices":
         return <Suspense fallback={<div className="p-8 text-center text-slate-400">

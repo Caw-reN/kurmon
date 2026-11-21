@@ -6,11 +6,23 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function FasilitasRuangan(props) {
-  const [activeTab, setActiveTab] = useState("ruangan");
+  const validTabs = ["ruangan", "denah"];
+  const [internalTab, setInternalTab] = useState(
+    validTabs.includes(props.initialTab) ? props.initialTab : "ruangan"
+  );
+  const resolvedTab = validTabs.includes(props.activeTab) ? props.activeTab : internalTab;
+  const activeTab = validTabs.includes(resolvedTab) ? resolvedTab : "ruangan";
+
+  const handleTabChange = (tabId) => {
+    setInternalTab(tabId);
+    if (props.setActiveTab) {
+      props.setActiveTab(tabId);
+    }
+  };
 
   const tabs = [
-    { id:"ruangan", label:"Data Ruangan", icon: DoorOpen, onClick: () => setActiveTab("ruangan"), isActive: activeTab ==="ruangan" },
-    { id:"denah", label:"Denah Ruangan", icon: Map, onClick: () => setActiveTab("denah"), isActive: activeTab ==="denah" },
+    { id: "ruangan", label: "Data Ruangan", icon: DoorOpen, onClick: () => handleTabChange("ruangan"), isActive: activeTab === "ruangan" },
+    { id: "denah", label: "Denah Ruangan", icon: Map, onClick: () => handleTabChange("denah"), isActive: activeTab === "denah" },
   ];
 
   return (

@@ -78,19 +78,34 @@ export default function TabKetersediaan({
     currentPage * itemsPerPage
   );
 
+  const userRole = currentUser?.role || '';
+  const userDiv = (currentUser?.division || '').toLowerCase();
+  const userSubrole = (currentUser?.subrole || '').toLowerCase();
+  const canManageSchedule = isSuperAdminRole(userRole) ||
+    (userRole === 'waka' && (userDiv === 'kurikulum' || !userDiv)) ||
+    userRole === 'kurikulum' ||
+    userRole === 'waka_kurikulum' ||
+    userSubrole.includes('kurikulum') ||
+    userDiv === 'kurikulum' ||
+    Boolean(currentUser?.isKurikulum);
+
+  const scheduleTabs = [
+    { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+    { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+    ...(canManageSchedule ? [
+      { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+      { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+      { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+    ] : [])
+  ];
+
   return (
     <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10">
       <PageHeader 
         title="Ketersediaan Guru"
         description={tabSubtitles["ketersediaan"]}
         icon={Clock}
-        tabs={[
-          { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
-          { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
-          { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
-          { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
-          { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
-        ]}
+        tabs={scheduleTabs}
         activeTab={activeTab || 'ketersediaan'}
         onTabChange={setActiveTab}
       >

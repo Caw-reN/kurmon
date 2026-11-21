@@ -4,9 +4,30 @@ import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
 
 export default function TabAdvancedRules(props) {
-  const { tabSubtitles, showNotification, advancedRules, setAdvancedRules } = props;
+  const { tabSubtitles, showNotification, advancedRules, setAdvancedRules, currentUser } = props;
   const { ...allProps } = props;
   // Destructure specific props as needed in the component
+
+  const userRole = currentUser?.role || '';
+  const userDiv = (currentUser?.division || '').toLowerCase();
+  const userSubrole = (currentUser?.subrole || '').toLowerCase();
+  const canManageSchedule = (userRole === 'admin' || userRole === 'superadmin') ||
+    (userRole === 'waka' && (userDiv === 'kurikulum' || !userDiv)) ||
+    userRole === 'kurikulum' ||
+    userRole === 'waka_kurikulum' ||
+    userSubrole.includes('kurikulum') ||
+    userDiv === 'kurikulum' ||
+    Boolean(currentUser?.isKurikulum);
+
+  const scheduleTabs = [
+    { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+    { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+    ...(canManageSchedule ? [
+      { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+      { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+      { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+    ] : [])
+  ];
 
 return (
   <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300">
@@ -14,13 +35,7 @@ return (
       title="Aturan Penjadwalan Lanjutan"
       description={tabSubtitles["advanced_rules"]}
       icon={SlidersHorizontal}
-      tabs={[
-        { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
-        { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
-        { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
-        { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
-        { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
-      ]}
+      tabs={scheduleTabs}
       activeTab={props.activeTab || 'advanced_rules'}
       onTabChange={props.setActiveTab}
     />

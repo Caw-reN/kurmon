@@ -86,19 +86,34 @@ export default function TabGenerate(props) {
     });
   }, [teachingLoads, classes, slotFormData.className]);
   
+  const userRole = currentUser?.role || '';
+  const userDiv = (currentUser?.division || '').toLowerCase();
+  const userSubrole = (currentUser?.subrole || '').toLowerCase();
+  const canManageSchedule = isSuperAdminRole(userRole) ||
+    (userRole === 'waka' && (userDiv === 'kurikulum' || !userDiv)) ||
+    userRole === 'kurikulum' ||
+    userRole === 'waka_kurikulum' ||
+    userSubrole.includes('kurikulum') ||
+    userDiv === 'kurikulum' ||
+    Boolean(currentUser?.isKurikulum);
+
+  const scheduleTabs = useMemo(() => [
+    { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+    { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+    ...(canManageSchedule ? [
+      { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+      { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+      { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+    ] : [])
+  ], [canManageSchedule]);
+
   return (
     <div className="flex flex-col gap-4 h-full w-full animate-in fade-in duration-300 relative z-10 print:block print:h-auto pb-20 sm:pb-6">
       <PageHeader
         title="Jadwal Pelajaran"
         description="Jadwal Mengajar Guru & Jadwal Pelajaran Kelas Tersinkronisasi"
         icon={Calendar}
-        tabs={[
-          { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
-          { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
-          { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
-          { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
-          { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
-        ]}
+        tabs={scheduleTabs}
         activeTab={props.activeTab || 'generate'}
         onTabChange={setActiveTab}
         onBack={() => typeof window !== 'undefined' && window.__setActiveTab ? window.__setActiveTab('dashboard') : null}

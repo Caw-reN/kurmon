@@ -6,13 +6,26 @@ import HikvisionStudentReport from'./HikvisionStudentReport.jsx';
 import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
-export default function LaporanAbsensi({ classes = [], students = [] }) {
-  const [activeTab, setActiveTab] = useState("guru");
+export default function LaporanAbsensi({ classes = [], students = [], initialTab, activeTab: propActiveTab, setActiveTab: propSetActiveTab }) {
+  const validTabs = ["guru", "karyawan", "siswa"];
+  const defaultTab = validTabs.includes(initialTab)
+    ? initialTab
+    : (validTabs.includes(propActiveTab) ? propActiveTab : "guru");
+  const [internalTab, setInternalTab] = useState(defaultTab);
+
+  const activeTab = validTabs.includes(propActiveTab) ? propActiveTab : internalTab;
+
+  const handleTabChange = (tabId) => {
+    setInternalTab(tabId);
+    if (propSetActiveTab) {
+      propSetActiveTab(tabId);
+    }
+  };
 
   const tabs = [
-    { id:"guru", label:"Laporan Guru", icon: Users },
-    { id:"karyawan", label:"Laporan Karyawan", icon: Briefcase },
-    { id:"siswa", label:"Laporan Siswa", icon: GraduationCap },
+    { id: "guru", label: "Laporan Guru", icon: Users },
+    { id: "karyawan", label: "Laporan Karyawan", icon: Briefcase },
+    { id: "siswa", label: "Laporan Siswa", icon: GraduationCap },
   ];
 
   return (
@@ -23,7 +36,7 @@ export default function LaporanAbsensi({ classes = [], students = [] }) {
         icon={ClipboardList}
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
 
       {/* Content Area */}

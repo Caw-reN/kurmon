@@ -100,19 +100,23 @@ const MasterDataBeban = memo(function MasterDataBeban({
           </React.Fragment>
         ) : null;
 
+        const scheduleTabs = [
+          { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
+          { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
+          ...(isKurikulum ? [
+            { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
+            { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
+            { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
+          ] : [])
+        ];
+
         return (
           <div className="flex flex-col gap-4  w-full animate-in fade-in duration-300">
             <PageHeader 
               title="Beban Mengajar"
               icon={BookOpen}
               description="Kelola alokasi guru untuk setiap mata pelajaran dan kelas."
-              tabs={[
-                { id: 'generate', label: 'Jadwal Pelajaran', icon: Calendar },
-                { id: 'ketersediaan', label: 'Ketersediaan Guru', icon: Clock },
-                { id: 'beban', label: 'Beban Mengajar', icon: FileSpreadsheet },
-                { id: 'pengaturan', label: 'Konfigurasi Waktu', icon: Settings },
-                { id: 'advanced_rules', label: 'Aturan Penjadwalan', icon: SlidersHorizontal },
-              ]}
+              tabs={scheduleTabs}
               activeTab={activeTab || 'beban'}
               onTabChange={setActiveTab}
             />

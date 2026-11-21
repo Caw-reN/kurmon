@@ -189,16 +189,20 @@ export default function AuditLog({ activeTab, setActiveTab }) {
   const uniqueRoles = useMemo(() => ["all", ...new Set(logs.map(l => l.user_role).filter(Boolean))], [logs]);
   const totalPages = Math.ceil(total / itemsPerPage);
 
+  const auditTabs = useMemo(() => isSuperAdmin ? [
+    { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+    { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
+    { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+    { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
+    { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+  ] : [
+    { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+  ], [isSuperAdmin]);
+
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
       <PageHeader title="Log Aktivitas (Audit Trail)" description="Rekam jejak semua perubahan data penting beserta IP address dan perangkat yang digunakan." icon={Activity}
-        tabs={[
-          { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
-          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
-          { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
-          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
-          { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
-        ]}
+        tabs={auditTabs}
         activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-[var(--ui-radius-small)] text-sm text-indigo-700">

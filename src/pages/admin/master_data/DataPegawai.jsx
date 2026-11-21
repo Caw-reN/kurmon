@@ -6,8 +6,12 @@ import { PageHeader } from'../../../components/monitoring/ui/index.js';
 
 
 export default function DataPegawai(props) {
-  const [internalTab, setInternalTab] = useState(props.initialTab || "guru");
-  const currentTab = props.activeTab || internalTab;
+  const validTabs = ["guru", "karyawan"];
+  const [internalTab, setInternalTab] = useState(
+    validTabs.includes(props.initialTab) ? props.initialTab : "guru"
+  );
+  const resolvedTab = validTabs.includes(props.activeTab) ? props.activeTab : internalTab;
+  const currentTab = validTabs.includes(resolvedTab) ? resolvedTab : "guru";
 
   const handleTabChange = (tabId) => {
     setInternalTab(tabId);
