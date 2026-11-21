@@ -1594,6 +1594,7 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
   const user = useAuthStore(state => state.user);
   const authToken = user?.authToken;
   const role = user?.role ||'';
+  const isWalas = Boolean(user?.isWalas || user?.walasClass || role === 'walas' || role === 'walikelas');
   const isKurikulum = ['admin','superadmin'].includes(role) || (role ==='waka' && (user?.division ||"").toLowerCase() ==='kurikulum');
   const teacherCode = user?.code || user?.id ||'';
 
@@ -2401,9 +2402,9 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
         description="Pencatatan kegiatan KBM harian yang tersinkron dengan jadwal Anda."
         tabs={[
           { id: 'harian', label: 'Jurnal Saya', icon: BookOpen },
-          { id: 'rekap_kelas', label: 'Rekapan Jurnal Kelas', icon: ClipboardList },
+          ...(!isWalas ? [{ id: 'rekap_kelas', label: 'Rekapan Jurnal Kelas', icon: ClipboardList }] : []),
           ...(isKurikulum ? [{ id: 'rekap', label: 'Rekap Per Guru', icon: Users }] : [])
-        ]}
+        ].filter((_t, _idx, arr) => arr.length > 1)}
         activeTab={activeView}
         onTabChange={setActiveView}
         onBack={onBack}
@@ -2566,10 +2567,13 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
 
               {/* Alert Banner for Missed Past Journals - Desktop Detailed Banner */}
               {missedPastSlots.length > 0 && (
-                <div className="hidden sm:flex p-3.5 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/90 items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                <div 
+                  onClick={() => setHarianSubView('terlewat')}
+                  className="hidden sm:flex p-3 rounded-[var(--ui-radius-card)] bg-gradient-to-r from-amber-50 to-amber-100/50 border border-amber-200/90 items-center justify-between gap-3 shadow-xs animate-in fade-in cursor-pointer hover:border-amber-300 transition-all group"
+                >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                      <AlertCircle size={18} strokeWidth={2.5} />
+                    <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <AlertCircle size={16} strokeWidth={2.5} />
                     </div>
                     <div>
                       <p className="text-xs font-black text-amber-950 flex items-center gap-1.5 flex-wrap">
@@ -2581,14 +2585,10 @@ export default function JurnalHarianGuru({ classes = [], teachers = [], schedule
                       </p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setHarianSubView('terlewat')}
-                    className="px-3.5 py-2 rounded-[var(--ui-radius-control)] bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shrink-0 transition-all shadow-xs cursor-pointer flex items-center gap-1.5 active:scale-95 w-auto justify-center"
-                  >
-                    <span>Buka Jurnal Terlewat ({missedPastSlots.length})</span>
-                    <ArrowRight size={14} />
-                  </button>
+                  <div className="flex items-center gap-1 text-xs font-bold text-amber-800 group-hover:text-amber-950 transition-colors shrink-0">
+                    <span>Lihat di Tab Terlewat</span>
+                    <ArrowRight size={13} />
+                  </div>
                 </div>
               )}
 

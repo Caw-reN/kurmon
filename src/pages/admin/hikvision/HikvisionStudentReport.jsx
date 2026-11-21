@@ -137,14 +137,21 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
 
   // Sinkronisasi tab saat navigasi menu sidebar dipanggil
   React.useEffect(() => {
+    if (isWalasReport || isWalasUser) {
+      if (activeTab === "surat") {
+        setActiveTab("matriks");
+      }
+    }
     if (isWalasReport) {
       setActiveTab("matriks");
     } else if (routeTab === "keterangan_massal") {
       setActiveTab("keterangan");
-    } else if (routeTab === "hikvision_report_siswa") {
-      setActiveTab("matriks");
+    } else if (routeTab === "hikvision_report_siswa" && activeTab !== "keterangan") {
+      if (isWalasUser && activeTab === "surat") {
+        setActiveTab("matriks");
+      }
     }
-  }, [routeTab, isWalasReport]);
+  }, [routeTab, isWalasReport, isWalasUser, activeTab]);
 
   // Fallback pengamanan hak akses tab keterangan massal
   React.useEffect(() => {
@@ -1990,9 +1997,9 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                 ? []
                 : [
                     { id: 'matriks', label: 'Rekap Matriks Kehadiran', icon: FileText },
-                    { id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX },
+                    ...(!isWalasUser ? [{ id: 'surat', label: 'Manajemen Surat Izin/Sakit', icon: UserX }] : []),
                     ...(canManageBulkRemarks ? [{ id: 'keterangan', label: 'Keterangan Massal', icon: Sparkles }] : [])
-                  ]
+                  ].filter((_t, _idx, arr) => arr.length > 1)
             }
             activeTab={activeTab}
             onTabChange={setActiveTab}

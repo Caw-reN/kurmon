@@ -96,7 +96,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Kurikulum',
     adminGroupIcon: BookOpen,
     adminGroupKey: 'kurikulum',
-    activeIds: ['jurnal_harian', 'rekap_jurnal_kelas'],
+    activeIds: ['jurnal_harian'],
   },
   {
     id: 'pengaturan',
@@ -165,7 +165,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Kesiswaan',
     adminGroupIcon: Users,
     adminGroupKey: 'kesiswaan',
-    activeIds: ['hikvision_report_siswa', 'kedisiplinan_absensi', 'keterangan_massal'],
+    activeIds: ['hikvision_report_siswa', 'keterangan_massal'],
   },
   {
     id: 'kedisiplinan_absensi',
@@ -229,9 +229,9 @@ export const MENU_REGISTRY = [
     icon: ClipboardList,
     label: 'Piket & Pelanggaran',
     section: 'Kesiswaan',
-    adminGroup: 'Kesiswaan',
-    adminGroupIcon: Users,
-    adminGroupKey: 'kesiswaan',
+    adminGroup: null,
+    adminGroupKey: null,
+    hideInSidebar: true,
   },
   {
     id: 'kedisiplinan_bpbk',
@@ -573,9 +573,9 @@ export const MENU_REGISTRY = [
     icon: Activity,
     label: 'Log Aktivitas',
     section: 'Aktivitas',
-    adminGroup: 'Konfigurasi Sistem',
-    adminGroupIcon: Settings,
-    adminGroupKey: 'sistem',
+    adminGroup: null,
+    adminGroupKey: null,
+    hideInSidebar: true,
   },
   {
     id: 'keamanan',

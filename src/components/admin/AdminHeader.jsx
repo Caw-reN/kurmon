@@ -123,7 +123,12 @@ const getTabLabel = (tabId) => {
   return labels[tabId] ||"Sistem Akademik & Absensi";
 };
 
-const getParentGroupLabel = (tabId) => {
+const getParentGroupLabel = (tabId, user = null) => {
+  const isWalas = Boolean(user?.isWalas || user?.walasClass || user?.role === 'walas' || user?.role === 'walikelas');
+  if (isWalas && ['catatan_walikelas', 'walas_report', 'laporan_rekap_walas', 'rekap_jurnal_kelas', 'kedisiplinan_absensi'].includes(tabId)) {
+    return "Wali Kelas";
+  }
+
   const regItem = MENU_REGISTRY.find(m => m.id === tabId || (Array.isArray(m.activeIds) && m.activeIds.includes(tabId)));
   if (regItem?.adminGroup) return regItem.adminGroup;
   if (regItem?.section) return regItem.section;
@@ -492,13 +497,13 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
               <IconComponent size={16} strokeWidth={2.4} />
             </div>
           )}
-          {getParentGroupLabel(activeTab) !== getTabLabel(activeTab) ? (
+          {getParentGroupLabel(activeTab, currentUser) !== getTabLabel(activeTab) ? (
             <h1 className="text-sm md:text-base font-bold flex items-center gap-1.5 select-none tracking-tight animate-in fade-in duration-200 min-w-0 truncate">
               <span className={cn(
                 "font-medium text-xs hidden sm:inline truncate",
                 isPrimaryHeader ? "text-white/70" : "text-slate-400"
               )}>
-                {getParentGroupLabel(activeTab)}
+                {getParentGroupLabel(activeTab, currentUser)}
               </span>
               <span className={cn(
                 "font-light text-xs hidden sm:inline",
