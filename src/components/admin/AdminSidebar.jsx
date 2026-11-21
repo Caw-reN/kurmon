@@ -331,7 +331,7 @@ export default function AdminSidebar({
 
   const allGroupKeys = useMemo(() => [
     'dataMaster', 'tataUsaha', 'kurikulum', 'kesiswaan', 'kehadiran', 'hubin', 'sarpras', 'absensi', 'informasiUmum', 'sistem',
-    'jadwal_agenda', 'pembelajaran', 'wali_kelas', 'administrasi', 'pkl_hubin', 'mesin_absensi', 'tampilan', 'komunikasi', 'pengaturan', 'data_master'
+    'jadwal_agenda', 'pembelajaran', 'wali_kelas', 'kehadiran', 'administrasi', 'pkl_hubin', 'mesin_absensi', 'tampilan', 'aktivitas', 'komunikasi', 'pengaturan', 'data_master'
   ], []);
 
   const isAnyGroupOpen = useMemo(() => {
@@ -570,7 +570,7 @@ export default function AdminSidebar({
       }
 
       if (item.specialCondition === 'walas_only') {
-        if (!isWalasUser && role !== 'kepsek' && !isKesiswaanTeam && !isBKTeam && !isAdmin) {
+        if (!isWalasUser && !isKesiswaanTeam && !isBKTeam && !isAdmin) {
           continue;
         }
         const isPermitted = typeof checkIsAllowed === 'function' ? checkIsAllowed(item.id, item.featureKey) : true;

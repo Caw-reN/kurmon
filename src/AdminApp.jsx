@@ -3169,6 +3169,24 @@ export default function App() {
     </div>;
   };
   const checkIsAllowed = (id, featureKey) => {
+    // 0. Canonical Tab ID Normalization to prevent bounce redirects
+    let checkId = id;
+    if (checkId === 'silabus' || checkId === 'silabusguru' || checkId === 'rpp_guru') {
+      checkId = 'modul_ajar';
+    } else if (checkId === 'datasiswa') {
+      checkId = 'siswa';
+    } else if (checkId === 'dataguru') {
+      checkId = 'data_pegawai';
+    } else if (checkId === 'dataperusahaan') {
+      checkId = 'pkl_data_perusahaan';
+    } else if (checkId === 'kalender' || checkId === 'kalender_akademik') {
+      checkId = 'akademik';
+    } else if (checkId === 'jadwal') {
+      checkId = 'generate';
+    } else if (checkId === 'kedisiplinan_bpbk' || checkId === 'buku_konseling') {
+      checkId = 'kedisiplinan_hub';
+    }
+
     const activeRole = normalizeUserRole(currentUser?.role);
 
     let effectiveKey = activeRole;
@@ -3226,7 +3244,7 @@ export default function App() {
       effectiveKey = subrole;
     }
 
-    if (id === 'beban') {
+    if (checkId === 'beban') {
       const isLeadership = activeRole === "superadmin" || activeRole === "admin" || activeRole === "kepsek";
       const isWaka = activeRole === "waka" || effectiveKey.startsWith("waka_");
       const hasPerm = rolePermissions?.[effectiveKey]?.beban || rolePermissions?.[activeRole]?.beban || (subrole && rolePermissions?.[subrole]?.beban);
@@ -3243,16 +3261,17 @@ export default function App() {
     if (activeRole === "kepsek") {
       const forbiddenForKepsek = [
         "fitur", "hak_akses", "manajemen_role", "api_keys", "whatsapp",
-        "gdrive_backup", "status_password", "pengaturanuser", "log_password"
+        "gdrive_backup", "status_password", "pengaturanuser", "log_password",
+        "absensi", "absensiguru", "catatan_walikelas", "walas_report", "keamanan"
       ];
-      if (forbiddenForKepsek.includes(id)) return false;
+      if (forbiddenForKepsek.includes(checkId)) return false;
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
       return true;
     }
 
     // STRICT OVERRIDE KARYAWAN: Hanya boleh akses 4 tab ini terlepas dari setting Hak Akses di database
     if (effectiveKey === "karyawan") {
-      if (!["dashboard", "pesan", "absensiguru", "akademik"].includes(id)) {
+      if (!["dashboard", "pesan", "absensiguru", "akademik"].includes(checkId)) {
         return false;
       }
     }
@@ -3298,12 +3317,12 @@ export default function App() {
       const p = rolePermissions?.[rKey];
       if (!p) return null;
       if (Array.isArray(p)) {
-        return p.includes(id) ? "view" : "nonaktif";
+        return (p.includes(checkId) || p.includes(id)) ? "view" : "nonaktif";
       }
-      return p[id] ?? null;
+      return p[checkId] ?? p[id] ?? null;
     };
 
-      const DEFAULTS = GLOBAL_ROLE_DEFAULTS;
+    const DEFAULTS = GLOBAL_ROLE_DEFAULTS;
 
     const spLevel = (effectiveKey && effectiveKey !== 'guru' && effectiveKey !== 'walikelas') ? getRoleLevel(effectiveKey) : null;
     const rLevel = (activeRole && activeRole !== effectiveKey && activeRole !== 'guru' && activeRole !== 'walikelas') ? getRoleLevel(activeRole) : null;
@@ -3311,7 +3330,7 @@ export default function App() {
     const gLevel = (activeRole === 'guru' || effectiveKey === 'guru') ? getRoleLevel('guru') : null;
 
     // 0. Specialized role capability overrides for Piket & BK
-    if (id === 'kedisiplinan_piket') {
+    if (checkId === 'kedisiplinan_piket') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
@@ -3328,23 +3347,23 @@ export default function App() {
       'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor',
       'kedisiplinan_bpbk', 'kedisiplinan_hub', 'laporan_absensi', 'absensi'
     ];
-    if (forbiddenForPureGuruWalas.includes(id)) {
+    if (forbiddenForPureGuruWalas.includes(checkId)) {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
-      if (id === 'beban') {
+      if (checkId === 'beban') {
         return isKurikulumTeam && spLevel !== 'nonaktif';
       }
       if (isKesiswaanTeam || isBKTeam || ['tu', 'tata_usaha'].includes(activeRole) || effectiveKey === 'tu') {
         return spLevel !== 'nonaktif';
       }
-      if (isKurikulumTeam && ['siswa', 'datasiswa', 'hikvision_report_siswa', 'laporan_absensi'].includes(id)) {
+      if (isKurikulumTeam && ['siswa', 'datasiswa', 'hikvision_report_siswa', 'laporan_absensi'].includes(checkId)) {
         return spLevel !== 'nonaktif';
       }
       return false;
     }
 
-    if (id === 'kedisiplinan_absensi') {
+    if (checkId === 'kedisiplinan_absensi') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') return true;
       if (isWalasUser || isKesiswaanTeam || isBKTeam || ['tu', 'tata_usaha'].includes(activeRole) || effectiveKey === 'tu') return true;
       return false;
@@ -3365,7 +3384,7 @@ export default function App() {
     }
 
     // 2. Specialized role capability overrides
-    if (id === 'kedisiplinan_bpbk' || id === 'kedisiplinan_hub') {
+    if (checkId === 'kedisiplinan_bpbk' || checkId === 'kedisiplinan_hub') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
@@ -3377,7 +3396,7 @@ export default function App() {
       return false;
     }
 
-    if (id === 'kedisiplinan_piket') {
+    if (checkId === 'kedisiplinan_piket') {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek') {
         return true;
       }
@@ -3387,26 +3406,26 @@ export default function App() {
       return false;
     }
 
-    if (["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(id)) {
+    if (["catatan_walikelas", "walas_report", "rekap_jurnal_kelas"].includes(checkId)) {
       if (isSuperAdminRole(activeRole) || activeRole === 'admin' || activeRole === 'superadmin' || activeRole === 'kepsek' || activeRole.includes('kepala') || subrole.includes('kepala')) {
         return true;
       }
       if (isWalasUser) return true;
-      if (id === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser || isKesiswaanTeam)) return true;
-      if (["catatan_walikelas", "walas_report"].includes(id) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam || subrole.includes('sekretaris') || activeRole.includes('sekretaris') || div === 'sekretaris')) return true;
+      if (checkId === "rekap_jurnal_kelas" && (isKurikulumTeam || isWalasUser || isKesiswaanTeam)) return true;
+      if (["catatan_walikelas", "walas_report"].includes(checkId) && (isKesiswaanTeam || isBKTeam || isKurikulumTeam || subrole.includes('sekretaris') || activeRole.includes('sekretaris') || div === 'sekretaris')) return true;
       if (spLevel === "edit" || spLevel === "view" || spLevel === "otomatis" || spLevel === "full") return true;
       return false;
     }
 
     // 3. Fallback to subrole default tabs
-    if (effectiveKey && DEFAULTS[effectiveKey] && DEFAULTS[effectiveKey].includes(id)) {
+    if (effectiveKey && DEFAULTS[effectiveKey] && (DEFAULTS[effectiveKey].includes(checkId) || DEFAULTS[effectiveKey].includes(id))) {
       if (spLevel === 'nonaktif' || spLevel === 'none' || spLevel === 'off') return false;
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
       return true;
     }
 
     // 4. Fallback to walas default tabs
-    if (isWalasUser && DEFAULTS['walikelas']?.includes(id)) {
+    if (isWalasUser && (DEFAULTS['walikelas']?.includes(checkId) || DEFAULTS['walikelas']?.includes(id))) {
       if (wLevel === 'nonaktif' || wLevel === 'none' || wLevel === 'off') return false;
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
       return true;
@@ -3424,7 +3443,7 @@ export default function App() {
 
     // 7. Fallback to role defaults
     const defaultList = DEFAULTS[effectiveKey] || DEFAULTS[activeRole] || (activeRole === 'waka' ? DEFAULTS[`waka_${div || 'kurikulum'}`] : []);
-    const isAllowed = defaultList.includes(id);
+    const isAllowed = defaultList.includes(checkId) || defaultList.includes(id);
 
     if (!isAllowed) return false;
     if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;

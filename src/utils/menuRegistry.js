@@ -579,6 +579,7 @@ export const MENU_REGISTRY = [
     adminGroup: 'Konfigurasi Sistem',
     adminGroupIcon: Settings,
     adminGroupKey: 'sistem',
+    hideInSidebar: true,
   },
 ];
 

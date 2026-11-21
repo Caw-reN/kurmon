@@ -452,7 +452,8 @@ const GlobalHeaderPortals = ({ onOpenMobileMenu, toggleSidebar, isSidebarCollaps
             type="button"
             onClick={() => {
               if (typeof window !== 'undefined' && window.__setActiveTab) {
-                window.__setActiveTab('pesan');
+                const isAdmin = isSuperAdminRole(currentUser?.role);
+                window.__setActiveTab(isAdmin ? 'fitur' : 'pesan');
               }
             }}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/95 text-rose-800 border border-rose-300 text-[10px] sm:text-[11px] font-black tracking-tight uppercase hover:bg-white active:scale-95 transition-all cursor-pointer shrink-0"

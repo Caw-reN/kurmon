@@ -929,10 +929,10 @@ export default function KepsekExecutiveDashboard({
                 { tab: 'generate', label: 'Jadwal KBM', icon: '/icons/011-schedule.svg' },
                 { tab: 'laporan_absensi', label: 'Absensi', icon: '/icons/046-report.svg' },
                 { tab: 'pesan', label: 'Pengumuman', icon: '/icons/028-megaphone.svg' },
-                { tab: 'kedisiplinan_bpbk', label: 'Buku BPBK', icon: '/icons/014-award.svg' },
+                { tab: 'kedisiplinan_hub', label: 'Pusat BK', icon: '/icons/014-award.svg' },
                 { tab: 'pkl_dashboard', label: 'PKL', icon: '/icons/008-warehouse.svg' },
-                { tab: 'dataguru', label: 'Data Guru', icon: '/icons/045-account.svg' },
-                { tab: 'datasiswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
+                { tab: 'data_pegawai', label: 'Data Guru', icon: '/icons/045-account.svg' },
+                { tab: 'siswa', label: 'Data Siswa', icon: '/icons/066-education.svg' },
                 { tab: 'akademik', label: 'Kalender', icon: '/icons/060-calendar.svg' },
               ].map(m => (
                 <button
