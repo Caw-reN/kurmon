@@ -2983,6 +2983,13 @@ export default function App() {
       effectiveRoleKey === 'waka_kesiswaan' || ['sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
       subrole.includes('kesiswaan') || subrole.includes('osis') || (role === 'guru' && division === 'kesiswaan') || division === 'kesiswaan' || division === 'osis'
     );
+    const isKurikulumTeam = Boolean(currentUser?.isKurikulum) || (
+      (role === 'waka' && (division === 'kurikulum' || !division)) ||
+      role === 'kurikulum' || role === 'waka_kurikulum' || effectiveRoleKey === 'waka_kurikulum' ||
+      effectiveRoleKey === 'sekretaris_kurikulum' || effectiveRoleKey === 'anggota_kurikulum' ||
+      ['waka_kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(subrole) ||
+      subrole.includes('kurikulum') || (role === 'guru' && division === 'kurikulum') || division === 'kurikulum'
+    );
 
     // 0. Strict Role Isolation: Tab Kesiswaan, BK, & Master Data tidak boleh bocor ke Guru biasa / Walas
     if (['beban', 'keterangan_massal', 'riwayat_prestasi', 'hikvision_report_siswa', 'siswa', 'datasiswa', 'siswa_keluar', 'tatib_skor', 'laporan_absensi'].includes(tab)) {

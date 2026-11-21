@@ -225,26 +225,26 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return checkIsAllowed(canonicalTab);
       }
       const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass || currentUser?.subrole === 'walikelas');
+      const div = (currentUser?.division || "").toLowerCase().trim();
+      const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+      const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
+        div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
+      const isKesiswaan = Boolean(currentUser?.isKesiswaan) || (
+        (role === 'waka' && div === 'kesiswaan') ||
+        role === 'kesiswaan' ||
+        role === 'waka_kesiswaan' ||
+        ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
+        subrole.includes('kesiswaan') ||
+        subrole.includes('osis') ||
+        (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
+        div === 'kesiswaan' ||
+        div === 'osis'
+      );
       if (role ==="admin" || role ==="superadmin") return true;
       if (canonicalTab ==="dashboard" || canonicalTab ==="akademik" || canonicalTab ==="kalender" || canonicalTab ==="kalender_akademik") return true;
       if (canonicalTab === "kedisiplinan_bpbk" || canonicalTab === "kedisiplinan_hub") {
         const bpbkLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(canonicalTab) : null;
         if (bpbkLevel === "nonaktif" || bpbkLevel === "none" || bpbkLevel === "off") return false;
-        const div = (currentUser?.division || "").toLowerCase().trim();
-        const subrole = (currentUser?.subrole || "").toLowerCase().trim();
-        const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
-          div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
-        const isKesiswaan = Boolean(currentUser?.isKesiswaan) || (
-          (role === 'waka' && div === 'kesiswaan') ||
-          role === 'kesiswaan' ||
-          role === 'waka_kesiswaan' ||
-          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
-          subrole.includes('kesiswaan') ||
-          subrole.includes('osis') ||
-          (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
-          div === 'kesiswaan' ||
-          div === 'osis'
-        );
         if (isBK || isKesiswaan || role === "admin" || role === "superadmin" || role === "kepsek") return true;
         return false;
       }
@@ -252,21 +252,6 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         const piketLevel = typeof getTabPermissionLevel === "function" ? getTabPermissionLevel(canonicalTab) : null;
         if (piketLevel === "nonaktif" || piketLevel === "none" || piketLevel === "off") return false;
         if (role === "admin" || role === "superadmin" || role === "kepsek") return true;
-        const div = (currentUser?.division || "").toLowerCase().trim();
-        const subrole = (currentUser?.subrole || "").toLowerCase().trim();
-        const isBK = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
-          div === 'bk' || div === 'bp/bk' || div === 'bpbk' || Boolean(currentUser?.isBK || currentUser?.isBPBK);
-        const isKesiswaan = Boolean(currentUser?.isKesiswaan) || (
-          (role === 'waka' && div === 'kesiswaan') ||
-          role === 'kesiswaan' ||
-          role === 'waka_kesiswaan' ||
-          ['waka_kesiswaan', 'sekretaris_kesiswaan', 'anggota_kesiswaan', 'pembina_osis', 'sekretaris_osis'].includes(subrole) ||
-          subrole.includes('kesiswaan') ||
-          subrole.includes('osis') ||
-          (role === 'guru' && (div === 'kesiswaan' || div === 'osis')) ||
-          div === 'kesiswaan' ||
-          div === 'osis'
-        );
         if (isBK || isKesiswaan || hasPiket) return true;
         return piketLevel === "edit" || piketLevel === "view" || piketLevel === "otomatis";
       }

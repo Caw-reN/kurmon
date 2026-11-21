@@ -39,7 +39,7 @@ const getMajorBadgeStyle = (jurusan = '') => {
   return 'bg-slate-50 text-slate-700 border-slate-200/60';
 };
 
-const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, onSave, setActiveTab }) => {
+const DataSiswa = ({ students = [], teachers = [], appSettings, setAppSettings, onSave, activeTab = 'pkl_data_siswa', setActiveTab }) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('Semua'); // 'Semua' | 'Sudah PKL' | 'Belum PKL'

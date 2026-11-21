@@ -10,6 +10,7 @@ import { Clock, MessageSquare,
   Menu, ChevronsUpDown, ChevronDown
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
+import { isSuperAdminRole } from '../../utils/constants.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
 import { MENU_REGISTRY } from '../../utils/menuRegistry.js';
 
