@@ -11,6 +11,7 @@ import { Clock, MessageSquare,
 } from'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { requestPushPermissionAndSubscribe, checkPushSubscription, testPushNotification, testScheduleReminderNotification } from '../../utils/pushUtils.js';
+import { MENU_REGISTRY } from '../../utils/menuRegistry.js';
 
 
 const GuidePortalButton = ({ onClick }) => {
@@ -38,19 +39,26 @@ function getInitials(name ="Admin") {
 }
 
 const getTabLabel = (tabId) => {
+  const regItem = MENU_REGISTRY.find(m => m.id === tabId || (Array.isArray(m.activeIds) && m.activeIds.includes(tabId)));
+  if (regItem?.label) return regItem.label;
+
   const labels = {
     dashboard:"Dashboard Utama",
+    data_pegawai:"Data Pegawai",
+    dataguru:"Data Pegawai",
     jurusan:"Data Jurusan",
     kelas:"Data Kelas",
     siswa:"Data Siswa",
+    datasiswa:"Data Siswa",
     guru:"Data Guru",
     karyawan:"Data Karyawan",
     mapel:"Kelola Mata Pelajaran",
     ruangan:"Data Ruangan",
     fasilitas:"Data Fasilitas & Sarana",
     denah:"Denah Ruangan",
-    kedisiplinan_hub:"Pusat Kedisiplinan & EWS",
+    kedisiplinan_hub:"Pusat Kedisiplinan & BK",
     kedisiplinan_bpbk:"Bimbingan Konseling (BK)",
+    buku_konseling:"Pusat Kedisiplinan & BK",
     kedisiplinan_piket:"Piket & Pelanggaran",
     tatib_skor:"Aturan Tatib & Skor",
     keterangan_massal:"Keterangan Massal Siswa",
@@ -63,40 +71,51 @@ const getTabLabel = (tabId) => {
     modul_ajar:"Perangkat Ajar",
     rpp_guru:"Silabus & Perangkat Guru",
     silabusguru:"Modul Saya",
+    silabus:"RPP atau Modul Pembelajaran",
     absensiguru:"Absen Mandiri Guru",
     riwayat_prestasi:"Riwayat Prestasi Siswa",
     siswa_keluar:"Mutasi & Alumni Siswa",
     laporan_absensi:"Laporan Kehadiran",
     hikvision_report_guru:"Presensi Guru & Karyawan",
+    hikvision_report_karyawan:"Presensi Karyawan",
     kartu_pelajar:"Cetak Kartu Pelajar",
     manajemen_role:"Struktur & Jabatan Staf",
-    generate:"Generate Jadwal",
+    struktur:"Struktur Organisasi",
+    generate:"Jadwal Pelajaran",
+    jadwal:"Jadwal Pelajaran",
     ketersediaan:"Ketersediaan Guru",
     beban:"Beban Mengajar",
     pengaturan:"Konfigurasi Waktu",
     advanced_rules:"Aturan Penjadwalan",
-    silabus:"RPP atau Modul Pembelajaran",
-    absensi:"Kehadiran Guru",
-    hikvision_report_siswa:"Rekap Absensi Siswa",
+    absensi:"Jadwal & Sesi Absensi",
+    hikvision_report_siswa:"Presensi Siswa",
     pkl_dashboard:"Monitoring PKL",
     pkl_data_siswa:"Data Siswa PKL",
     pkl_data_perusahaan:"Data Perusahaan PKL",
+    dataperusahaan:"Data Perusahaan PKL",
     pkl_penugasan:"Penugasan Guru Hubin",
     pkl_administrasi:"Administrasi PKL",
     pkl_jurnal:"Jurnal Siswa PKL",
+    pkl_laporan:"Laporan PKL",
     pkl_absensi_setting:"Absensi GPS PKL",
-    hikvision:"Dashboard Mesin Absensi",
+    hikvision:"Manajemen Mesin Absensi",
+    hikvision_students:"Data Pengguna Mesin",
+    hikvision_devices:"Pengaturan Alat Mesin",
     akademik:"Kalender Akademik",
+    kalender:"Kalender Akademik",
+    kalender_akademik:"Kalender Akademik",
     pesan:"Pusat Pesan Dashboard",
-    fitur:"Kontrol Fitur Sistem",
+    fitur:"Sistem & Integrasi",
     tampilan:"Kustomisasi Tampilan Web",
-    hak_akses:"Hak Akses & Keamanan",
+    hak_akses:"Hak Akses & Pengguna",
     pengaturanuser:"Pengaturan Pengguna",
     status_password:"Log Status Ganti Password",
+    log_password:"Log Status Ganti Password",
     api_keys:"Manajemen API Key",
     whatsapp:"Integrasi WhatsApp Gateway",
     gdrive_backup:"Backup Google Drive",
     audit_log:"Log Aktivitas (Audit)",
+    keamanan:"Keamanan Akun",
     esurat:"Administrasi E-Surat",
     kenaikan_kelas:"Kenaikan Kelas",
     profil_sekolah:"Profil Instansi Sekolah"
@@ -105,79 +124,127 @@ const getTabLabel = (tabId) => {
 };
 
 const getParentGroupLabel = (tabId) => {
+  const regItem = MENU_REGISTRY.find(m => m.id === tabId || (Array.isArray(m.activeIds) && m.activeIds.includes(tabId)));
+  if (regItem?.adminGroup) return regItem.adminGroup;
+  if (regItem?.section) return regItem.section;
+
   const tabGroups = {
     // Data Sekolah group
     jurusan:"Data Sekolah",
     kelas:"Data Sekolah",
     siswa:"Data Sekolah",
+    datasiswa:"Data Sekolah",
     guru:"Data Sekolah",
     karyawan:"Data Sekolah",
+    data_pegawai:"Data Sekolah",
+    dataguru:"Data Sekolah",
     kenaikan_kelas:"Data Sekolah",
 
     // Kurikulum group
-    mapel:"Manajemen Kurikulum",
-    ruangan:"Manajemen Kurikulum",
-    denah:"Manajemen Kurikulum",
-    generate:"Manajemen Kurikulum",
-    ketersediaan:"Manajemen Kurikulum",
-    beban:"Manajemen Kurikulum",
-    silabus:"Manajemen Kurikulum",
-    akademik:"Manajemen Kurikulum",
+    mapel:"Kurikulum",
+    ruangan:"Sarana & Prasarana",
+    fasilitas:"Sarana & Prasarana",
+    denah:"Sarana & Prasarana",
+    generate:"Kurikulum",
+    jadwal:"Kurikulum",
+    ketersediaan:"Kurikulum",
+    beban:"Kurikulum",
+    silabus:"Kurikulum",
+    silabusguru:"Kurikulum",
+    rpp_guru:"Kurikulum",
+    modul_ajar:"Kurikulum",
+    jurnal_harian:"Kurikulum",
+    rekap_jurnal_kelas:"Kurikulum",
+    akademik:"Informasi Umum",
+    kalender:"Informasi Umum",
+    kalender_akademik:"Informasi Umum",
+
+    // Kehadiran group
+    absensiguru:"Kehadiran",
+    absensi:"Kehadiran",
+    laporan_absensi:"Kehadiran",
+    hikvision_report_guru:"Kehadiran",
+    hikvision_report_karyawan:"Kehadiran",
 
     // Kesiswaan group
-    absensi:"Kesiswaan & Absensi",
-    kedisiplinan_absensi:"Kesiswaan & Absensi",
+    kedisiplinan_absensi:"Kesiswaan",
+    hikvision_report_siswa:"Kesiswaan",
+    kedisiplinan_hub:"Kesiswaan",
+    kedisiplinan_bpbk:"Kesiswaan",
+    buku_konseling:"Kesiswaan",
+    kedisiplinan_piket:"Kesiswaan",
+    tatib_skor:"Kesiswaan",
+    riwayat_prestasi:"Kesiswaan",
+    siswa_keluar:"Kesiswaan",
+    keterangan_massal:"Kesiswaan",
 
     // Wali Kelas group
     catatan_walikelas:"Wali Kelas",
     walas_report:"Wali Kelas",
     laporan_rekap_walas:"Wali Kelas",
 
+    // Tata Usaha group
+    esurat:"Tata Usaha",
+    kartu_pelajar:"Tata Usaha",
+    struktur:"Tata Usaha",
+
     // Hubungan Industri (PKL) group
-    pkl_dashboard:"Hubungan Industri (PKL)",
-    pkl_data_siswa:"Hubungan Industri (PKL)",
-    pkl_data_perusahaan:"Hubungan Industri (PKL)",
-    pkl_penugasan:"Hubungan Industri (PKL)",
-    pkl_administrasi:"Hubungan Industri (PKL)",
-    pkl_jurnal:"Hubungan Industri (PKL)",
-    pkl_absensi_setting:"Hubungan Industri (PKL)",
+    pkl_dashboard:"Hubungan Industri",
+    pkl_data_siswa:"Hubungan Industri",
+    pkl_data_perusahaan:"Hubungan Industri",
+    dataperusahaan:"Hubungan Industri",
+    pkl_penugasan:"Hubungan Industri",
+    pkl_administrasi:"Hubungan Industri",
+    pkl_jurnal:"Hubungan Industri",
+    pkl_laporan:"Hubungan Industri",
+    pkl_absensi_setting:"Hubungan Industri",
 
-    // Sarana & Prasarana group
-    hikvision:"Sarana & Prasarana",
+    // Mesin Absensi group
+    hikvision:"Mesin Absensi",
+    hikvision_students:"Mesin Absensi",
+    hikvision_devices:"Mesin Absensi",
 
-    // Pengaturan group
-    fitur:"Pengaturan Sistem",
-    tampilan:"Pengaturan Sistem",
-    hak_akses:"Pengaturan Sistem",
-    pengaturanuser:"Pengaturan Sistem",
-    status_password:"Pengaturan Sistem",
-    api_keys:"Pengaturan Sistem",
-    whatsapp:"Pengaturan Sistem",
-    gdrive_backup:"Pengaturan Sistem",
-    audit_log:"Pengaturan Sistem",
-    esurat:"Pengaturan Sistem",
-    profil_sekolah:"Pengaturan Sistem"
+    // Pengaturan & Konfigurasi Sistem group
+    fitur:"Konfigurasi Sistem",
+    tampilan:"Konfigurasi Sistem",
+    hak_akses:"Konfigurasi Sistem",
+    pengaturanuser:"Konfigurasi Sistem",
+    manajemen_role:"Konfigurasi Sistem",
+    status_password:"Konfigurasi Sistem",
+    log_password:"Konfigurasi Sistem",
+    api_keys:"Konfigurasi Sistem",
+    whatsapp:"Konfigurasi Sistem",
+    gdrive_backup:"Konfigurasi Sistem",
+    audit_log:"Konfigurasi Sistem",
+    keamanan:"Konfigurasi Sistem",
+    profil_sekolah:"Informasi Umum",
+    pesan:"Informasi Umum"
   };
 
   return tabGroups[tabId] ||"Dashboard Utama";
 };
 
-
-
-
 const getTabIcon = (tabId) => {
+  const regItem = MENU_REGISTRY.find(m => m.id === tabId || (Array.isArray(m.activeIds) && m.activeIds.includes(tabId)));
+  if (regItem?.icon) return regItem.icon;
+
   const icons = {
     dashboard: LayoutDashboard,
     jurusan: SlidersHorizontal,
     kelas: Users,
     siswa: GraduationCap,
+    datasiswa: GraduationCap,
     guru: Users,
     karyawan: Users,
+    data_pegawai: Users,
+    dataguru: Users,
     mapel: BookOpen,
     fasilitas: DoorOpen,
+    ruangan: DoorOpen,
     denah: DoorOpen,
     kedisiplinan_hub: Activity,
     kedisiplinan_bpbk: ShieldCheck,
+    buku_konseling: ShieldCheck,
     kedisiplinan_piket: ClipboardList,
     tatib_skor: BookOpen,
     keterangan_massal: FileSpreadsheet,
@@ -195,30 +262,40 @@ const getTabIcon = (tabId) => {
     siswa_keluar: UserMinus,
     laporan_absensi: ClipboardList,
     hikvision_report_guru: FileText,
+    hikvision_report_karyawan: FileText,
     manajemen_role: Shield,
+    struktur: Briefcase,
     kenaikan_kelas: GraduationCap,
     generate: Calendar,
+    jadwal: Calendar,
     ketersediaan: Clock,
     beban: FileSpreadsheet,
     akademik: CalendarDays,
+    kalender: CalendarDays,
+    kalender_akademik: CalendarDays,
     absensi: CheckCircle2,
     pkl_dashboard: LayoutDashboard,
     pkl_data_siswa: Users,
     pkl_data_perusahaan: Briefcase,
+    dataperusahaan: Briefcase,
     pkl_penugasan: Wand2,
     pkl_administrasi: FileText,
     pkl_jurnal: BookOpen,
+    pkl_laporan: FileText,
     pkl_absensi_setting: Settings,
     esurat: FileText,
+    kartu_pelajar: Shield,
     profil_sekolah: Settings,
     fitur: SlidersHorizontal,
     tampilan: MonitorSmartphone,
     hak_akses: UserCog,
     pengaturanuser: User,
     status_password: KeyRound,
+    log_password: KeyRound,
     whatsapp: MessageSquare,
     gdrive_backup: HardDrive,
-    audit_log: FileText
+    audit_log: FileText,
+    keamanan: Shield
   };
   return icons[tabId] || LayoutDashboard;
 };
