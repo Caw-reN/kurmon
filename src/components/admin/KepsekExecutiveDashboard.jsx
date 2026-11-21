@@ -32,7 +32,7 @@ const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct,
     onClick={onClick}
     className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 border cursor-pointer group transition-all flex flex-col justify-between
       ${active
-        ? 'border-[var(--ui-primary)](--ui-primary)]/10'
+        ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/5 shadow-xs'
         : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] hover:border-[var(--ui-primary)]/30'}`}
   >
     <div>

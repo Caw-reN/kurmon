@@ -531,6 +531,7 @@ export default function AdminSidebar({
     const isWalasUser = Boolean(currentUser?.isWalas || currentUser?.walasClass);
     const div = (currentUser?.division || "").toLowerCase().trim();
     const subrole = (currentUser?.subrole || "").toLowerCase().trim();
+    const activeSubrole = subrole;
     const role = (currentUser?.role || activeUserRole || "").toLowerCase().trim();
     const isBKTeam = role === 'bpbk' || role === 'bk' || subrole === 'bpbk' || subrole === 'bk' ||
       subrole.includes('bk') || subrole.includes('bpbk') ||
