@@ -832,7 +832,7 @@ export default function AdminContentRouter({ context, checkIsAllowed: checkIsAll
         return <Suspense fallback={<div className="p-8 text-center text-slate-400">
           Memuat Pengaturan Alat...
         </div>}>
-          <HikvisionDashboard initialSubTab="devices" activeTab={activeTab} setActiveTab={setActiveTab} classes={classes} students={students} />
+          <HikvisionDashboard initialSubTab="settings" activeTab={activeTab} setActiveTab={setActiveTab} classes={classes} students={students} />
         </Suspense>;
       case"hikvision_report_guru":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi guru...</div>}>

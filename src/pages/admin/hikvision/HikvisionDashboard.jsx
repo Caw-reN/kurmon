@@ -3,7 +3,8 @@ import {
   MonitorSmartphone, Users, UserCheck, Briefcase, AlertTriangle, 
   Cpu, RefreshCw, Server, Activity, Clock, X, Zap, ClipboardList, 
   LayoutDashboard, HardDrive, FileText, ChevronRight, CheckCircle2, 
-  ShieldCheck, ArrowUpRight, Search, Radio, Wifi, Calendar, Sparkles
+  ShieldCheck, ArrowUpRight, Search, Radio, Wifi, Calendar, Sparkles,
+  Settings
 } from 'lucide-react';
 import { Button, TablePagination, UITimeInput24, UISelect } from '../../../components/ui.jsx';
 import useAuthStore from '../../../store/monitoring/authStore';
@@ -86,10 +87,10 @@ export default function HikvisionDashboard({
   students = []
 }) {
   const defaultTab = initialSubTab 
-    ? initialSubTab 
-    : activeTab === 'hikvision_devices' 
-      ? 'devices' 
-      : activeTab === 'hikvision_students' 
+    ? (initialSubTab === 'devices' || initialSubTab === 'schedule' || initialSubTab === 'reports' ? 'settings' : initialSubTab)
+    : (activeTab === 'hikvision_devices' || initialSubTab === 'devices')
+      ? 'settings' 
+      : (activeTab === 'hikvision_students' || initialSubTab === 'users') 
         ? 'users' 
         : 'overview';
 
@@ -127,7 +128,7 @@ export default function HikvisionDashboard({
 
   useEffect(() => {
     if (activeTab === 'hikvision_devices') {
-      setCurrentSubTab('devices');
+      setCurrentSubTab('settings');
     } else if (activeTab === 'hikvision_students') {
       setCurrentSubTab('users');
     }
@@ -364,18 +365,17 @@ export default function HikvisionDashboard({
     { value: 'staff', label: 'Guru & Karyawan' },
   ];
 
+  // MERGED TABS: 3 tabs only as requested by the user
   const DASHBOARD_TABS = [
     { id: 'overview', label: 'Ringkasan & Status', icon: LayoutDashboard },
-    { id: 'devices', label: 'Pengaturan Alat', icon: HardDrive },
     { id: 'users', label: 'Data Pengguna & Biometrik', icon: Users },
-    { id: 'schedule', label: 'Batas Waktu Absensi', icon: Clock },
-    { id: 'reports', label: 'Pusat Laporan & Rekap', icon: FileText },
+    { id: 'settings', label: 'Pengaturan & Laporan', icon: Settings },
   ];
 
   const navigateToTab = (tabId) => {
     setCurrentSubTab(tabId);
     if (setActiveTab) {
-      if (tabId === 'devices') setActiveTab('hikvision_devices');
+      if (tabId === 'settings') setActiveTab('hikvision_devices');
       else if (tabId === 'users') setActiveTab('hikvision_students');
       else setActiveTab('hikvision');
     }
@@ -554,7 +554,7 @@ export default function HikvisionDashboard({
               </div>
               <button
                 type="button"
-                onClick={() => navigateToTab('devices')}
+                onClick={() => navigateToTab('settings')}
                 className="text-[11px] font-bold text-[var(--ui-primary)] hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 <span>Kelola Alat</span>
@@ -729,18 +729,7 @@ export default function HikvisionDashboard({
         </div>
       )}
 
-      {/* SUB-TAB 2: PENGATURAN ALAT (DEVICES MANAGEMENT) */}
-      {currentSubTab === 'devices' && (
-        <div className="animate-in fade-in duration-200">
-          <HikvisionDevices 
-            embedded={true} 
-            activeTab="hikvision_devices"
-            setActiveTab={setActiveTab} 
-          />
-        </div>
-      )}
-
-      {/* SUB-TAB 3: DATA PENGGUNA & BIOMETRIK (USERS & BIOMETRICS) */}
+      {/* SUB-TAB 2: DATA PENGGUNA & BIOMETRIK (USERS & BIOMETRICS) */}
       {currentSubTab === 'users' && (
         <div className="animate-in fade-in duration-200">
           <HikvisionStudents 
@@ -750,335 +739,343 @@ export default function HikvisionDashboard({
         </div>
       )}
 
-      {/* SUB-TAB 4: BATAS WAKTU ABSENSI (SCHEDULE & CONFIG - COMPACT) */}
-      {currentSubTab === 'schedule' && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden animate-in fade-in duration-200">
-          <div className="p-3 px-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
-                <Clock size={14} className="text-[var(--ui-primary)]" />
-                Konfigurasi Jadwal & Batas Waktu Absensi
-              </h3>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Atur jam masuk, batas keterlambatan, dan jam buka absen pulang per jenjang dan kampus.
-              </p>
+      {/* SUB-TAB 3: PENGATURAN & LAPORAN (PENGATURAN ALAT, BATAS WAKTU, DAN PUSAT LAPORAN DIGABUNG) */}
+      {currentSubTab === 'settings' && (
+        <div className="space-y-4 animate-in fade-in duration-200">
+          {/* 1. Pengaturan Alat */}
+          <HikvisionDevices 
+            embedded={true} 
+            activeTab="hikvision_devices"
+            setActiveTab={setActiveTab} 
+          />
+
+          {/* 2. Batas Waktu Absensi */}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            <div className="p-3 px-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="font-extrabold text-slate-800 text-xs flex items-center gap-1.5">
+                  <Clock size={14} className="text-[var(--ui-primary)]" />
+                  Konfigurasi Jadwal & Batas Waktu Absensi
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  Atur jam masuk, batas keterlambatan, dan jam buka absen pulang per jenjang dan kampus.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleApplyPreset}
+                title="Terapkan jadwal standar Kampus A (Jumat 11.50) & Kampus B (Jumat 15.30)"
+                className="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0"
+              >
+                <Sparkles size={13} />
+                <span>Preset Standar A/B</span>
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleApplyPreset}
-              title="Terapkan jadwal standar Kampus A (Jumat 11.50) & Kampus B (Jumat 15.30)"
-              className="text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0"
-            >
-              <Sparkles size={13} />
-              <span>Preset Standar A/B</span>
-            </button>
-          </div>
 
-          <div className="p-4 space-y-4 max-w-4xl">
-            {/* Filter toolbar row */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50/70 rounded-xl border border-slate-200/70">
-              {/* Step 1: Pilihan Peran */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">1. Kelompok:</label>
-                <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
-                  {['siswa', 'guru', 'karyawan'].map(tab => (
-                    <button 
-                      key={tab}
-                      type="button"
-                      onClick={() => setActiveConfigTab(tab)}
-                      className={`flex-1 py-1 text-xs font-bold capitalize transition-colors text-center cursor-pointer ${
-                        activeConfigTab === tab 
-                          ? 'bg-[var(--ui-primary)] text-white' 
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Step 2: Pilihan Kampus */}
-              <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">2. Lokasi Kampus:</label>
-                <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
-                  {[
-                    { id: 'kampus_a', label: 'Kampus A' },
-                    { id: 'kampus_b', label: 'Kampus B' },
-                    { id: 'all', label: 'Umum' }
-                  ].map(c => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setActiveCampusTab(c.id)}
-                      className={`flex-1 py-1 text-xs font-bold transition-all text-center cursor-pointer ${
-                        activeCampusTab === c.id
-                          ? 'bg-slate-800 text-white font-extrabold'
-                          : 'text-slate-600 hover:bg-slate-50'
-                      }`}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Step 3: Pilihan Hari */}
-              {activeCampusTab !== 'all' ? (
+            <div className="p-4 space-y-3.5 max-w-4xl">
+              {/* Filter toolbar row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-2.5 bg-slate-50/70 rounded-xl border border-slate-200/70">
+                {/* Step 1: Pilihan Peran */}
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">3. Hari Operasional:</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">1. Kelompok:</label>
                   <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
-                    {[
-                      { id: 'regular', label: 'Sen-Kam' },
-                      { id: 'jumat', label: 'Jumat' },
-                      { id: 'sabtu', label: 'Sabtu' }
-                    ].map(d => (
-                      <button
-                        key={d.id}
+                    {['siswa', 'guru', 'karyawan'].map(tab => (
+                      <button 
+                        key={tab}
                         type="button"
-                        onClick={() => setActiveDayTab(d.id)}
-                        className={`flex-1 py-1 text-xs font-bold transition-all text-center cursor-pointer ${
-                          activeDayTab === d.id
-                            ? 'bg-emerald-600 text-white font-extrabold'
+                        onClick={() => setActiveConfigTab(tab)}
+                        className={`flex-1 py-1 text-xs font-bold capitalize transition-colors text-center cursor-pointer ${
+                          activeConfigTab === tab 
+                            ? 'bg-[var(--ui-primary)] text-white' 
                             : 'text-slate-600 hover:bg-slate-50'
                         }`}
                       >
-                        {d.label}
+                        {tab}
                       </button>
                     ))}
                   </div>
                 </div>
-              ) : <div></div>}
-            </div>
 
-            {/* Info Banners */}
-            {activeCampusTab === 'kampus_a' && activeDayTab === 'jumat' && (
-              <div className="p-2.5 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
-                <Zap size={14} className="text-indigo-600 shrink-0" />
-                <span><strong>Jumat Kampus A:</strong> Absen pulang dibuka pukul <strong>11:50</strong>.</span>
-              </div>
-            )}
-            {activeCampusTab === 'kampus_b' && activeDayTab === 'jumat' && (
-              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
-                <Zap size={14} className="text-amber-600 shrink-0" />
-                <span><strong>Jumat Kampus B:</strong> Absen pulang dibuka pukul <strong>15:30</strong>.</span>
-              </div>
-            )}
-
-            {/* Jam Masuk & Jam Pulang (Side by side 2-column) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {/* Masuk */}
-              <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
-                <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Absen Masuk (Pagi)</h4>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
-                    <UITimeInput24 
-                      placeholder="05:30" 
-                      value={getCurrentSchedule()?.masuk_open || ""} 
-                      onChange={e => updateCurrentSchedule('masuk_open', e.target.value)} 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat (24J)</label>
-                    <UITimeInput24 
-                      placeholder="07:01" 
-                      value={getCurrentSchedule()?.masuk_late || ""} 
-                      onChange={e => updateCurrentSchedule('masuk_late', e.target.value)} 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
-                    <UITimeInput24 
-                      placeholder="11:00" 
-                      value={getCurrentSchedule()?.masuk_close || ""} 
-                      onChange={e => updateCurrentSchedule('masuk_close', e.target.value)} 
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Pulang */}
-              <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
-                <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Absen Pulang (Sore)</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka Pulang (24J)</label>
-                    <UITimeInput24 
-                      placeholder={activeDayTab === 'jumat' && activeCampusTab === 'kampus_a' ? "11:50" : activeDayTab === 'jumat' && activeCampusTab === 'kampus_b' ? "15:30" : "14:00"} 
-                      value={getCurrentSchedule()?.pulang_open || ""} 
-                      onChange={e => updateCurrentSchedule('pulang_open', e.target.value)} 
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup Pulang (24J)</label>
-                    <UITimeInput24 
-                      placeholder="16:30" 
-                      value={getCurrentSchedule()?.pulang_close || ""} 
-                      onChange={e => updateCurrentSchedule('pulang_close', e.target.value)} 
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Notifikasi Izin / Sakit */}
-            <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
-              <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Notifikasi Izin / Sakit Guru & Karyawan</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Step 2: Pilihan Kampus */}
                 <div>
-                  <label className="text-[10px] text-slate-400 font-bold block mb-1">Tujuan Notifikasi Telegram / WhatsApp</label>
-                  <UISelect 
-                    value={config.notify_role || "none"} 
-                    onChange={e => setConfig({...config, notify_role: e.target.value})} 
-                    className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white focus:border-[var(--ui-primary)] outline-none"
-                  >
-                    <option value="none">Tidak Ada (none)</option>
-                    <option value="kepsek">Kepala Sekolah (kepsek)</option>
-                    <option value="waka_kurikulum">Waka Kurikulum (waka_kurikulum)</option>
-                    <option value="waka_kesiswaan">Waka Kesiswaan (waka_kesiswaan)</option>
-                    <option value="custom">Nomor WhatsApp Kustom</option>
-                  </UISelect>
-                </div>
-                {config.notify_role === "custom" && (
-                  <div>
-                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Nomor WhatsApp Penerima</label>
-                    <input 
-                      type="text" 
-                      value={config.notify_custom_phone || ""} 
-                      onChange={e => setConfig({...config, notify_custom_phone: e.target.value})} 
-                      className="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 text-xs font-bold focus:border-[var(--ui-primary)] outline-none" 
-                      placeholder="Contoh: 628123456789"
-                    />
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">2. Lokasi Kampus:</label>
+                  <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
+                    {[
+                      { id: 'kampus_a', label: 'Kampus A' },
+                      { id: 'kampus_b', label: 'Kampus B' },
+                      { id: 'all', label: 'Umum' }
+                    ].map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setActiveCampusTab(c.id)}
+                        className={`flex-1 py-1 text-xs font-bold transition-all text-center cursor-pointer ${
+                          activeCampusTab === c.id
+                            ? 'bg-slate-800 text-white font-extrabold'
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
 
-            <Button onClick={handleSaveConfig} disabled={savingConfig} size="sm" className="px-5 font-bold shadow-2xs">
-              {savingConfig ? "Menyimpan..." : "Simpan Batas Waktu"}
-            </Button>
+                {/* Step 3: Pilihan Hari */}
+                {activeCampusTab !== 'all' ? (
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">3. Hari Operasional:</label>
+                    <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      {[
+                        { id: 'regular', label: 'Sen-Kam' },
+                        { id: 'jumat', label: 'Jumat' },
+                        { id: 'sabtu', label: 'Sabtu' }
+                      ].map(d => (
+                        <button
+                          key={d.id}
+                          type="button"
+                          onClick={() => setActiveDayTab(d.id)}
+                          className={`flex-1 py-1 text-xs font-bold transition-all text-center cursor-pointer ${
+                            activeDayTab === d.id
+                              ? 'bg-emerald-600 text-white font-extrabold'
+                              : 'text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          {d.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : <div></div>}
+              </div>
+
+              {/* Info Banners */}
+              {activeCampusTab === 'kampus_a' && activeDayTab === 'jumat' && (
+                <div className="p-2 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                  <Zap size={14} className="text-indigo-600 shrink-0" />
+                  <span><strong>Jumat Kampus A:</strong> Absen pulang dibuka pukul <strong>11:50</strong>.</span>
+                </div>
+              )}
+              {activeCampusTab === 'kampus_b' && activeDayTab === 'jumat' && (
+                <div className="p-2 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-900 text-[11px] font-semibold leading-relaxed flex items-center gap-1.5">
+                  <Zap size={14} className="text-amber-600 shrink-0" />
+                  <span><strong>Jumat Kampus B:</strong> Absen pulang dibuka pukul <strong>15:30</strong>.</span>
+                </div>
+              )}
+
+              {/* Jam Masuk & Jam Pulang (Side by side 2-column) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Masuk */}
+                <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+                  <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Absen Masuk (Pagi)</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka (24J)</label>
+                      <UITimeInput24 
+                        placeholder="05:30" 
+                        value={getCurrentSchedule()?.masuk_open || ""} 
+                        onChange={e => updateCurrentSchedule('masuk_open', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Terlambat (24J)</label>
+                      <UITimeInput24 
+                        placeholder="07:01" 
+                        value={getCurrentSchedule()?.masuk_late || ""} 
+                        onChange={e => updateCurrentSchedule('masuk_late', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup (24J)</label>
+                      <UITimeInput24 
+                        placeholder="11:00" 
+                        value={getCurrentSchedule()?.masuk_close || ""} 
+                        onChange={e => updateCurrentSchedule('masuk_close', e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pulang */}
+                <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+                  <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Absen Pulang (Sore)</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Buka Pulang (24J)</label>
+                      <UITimeInput24 
+                        placeholder={activeDayTab === 'jumat' && activeCampusTab === 'kampus_a' ? "11:50" : activeDayTab === 'jumat' && activeCampusTab === 'kampus_b' ? "15:30" : "14:00"} 
+                        value={getCurrentSchedule()?.pulang_open || ""} 
+                        onChange={e => updateCurrentSchedule('pulang_open', e.target.value)} 
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Tutup Pulang (24J)</label>
+                      <UITimeInput24 
+                        placeholder="16:30" 
+                        value={getCurrentSchedule()?.pulang_close || ""} 
+                        onChange={e => updateCurrentSchedule('pulang_close', e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notifikasi Izin / Sakit */}
+              <div className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/50 space-y-2">
+                <h4 className="text-[11px] font-black text-slate-700 uppercase tracking-wider block">Notifikasi Izin / Sakit Guru & Karyawan</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-slate-400 font-bold block mb-1">Tujuan Notifikasi Telegram / WhatsApp</label>
+                    <UISelect 
+                      value={config.notify_role || "none"} 
+                      onChange={e => setConfig({...config, notify_role: e.target.value})} 
+                      className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold bg-white focus:border-[var(--ui-primary)] outline-none"
+                    >
+                      <option value="none">Tidak Ada (none)</option>
+                      <option value="kepsek">Kepala Sekolah (kepsek)</option>
+                      <option value="waka_kurikulum">Waka Kurikulum (waka_kurikulum)</option>
+                      <option value="waka_kesiswaan">Waka Kesiswaan (waka_kesiswaan)</option>
+                      <option value="custom">Nomor WhatsApp Kustom</option>
+                    </UISelect>
+                  </div>
+                  {config.notify_role === "custom" && (
+                    <div>
+                      <label className="text-[10px] text-slate-400 font-bold block mb-1">Nomor WhatsApp Penerima</label>
+                      <input 
+                        type="text" 
+                        value={config.notify_custom_phone || ""} 
+                        onChange={e => setConfig({...config, notify_custom_phone: e.target.value})} 
+                        className="w-full border border-slate-200 bg-white rounded-lg px-2.5 py-1.5 text-xs font-bold focus:border-[var(--ui-primary)] outline-none" 
+                        placeholder="Contoh: 628123456789"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Button onClick={handleSaveConfig} disabled={savingConfig} size="sm" className="px-5 font-bold shadow-2xs">
+                {savingConfig ? "Menyimpan..." : "Simpan Batas Waktu"}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* SUB-TAB 5: PUSAT LAPORAN & REKAP (REPORTS HUB - COMPACT) */}
-      {currentSubTab === 'reports' && (
-        <div className="space-y-3 animate-in fade-in duration-200">
-          <div>
-            <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
-              <FileText size={14} className="text-[var(--ui-primary)]" />
-              Pusat Laporan & Matriks Rekap Kehadiran
-            </h3>
-            <p className="text-[11px] text-slate-500 font-medium">Akses langsung ke rekapitulasi kehadiran bulanan siswa, guru, dan karyawan.</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {/* Report Card: Siswa */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center shrink-0">
-                  <Users size={16} />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-800 text-xs">Presensi Siswa</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Matriks kehadiran bulanan siswa</p>
-                </div>
-              </div>
-              <Button 
-                size="sm"
-                onClick={() => navigateToExternalReport('hikvision_report_siswa')}
-                className="font-bold text-xs h-7 px-2.5 shrink-0"
-              >
-                <span>Buka</span>
-                <ArrowUpRight size={12} className="ml-1" />
-              </Button>
+          {/* 3. Pusat Laporan & Rekap */}
+          <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs space-y-2.5">
+            <div>
+              <h3 className="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                <FileText size={14} className="text-[var(--ui-primary)]" />
+                Pusat Laporan & Matriks Rekap Kehadiran
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">Pintasan langsung ke rekapitulasi kehadiran bulanan siswa, guru, dan karyawan.</p>
             </div>
 
-            {/* Report Card: Guru */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0">
-                  <UserCheck size={16} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
+              {/* Presensi Siswa */}
+              <div className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-2.5 flex flex-col justify-between gap-2 hover:border-[var(--ui-primary)] transition-all">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200/80 text-indigo-700 flex items-center justify-center shrink-0">
+                    <Users size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-800 text-xs truncate">Presensi Siswa</h4>
+                    <p className="text-[10px] text-slate-400 font-medium truncate">Matriks siswa</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-800 text-xs">Presensi Guru</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Rekap kehadiran & keterlambatan guru</p>
-                </div>
+                <Button 
+                  size="sm"
+                  onClick={() => navigateToExternalReport('hikvision_report_siswa')}
+                  className="w-full font-bold text-[11px] h-6 px-2"
+                >
+                  <span>Buka</span>
+                  <ArrowUpRight size={11} className="ml-1" />
+                </Button>
               </div>
-              <Button 
-                size="sm"
-                onClick={() => navigateToExternalReport('hikvision_report_guru')}
-                className="font-bold text-xs h-7 px-2.5 shrink-0"
-              >
-                <span>Buka</span>
-                <ArrowUpRight size={12} className="ml-1" />
-              </Button>
-            </div>
 
-            {/* Report Card: Karyawan */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200/80 text-purple-700 flex items-center justify-center shrink-0">
-                  <Briefcase size={16} />
+              {/* Presensi Guru */}
+              <div className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-2.5 flex flex-col justify-between gap-2 hover:border-[var(--ui-primary)] transition-all">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-700 flex items-center justify-center shrink-0">
+                    <UserCheck size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-800 text-xs truncate">Presensi Guru</h4>
+                    <p className="text-[10px] text-slate-400 font-medium truncate">Kehadiran guru</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-800 text-xs">Presensi Karyawan</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Audit absensi staf tata usaha & TU</p>
-                </div>
+                <Button 
+                  size="sm"
+                  onClick={() => navigateToExternalReport('hikvision_report_guru')}
+                  className="w-full font-bold text-[11px] h-6 px-2"
+                >
+                  <span>Buka</span>
+                  <ArrowUpRight size={11} className="ml-1" />
+                </Button>
               </div>
-              <Button 
-                size="sm"
-                onClick={() => navigateToExternalReport('hikvision_report_karyawan')}
-                className="font-bold text-xs h-7 px-2.5 shrink-0"
-              >
-                <span>Buka</span>
-                <ArrowUpRight size={12} className="ml-1" />
-              </Button>
-            </div>
 
-            {/* Report Card: Keterangan Massal */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0">
-                  <ClipboardList size={16} />
+              {/* Presensi Karyawan */}
+              <div className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-2.5 flex flex-col justify-between gap-2 hover:border-[var(--ui-primary)] transition-all">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200/80 text-purple-700 flex items-center justify-center shrink-0">
+                    <Briefcase size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-800 text-xs truncate">Presensi Staff</h4>
+                    <p className="text-[10px] text-slate-400 font-medium truncate">Audit absensi TU</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-800 text-xs">Keterangan Massal</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Dispensasi lomba, magang, libur</p>
-                </div>
+                <Button 
+                  size="sm"
+                  onClick={() => navigateToExternalReport('hikvision_report_karyawan')}
+                  className="w-full font-bold text-[11px] h-6 px-2"
+                >
+                  <span>Buka</span>
+                  <ArrowUpRight size={11} className="ml-1" />
+                </Button>
               </div>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => navigateToExternalReport('hikvision_report_siswa')}
-                className="font-bold text-xs h-7 px-2.5 shrink-0"
-              >
-                <span>Buka</span>
-                <ArrowUpRight size={12} className="ml-1" />
-              </Button>
-            </div>
 
-            {/* Report Card: Izin & Sakit Siswa */}
-            <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-2xs flex items-center justify-between gap-3 hover:border-[var(--ui-primary)] transition-all">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200/80 text-sky-700 flex items-center justify-center shrink-0">
-                  <ShieldCheck size={16} />
+              {/* Keterangan Massal */}
+              <div className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-2.5 flex flex-col justify-between gap-2 hover:border-[var(--ui-primary)] transition-all">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-700 flex items-center justify-center shrink-0">
+                    <ClipboardList size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-800 text-xs truncate">Ket. Massal</h4>
+                    <p className="text-[10px] text-slate-400 font-medium truncate">Dispensasi rombel</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-800 text-xs">Izin & Sakit Siswa</h4>
-                  <p className="text-[10.5px] text-slate-400 font-medium truncate">Surat izin & dokter resmi BK/Walas</p>
-                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateToExternalReport('hikvision_report_siswa')}
+                  className="w-full font-bold text-[11px] h-6 px-2"
+                >
+                  <span>Buka</span>
+                  <ArrowUpRight size={11} className="ml-1" />
+                </Button>
               </div>
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => navigateToExternalReport('kedisiplinan_absensi')}
-                className="font-bold text-xs h-7 px-2.5 shrink-0"
-              >
-                <span>Buka</span>
-                <ArrowUpRight size={12} className="ml-1" />
-              </Button>
+
+              {/* Izin & Sakit */}
+              <div className="bg-slate-50/70 rounded-xl border border-slate-200/70 p-2.5 flex flex-col justify-between gap-2 hover:border-[var(--ui-primary)] transition-all">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-sky-50 border border-sky-200/80 text-sky-700 flex items-center justify-center shrink-0">
+                    <ShieldCheck size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-extrabold text-slate-800 text-xs truncate">Izin & Sakit</h4>
+                    <p className="text-[10px] text-slate-400 font-medium truncate">Surat izin siswa</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigateToExternalReport('kedisiplinan_absensi')}
+                  className="w-full font-bold text-[11px] h-6 px-2"
+                >
+                  <span>Buka</span>
+                  <ArrowUpRight size={11} className="ml-1" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

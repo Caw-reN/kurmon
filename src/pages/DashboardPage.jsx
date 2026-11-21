@@ -870,6 +870,20 @@ export default function DashboardPage({
   const staffsStore = useDataStore((state) => state.staffs) || [];
   const studentsStore = students; // alias — students sudah include semua
 
+  // Fallback siswaStats safe definition in DashboardPage level to prevent ReferenceError
+  const siswaStats = useMemo(() => {
+    const list = dashLogs?.hikvisionStudentToday || [];
+    return {
+      Hadir: list.length || 0,
+      Terlambat: 0,
+      Izin: 0,
+      Sakit: 0,
+      Alpa: 0,
+      total: list.length || 0,
+      totalSiswaInSchool: students.length || 0
+    };
+  }, [dashLogs?.hikvisionStudentToday, students.length]);
+
   const teacherShortcuts = useMemo(() => {
     if (!isTeacher) return [];
     const teacherSubrole = (currentUser?.subrole || '').toLowerCase().trim();
