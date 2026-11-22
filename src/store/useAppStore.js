@@ -756,8 +756,16 @@ const syncPersistedSlicesFromDatabase = () => {
     }
     if (Array.isArray(latest.attendanceRecords)) nextState.attendanceRecords = latest.attendanceRecords;
     if (Array.isArray(latest.attendanceCorrections)) nextState.attendanceCorrections = latest.attendanceCorrections;
-    if (Array.isArray(latest.syllabuses)) nextState.syllabuses = latest.syllabuses;
-    if (Array.isArray(latest.syllabusCategories)) nextState.syllabusCategories = latest.syllabusCategories;
+    const serverSyllabuses = Array.isArray(latest.syllabuses)
+      ? latest.syllabuses
+      : (Array.isArray(latest.teacher_syllabus)
+        ? latest.teacher_syllabus
+        : (Array.isArray(latest.modul_ajar) ? latest.modul_ajar : null));
+    if (serverSyllabuses) nextState.syllabuses = serverSyllabuses;
+    const serverSyllabusCategories = Array.isArray(latest.syllabusCategories)
+      ? latest.syllabusCategories
+      : (Array.isArray(latest.teacher_syllabus_categories) ? latest.teacher_syllabus_categories : null);
+    if (serverSyllabusCategories) nextState.syllabusCategories = serverSyllabusCategories;
     if (Array.isArray(latest.activityLogs)) nextState.activityLogs = latest.activityLogs;
     if (Array.isArray(latest.dashboardMessages)) nextState.dashboardMessages = latest.dashboardMessages;
     if (Array.isArray(latest.calendarCategories)) nextState.calendarCategories = latest.calendarCategories;

@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { useAppStore } from '../../../store/useAppStore.js';
+import { useDataStore } from '../../../store/useDataStore.js';
+import { useAuthToken } from '../../../hooks/useAuthToken.js';
 import { base64ToBlobUrl, downloadFile, optimizePdfFile } from '../../../utils/fileHelper.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button, Modal } from '../../../components/ui.jsx';
@@ -153,19 +155,58 @@ export default function ModulAjar(props) {
   const modulFileInputRef = useRef(null);
   const materiFileInputRef = useRef(null);
 
-  const authToken = useAuthStore(state => state.user?.authToken);
-  const user = useAuthStore(state => state.user || EMPTY_OBJECT);
-  const userRole = user.role || 'guru';
-  const teacherCode = user.code || '';
-  const teacherName = user.name || '';
+  const hookAuth = useAuthToken();
+  const storeAuthUser = useAuthStore(state => state.user);
+  const storeDataUser = useDataStore(state => state.currentUser);
 
-  const division = (user?.division || '').toLowerCase();
-  const isCurriculum = userRole === 'admin' || userRole === 'superadmin' || userRole === 'waka_kurikulum' || (userRole === 'waka' && division === 'kurikulum');
+  const effectiveUser = useMemo(() => {
+    if (props.currentUser && Object.keys(props.currentUser).length > 0) return props.currentUser;
+    if (storeAuthUser && Object.keys(storeAuthUser).length > 0) return storeAuthUser;
+    if (storeDataUser && Object.keys(storeDataUser).length > 0) return storeDataUser;
+    try {
+      const raw = sessionStorage.getItem('school_schedule_session_v1') || localStorage.getItem('school_schedule_session_v1');
+      return raw ? JSON.parse(raw) : EMPTY_OBJECT;
+    } catch {
+      return EMPTY_OBJECT;
+    }
+  }, [props.currentUser, storeAuthUser, storeDataUser]);
+
+  const authToken = props.authToken || props.currentUser?.authToken || hookAuth?.token || effectiveUser?.authToken || '';
+  const user = effectiveUser;
+  const userRole = String(props.currentUser?.role || hookAuth?.role || effectiveUser?.role || 'guru').toLowerCase();
+  const subrole = String(props.currentUser?.subrole || effectiveUser?.subrole || '').toLowerCase();
+  const division = String(props.currentUser?.division || effectiveUser?.division || '').toLowerCase();
+  const teacherCode = effectiveUser?.code || effectiveUser?.nip || effectiveUser?.username || '';
+  const teacherName = effectiveUser?.name || effectiveUser?.nama || '';
+
+  const isCurriculum = hookAuth?.isSuperAdmin || hookAuth?.isAdmin ||
+    ['admin', 'superadmin', 'super_admin', 'kepsek', 'waka_kurikulum', 'kurikulum', 'sekretaris_kurikulum', 'anggota_kurikulum'].includes(userRole) ||
+    subrole.includes('kurikulum') ||
+    division.includes('kurikulum') ||
+    (userRole === 'waka' && division === 'kurikulum') ||
+    Boolean(effectiveUser?.isSuperAdmin) ||
+    Boolean(effectiveUser?.isAdmin) ||
+    String(effectiveUser?.username || '').toLowerCase() === 'admin';
+
   const academicYears = appSettings?.academicYears || EMPTY_ARRAY;
   const activeYear = useMemo(() => academicYears.find(y => y.is_active)?.nama || '', [academicYears]);
 
   // ── Tab state ────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState(isCurriculum ? 'rekap' : 'administrasi-materi');
+  const [activeTab, setActiveTab] = useState(() => {
+    if (props.activeTab && ['rekap', 'administrasi-materi', 'silabus', 'kategori', 'silabusguru'].includes(props.activeTab)) {
+      return props.activeTab;
+    }
+    if (props.activeTab === 'rpp_guru') return 'silabusguru';
+    return isCurriculum ? 'rekap' : 'administrasi-materi';
+  });
+
+  useEffect(() => {
+    if (props.activeTab && ['rekap', 'administrasi-materi', 'silabus', 'kategori', 'silabusguru'].includes(props.activeTab)) {
+      setActiveTab(props.activeTab);
+    } else if (props.activeTab === 'rpp_guru') {
+      setActiveTab('silabusguru');
+    }
+  }, [props.activeTab]);
 
   // ── Form State: Upload Administrasi Guru ──────────────────────
   const [modulForm, setModulForm] = useState({
@@ -471,9 +512,12 @@ export default function ModulAjar(props) {
     const list = [];
     if (isCurriculum) {
       list.push({ id: 'rekap', label: 'Monitoring Administrasi', icon: BarChart3 });
-      list.push({ id: 'administrasi-materi', label: 'Arsip Modul & Materi', icon: LayoutList });
+      list.push({ id: 'administrasi-materi', label: 'Arsip Dokumen & Materi', icon: LayoutList });
+      list.push({ id: 'silabus', label: 'Silabus & RPP', icon: BookOpenText });
+      list.push({ id: 'kategori', label: 'Kategori Silabus', icon: Layers });
     } else {
       list.push({ id: 'administrasi-materi', label: 'Administrasi & Perangkat Ajar', icon: BookOpenText });
+      list.push({ id: 'silabusguru', label: 'Modul Ajar Saya', icon: GraduationCap });
     }
     return list;
   }, [isCurriculum]);
@@ -748,13 +792,41 @@ export default function ModulAjar(props) {
     }
   };
 
-  const handlePreviewPdf = (item) => {
-    if (item.file_url) {
+  const handlePreviewPdf = async (item) => {
+    if (!item) return;
+    if (item.file_url && item.file_url !== 'lazy') {
       const blobUrl = base64ToBlobUrl(item.file_url, 'application/pdf');
       setPreviewDoc({
         title: item.title || item.nama_dokumen || 'Dokumen PDF',
         url: blobUrl
       });
+      return;
+    }
+    // Lazy load if file_url is 'lazy' or empty
+    const docId = item.originalId || String(item.id || '').replace(/^(modul|materi)-/, '');
+    if (docId) {
+      const endpoint = item.itemType === 'materi'
+        ? `/api/materi-ajar/${docId}/file`
+        : `/api/modul-ajar-guru/file/${docId}`;
+      try {
+        const res = await fetch(endpoint, {
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+        });
+        const json = await res.json();
+        const base64Content = json?.data?.file_url || json?.file_url;
+        if (base64Content) {
+          const blobUrl = base64ToBlobUrl(base64Content, 'application/pdf');
+          setPreviewDoc({
+            title: item.title || item.nama_dokumen || json?.data?.nama_dokumen || 'Dokumen PDF',
+            url: blobUrl
+          });
+        } else {
+          alert('Berkas dokumen tidak dapat dimuat.');
+        }
+      } catch (err) {
+        console.error('Failed to load PDF file:', err);
+        alert('Gagal memuat berkas dokumen.');
+      }
     }
   };
 

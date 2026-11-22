@@ -1397,12 +1397,14 @@ const initDb = async () => {
       )
     `);
 
-    // Add mapel, kelas, semester columns if not exist
+    // Add mapel, kelas, semester, kategori columns if not exist
     try {
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS mapel VARCHAR(100)");
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS kelas VARCHAR(50)");
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS semester VARCHAR(50)");
       await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS deskripsi TEXT");
+      await dbPool.query("ALTER TABLE modul_ajar_guru ADD COLUMN IF NOT EXISTS kategori VARCHAR(100) DEFAULT 'Modul Ajar'");
+      await dbPool.query("UPDATE modul_ajar_guru SET kategori = 'Modul Ajar' WHERE kategori IS NULL");
     } catch (e) {
       console.warn("Failed to alter modul_ajar_guru table columns:", e.message);
     }
@@ -5093,6 +5095,14 @@ const server = createServer(async (req, res) => {
         // Siapapun bisa mengakses daftar dokumen modul ajar semua guru tanpa login.
         if (!requireAuthenticated(req, res)) return;
         try {
+          const fileMatch = url.pathname.match(/^\/api\/modul-ajar-guru\/file\/(\d+)$/);
+          const singleFileId = fileMatch ? fileMatch[1] : url.searchParams.get("file_id");
+          if (singleFileId) {
+            const { rows: fileRows } = await dbPool.query("SELECT id, nama_dokumen, file_url FROM modul_ajar_guru WHERE id = $1 LIMIT 1", [singleFileId]);
+            if (fileRows.length === 0) return send(req, res, 404, { ok: false, error: "File tidak ditemukan" });
+            return send(req, res, 200, { ok: true, file_url: fileRows[0].file_url });
+          }
+
           const { rows } = await dbPool.query("SELECT * FROM modul_ajar_guru ORDER BY uploaded_at DESC");
           send(req, res, 200, { ok: true, data: rows });
         } catch (err) { sendDatabaseError(req, res, err); }

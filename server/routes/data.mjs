@@ -63,6 +63,13 @@ export async function handleDataRoutes(req, res, url, ctx) {
     if (!requireAuthenticated(req, res)) return true;
     try {
       const payload = await readMainPayload();
+      if (payload) {
+        if (!payload.syllabuses && Array.isArray(payload.teacher_syllabus)) {
+          payload.syllabuses = payload.teacher_syllabus;
+        } else if (!payload.syllabuses && Array.isArray(payload.modul_ajar)) {
+          payload.syllabuses = payload.modul_ajar;
+        }
+      }
 
       // Merge with relational tables (all master data sources)
       try {

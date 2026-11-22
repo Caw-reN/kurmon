@@ -81,8 +81,16 @@ export function useAdminDatabaseSync({
     if (Array.isArray(payload.attendanceCorrections)) nextStoreState.attendanceCorrections = payload.attendanceCorrections;
     if (payload.attendanceSettings && typeof payload.attendanceSettings === 'object') nextStoreState.attendanceSettings = payload.attendanceSettings;
     if (payload.featureSettings && typeof payload.featureSettings === 'object')      nextStoreState.featureSettings = payload.featureSettings;
-    if (Array.isArray(payload.syllabuses))           nextStoreState.syllabuses = payload.syllabuses;
-    if (Array.isArray(payload.syllabusCategories))   nextStoreState.syllabusCategories = payload.syllabusCategories;
+    const serverSyllabuses = Array.isArray(payload.syllabuses)
+      ? payload.syllabuses
+      : (Array.isArray(payload.teacher_syllabus)
+        ? payload.teacher_syllabus
+        : (Array.isArray(payload.modul_ajar) ? payload.modul_ajar : null));
+    if (serverSyllabuses) nextStoreState.syllabuses = serverSyllabuses;
+    const serverSyllabusCategories = Array.isArray(payload.syllabusCategories)
+      ? payload.syllabusCategories
+      : (Array.isArray(payload.teacher_syllabus_categories) ? payload.teacher_syllabus_categories : null);
+    if (serverSyllabusCategories) nextStoreState.syllabusCategories = serverSyllabusCategories;
     if (Array.isArray(payload.activityLogs))         nextStoreState.activityLogs = payload.activityLogs;
     if (Array.isArray(payload.dashboardMessages))    nextStoreState.dashboardMessages = payload.dashboardMessages;
     if (Array.isArray(payload.academicCalendar))     nextStoreState.academicCalendar = payload.academicCalendar;
