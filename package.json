@@ -11,7 +11,8 @@
     "auth:server": "node server/auth-server.mjs",
     "dev:server": "node --watch server/auth-server.mjs",
     "dev:all": "npx -y concurrently \"npm run dev:server\" \"npm run dev\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "push": "powershell -ExecutionPolicy Bypass -File scripts/auto-push.ps1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1078.0",
