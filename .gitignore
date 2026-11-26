@@ -11,7 +11,29 @@ node_modules
 dist
 dist-ssr
 .env
+.env.*
+!.env.example
+!server/.env.example
 *.local
+
+# Keys, certificates, credentials & runtime DB/backups
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*service-account*.json
+*credentials*.json
+*client_secret*.json
+*gdrive-token*.json
+*.sql
+*.gz
+*.bak
+*.sqlite
+*.db
+tmp/
+temp/
+.cache/
 
 # Editor directories and files
 .vscode/*
