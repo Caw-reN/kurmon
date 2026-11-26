@@ -2,9 +2,9 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import useAuthStore from '../../store/monitoring/authStore.js';
 import { useAuthToken } from '../../hooks/useAuthToken.js';
 import { saveAs } from 'file-saver';
-import { 
-  Trophy, FileSpreadsheet, Plus, Award, TrendingUp, Search, MapPin, 
-  Building, Calendar, Edit2, Trash2, AlertCircle, CheckCircle2, 
+import {
+  Trophy, FileSpreadsheet, Plus, Award, TrendingUp, Search, MapPin,
+  Building, Calendar, Edit2, Trash2, AlertCircle, CheckCircle2,
   ChevronRight, Filter, User, AlertTriangle, Clock
 } from 'lucide-react';
 import { CustomSelect } from '../../components/CustomSelect.jsx';
@@ -32,7 +32,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
   const [search, setSearch] = useState("");
   const [filterTingkat, setFilterTingkat] = useState("all");
   const [filterKelas, setFilterKelas] = useState("all");
-  
+
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +47,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
     setToast({ message, type });
     setTimeout(() => setToast(null), 3500);
   }, []);
-  
+
   const [formData, setFormData] = useState({
     siswa_nis: "",
     nama_prestasi: "",
@@ -168,10 +168,10 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
     const fallbackName = typeof itemOrNis === 'object' ? (itemOrNis?.nama_siswa || itemOrNis?.siswa_name || itemOrNis?.name) : null;
     const fallbackClass = typeof itemOrNis === 'object' ? (itemOrNis?.kelas || itemOrNis?.class_name) : null;
 
-    const student = students.find(s => 
-      String(s.nis) === String(nis) || 
-      String(s.nisn) === String(nis) || 
-      String(s.id) === String(nis) || 
+    const student = students.find(s =>
+      String(s.nis) === String(nis) ||
+      String(s.nisn) === String(nis) ||
+      String(s.id) === String(nis) ||
       String(s.code) === String(nis)
     );
 
@@ -182,19 +182,19 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
       };
     }
 
-    return { 
-      name: fallbackName || (nis ? `Siswa #${nis}` : 'Siswa Terdaftar'), 
-      class_name: fallbackClass || '-' 
+    return {
+      name: fallbackName || (nis ? `Siswa #${nis}` : 'Siswa Terdaftar'),
+      class_name: fallbackClass || '-'
     };
   }, [students]);
 
   const filteredPrestasi = useMemo(() => {
     return prestasiList.filter(item => {
       const sInfo = getStudentInfo(item);
-      const matchSearch = item.nama_prestasi.toLowerCase().includes(search.toLowerCase()) || 
-                          sInfo.name.toLowerCase().includes(search.toLowerCase()) ||
-                          String(item.siswa_nis).includes(search) ||
-                          (item.created_by_name && item.created_by_name.toLowerCase().includes(search.toLowerCase()));
+      const matchSearch = item.nama_prestasi.toLowerCase().includes(search.toLowerCase()) ||
+        sInfo.name.toLowerCase().includes(search.toLowerCase()) ||
+        String(item.siswa_nis).includes(search) ||
+        (item.created_by_name && item.created_by_name.toLowerCase().includes(search.toLowerCase()));
       const matchTingkat = filterTingkat === "all" || item.tingkat === filterTingkat;
       const matchKelas = filterKelas === "all" || sInfo.class_name === filterKelas;
       return matchSearch && matchTingkat && matchKelas;
@@ -248,7 +248,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
   };
 
   const getTingkatBadgeClass = (tingkat) => {
-    switch(tingkat) {
+    switch (tingkat) {
       case 'Internasional':
         return 'bg-purple-100/90 text-purple-800 border-purple-200 shadow-xs';
       case 'Nasional':
@@ -274,9 +274,9 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
 
   return (
     <div className="space-y-5 animate-in fade-in duration-300">
-      
+
       {/* HEADER CARD */}
-      <PageHeader 
+      <PageHeader
         title="Riwayat Prestasi Siswa"
         description="Dokumentasi pencapaian akademik & non-akademik siswa di berbagai tingkat kejuaraan."
         icon={Trophy}
@@ -339,7 +339,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
 
       {/* FILTER & DATA SECTION */}
       <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
-        
+
         {/* Filters Header */}
         <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3 items-center justify-between">
           <div className="relative w-full sm:flex-1">
@@ -384,9 +384,9 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
           ) : paginatedPrestasi.length === 0 ? (
             <div className="p-10 text-center text-slate-400 space-y-2">
               <div className="w-28 h-24 mx-auto mb-2 flex items-center justify-center">
-                <img 
-                  src="/maskot/kara-gana/duo/angkat-piala.svg" 
-                  alt="Kara & Gana Prestasi Siswa" 
+                <img
+                  src="/maskot/kara-gana/duo/angkat-piala.svg"
+                  alt="Kara & Gana Prestasi Siswa"
                   className="w-full h-full object-contain drop-shadow-xs select-none"
                   onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
                 />
@@ -410,7 +410,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
                         <p className="text-[10px] font-semibold text-slate-400">NIS: {item.siswa_nis} • Kelas {sInfo.class_name}</p>
                       </div>
                     </div>
-                    
+
                     <span className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-[var(--ui-radius-pill)] border ${badgeStyle} shrink-0`}>
                       {item.tingkat}
                     </span>
@@ -508,9 +508,9 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
                 <tr>
                   <td colSpan="7" className="px-6 py-16 text-center text-slate-400 space-y-2">
                     <div className="w-28 h-24 mx-auto mb-2 flex items-center justify-center">
-                      <img 
-                        src="/maskot/kara-gana/duo/angkat-piala.svg" 
-                        alt="Kara & Gana Prestasi Siswa" 
+                      <img
+                        src="/maskot/kara-gana/duo/angkat-piala.svg"
+                        alt="Kara & Gana Prestasi Siswa"
                         className="w-full h-full object-contain drop-shadow-xs select-none"
                         onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
                       />
@@ -560,10 +560,10 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="text-xs text-slate-700 font-bold flex items-center gap-1.5">
-                          <Building size={12} className="text-slate-400 shrink-0"/> {item.penyelenggara || '-'}
+                          <Building size={12} className="text-slate-400 shrink-0" /> {item.penyelenggara || '-'}
                         </div>
                         <div className="text-[10px] text-slate-400 mt-1 font-semibold flex items-center gap-1.5">
-                          <Calendar size={12} className="text-slate-400 shrink-0"/> {item.tanggal_prestasi ? new Date(item.tanggal_prestasi).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
+                          <Calendar size={12} className="text-slate-400 shrink-0" /> {item.tanggal_prestasi ? new Date(item.tanggal_prestasi).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : '-'}
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
@@ -581,7 +581,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
                           </span>
                         </div>
                         <div className="text-[10px] text-slate-400 mt-1 font-semibold flex items-center gap-1">
-                          <Clock size={11} className="text-slate-400 shrink-0"/>
+                          <Clock size={11} className="text-slate-400 shrink-0" />
                           <span>
                             {item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}
                           </span>
@@ -641,7 +641,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
       {/* TAMBAH/EDIT MODAL */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)} title={isEditing ? "Sunting Data Prestasi" : "Catat Prestasi Baru"} maxWidth="max-w-xl">
         <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold text-slate-600">
-          
+
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Pilih Siswa (Penerima)</label>
             <CustomSelect
@@ -659,24 +659,24 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Nama Prestasi / Kejuaraan</label>
-              <input 
+              <input
                 required
-                type="text" 
+                type="text"
                 value={formData.nama_prestasi}
                 onChange={e => setFormData({ ...formData, nama_prestasi: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
-                placeholder="Contoh: Juara 1 Lomba LKS RPL" 
+                placeholder="Contoh: Juara 1 Lomba LKS RPL"
               />
             </div>
-            
+
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Peringkat / Penghargaan</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={formData.peringkat}
                 onChange={e => setFormData({ ...formData, peringkat: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
-                placeholder="Contoh: Juara 1, Medali Emas" 
+                placeholder="Contoh: Juara 1, Medali Emas"
               />
             </div>
           </div>
@@ -699,20 +699,20 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Penyelenggara</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={formData.penyelenggara}
                 onChange={e => setFormData({ ...formData, penyelenggara: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
-                placeholder="Contoh: Kemendikbudristek" 
+                placeholder="Contoh: Kemendikbudristek"
               />
             </div>
 
             <div>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tanggal Perolehan</label>
-              <input 
+              <input
                 required
-                type="date" 
+                type="date"
                 value={formData.tanggal_prestasi}
                 onChange={e => setFormData({ ...formData, tanggal_prestasi: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 text-xs font-semibold"
@@ -722,7 +722,7 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
 
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Keterangan / Rincian</label>
-            <textarea 
+            <textarea
               rows="3"
               value={formData.keterangan}
               onChange={e => setFormData({ ...formData, keterangan: e.target.value })}
@@ -750,14 +750,14 @@ export default function RiwayatPrestasi({ students = [], classes = [], getTabPer
           )}
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setShowModal(false)}
               className="py-2 px-4 rounded-[var(--ui-radius-small)] font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer"
             >
               Batal
             </button>
-            <button 
+            <button
               type="submit"
               className="py-2 px-4 rounded-[var(--ui-radius-small)] font-black text-xs bg-amber-600 hover:bg-amber-700 text-white transition-colors cursor-pointer shadow-xs"
             >

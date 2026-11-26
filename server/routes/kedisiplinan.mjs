@@ -774,6 +774,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
             prestasiRows = res2.rows;
           } else {
             const canViewPrestasi = ['admin', 'superadmin', 'super_admin', 'kepsek', 'tu', 'tata_usaha'].includes(prestasiRole) ||
+              prestasiRole.startsWith('custom_') || prestasiSubrole.startsWith('custom_') ||
               isKesiswaanStaff || isBkStaffRole ||
               prestasiRole === 'kesiswaan' || prestasiRole === 'waka_kesiswaan' ||
               prestasiSubrole.includes('kesiswaan') || prestasiSubrole.includes('osis') || prestasiSubrole.includes('bk') ||
@@ -791,6 +792,7 @@ export async function handleKedisiplinanRoutes(req, res, url, ctx) {
         }
         if (req.method === "POST" && url.pathname === "/api/kesiswaan/prestasi") {
           const canManagePrestasi = ['admin', 'superadmin', 'super_admin'].includes(role) ||
+            role.startsWith('custom_') || subrole.startsWith('custom_') ||
             isKesiswaanStaff || isBkStaffRole ||
             role === 'kesiswaan' || role === 'waka_kesiswaan' ||
             subrole.includes('kesiswaan') || subrole.includes('osis') || subrole.includes('bk') ||

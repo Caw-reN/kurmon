@@ -445,6 +445,13 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           if (subrole === 'waka_sarpras' || subrole === 'sarpras') return true;
         }
 
+        // 7b. Alias login untuk Humas
+        if (u === 'humas' || u === 'waka_humas') {
+          if (role === 'waka' && division === 'humas') return true;
+          if (role === 'waka_humas' || role === 'humas') return true;
+          if (subrole === 'waka_humas' || subrole === 'humas') return true;
+        }
+
         // 8. Alias login untuk TU
         if (u === 'tu' || u === 'tata_usaha') {
           if (role === 'tu' || role === 'tata_usaha') return true;
