@@ -101,8 +101,16 @@ const StudentDashboard = () => {
       <div className="flex items-start justify-between gap-3 pt-1 pb-1">
         <div className="space-y-1">
           <p className="text-xs font-bold text-slate-500">{dateFormatted}</p>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-            Halo, {firstName}! <Sparkles size={18} className="text-amber-500 inline" />
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            Halo, {firstName}! 
+            <span className="w-7 h-7 inline-flex items-center justify-center shrink-0">
+              <img 
+                src="/maskot/kara-gana/ekspresi/kara-antusias.svg" 
+                alt="" 
+                className="w-6 h-6 object-contain select-none" 
+                onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+              />
+            </span>
           </h1>
         </div>
 
@@ -158,7 +166,12 @@ const StudentDashboard = () => {
               {studentPhoto ? (
                 <img src={studentPhoto} alt="Foto Siswa" className="w-full h-full object-cover rounded-[var(--ui-radius-small)]" />
               ) : (
-                <User size={30} className="text-slate-300" />
+                <img 
+                  src="/maskot/kara-gana/gana-bust.svg" 
+                  alt="Gana Siswa" 
+                  className="w-full h-full object-contain select-none" 
+                  onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/gana-avatar.svg"; }}
+                />
               )}
             </div>
 

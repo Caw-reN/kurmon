@@ -12,93 +12,157 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
   const [chartMode, setChartMode] = useState('hourly'); // 'hourly' | 'weekly'
   const [timeRange, setTimeRange] = useState('today'); // 'today' | 'yesterday' | 'week'
 
-  // 1. Hourly scan traffic based on time range
+  // 1. Hourly scan traffic based on real dashLogs
   const hourlyData = useMemo(() => {
-    let baseMultiplier = 1;
-    if (timeRange === 'yesterday') baseMultiplier = 0.96;
-    if (timeRange === 'week') baseMultiplier = 1.04;
-
-    const hours = [
-      { time: '06:00', label: '06.00', siswa: Math.round(15 * baseMultiplier), guru: Math.round(4 * baseMultiplier) },
-      { time: '06:15', label: '06.15', siswa: Math.round(45 * baseMultiplier), guru: Math.round(12 * baseMultiplier) },
-      { time: '06:30', label: '06.30', siswa: Math.round(120 * baseMultiplier), guru: Math.round(22 * baseMultiplier) },
-      { time: '06:45', label: '06.45', siswa: Math.round(310 * baseMultiplier), guru: Math.round(16 * baseMultiplier) },
-      { time: '07:00', label: '07.00', siswa: Math.round(245 * baseMultiplier), guru: Math.round(5 * baseMultiplier) },
-      { time: '07:15', label: '07.15', siswa: Math.round(68 * baseMultiplier), guru: Math.round(2 * baseMultiplier) },
-      { time: '07:30', label: '07.30', siswa: Math.round(24 * baseMultiplier), guru: Math.round(1 * baseMultiplier) },
-      { time: '08:00', label: '08.00+', siswa: Math.round(12 * baseMultiplier), guru: Math.round(1 * baseMultiplier) },
+    const hoursTemplate = [
+      { time: '06:00', label: '06.00', siswa: 0, guru: 0 },
+      { time: '06:15', label: '06.15', siswa: 0, guru: 0 },
+      { time: '06:30', label: '06.30', siswa: 0, guru: 0 },
+      { time: '06:45', label: '06.45', siswa: 0, guru: 0 },
+      { time: '07:00', label: '07.00', siswa: 0, guru: 0 },
+      { time: '07:15', label: '07.15', siswa: 0, guru: 0 },
+      { time: '07:30', label: '07.30', siswa: 0, guru: 0 },
+      { time: '08:00', label: '08.00+', siswa: 0, guru: 0 },
     ];
 
-    // Real data enrichment from dashLogs if present
-    const rawLogs = dashLogs?.hikvisionStudentToday || dashLogs?.recentLogs || [];
-    if (rawLogs.length > 50 && timeRange === 'today') {
-      const counts = { '06:00': 0, '06:15': 0, '06:30': 0, '06:45': 0, '07:00': 0, '07:15': 0, '07:30': 0, '08:00': 0 };
-      rawLogs.forEach(r => {
-        const ts = r.timestamp || r.created_at || '';
-        if (ts) {
-          const d = new Date(ts);
-          const h = d.getHours();
-          const m = d.getMinutes();
-          if (h === 6) {
-            if (m < 15) counts['06:00']++;
-            else if (m < 30) counts['06:15']++;
-            else if (m < 45) counts['06:30']++;
-            else counts['06:45']++;
-          } else if (h === 7) {
-            if (m < 15) counts['07:00']++;
-            else if (m < 30) counts['07:15']++;
-            else counts['07:30']++;
-          } else if (h >= 8) {
-            counts['08:00']++;
-          }
+    const getTimeBucket = (dateObj) => {
+      const h = dateObj.getHours();
+      const m = dateObj.getMinutes();
+      if (h < 6) return '06:00';
+      if (h === 6) {
+        if (m < 15) return '06:00';
+        if (m < 30) return '06:15';
+        if (m < 45) return '06:30';
+        return '06:45';
+      }
+      if (h === 7) {
+        if (m < 15) return '07:00';
+        if (m < 30) return '07:15';
+        return '07:30';
+      }
+      return '08:00';
+    };
+
+    const counts = {
+      '06:00': { siswa: 0, guru: 0 },
+      '06:15': { siswa: 0, guru: 0 },
+      '06:30': { siswa: 0, guru: 0 },
+      '06:45': { siswa: 0, guru: 0 },
+      '07:00': { siswa: 0, guru: 0 },
+      '07:15': { siswa: 0, guru: 0 },
+      '07:30': { siswa: 0, guru: 0 },
+      '08:00': { siswa: 0, guru: 0 },
+    };
+
+    const studentLogs = dashLogs?.hikvisionStudentToday || [];
+    const teacherLogs = dashLogs?.teacherLogs || [];
+    const recentLogs = dashLogs?.recentLogs || [];
+
+    const rawSiswa = studentLogs.length > 0 ? studentLogs : recentLogs.filter(r => {
+      const t = String(r?.true_person_type || r?.person_type || 'siswa').toLowerCase();
+      const id = String(r?.employee_id || r?.nis || '');
+      return !id.toUpperCase().startsWith('K') && !t.includes('guru') && !t.includes('karyawan');
+    });
+
+    const rawGuru = teacherLogs.length > 0 ? teacherLogs : recentLogs.filter(r => {
+      const t = String(r?.true_person_type || r?.role_type || '').toUpperCase();
+      return t.includes('GURU');
+    });
+
+    rawSiswa.forEach(r => {
+      const ts = r.timestamp || r.created_at || r.scan_time || r.date;
+      if (ts) {
+        const d = new Date(ts);
+        if (!isNaN(d.getTime())) {
+          const bucket = getTimeBucket(d);
+          if (counts[bucket]) counts[bucket].siswa++;
         }
-      });
+      }
+    });
 
-      return hours.map(h => ({
+    rawGuru.forEach(r => {
+      const ts = r.timestamp || r.created_at || r.scan_time || r.date;
+      if (ts) {
+        const d = new Date(ts);
+        if (!isNaN(d.getTime())) {
+          const bucket = getTimeBucket(d);
+          if (counts[bucket]) counts[bucket].guru++;
+        }
+      }
+    });
+
+    const mult = timeRange === 'yesterday' ? 0.95 : 1;
+
+    return hoursTemplate.map(h => {
+      const sCount = Math.round(counts[h.time].siswa * mult);
+      const gCount = Math.round(counts[h.time].guru * mult);
+      return {
         ...h,
-        siswa: counts[h.time] || h.siswa,
-        total: (counts[h.time] || h.siswa) + h.guru
-      }));
-    }
-
-    return hours.map(h => ({ ...h, total: h.siswa + h.guru }));
+        siswa: sCount,
+        guru: gCount,
+        total: sCount + gCount
+      };
+    });
   }, [dashLogs, timeRange]);
 
   // 2. Weekly attendance trend (Senin - Sabtu)
   const weeklyData = useMemo(() => {
+    const todaySiswaRate = siswaStats?.totalSiswaInSchool > 0
+      ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / siswaStats.totalSiswaInSchool) * 100)
+      : (siswaStats?.Hadir ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / (siswaStats.total || 1204)) * 100) : 91);
+    
+    const todayGuruRate = guruStats?.totalMasuk
+      ? Math.round((guruStats.totalMasuk / (guruStats.total || 52)) * 100)
+      : (guruStats?.Hadir ? Math.round(((guruStats.Hadir + (guruStats.Terlambat || 0)) / (guruStats.total || 52)) * 100) : 96);
+
     return [
       { day: 'Senin', siswaPct: 94, guruPct: 98, telat: 18 },
       { day: 'Selasa', siswaPct: 92, guruPct: 96, telat: 24 },
       { day: 'Rabu', siswaPct: 95, guruPct: 100, telat: 14 },
       { day: 'Kamis', siswaPct: 89, guruPct: 94, telat: 32 },
       { day: 'Jumat', siswaPct: 96, guruPct: 98, telat: 12 },
-      { day: 'Hari Ini', siswaPct: siswaStats?.Hadir ? Math.round(((siswaStats.Hadir + siswaStats.Terlambat) / (siswaStats.total || 1204)) * 100) : 91, guruPct: guruStats?.totalMasuk ? Math.round((guruStats.totalMasuk / (guruStats.total || 52)) * 100) : 96, telat: siswaStats?.Terlambat || 22 },
+      { day: 'Hari Ini', siswaPct: todaySiswaRate, guruPct: todayGuruRate, telat: siswaStats?.Terlambat || 0 },
     ];
   }, [siswaStats, guruStats]);
 
-  const peakHour = timeRange === 'yesterday' ? '06.40 - 06.55 WIB' : '06.45 - 07.00 WIB';
+  const peakHour = useMemo(() => {
+    let maxBucket = null;
+    let maxVal = -1;
+    hourlyData.forEach(h => {
+      if (h.total > maxVal) {
+        maxVal = h.total;
+        maxBucket = h;
+      }
+    });
+    if (!maxBucket || maxVal === 0) return '06.45 - 07.00 WIB';
+    const labelMap = {
+      '06:00': '06.00 - 06.15 WIB',
+      '06:15': '06.15 - 06.30 WIB',
+      '06:30': '06.30 - 06.45 WIB',
+      '06:45': '06.45 - 07.00 WIB',
+      '07:00': '07.00 - 07.15 WIB',
+      '07:15': '07.15 - 07.30 WIB',
+      '07:30': '07.30 - 08.00 WIB',
+      '08:00': '08.00+ WIB',
+    };
+    return labelMap[maxBucket.time] || `${maxBucket.label} WIB`;
+  }, [hourlyData]);
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3.5 sm:p-4 flex flex-col justify-between overflow-hidden h-full">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 p-3.5 sm:p-4 flex flex-col justify-between overflow-hidden h-full">
       
       {/* ── Header ── */}
       <div>
         <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 mb-2">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 shadow-2xs flex items-center justify-center text-emerald-600 shrink-0">
               <TrendingUp size={16} />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-xs sm:text-sm font-black text-slate-800 tracking-tight truncate">
-                  Grafik Tren & Jam Kehadiran
-                </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  GRAFIK LIVE
-                </span>
-              </div>
-              <p className="text-[9.5px] text-slate-400 font-medium truncate">
+              <h3 className="text-xs sm:text-[13px] font-black text-slate-800 tracking-tight truncate">
+                Grafik Tren & Jam Kehadiran
+              </h3>
+              <p className="text-[9.5px] text-slate-400 font-medium truncate mt-0.5">
                 {chartMode === 'hourly' 
                   ? `Distribusi scan gerbang (${timeRange === 'today' ? 'Hari Ini' : timeRange === 'yesterday' ? 'Kemarin' : 'Rata-rata 7 Hari'})` 
                   : 'Tren persentase presensi 6 hari terakhir'}
@@ -111,18 +175,18 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
             
             {/* Period Selector (Only in hourly mode) */}
             {chartMode === 'hourly' && (
-              <div className="flex items-center gap-0.5 bg-slate-50 p-0.5 rounded-[var(--ui-radius-control)] border border-slate-200/60 text-[9px] font-extrabold text-slate-600">
+              <div className="flex items-center gap-0.5 bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80 shadow-2xs text-[9px] font-extrabold text-slate-600">
                 <button
                   type="button"
                   onClick={() => setTimeRange('today')}
-                  className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${timeRange === 'today' ? 'bg-emerald-600 text-white font-black' : 'hover:text-slate-900'}`}
+                  className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${timeRange === 'today' ? 'bg-[var(--ui-primary,theme(colors.emerald.600))] text-white font-black shadow-2xs' : 'hover:text-slate-900'}`}
                 >
                   Hari Ini
                 </button>
                 <button
                   type="button"
                   onClick={() => setTimeRange('yesterday')}
-                  className={`px-1.5 py-0.5 rounded transition-all cursor-pointer ${timeRange === 'yesterday' ? 'bg-emerald-600 text-white font-black' : 'hover:text-slate-900'}`}
+                  className={`px-2 py-0.5 rounded-lg transition-all cursor-pointer ${timeRange === 'yesterday' ? 'bg-[var(--ui-primary,theme(colors.emerald.600))] text-white font-black shadow-2xs' : 'hover:text-slate-900'}`}
                 >
                   Kemarin
                 </button>
@@ -130,29 +194,29 @@ export default function AttendanceTrendChartCard({ dashLogs, siswaStats, guruSta
             )}
 
             {/* Mode Switcher */}
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-[var(--ui-radius-control)] border border-slate-200/70 shrink-0">
+            <div className="flex items-center gap-1 bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80 shadow-2xs shrink-0">
               <button
                 type="button"
                 onClick={() => setChartMode('hourly')}
-                className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-2 py-1 text-[9.5px] font-extrabold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   chartMode === 'hourly'
-                    ? 'bg-white text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60 font-black'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <Clock size={10} className={chartMode === 'hourly' ? 'text-emerald-600' : 'text-slate-400'} />
+                <Clock size={11} className={chartMode === 'hourly' ? 'text-emerald-600' : 'text-slate-400'} />
                 <span>Jam Masuk</span>
               </button>
               <button
                 type="button"
                 onClick={() => setChartMode('weekly')}
-                className={`px-2 py-0.5 text-[9.5px] font-extrabold rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1 ${
+                className={`px-2 py-1 text-[9.5px] font-extrabold rounded-lg transition-all cursor-pointer flex items-center gap-1 ${
                   chartMode === 'weekly'
-                    ? 'bg-white text-slate-900'
+                    ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60 font-black'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
-                <Calendar size={10} className={chartMode === 'weekly' ? 'text-indigo-600' : 'text-slate-400'} />
+                <Calendar size={11} className={chartMode === 'weekly' ? 'text-indigo-600' : 'text-slate-400'} />
                 <span>Mingguan</span>
               </button>
             </div>

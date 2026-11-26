@@ -92,6 +92,12 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
     setSubFilter('all');
   }, [activeLogTab]);
 
+  useEffect(() => {
+    if (dashLogs && onLogsFetched) {
+      onLogsFetched(dashLogs);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Store fallbacks
   const storeAttendanceRecords = useAppStore(state => state.attendanceRecords) || [];
   const dataStoreTeachers = useDataStore(state => state.teachers);
@@ -837,7 +843,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
   }
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-xl border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex flex-col overflow-hidden h-full justify-between transition-all duration-300">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm flex flex-col overflow-hidden h-full justify-between transition-all duration-200">
 
       {/* Dynamic Header */}
       <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -846,13 +852,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
             <img src="/icons/031-monitor.svg" alt="Monitor" className="w-4 h-4 object-contain" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                LIVE
-              </span>
-            </div>
+            <h2 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">Monitor & Aktivitas</h2>
           </div>
         </div>
 
@@ -914,7 +914,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
       </div>
 
       {/* Navigation Tabs Bar - Minimalist Segmented Tabs */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 p-2 sm:p-2.5 bg-slate-50/50 border-b border-slate-100 select-none">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 p-2 sm:p-2.5 bg-slate-50/50 border-b border-slate-100 select-none">
         {tabsConfig.map(tab => {
           const isActive = activeLogTab === tab.id;
           return (
@@ -923,9 +923,9 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
               type="button"
               onClick={() => setActiveLogTab(tab.id)}
               className={cn(
-                "py-1.5 px-1 sm:px-1.5 rounded-lg border flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer text-center w-full min-h-[46px] sm:min-h-[48px] relative touch-manipulation active:scale-95",
+                "py-2 px-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all duration-150 cursor-pointer text-center w-full min-h-[50px] relative touch-manipulation active:scale-95 shadow-2xs hover:shadow-xs",
                 isActive
-                  ? "bg-primary text-white border-primary font-bold"
+                  ? "bg-primary text-white border-primary font-bold shadow-xs"
                   : "bg-white border-slate-200/80 text-slate-700 hover:border-slate-300 hover:bg-slate-50/80 font-semibold"
               )}
             >
@@ -940,18 +940,20 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
                   style={isActive ? { filter: 'brightness(0) invert(1)' } : {}}
                 />
                 <span className={cn(
-                  "absolute -top-1 -right-3 px-1 min-w-[15px] h-[15px] flex items-center justify-center rounded-full text-[8px] font-black leading-none border",
+                  "absolute -top-1 -right-3.5 px-1.5 min-w-[16px] h-[16px] flex items-center justify-center rounded-full text-[8.5px] font-black leading-none border shadow-2xs",
                   isActive ? "bg-white text-slate-900 border-white" : "bg-slate-100 text-slate-700 border-slate-200"
                 )}>
                   {tab.count}
                 </span>
               </div>
-              <span className={cn(
-                "text-[9px] sm:text-[9.5px] leading-tight truncate max-w-full px-0.5",
-                isActive ? "text-white font-bold" : "text-slate-600 font-semibold"
-              )}>
-                <span className="sm:hidden">{tab.labelShort || tab.label}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+              <span 
+                className={cn(
+                  "text-[10px] sm:text-[10.5px] leading-tight text-center max-w-full px-0.5 font-bold tracking-tight",
+                  isActive ? "text-white" : "text-slate-600"
+                )}
+                title={tab.label}
+              >
+                {tab.labelShort || tab.label}
               </span>
             </button>
           );
@@ -966,7 +968,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           <div className="animate-in fade-in duration-200">
             {guruKaryawanLogs.length === 0 ? (
               <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
-                <img src="/icons/079-checklist.svg" alt="Guru Hadir" className="w-9 h-9 mx-auto opacity-35 mb-2" />
+                <img src="/maskot/kara-gana/sosial/kara-dokumentasi.svg" alt="Kara Guru Hadir" className="w-16 h-16 mx-auto mb-2 select-none drop-shadow-xs" onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }} />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Kehadiran</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Belum ada guru atau karyawan yang scan absen hari ini</p>
               </div>
@@ -986,7 +988,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           <div className="animate-in fade-in duration-200">
             {kehadiranSiswaLogs.length === 0 ? (
               <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
-                <img src="/icons/066-education.svg" alt="Kehadiran Siswa" className="w-9 h-9 mx-auto opacity-30 mb-2" />
+                <img src="/maskot/kara-gana/gerak/kara-berlari.svg" alt="Kara Siswa Hadir" className="w-16 h-16 mx-auto mb-2 select-none drop-shadow-xs" onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }} />
                 <p className="text-xs font-bold text-slate-600">Belum Ada Data Kehadiran Siswa</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Scan absensi siswa untuk menampilkan log live</p>
               </div>
@@ -1006,7 +1008,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           <div className="animate-in fade-in duration-200">
             {terlambatSiswaLogs.length === 0 ? (
               <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
-                <img src="/icons/079-checklist.svg" alt="Tepat Waktu" className="w-9 h-9 mx-auto opacity-35 mb-2" />
+                <img src="/maskot/kara-gana/gerak/gana-jempol.svg" alt="Gana Tepat Waktu" className="w-16 h-16 mx-auto mb-2 select-none drop-shadow-xs" onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/gana-avatar.svg"; }} />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Keterlambatan Siswa</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Seluruh siswa tercatat tepat waktu hari ini</p>
               </div>
@@ -1026,7 +1028,7 @@ export const SharedDashboardLogs = ({ onLogsFetched }) => {
           <div className="animate-in fade-in duration-200">
             {terlambatGuruLogs.length === 0 ? (
               <div className="p-8 rounded-xl bg-[var(--ui-surface-muted)] border border-dashed border-[var(--ui-border-soft)] text-center">
-                <img src="/icons/079-checklist.svg" alt="Tepat Waktu" className="w-9 h-9 mx-auto opacity-35 mb-2" />
+                <img src="/maskot/kara-gana/gerak/gana-jempol.svg" alt="Gana Tepat Waktu" className="w-16 h-16 mx-auto mb-2 select-none drop-shadow-xs" onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/gana-avatar.svg"; }} />
                 <p className="text-xs font-bold text-slate-600">Tidak Ada Keterlambatan Guru & Karyawan</p>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Seluruh guru dan karyawan tercatat hadir tepat waktu hari ini</p>
               </div>

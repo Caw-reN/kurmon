@@ -46,6 +46,7 @@ const ImportModal = ({
   const [previewData, setPreviewData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const fileInputRef = useRef(null);
@@ -55,6 +56,7 @@ const ImportModal = ({
     setPreviewData([]);
     setColumns([]);
     setError('');
+    setWarning('');
     setIsSubmitting(false);
   };
 
@@ -125,6 +127,21 @@ const ImportModal = ({
         const fileColumns = Object.keys(jsonData[0]);
         setColumns(fileColumns);
         setPreviewData(jsonData);
+
+        if (Array.isArray(expectedColumns) && expectedColumns.length > 0) {
+          const normalizedFileCols = fileColumns.map(c => String(c).toLowerCase().trim().replace(/[\s_\-.]/g, ''));
+          const missingCols = expectedColumns.filter(exp => {
+            const normExp = String(exp).toLowerCase().trim().replace(/[\s_\-.]/g, '');
+            return !normalizedFileCols.some(fc => fc === normExp || fc.includes(normExp) || normExp.includes(fc));
+          });
+          if (missingCols.length > 0) {
+            setWarning(`Kolom berikut tidak terdeteksi pada baris header file: ${missingCols.join(', ')}. Pastikan nama kolom sesuai panduan template.`);
+          } else {
+            setWarning('');
+          }
+        } else {
+          setWarning('');
+        }
         setError('');
       } catch (err) {
         console.error("Excel parse error:", err);
@@ -136,7 +153,7 @@ const ImportModal = ({
     };
 
     reader.readAsArrayBuffer(file);
-  }, []);
+  }, [expectedColumns]);
 
   const onDragOver = (e) => {
     e.preventDefault();
@@ -264,12 +281,22 @@ const ImportModal = ({
                 </p>
               </div>
 
-              {error && (
-                <div className="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-[var(--ui-radius-small)] -r-lg flex items-start gap-3">
-                  <AlertCircle size={20} className="text-rose-500 shrink-0 mt-0.5" />
+              {warning && (
+                <div className="bg-amber-50/90 border border-amber-200/80 p-3.5 rounded-xl flex items-start gap-2.5 shadow-2xs">
+                  <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-rose-800 text-sm">Terjadi Kesalahan</h4>
-                    <p className="text-rose-600 text-sm mt-1">{error}</p>
+                    <h4 className="font-bold text-amber-900 text-xs uppercase tracking-wider">Peringatan Kolom</h4>
+                    <p className="text-amber-800 text-xs mt-0.5 leading-relaxed font-medium">{warning}</p>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-rose-50/90 border border-rose-200/80 p-3.5 rounded-xl flex items-start gap-2.5 shadow-2xs">
+                  <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-rose-900 text-xs uppercase tracking-wider">Terjadi Kesalahan</h4>
+                    <p className="text-rose-800 text-xs mt-0.5 leading-relaxed font-medium">{error}</p>
                   </div>
                 </div>
               )}

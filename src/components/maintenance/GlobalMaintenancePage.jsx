@@ -87,14 +87,17 @@ export default function GlobalMaintenancePage({ maintenance, appSettings, onAdmi
       {/* Main Glass Card */}
       <div className="w-full max-w-lg relative z-10 bg-white/90 backdrop-blur-xl border border-slate-200/90 rounded-[var(--ui-radius-card,1.25rem)] shadow-xl p-6 sm:p-8 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-300">
         
-        {/* Animated Maintenance Icon Badge */}
-        <div className="relative mb-5">
-          <div className="w-20 h-20 rounded-2xl bg-amber-500/10 border border-amber-400/40 text-amber-600 flex items-center justify-center shadow-xs">
-            <Wrench size={38} strokeWidth={2.2} className="animate-bounce" style={{ animationDuration: '2.5s' }} />
+        {/* Animated Mascot Maintenance Badge */}
+        <div className="relative mb-4 flex flex-col items-center">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center">
+            <img 
+              src="/maskot/kara-gana/jurusan/tkj-kara.svg" 
+              alt="Kara Pemeliharaan Sistem"
+              className="w-full h-full object-contain drop-shadow-md select-none animate-pulse"
+              onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+            />
           </div>
-          <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
-            <Clock size={13} strokeWidth={2.5} />
-          </span>
+          <div className="w-16 h-1.5 bg-slate-300/60 rounded-full blur-2xs mt-0.5" />
         </div>
 
         {/* Live Pill Status Badge */}

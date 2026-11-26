@@ -57,6 +57,7 @@ const TatibSkorKredit = lazy(() => import("../../pages/admin/pengaturan/TatibSko
 const SiswaKeluar = lazy(() => import("../../pages/admin/pengaturan/SiswaKeluar.jsx"));
 const ModulAjar = lazy(() => import("../../pages/admin/pengaturan/ModulAjar.jsx"));
 const FiturManagement = lazy(() => import("../../pages/admin/pengaturan/FiturManagement.jsx"));
+const DashboardKonfigurasiSistem = lazy(() => import("../../pages/admin/pengaturan/DashboardKonfigurasiSistem.jsx"));
 const TabHakAkses = lazy(() => import("../../pages/admin/tabs/TabHakAkses.jsx"));
 const TabPesan = lazy(() => import("../../pages/admin/tabs/TabPesan.jsx"));
 const TabPengaturanUser = lazy(() => import("../../pages/admin/tabs/TabPengaturanUser.jsx"));
@@ -72,6 +73,22 @@ const TabSilabusGuru = lazy(() => import("../../pages/admin/tabs/TabSilabusGuru.
 const TabKeamanan = lazy(() => import('../../pages/admin/tabs/TabKeamanan.jsx'));
 const ManajemenRole = lazy(() => import('../../pages/admin/tabs/ManajemenRole.jsx'));
 const KeteranganMasalAbsensi = lazy(() => import('../../pages/KeteranganMasalAbsensi.jsx'));
+
+// Idle prefetch for frequent high-traffic pages
+if (typeof window !== 'undefined') {
+  const prefetchRoutes = () => {
+    import('../../pages/DashboardPage.jsx').catch(() => {});
+    import('../../pages/kedisiplinan/AbsensiSiswa.jsx').catch(() => {});
+    import('../../pages/kedisiplinan/JurnalHarianGuru.jsx').catch(() => {});
+    import('../../pages/admin/pengaturan/DashboardKonfigurasiSistem.jsx').catch(() => {});
+    import('../../pages/admin/hikvision/HikvisionDashboard.jsx').catch(() => {});
+  };
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(prefetchRoutes, { timeout: 3500 });
+  } else {
+    setTimeout(prefetchRoutes, 2500);
+  }
+}
 
 export default function AdminContentRouter({ context = {}, checkIsAllowed: checkIsAllowedProp }) {
   const tabProps = context || {};
@@ -297,7 +314,7 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
         if (!perms) {
           if (roleKey.startsWith("waka_")) {
             const wakaTabsByDivision = {
-              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","hikvision_report_guru"],
+              kurikulum: ["dashboard","generate","akademik","silabus","modul_ajar","silabusguru","ketersediaan","beban","jurnal_harian","kelas","siswa","guru","karyawan","mapel","walas_report","catatan_walikelas","pesan","pengaturan","advanced_rules","hikvision_report_guru","hikvision_report_karyawan","laporan_absensi"],
               kesiswaan: ["dashboard","akademik","pesan","generate","ketersediaan","beban","rpp_guru","silabusguru","modul_ajar","jurnal_harian","absensiguru","kedisiplinan_piket","kedisiplinan_bpbk","kedisiplinan_hub","riwayat_prestasi","catatan_walikelas","walas_report","siswa_keluar","tatib_skor","keterangan_massal","kedisiplinan_absensi","hikvision_report_siswa","siswa","laporan_absensi","rekap_jurnal_kelas","kelas","jurusan","kartu_pelajar"],
               sarpras: ["dashboard","ruangan","denah","fasilitas","kelas","jurusan","data_pegawai","generate","ketersediaan","beban","rpp_guru","silabusguru","modul_ajar","jurnal_harian","absensiguru","walas_report","catatan_walikelas","siswa","akademik","pesan","kedisiplinan_absensi"],
               humas: ["dashboard","pesan","tampilan","akademik","modul_ajar","walas_report","catatan_walikelas","generate","absensiguru","jurnal_harian"],
@@ -465,7 +482,8 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
           const kurikulumAllowedTabs = [
             "generate", "akademik", "silabus", "modul_ajar", "silabusguru", "ketersediaan",
             "beban", "jurnal_harian", "kelas", "siswa", "guru", "karyawan", "mapel",
-            "walas_report", "catatan_walikelas", "pengaturan", "advanced_rules", "dashboard"
+            "walas_report", "catatan_walikelas", "pengaturan", "advanced_rules", "dashboard",
+            "hikvision_report_guru", "hikvision_report_karyawan", "laporan_absensi"
           ];
           if (kurikulumAllowedTabs.includes(activeTab)) return true;
         }
@@ -521,42 +539,31 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
       case "dashboard":
       case "dashboard_utama":
         return <DashboardPage currentUser={currentUser} isGenerated={isGenerated} classes={classes} teachers={teachers} staffs={staffs} subjects={subjects} rooms={rooms} schedule={schedule} teachingLoads={teachingLoads} loadDistribution={loadDistribution} subjectComposition={subjectComposition} openModal={openModal} setActiveTab={setActiveTab} saveDatabaseNow={saveDatabaseNow} setTeachers={setTeachers} adminUser={adminUser} setAdminUser={setAdminUser} syncAuthSnapshotNow={syncAuthSnapshotNow} handleLogout={context.handleLogout} onOpenProfile={context.onOpenProfile} checkIsAllowed={context.checkIsAllowed} />;
-      case"fitur":
-        return <FiturManagement activeTab={activeTab} setActiveTab={setActiveTab} />;
+      case "konfigurasi_sistem":
+      case "pengaturan_sistem":
+      case "dashboard_sistem":
+      case "pengguna_akses":
+      case "modul_tampilan":
+      case "integrasi_cloud":
+      case "keamanan_audit":
+      case "fitur":
       case "hak_akses":
-        return <TabHakAkses {...tabProps} />;
       case "manajemen_role":
-        return (
-          <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">Memuat...</div>}>
-            <ManajemenRole
-              teachers={context.teachers}
-              staffs={context.staffs}
-              classes={context.classes}
-              setTeachers={context.setTeachers}
-              setStaffs={context.setStaffs}
-              saveDatabaseNow={context.saveDatabaseNow}
-              showNotification={context.showNotification}
-              isSuperAdminRole={context.isSuperAdminRole}
-              currentUser={context.currentUser}
-              rolePermissions={context.rolePermissions}
-              adminUser={context.adminUser}
-              syncAuthSnapshotNow={context.syncAuthSnapshotNow}
-              activeTab={context.activeTab}
-              setActiveTab={context.setActiveTab}
-            />
-          </Suspense>
-        );
-      case"pesan":
-        return <TabPesan {...tabProps} />;
-      case"pengaturanuser":
-        return <TabPengaturanUser {...tabProps} />;
+      case "pengaturanuser":
       case "status_password":
       case "log_password":
+      case "tampilan":
+      case "whatsapp":
+      case "api_keys":
+      case "gdrive_backup":
+      case "keamanan":
         return (
-          <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">Memuat Log Status Password...</div>}>
-            <TabLogPassword {...tabProps} />
+          <Suspense fallback={<div className="p-8 text-center text-slate-500 animate-pulse">Memuat Konfigurasi Sistem...</div>}>
+            <DashboardKonfigurasiSistem {...tabProps} />
           </Suspense>
         );
+      case "pesan":
+        return <TabPesan {...tabProps} />;
       case"akademik":
       case"kalender":
       case"kalender_akademik":
@@ -757,8 +764,6 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
         </div>}>
           <AdminStrukturOrganisasi appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} showNotification={showNotification} teachers={teachers} />
         </Suspense>;
-      case"tampilan":
-        return <TabTampilan {...tabProps} />;
       case"absensi":
         return <TabAbsensi {...tabProps} />;
       case"kategori_kalender":
@@ -772,8 +777,6 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
           return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><MyAttendancePage setActiveTab={setActiveTab} /></Suspense>;
         }
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}><HikvisionTeacherReport /></Suspense>;
-      case"keamanan":
-        return <TabKeamanan {...tabProps} />;
       case"pkl_dashboard":
         return <Suspense fallback={<div className="animate-spin h-8 w-8 border-4 border-[var(--ui-primary)] border-t-transparent rounded-[var(--ui-radius-small)] mx-auto mt-20" />}>
           <DashboardPKL activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -835,11 +838,11 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
         </Suspense>;
       case"hikvision_report_guru":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi guru...</div>}>
-          <HikvisionTeacherReport />
+          <LaporanAbsensi classes={classes} students={students} initialTab="guru" activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case"hikvision_report_karyawan":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat laporan absensi karyawan...</div>}>
-          <HikvisionStaffReport classes={classes} />
+          <LaporanAbsensi classes={classes} students={students} initialTab="karyawan" activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
       case "keterangan_massal":
       case "hikvision_report_siswa":
@@ -925,7 +928,7 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
 
       case"riwayat_prestasi":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">Memuat Riwayat Prestasi...</div>}>
-          <RiwayatPrestasi students={students} classes={classes} />
+          <RiwayatPrestasi students={students} classes={classes} getTabPermissionLevel={getTabPermissionLevel} />
         </Suspense>;
 
       // === NEW FEATURES ===
@@ -937,22 +940,7 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
             <ProfilSekolah appSettings={appSettings} setAppSettings={setAppSettings} onSave={saveDatabaseNow} showNotification={showNotification} />
           </>
         </Suspense>;
-      case"api_keys":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
-          Memuat API Keys...
-        </div>}>
-          <>
-            <ManajemenAPIKey activeTab={activeTab} setActiveTab={setActiveTab} />
-          </>
-        </Suspense>;
-      case"whatsapp":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
-          Memuat WhatsApp...
-        </div>}>
-          <>
-            <IntegrasiWhatsApp activeTab={activeTab} setActiveTab={setActiveTab} />
-          </>
-        </Suspense>;
+
       case"kartu_pelajar":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
           Memuat Kartu Pelajar...
@@ -977,12 +965,7 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
         </div>}>
           <AuditLog activeTab={activeTab} setActiveTab={setActiveTab} />
         </Suspense>;
-      case"gdrive_backup":
-        return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
-          Memuat GDrive Backup...
-        </div>}>
-          <BackupGDrive activeTab={activeTab} setActiveTab={setActiveTab} />
-        </Suspense>;
+
       case"siswa_keluar":
         return <Suspense fallback={<div className="p-12 text-center text-slate-500 font-bold animate-pulse">
           Memuat Pendataan Siswa Keluar...
@@ -1050,3 +1033,5 @@ export default function AdminContentRouter({ context = {}, checkIsAllowed: check
     </Suspense>
   );
 }
+
+export { AdminContentRouter };

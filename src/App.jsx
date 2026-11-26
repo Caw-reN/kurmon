@@ -194,49 +194,50 @@ const GlobalLoader = ({ title = DEFAULT_LOADER_TITLE, showTip = true, error = nu
     }
   }, [showTip]);
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-  if (isMobile) {
-    return <div className="fixed inset-0 bg-[#f8fafc]" />;
-  }
-
   return (
     <div 
-      className="flex h-screen w-full flex-col items-center justify-center relative overflow-hidden font-sans text-slate-700 bg-white"
+      className="flex min-h-screen w-full flex-col items-center justify-center relative overflow-hidden font-sans text-slate-700 bg-white p-4"
       style={{ background: "radial-gradient(circle at center, #ffffff 0%, #f4f6f8 100%)" }}
     >
-      <div className="relative z-10 flex flex-col items-center justify-center max-w-md w-full px-6">
+      <div className="relative z-10 flex flex-col items-center justify-center max-w-md w-full px-4 text-center">
         
-        {/* Premium Center-Icon Spinner */}
-        <div className="relative w-24 h-24 flex items-center justify-center">
-          {/* Thin track */}
-          <div className="absolute w-20 h-20 rounded-full border-2 border-emerald-100"></div>
-          {/* Active rotating arc */}
-          <div 
-            className="absolute w-20 h-20 rounded-full border-2 border-transparent border-t-2 animate-spin"
-            style={{ borderTopColor: primaryColor, animationDuration: '0.8s' }}
-          ></div>
-          {/* Solid Green Inner Circle with Bar Chart */}
-          <div 
-            className="w-12 h-12 rounded-full flex items-center justify-center shadow-[0_4px_12px_rgba(16,185,129,0.25)] relative z-10"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <BarChart2 className="text-white w-6 h-6" strokeWidth={2.5} />
+        {/* Maskot KIGU Loading Animation */}
+        <div className="relative flex flex-col items-center justify-center mb-2">
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center">
+            {/* Subtle glow backdrop */}
+            <div 
+              className="absolute w-24 h-24 rounded-full blur-xl opacity-30 animate-pulse pointer-events-none"
+              style={{ backgroundColor: primaryColor }}
+            />
+            {/* Mascot Image */}
+            <img 
+              src={error ? "/maskot/kara-gana/ekspresi/kara-terkejut.svg" : "/maskot/kara-gana/gerak/kara-berlari.svg"} 
+              alt={error ? "Kara Perlu Perhatian" : "Kara Sedang Memuat"}
+              className={`w-full h-full object-contain relative z-10 drop-shadow-sm select-none ${error ? '' : 'animate-bounce'}`}
+              style={!error ? { animationDuration: '1.6s' } : undefined}
+              loading="eager"
+              onError={(e) => {
+                e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg";
+              }}
+            />
           </div>
+          {/* Ground reflection shadow */}
+          <div className="w-16 h-2 bg-slate-300/50 rounded-full blur-xs mt-1 animate-pulse" />
         </div>
 
         {/* Text Area */}
-        <div className="text-center mt-8 w-full">
-          <h1 className="text-slate-800 text-2xl font-black tracking-tight mb-2">
+        <div className="text-center mt-5 w-full">
+          <h1 className="text-slate-800 text-xl sm:text-2xl font-black tracking-tight mb-1.5">
             {title}
           </h1>
-          <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-[280px] mx-auto">
+          <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-[290px] mx-auto">
             Sedang mengonfigurasi pengaturan sistem {brandName} dan memuat dasbor...
           </p>
 
           {showTip && tip && (
-            <div className="mt-8 pt-4 border-t border-slate-100 text-left max-w-sm mx-auto bg-slate-50/50 p-4 rounded-[var(--ui-radius-card)] border border-slate-100">
-              <span className="text-[9px] font-black tracking-wider text-slate-400 uppercase flex items-center gap-1 mb-1">
-                <Lightbulb size={12} className="text-amber-500" />
+            <div className="mt-6 pt-3.5 border-t border-slate-100 text-left max-w-sm mx-auto bg-slate-50/70 p-3.5 rounded-[var(--ui-radius-card,1rem)] border border-slate-200/70 shadow-2xs">
+              <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase flex items-center gap-1.5 mb-1">
+                <Lightbulb size={13} className="text-amber-500 shrink-0" />
                 <span>Tips Hari Ini</span>
               </span>
               <p className="text-slate-600 text-[11px] leading-relaxed font-semibold">{tip}</p>
@@ -245,10 +246,8 @@ const GlobalLoader = ({ title = DEFAULT_LOADER_TITLE, showTip = true, error = nu
         </div>
 
         {error && (
-          <div className="mt-4 flex items-center gap-3 bg-rose-50 border border-rose-200 px-4 py-3 rounded-[var(--ui-radius-control)] text-rose-700 w-full shadow-sm">
-            <svg className="w-5 h-5 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="mt-4 flex items-center gap-3 bg-rose-50 border border-rose-200 px-4 py-3 rounded-[var(--ui-radius-control)] text-rose-700 w-full shadow-sm text-left">
+            <AlertTriangle className="w-5 h-5 shrink-0 text-rose-500" />
             <span className="text-xs font-semibold">{error}</span>
           </div>
         )}

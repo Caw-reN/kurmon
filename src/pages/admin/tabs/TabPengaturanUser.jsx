@@ -1,12 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button, Modal, UISelect } from '../../../components/ui.jsx';
+import { PaginationControls } from '../../../components/ui/PaginationControls.jsx';
 import { useAppStore } from '../../../store/useAppStore.js';
 import useFiturStore from '../../../store/monitoring/fiturStore.js';
 import { 
   Users, ShieldCheck, Key, History, Shield, Edit2, Search, 
   Plus, Activity, Trash2, Lock, Sparkles, CheckCircle2, 
   AlertCircle, RefreshCw, Smartphone, UserPlus, Building2, 
-  BookOpen, Briefcase, GraduationCap, Copy, Check, KeyRound, AlertTriangle
+  BookOpen, Briefcase, GraduationCap, Copy, Check, KeyRound, AlertTriangle, LayoutDashboard
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { hashPassword } from '../../../utils/auth.js';
@@ -39,6 +40,15 @@ export default function TabPengaturanUser(props) {
   const [filterRole, setFilterRole] = useState('semua');
   const [filterSource, setFilterSource] = useState('semua'); // 'semua' | 'guru' | 'karyawan'
   const [filterPasswordStatus, setFilterPasswordStatus] = useState('semua'); // 'semua' | 'changed' | 'default'
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  const rolePermissions = props.rolePermissions || useAppStore((state) => state.rolePermissions) || {};
+  const customRoleKeys = useMemo(() => Object.keys(rolePermissions || {}).filter(k => k.startsWith('custom_')), [rolePermissions]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterRole, filterSource, filterPasswordStatus]);
 
   // Admin Direct Reset Password Modal
   const [resetModalUser, setResetModalUser] = useState(null);
@@ -115,13 +125,14 @@ export default function TabPengaturanUser(props) {
       // Role filter
       let matchRole = true;
       if (filterRole !== 'semua') {
-        if (filterRole === 'waka') matchRole = user.role === 'waka';
+        if (filterRole === 'waka') matchRole = user.role === 'waka' || user.role.startsWith('waka_');
         else if (filterRole === 'kepsek') matchRole = user.role === 'kepsek';
         else if (filterRole === 'tu') matchRole = user.role === 'tu' || user.subrole?.includes('tu') || user.subrole === 'bendahara';
-        else if (filterRole === 'bpbk') matchRole = user.subrole === 'bpbk';
+        else if (filterRole === 'bpbk') matchRole = user.subrole === 'bpbk' || user.role === 'bpbk';
         else if (filterRole === 'pembina_osis') matchRole = user.subrole === 'pembina_osis';
         else if (filterRole === 'guru') matchRole = user.role === 'guru' && !user.subrole;
-        else if (filterRole === 'karyawan') matchRole = user.role === 'karyawan' || user._source === 'staffs';
+        else if (filterRole === 'karyawan') matchRole = user.role === 'karyawan' && !user.subrole;
+        else if (filterRole.startsWith('custom_')) matchRole = user.role === filterRole || user.subrole === filterRole;
       }
 
       // Source filter
@@ -137,6 +148,11 @@ export default function TabPengaturanUser(props) {
       return matchSearch && matchRole && matchSource && matchPass;
     }).sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'id', { sensitivity: 'base' }));
   }, [allUsers, search, filterRole, filterSource, filterPasswordStatus]);
+
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
 
   // Statistics counts
   const stats = useMemo(() => {
@@ -306,25 +322,52 @@ export default function TabPengaturanUser(props) {
     <div className="space-y-5 w-full animate-in fade-in duration-200 relative pb-16">
       
       {/* Page Header */}
-      <PageHeader
-        title="Pengaturan Akun Pengguna"
-        description="Kelola akun login SuperAdmin, Pendidik (Guru), dan Tenaga Kependidikan (Staf TU/Karyawan)."
-        icon={Users}
-        tabs={[
-          { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
-          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
-          { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
-          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
-          { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
-        ]}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        customButtons={
-          <div className="flex items-center gap-2">
+      {!props.hideHeader ? (
+        <PageHeader
+          title="Pengaturan Akun Pengguna"
+          description="Kelola akun login SuperAdmin, Pendidik (Guru), dan Tenaga Kependidikan (Staf TU/Karyawan)."
+          icon={Users}
+          tabs={[
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
+            { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+            { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
+            { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+            { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
+            { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          customButtons={
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                onClick={() => openModal("guru", "add")}
+                className="text-xs font-bold gap-1.5 shadow-xs"
+              >
+                <UserPlus size={14} /> + Tambah Guru
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => openModal("karyawan", "add")}
+                className="text-xs font-bold gap-1.5 bg-white shadow-xs"
+              >
+                <Plus size={14} /> + Tambah Staf
+              </Button>
+            </div>
+          }
+        />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 mb-2">
+          <div>
+            <h3 className="text-sm font-black text-slate-800 tracking-tight">Manajemen Akun Guru & Staf</h3>
+            <p className="text-xs text-slate-500 font-medium">Kelola akun login SuperAdmin, Pendidik (Guru), dan Tenaga Kependidikan (Staf TU/Karyawan).</p>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <Button
               type="button"
               onClick={() => openModal("guru", "add")}
-              className="text-xs font-bold gap-1.5 shadow-xs"
+              className="text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
             >
               <UserPlus size={14} /> + Tambah Guru
             </Button>
@@ -332,13 +375,13 @@ export default function TabPengaturanUser(props) {
               type="button"
               variant="outline"
               onClick={() => openModal("karyawan", "add")}
-              className="text-xs font-bold gap-1.5 bg-white shadow-xs"
+              className="text-xs font-bold gap-1.5 bg-white shadow-xs cursor-pointer"
             >
               <Plus size={14} /> + Tambah Staf
             </Button>
           </div>
-        }
-      />
+        </div>
+      )}
 
       {/* TOP SECTION: SUPERADMIN PROFILE & KPI SUMMARY */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -561,6 +604,11 @@ export default function TabPengaturanUser(props) {
               <option value="pembina_osis">Pembina OSIS</option>
               <option value="guru">Guru Pengajar</option>
               <option value="karyawan">Staf / Karyawan</option>
+              {customRoleKeys.map(ck => (
+                <option key={ck} value={ck}>
+                  {rolePermissions?.[ck]?.__label || ck.replace('custom_', '')} (Kustom)
+                </option>
+              ))}
             </UISelect>
 
             {/* Filter Password Status */}
@@ -592,7 +640,7 @@ export default function TabPengaturanUser(props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {filteredUsers.length === 0 ? (
+              {paginatedUsers.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400 bg-slate-50/30">
                     <Search size={32} className="mx-auto mb-2 opacity-30" />
@@ -601,15 +649,17 @@ export default function TabPengaturanUser(props) {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user, idx) => {
+                paginatedUsers.map((user, idx) => {
+                  const rowNumber = (currentPage - 1) * itemsPerPage + idx + 1;
                   const isCurrentSession = currentUser?.code && sameText(currentUser.code, user.code);
                   const isStaff = user._source === 'staffs';
                   const roleKeyForLabel = user.subrole || (user.role === 'waka' && user.division ? `waka_${user.division}` : user.role);
-                  const roleLabel = getRoleKeyLabel(roleKeyForLabel);
+                  const customRoleDisplayLabel = roleKeyForLabel?.startsWith('custom_') ? rolePermissions?.[roleKeyForLabel]?.__label : null;
+                  const roleLabel = customRoleDisplayLabel ? { label: customRoleDisplayLabel } : getRoleKeyLabel(roleKeyForLabel);
 
                   return (
                     <tr key={`${user._source}_${user.code}`} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-3 py-2.5 text-center text-slate-400 font-bold">{idx + 1}</td>
+                      <td className="px-3 py-2.5 text-center text-slate-400 font-bold">{rowNumber}</td>
                       
                       {/* Code */}
                       <td className="px-3 py-2.5 text-center font-mono font-black text-slate-700">
@@ -748,11 +798,14 @@ export default function TabPengaturanUser(props) {
           </table>
         </div>
 
-        {/* Footer info */}
-        <div className="flex justify-between items-center text-[11px] text-slate-400 font-bold uppercase tracking-wider pt-2">
-          <span>Menampilkan {filteredUsers.length} pengguna</span>
-          <span>Total: {allUsers.length} Guru & Staf terdaftar</span>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalItems={filteredUsers.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+          pageSizeOptions={[10, 20]}
+        />
 
       </div>
 

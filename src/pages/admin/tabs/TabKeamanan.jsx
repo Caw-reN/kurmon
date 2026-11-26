@@ -89,13 +89,15 @@ export default function TabKeamanan(props) {
 
   return (
     <div className="flex flex-col gap-5 w-full animate-in fade-in duration-300 relative z-10">
-      <PageHeader
-        title="Keamanan Akun"
-        description="Ubah kata sandi login Anda secara berkala untuk menjaga keamanan akun Anda."
-        icon={Lock}
-      />
+      {!props.hideHeader && (
+        <PageHeader
+          title="Keamanan Akun"
+          description="Ubah kata sandi login Anda secara berkala untuk menjaga keamanan akun Anda."
+          icon={Lock}
+        />
+      )}
 
-      <div className="ui-card bg-white rounded-[var(--ui-radius-card)] p-6 border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))]">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
         <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-5">
           <div className="w-10 h-10 rounded-[var(--ui-radius-small)] bg-[var(--ui-primary)]/10 text-[var(--ui-primary)] flex items-center justify-center">
             <Lock size={20} />
@@ -144,9 +146,10 @@ export default function TabKeamanan(props) {
               required
             />
           </div>
-          <Button variant="ghost" size="sm"
+          <Button
+            variant="primary"
             type="submit"
-            
+            className="w-full justify-center shadow-xs font-bold"
           >
             Simpan Kata Sandi
           </Button>

@@ -7,9 +7,40 @@ import { getClassBadge } from '../monitoring/ui/SharedDashboardLogs.jsx';
 
 const pct = (v, t) => (t > 0 ? Math.min(100, Math.round((v / t) * 100)) : 0);
 
-export default function JurusanKelasAttendanceSummary({ students = [], classes = [], dashLogs, siswaStats }) {
+// ─── Major Mascot Mapping Helper ─────────────────────────────────────────────
+const getMajorMascot = (code) => {
+  switch (code) {
+    case 'TJKT':
+    case 'PPLG':
+      return '/maskot/kara-gana/jurusan/tkj-kara.svg';
+    case 'TO':
+      return '/maskot/kara-gana/jurusan/tkr-gana.svg';
+    case 'MPLB':
+      return '/maskot/kara-gana/jurusan/mp-kara.svg';
+    case 'AKL':
+      return '/maskot/kara-gana/jurusan/akl-gana.svg';
+    default:
+      return '/maskot/kara-gana/gerak/kara-melambai.svg';
+  }
+};
+
+export default function JurusanKelasAttendanceSummary({ students = [], classes = [], dashLogs, siswaStats, appSettings }) {
   const [activeTab, setActiveTab] = useState('jurusan'); // 'jurusan' | 'tingkat' | 'kelas'
   const [searchKelas, setSearchKelas] = useState('');
+
+  // Evaluasi cutoff jam masuk presensi resmi (Sesuai AGENTS.md: Alpa hanya dievaluasi setelah jam masuk resmi berakhir)
+  const isPastCutoff = useMemo(() => {
+    if (siswaStats?.isPastCutoff !== undefined) return Boolean(siswaStats.isPastCutoff);
+    const d = new Date();
+    const day = d.getDay();
+    if (day === 0 || day === 6) return false;
+    const cfg = dashLogs?.attendanceConfig || appSettings;
+    const roleCfg = cfg?.siswa || cfg;
+    const timeVal = roleCfg?.masuk_end || roleCfg?.masuk_close || roleCfg?.terlambat_end || "11:00";
+    const cutoff = timeVal.length === 5 ? `${timeVal}:00` : timeVal;
+    const currentTimeJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(11, 19);
+    return currentTimeJkt >= cutoff;
+  }, [dashLogs, siswaStats, appSettings]);
 
   // 1. Process individual student attendance map for today
   // 1. Process comprehensive student attendance map for today
@@ -121,46 +152,75 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
       }
     });
 
-    // If matching resulted in 0 due to missing IDs, proportionally distribute based on siswaStats
-    const totalSiswaMasuk = (siswaStats?.Hadir || 0) + (siswaStats?.Terlambat || 0);
-    const totalSiswaAll = students?.length || 1204;
-    const overallRatio = totalSiswaAll > 0 ? (totalSiswaMasuk / totalSiswaAll) : 0.7;
-
     return Object.values(map)
       .filter(m => m.total > 0)
       .map(m => {
-        let presentTotal = m.hadir + m.telat;
-        // Fallback realistic proportional rate if unmapped
-        if (presentTotal === 0 && totalSiswaMasuk > 0) {
-          presentTotal = Math.round(m.total * Math.max(0.65, overallRatio));
-          m.hadir = Math.round(presentTotal * 0.88);
-          m.telat = Math.max(0, presentTotal - m.hadir);
-          m.izin = Math.round(m.total * 0.03);
-          m.sakit = Math.round(m.total * 0.02);
+        const presentTotal = m.hadir + m.telat;
+        const accounted = presentTotal + m.izin + m.sakit + m.alpa;
+        const unrecorded = Math.max(0, m.total - accounted);
+        let alpa = m.alpa;
+        let belumAbsen = 0;
+        if (isPastCutoff) {
+          alpa += unrecorded;
+        } else {
+          belumAbsen = unrecorded;
         }
-        m.alpa = Math.max(0, m.total - (presentTotal + m.izin + m.sakit));
         const presentPct = pct(presentTotal, m.total);
         return {
           ...m,
+          alpa,
+          belumAbsen,
           classesCount: m.classes?.size || 1,
           presentTotal,
           presentPct
         };
       })
       .sort((a, b) => b.presentPct - a.presentPct);
-  }, [students, studentAttendanceMap, siswaStats]);
+  }, [students, studentAttendanceMap, isPastCutoff]);
 
   // 3. Aggregate stats by Grade (Tingkat X, XI, XII)
   const gradeStatsList = useMemo(() => {
-    const raw = siswaStats?.gradeStats || {
-      'X': { total: 420, hadir: 390, telat: 20, izin: 4, sakit: 2, alpa: 4 },
-      'XI': { total: 400, hadir: 360, telat: 15, izin: 8, sakit: 3, alpa: 14 },
-      'XII': { total: 384, hadir: 350, telat: 10, izin: 5, sakit: 2, alpa: 17 }
+    const raw = siswaStats?.gradeStats;
+    const computed = {
+      'X': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'XI': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 },
+      'XII': { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 }
     };
 
+    (students || []).forEach(s => {
+      const cls = String(s.class_name || s.kelas || '').trim().toUpperCase();
+      let grade = '';
+      if (cls.startsWith('XII ') || cls === 'XII') grade = 'XII';
+      else if (cls.startsWith('XI ') || cls === 'XI') grade = 'XI';
+      else if (cls.startsWith('X ') || cls === 'X') grade = 'X';
+      if (!grade || !computed[grade]) return;
+
+      computed[grade].total += 1;
+      const nis = String(s.nis || s.code || s.employee_id || '').trim().toLowerCase();
+      const name = String(s.name || s.nama || '').trim().toLowerCase();
+      const id = String(s.id || '').trim().toLowerCase();
+
+      const log = (nis && studentAttendanceMap.get(`id:${nis}`)) || 
+                  (id && studentAttendanceMap.get(`id:${id}`)) || 
+                  (name && studentAttendanceMap.get(`name:${name}`));
+
+      if (log) {
+        const st = String(log.status || 'hadir').toLowerCase();
+        if (st === 'late' || st.includes('terlambat')) computed[grade].telat += 1;
+        else if (st.includes('izin')) computed[grade].izin += 1;
+        else if (st.includes('sakit')) computed[grade].sakit += 1;
+        else if (st.includes('alpa')) computed[grade].alpa += 1;
+        else computed[grade].hadir += 1;
+      }
+    });
+
     return ['X', 'XI', 'XII'].map(g => {
-      const st = raw[g] || { total: 0, hadir: 0, telat: 0, izin: 0, sakit: 0, alpa: 0 };
+      const st = (raw && raw[g] && raw[g].total > 0) ? raw[g] : computed[g];
       const presentTotal = (st.hadir || 0) + (st.telat || 0);
+      const accounted = presentTotal + (st.izin || 0) + (st.sakit || 0) + (st.alpa || 0);
+      const unrecorded = Math.max(0, (st.total || 0) - accounted);
+      const alpa = isPastCutoff ? ((st.alpa || 0) + unrecorded) : (st.alpa || 0);
+      const belumAbsen = isPastCutoff ? 0 : unrecorded;
       const presentPct = pct(presentTotal, st.total || 1);
       return {
         grade: g,
@@ -170,12 +230,13 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
         telat: st.telat || 0,
         izin: st.izin || 0,
         sakit: st.sakit || 0,
-        alpa: st.alpa || 0,
+        alpa,
+        belumAbsen,
         presentTotal,
         presentPct
       };
     });
-  }, [siswaStats]);
+  }, [students, studentAttendanceMap, siswaStats, isPastCutoff]);
 
   // 4. Aggregate stats per Class (Rombel)
   const classListStats = useMemo(() => {
@@ -205,30 +266,29 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
       }
     });
 
-    const totalSiswaMasuk = (siswaStats?.Hadir || 0) + (siswaStats?.Terlambat || 0);
-    const totalSiswaAll = students?.length || 1204;
-    const overallRatio = totalSiswaAll > 0 ? (totalSiswaMasuk / totalSiswaAll) : 0.7;
-
     const result = Object.values(map).map(c => {
-      let presentTotal = c.hadir + c.telat;
-      if (presentTotal === 0 && totalSiswaMasuk > 0) {
-        presentTotal = Math.round(c.total * Math.max(0.65, overallRatio));
-        c.hadir = Math.round(presentTotal * 0.88);
-        c.telat = Math.max(0, presentTotal - c.hadir);
-        c.izin = Math.round(c.total * 0.03);
-        c.sakit = Math.round(c.total * 0.02);
+      const presentTotal = c.hadir + c.telat;
+      const accounted = presentTotal + c.izin + c.sakit + c.alpa;
+      const unrecorded = Math.max(0, c.total - accounted);
+      let alpa = c.alpa;
+      let belumAbsen = 0;
+      if (isPastCutoff) {
+        alpa += unrecorded;
+      } else {
+        belumAbsen = unrecorded;
       }
-      c.alpa = Math.max(0, c.total - (presentTotal + c.izin + c.sakit));
       const presentPct = pct(presentTotal, c.total || 1);
       return {
         ...c,
+        alpa,
+        belumAbsen,
         presentTotal,
         presentPct
       };
     });
 
     return result.sort((a, b) => a.className.localeCompare(b.className));
-  }, [students, studentAttendanceMap, siswaStats]);
+  }, [students, studentAttendanceMap, isPastCutoff]);
 
   const filteredClassList = useMemo(() => {
     if (!searchKelas) return classListStats;
@@ -239,25 +299,19 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
   const topMajor = majorStats[0] || { short: '-', presentPct: 0 };
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 p-4 sm:p-5 flex flex-col justify-between overflow-hidden">
       
       {/* ── Header Card ── */}
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 mb-3.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-indigo-50 border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200/80 shadow-2xs flex items-center justify-center text-indigo-600 shrink-0">
               <GraduationCap size={16} />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm font-black text-slate-800 tracking-tight truncate">
-                  Persentase Kehadiran Per Jurusan & Per Kelas
-                </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200/80 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                  ANALISIS REALTIME
-                </span>
-              </div>
+              <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight truncate">
+                Persentase Kehadiran Per Jurusan & Per Kelas
+              </h3>
               <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
                 Rincian kepatuhan absensi siswa per program keahlian, tingkat kelas, dan rombel
               </p>
@@ -265,7 +319,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
           </div>
 
           {/* View Mode Toggle Pills */}
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-[var(--ui-radius-control)] border border-slate-200/70 shrink-0">
+          <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 shadow-2xs shrink-0">
             {[
               { id: 'jurusan', label: 'Per Jurusan', icon: Layers },
               { id: 'tingkat', label: 'Per Tingkat', icon: BarChart2 },
@@ -277,13 +331,13 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                   key={m.id}
                   type="button"
                   onClick={() => setActiveTab(m.id)}
-                  className={`px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-1 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
                     activeTab === m.id
-                      ? 'bg-white text-slate-900'
+                      ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/60 font-black'
                       : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <Icon size={11} className={activeTab === m.id ? 'text-[var(--ui-primary)]' : 'text-slate-400'} />
+                  <Icon size={12} className={activeTab === m.id ? 'text-[var(--ui-primary)]' : 'text-slate-400'} />
                   <span>{m.label}</span>
                 </button>
               );
@@ -297,40 +351,56 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
             {majorStats.map(major => (
               <div 
                 key={major.code}
-                className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3 border border-slate-200/70 flex flex-col justify-between hover:bg-white hover:border-slate-300 transition-all group"
+                className="bg-slate-50/70 rounded-xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200 group"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-1.5 mb-2">
-                    <span className={`text-[9.5px] font-black px-2 py-0.5 rounded-[var(--ui-radius-pill)] border ${major.color}`}>
-                      {major.short}
-                    </span>
-                    <span className="text-xs font-black text-slate-900 bg-white px-2 py-0.5 rounded-full border border-slate-200/80">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-12 h-12 rounded-xl bg-emerald-50/80 border border-emerald-100 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                        <img 
+                          src={getMajorMascot(major.code)} 
+                          alt={major.short} 
+                          className="w-11 h-11 object-contain select-none" 
+                          onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-black text-slate-800 truncate" title={major.label}>
+                          {major.label}
+                        </p>
+                        <p className="text-[9.5px] text-slate-400 font-medium mt-0.5">
+                          Total: <strong className="text-slate-700">{major.total} Siswa</strong> &bull; {major.classesCount} Rombel
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-black text-slate-900 bg-white px-2 py-0.5 rounded-full border border-slate-200/80 shadow-2xs shrink-0">
                       {major.presentPct}%
                     </span>
                   </div>
 
-                  <p className="text-[11px] font-extrabold text-slate-800 truncate" title={major.label}>
-                    {major.label}
-                  </p>
-                  <p className="text-[9.5px] text-slate-400 font-semibold mb-2">
-                    Total: <strong className="text-slate-700">{major.total} Siswa</strong> · {major.classesCount} Rombel
-                  </p>
-
                   {/* Progress Bar */}
-                  <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden flex mb-2">
+                  <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex mb-2.5 shadow-inner gap-0.5">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(major.hadir, major.total)}%` }} title="Tepat Waktu" />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(major.telat, major.total)}%` }} title="Terlambat" />
                     <div className="h-full bg-orange-400" style={{ width: `${pct(major.izin, major.total)}%` }} title="Izin" />
                     <div className="h-full bg-sky-400" style={{ width: `${pct(major.sakit, major.total)}%` }} title="Sakit" />
-                    <div className="h-full bg-rose-400" style={{ width: `${pct(major.alpa, major.total)}%` }} title="Alpa" />
+                    {isPastCutoff ? (
+                      <div className="h-full bg-rose-400" style={{ width: `${pct(major.alpa, major.total)}%` }} title="Alpa" />
+                    ) : (
+                      <div className="h-full bg-slate-300" style={{ width: `${pct(major.belumAbsen, major.total)}%` }} title="Belum Hadir" />
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 pt-1 border-t border-slate-100">
+                <div className="flex items-center justify-between text-[9px] font-bold text-slate-500 pt-1.5 border-t border-slate-100">
                   <span className="text-emerald-700">● {major.hadir} Hadir</span>
                   <span className="text-amber-600">● {major.telat} Telat</span>
                   <span className="text-sky-600">● {major.izin + major.sakit} Izin/Skt</span>
-                  <span className="text-rose-600">● {major.alpa} Alpa</span>
+                  {isPastCutoff ? (
+                    <span className="text-rose-600">● {major.alpa} Alpa</span>
+                  ) : (
+                    <span className="text-slate-500">● {major.belumAbsen} Belum Hadir</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -343,14 +413,14 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
             {gradeStatsList.map(g => (
               <div 
                 key={g.grade}
-                className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-3.5 border border-slate-200/70 flex flex-col justify-between hover:bg-white hover:border-slate-300 transition-all"
+                className="bg-slate-50/70 rounded-xl p-3.5 border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <span className="text-xs font-black text-slate-800 uppercase tracking-wide">
                       {g.title}
                     </span>
-                    <span className="text-sm font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+                    <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80 shadow-2xs">
                       {g.presentPct}% Hadir
                     </span>
                   </div>
@@ -359,20 +429,28 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                     Kapasitas: <strong className="text-slate-700">{g.total} Siswa Terdaftar</strong>
                   </p>
 
-                  <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden flex mb-2.5">
+                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex mb-2.5 shadow-inner gap-0.5">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(g.hadir, g.total)}%` }} />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(g.telat, g.total)}%` }} />
                     <div className="h-full bg-orange-400" style={{ width: `${pct(g.izin, g.total)}%` }} />
                     <div className="h-full bg-sky-400" style={{ width: `${pct(g.sakit, g.total)}%` }} />
-                    <div className="h-full bg-rose-400" style={{ width: `${pct(g.alpa, g.total)}%` }} />
+                    {isPastCutoff ? (
+                      <div className="h-full bg-rose-400" style={{ width: `${pct(g.alpa, g.total)}%` }} />
+                    ) : (
+                      <div className="h-full bg-slate-300" style={{ width: `${pct(g.belumAbsen, g.total)}%` }} />
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 text-center bg-white p-1.5 rounded-[var(--ui-radius-control)] border border-slate-200/60 text-[9.5px] font-black">
+                <div className="grid grid-cols-4 gap-1 text-center bg-white p-2 rounded-xl border border-slate-200/70 shadow-2xs text-[9.5px] font-black">
                   <div className="text-emerald-700"><p className="text-[8px] text-slate-400 font-semibold uppercase">Hadir</p>{g.hadir}</div>
                   <div className="text-amber-600"><p className="text-[8px] text-slate-400 font-semibold uppercase">Telat</p>{g.telat}</div>
                   <div className="text-sky-600"><p className="text-[8px] text-slate-400 font-semibold uppercase">Izin</p>{g.izin + g.sakit}</div>
-                  <div className="text-rose-600"><p className="text-[8px] text-slate-400 font-semibold uppercase">Alpa</p>{g.alpa}</div>
+                  {isPastCutoff ? (
+                    <div className="text-rose-600"><p className="text-[8px] text-slate-400 font-semibold uppercase">Alpa</p>{g.alpa}</div>
+                  ) : (
+                    <div className="text-slate-500"><p className="text-[8px] text-slate-400 font-semibold uppercase">Belum</p>{g.belumAbsen}</div>
+                  )}
                 </div>
               </div>
             ))}
@@ -390,7 +468,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
                 placeholder="Cari kelas (misal: X TKJ 1)..."
                 value={searchKelas}
                 onChange={e => setSearchKelas(e.target.value)}
-                className="w-full pl-7 pr-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-control)] focus:outline-none focus:bg-white(--ui-primary)] font-semibold"
+                className="w-full pl-7 pr-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200/80 rounded-xl focus:outline-none focus:bg-white focus:border-[var(--ui-primary)] shadow-2xs font-semibold"
               />
             </div>
 
@@ -398,21 +476,25 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
               {filteredClassList.map(c => (
                 <div 
                   key={c.className}
-                  className="bg-slate-50/80 p-2 rounded-[var(--ui-radius-control)] border border-slate-200/70 flex flex-col justify-between hover:bg-white hover:border-slate-300 transition-all text-xs"
+                  className="bg-slate-50/70 p-2.5 rounded-xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:bg-white hover:border-slate-300 hover:shadow-xs transition-all duration-200 text-xs"
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <span className="font-black text-slate-800 text-[11px] truncate">{c.className}</span>
-                    <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full border ${
+                    <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full border shadow-2xs ${
                       c.presentPct >= 85 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                     }`}>
                       {c.presentPct}%
                     </span>
                   </div>
 
-                  <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden flex mb-1">
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex mb-1.5 shadow-inner gap-0.5">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(c.hadir, c.total)}%` }} />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(c.telat, c.total)}%` }} />
-                    <div className="h-full bg-rose-400" style={{ width: `${pct(c.alpa, c.total)}%` }} />
+                    {isPastCutoff ? (
+                      <div className="h-full bg-rose-400" style={{ width: `${pct(c.alpa, c.total)}%` }} />
+                    ) : (
+                      <div className="h-full bg-slate-300" style={{ width: `${pct(c.belumAbsen, c.total)}%` }} />
+                    )}
                   </div>
 
                   <div className="flex items-center justify-between text-[8.5px] font-bold text-slate-400">
@@ -432,7 +514,7 @@ export default function JurusanKelasAttendanceSummary({ students = [], classes =
           <Award size={13} className="text-amber-500" />
           <span>Kehadiran Tertinggi: <strong className="text-slate-800">{topMajor.short} ({topMajor.presentPct}%)</strong></span>
         </div>
-        <span className="text-slate-400">Total Analisis: <strong>{students.length || 1204} Peserta Didik</strong></span>
+        <span className="text-slate-400">Total Analisis: <strong>{students.length || dashLogs?.totalStudents || 1199} Peserta Didik</strong></span>
       </div>
 
     </div>

@@ -637,8 +637,8 @@ export default function AdminSidebar({
 
       if (renderedItems.length === 0) continue;
 
-      // If Komunikasi with single item (e.g. Pesan Dashboard), render directly as a bottom nav item
-      if (sectionName === 'Komunikasi' && renderedItems.length === 1) {
+      // Jika grup/seksi hanya memiliki 1 item, tampilkan langsung sebagai root nav item tanpa wrapper accordion
+      if (renderedItems.length === 1) {
         renderedGroups.push(
           <React.Fragment key={sectionName}>
             {renderedItems}
@@ -1056,25 +1056,24 @@ export default function AdminSidebar({
                 {typeof hasAnyConfigAccess === 'function' && hasAnyConfigAccess() && (() => {
                   const configNavItems = [
                     renderNavItem({
-                      id: "hak_akses",
-                      icon: MENU_REGISTRY.find(m => m.id === 'hak_akses')?.icon || UserCog,
-                      label: "Hak Akses & Pengguna",
-                      activeIds: ['hak_akses', 'manajemen_role', 'pengaturanuser', 'status_password', 'log_password', 'audit_log']
-                    }),
-                    renderNavItem({
-                      id: "fitur",
-                      icon: MENU_REGISTRY.find(m => m.id === 'fitur')?.icon || SlidersHorizontal,
-                      label: "Sistem & Integrasi",
-                      activeIds: ['fitur', 'tampilan', 'api_keys', 'whatsapp', 'gdrive_backup']
+                      id: "konfigurasi_sistem",
+                      icon: Settings,
+                      label: "Konfigurasi Sistem",
+                      activeIds: [
+                        'konfigurasi_sistem', 'pengguna_akses', 'modul_tampilan', 'integrasi_cloud', 'keamanan_audit',
+                        'hak_akses', 'manajemen_role', 'pengaturanuser', 
+                        'status_password', 'log_password', 'audit_log', 'fitur', 'tampilan', 
+                        'api_keys', 'whatsapp', 'gdrive_backup', 'keamanan'
+                      ]
                     })
                   ].filter(Boolean);
 
                   if (configNavItems.length === 0) return null;
 
                   return (
-                    <SidebarGroup label="Konfigurasi Sistem" icon={Settings} groupKey="sistem">
+                    <React.Fragment key="sistem">
                       {configNavItems}
-                    </SidebarGroup>
+                    </React.Fragment>
                   );
                 })()}
               </>

@@ -46,10 +46,24 @@ export async function handleAuthRoutes(req, res, url, ctx) {
     ensureDatabaseReadable,
     normalizeServerRole,
     dbStatus,
-    logAudit
+    logAudit,
+    sessions,
+    getBearerToken
   } = ctx;
 
   let send = ctx.send;
+
+  const setAuthCookie = (token) => {
+    if (!token || !res?.setHeader) return;
+    const isHttps = req.connection?.encrypted || req.headers?.['x-forwarded-proto'] === 'https';
+    const secureFlag = isHttps ? '; Secure' : '';
+    res.setHeader('Set-Cookie', `authToken=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=2592000${secureFlag}`);
+  };
+
+  const clearAuthCookie = () => {
+    if (!res?.setHeader) return;
+    res.setHeader('Set-Cookie', 'authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Strict');
+  };
 
   if (req.method === "GET" && url.pathname === "/api/auth/ping") {
     send(req, res, 200, { ok: true, database: dbStatus });
@@ -57,6 +71,7 @@ export async function handleAuthRoutes(req, res, url, ctx) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/auth/logout") {
+    clearAuthCookie();
     const token = ctx.getBearerToken ? ctx.getBearerToken(req) : (String(req.headers?.authorization || "").startsWith("Bearer ") ? req.headers.authorization.slice(7).trim() : "");
     if (token && ctx.sessions) {
       ctx.sessions.delete(token);
@@ -216,6 +231,10 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       if (data && data.ok) {
         loginAttempts.delete(username);
         loginAttemptsByIp.delete(clientIp);
+        const resolvedToken = data.token || data.authToken || data.user?.authToken;
+        if (resolvedToken) {
+          setAuthCookie(resolvedToken);
+        }
       } else {
         // Per-username lockout
         const att = loginAttempts.get(username) || { count: 0, lockUntil: 0 };
@@ -229,6 +248,16 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
             sendTelegramAlert('bruteForce', `Target: ${username}\nIP: ${clientIp}\nAksi: Akun dikunci (15 menit).`, 'critical').catch(()=>{});
           }).catch(()=>{});
+
+          // Audit Log Account Locked
+          if (logAudit) {
+            logAudit(dbPool, { id: username, name: username, role: 'unknown' }, req, 'ACCOUNT_LOCKED', 'auth', `Percobaan login gagal 5x berturut-turut. Akun dikunci 15 menit. IP: ${clientIp}`).catch(()=>{});
+          }
+        } else {
+          // Audit Log Failed Login Attempt
+          if (logAudit) {
+            logAudit(dbPool, { id: username, name: username, role: 'unknown' }, req, 'FAILED_LOGIN', 'auth', `Percobaan login gagal (${att.count}/5) untuk akun: ${username}. IP: ${clientIp}`).catch(()=>{});
+          }
         }
         loginAttempts.set(username, att);
 
@@ -243,6 +272,11 @@ export async function handleAuthRoutes(req, res, url, ctx) {
           import('../telegram-bot.mjs').then(({ sendTelegramAlert }) => {
             sendTelegramAlert('bruteForce', `IP: ${clientIp}\nAksi: IP di-banned (30 menit).\nAlasan: 20x gagal login.`, 'critical').catch(()=>{});
           }).catch(()=>{});
+
+          // Audit Log IP Banned
+          if (logAudit) {
+            logAudit(dbPool, { id: clientIp, name: `IP-${clientIp}`, role: 'unknown' }, req, 'IP_BANNED', 'auth', `IP diblokir 30 menit setelah 20x percobaan login gagal.`).catch(()=>{});
+          }
         }
         loginAttemptsByIp.set(clientIp, ipAtt);
       }
@@ -258,7 +292,19 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       try {
         const dbTeachers = await dbPool.query('SELECT payload FROM mst_teachers');
         if (dbTeachers.rows.length > 0) {
-          payload.teachers = dbTeachers.rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
+          const map = new Map();
+          for (const r of dbTeachers.rows) {
+            const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+            if (!p) continue;
+            const c = String(p.code || p.nip || p.id || '').toLowerCase().trim();
+            if (!c) continue;
+            const existing = map.get(c);
+            const hasValidPw = p.password && p.password !== '0';
+            if (!existing || (hasValidPw && (!existing.password || existing.password === '0'))) {
+              map.set(c, p);
+            }
+          }
+          payload.teachers = Array.from(map.values());
         }
       } catch (e) {
         console.warn("[Auth] Failed to load mst_teachers:", e.message);
@@ -266,7 +312,19 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       try {
         const dbStaffs = await dbPool.query('SELECT payload FROM mst_staffs');
         if (dbStaffs.rows.length > 0) {
-          payload.staffs = dbStaffs.rows.map(r => typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload);
+          const map = new Map();
+          for (const r of dbStaffs.rows) {
+            const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+            if (!p) continue;
+            const c = String(p.code || p.staff_code || p.nip || p.id || '').toLowerCase().trim();
+            if (!c) continue;
+            const existing = map.get(c);
+            const hasValidPw = p.password && p.password !== '0';
+            if (!existing || (hasValidPw && (!existing.password || existing.password === '0'))) {
+              map.set(c, p);
+            }
+          }
+          payload.staffs = Array.from(map.values());
         }
       } catch (e) {
         console.warn("[Auth] Failed to load mst_staffs:", e.message);
@@ -1342,6 +1400,33 @@ export async function handleAuthRoutes(req, res, url, ctx) {
       }
 
       if (success) {
+        // SEC-HARDEN: Cabut semua sesi lain milik user ini agar sesi lama/terbajak langsung invalid
+        try {
+          const currentToken = typeof getBearerToken === 'function' ? getBearerToken(req) : null;
+          if (dbPool) {
+            if (currentToken) {
+              await dbPool.query(
+                `DELETE FROM app_sessions WHERE (user_id = $1 OR username = $1) AND token != $2`,
+                [session.username, currentToken]
+              );
+            } else {
+              await dbPool.query(
+                `DELETE FROM app_sessions WHERE user_id = $1 OR username = $1`,
+                [session.username]
+              );
+            }
+          }
+          if (sessions && typeof sessions.entries === 'function') {
+            for (const [sToken, sData] of sessions.entries()) {
+              if ((sData?.username === session.username || sData?.user_id === session.username) && sToken !== currentToken) {
+                sessions.delete(sToken);
+              }
+            }
+          }
+        } catch (revokeErr) {
+          console.warn("[Auth] Gagal mencabut sesi lama saat ubah password:", revokeErr?.message);
+        }
+
         send(req, res, 200, { ok: true, message: "Kata sandi Anda berhasil diperbarui!", isDefaultPassword: false, hasChangedPassword: true });
       } else {
         send(req, res, 200, { ok: false, message: "Gagal memperbarui kata sandi. Pengguna tidak ditemukan." });

@@ -1,11 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Shield, Users, UserCog, Search, ChevronDown, ChevronRight, Edit2, 
   Building2, AlertCircle, Sparkles, UserPlus, 
   RotateCcw, Info, BookOpen, GraduationCap, 
-  HeartHandshake, Landmark, ShieldCheck, Key, KeyRound, History
+  HeartHandshake, Landmark, ShieldCheck, Key, KeyRound, History, LayoutDashboard, Globe
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
+import { PaginationControls } from '../../../components/ui/PaginationControls.jsx';
 import { Button, UISelect, Modal } from '../../../components/ui.jsx';
 import { normalizeUserRole } from '../../../utils/constants.js';
 
@@ -96,6 +97,17 @@ const ORGANOGRAM = [
       { key: 'anggota_sarpras', title: 'Anggota Tim Sarpras', badge: 'Sarpras', assignValue: 'anggota_sarpras' },
     ]
   },
+  {
+    key: 'waka_humas',
+    title: 'Waka Hubungan Masyarakat (Humas)',
+    icon: Globe,
+    gradient: 'from-cyan-900 via-teal-950 to-slate-900',
+    badgeTone: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    avatarTone: 'bg-cyan-700 text-white',
+    description: 'Publikasi informasi sekolah, tampilan landing page, dan kemitraan masyarakat.',
+    defaultAssignValue: 'waka_humas',
+    children: []
+  },
 ];
 
 // Helper Functions
@@ -104,66 +116,13 @@ const getPersonId = (p) => {
   return String(p.code || p.staff_code || p.id || p.name || '').trim();
 };
 
-const samePerson = (p1, p2) => {
-  if (!p1 || !p2) return false;
-  const id1 = getPersonId(p1).toLowerCase();
-  const id2 = getPersonId(p2).toLowerCase();
-  if (id1 && id2 && id1 === id2) return true;
-  const name1 = String(p1.name || p1.nama || '').trim().toLowerCase();
-  const name2 = String(p2.name || p2.nama || '').trim().toLowerCase();
-  return name1 && name2 && name1 === name2;
+const getCompositePersonKey = (p) => {
+  if (!p) return '';
+  const src = p._source === 'staff' ? 'staff' : 'teacher';
+  return `${src}:${getPersonId(p)}`;
 };
 
-function getRoleCategory(person, classes = []) {
-  if (!person) return 'guru';
-  const role = String(person.role || '').toLowerCase().trim();
-  const subrole = String(person.subrole || '').toLowerCase().trim();
-  const division = String(person.division || '').toLowerCase().trim();
-
-  if (role === 'kepsek') return 'kepsek';
-  if (role === 'tu' || role === 'tata_usaha' || role === 'admin_tu') {
-    if (subrole) return subrole;
-    return 'tu';
-  }
-  if (role === 'waka') return `waka_${division || 'kurikulum'}`;
-  if (role.startsWith('custom_')) return role;
-
-  if (subrole) return subrole;
-
-  // Auto-detect Wali Kelas dari data classes
-  const code = String(person.code || person.id || '').trim();
-  const name = String(person.name || person.nama || '').trim();
-  if (code || name) {
-    const isWali = (classes || []).some(c => {
-      const hr = String(c.homeroom || '').trim();
-      return hr && (hr === code || (name && hr.toLowerCase() === name.toLowerCase()));
-    });
-    if (isWali && role !== 'waka' && role !== 'kepsek') return 'walikelas';
-  }
-
-  if (division.includes('bendahara')) return 'bendahara';
-  if (division.includes('sekretaris') && (division.includes('tu') || division.includes('tata usaha'))) return 'sekretaris_tu';
-  if (division.includes('tata usaha') || division.includes('tu') || division.includes('administrasi')) return 'tu';
-
-  if (role === 'karyawan') return subrole || 'karyawan';
-  if (role === 'guru') {
-    if (subrole) return subrole;
-    if (division === 'kesiswaan') return 'anggota_kesiswaan';
-    if (division === 'bk' || division === 'bpbk') return 'bpbk';
-    if (division === 'kurikulum') return 'anggota_kurikulum';
-    if (division === 'hubin') return 'anggota_hubin';
-    if (division === 'sarpras') return 'anggota_sarpras';
-    return 'guru';
-  }
-
-  if (person._source === 'staff') {
-    return 'karyawan';
-  }
-
-  return 'guru';
-}
-
-function getCurrentPositionValue(person, classes = []) {
+function resolvePersonRoleKey(person, classes = []) {
   if (!person) return 'guru';
   const role = String(person.role || '').toLowerCase().trim();
   const subrole = String(person.subrole || '').toLowerCase().trim();
@@ -174,26 +133,30 @@ function getCurrentPositionValue(person, classes = []) {
     return subrole || 'tu';
   }
   if (role === 'waka') return `waka_${division || 'kurikulum'}`;
+  if (role.startsWith('waka_')) return role;
   if (role.startsWith('custom_')) return role;
   if (subrole && subrole.startsWith('custom_')) return subrole;
   if (subrole) return subrole;
 
-  const code = String(person.code || person.id || '').trim();
-  const name = String(person.name || person.nama || '').trim();
-  if (code || name) {
-    const isWali = (classes || []).some(c => {
-      const hr = String(c.homeroom || '').trim();
-      return hr && (hr === code || (name && hr.toLowerCase() === name.toLowerCase()));
-    });
-    if (isWali && role !== 'waka' && role !== 'kepsek') return 'walikelas';
+  // Auto-detect Wali Kelas hanya untuk guru (bukan staf/karyawan)
+  if (person._source !== 'staff' && role !== 'karyawan') {
+    const code = String(person.code || person.id || '').trim();
+    const name = String(person.name || person.nama || '').trim();
+    if (code || name) {
+      const isWali = (classes || []).some(c => {
+        const hr = String(c.homeroom || '').trim();
+        return hr && (hr === code || (name && hr.toLowerCase() === name.toLowerCase()));
+      });
+      if (isWali && role !== 'waka' && role !== 'kepsek') return 'walikelas';
+    }
   }
 
   if (division.includes('bendahara')) return 'bendahara';
   if (division.includes('sekretaris') && (division.includes('tu') || division.includes('tata usaha'))) return 'sekretaris_tu';
   if (division.includes('tata usaha') || division.includes('tu') || division.includes('administrasi')) return 'tu';
 
+  if (role === 'karyawan' || person._source === 'staff') return subrole || 'karyawan';
   if (role === 'guru') {
-    if (subrole) return subrole;
     if (division === 'kesiswaan') return 'anggota_kesiswaan';
     if (division === 'bk' || division === 'bpbk') return 'bpbk';
     if (division === 'kurikulum') return 'anggota_kurikulum';
@@ -201,12 +164,12 @@ function getCurrentPositionValue(person, classes = []) {
     if (division === 'sarpras') return 'anggota_sarpras';
     return 'guru';
   }
-  if (role === 'karyawan') return subrole || 'karyawan';
-  if (person._source === 'staff') {
-    return 'karyawan';
-  }
+
   return 'guru';
 }
+
+const getRoleCategory = resolvePersonRoleKey;
+const getCurrentPositionValue = resolvePersonRoleKey;
 
 function getStaffForRoleKey(teachers, staffs, roleKey, classes = []) {
   const t = (teachers || []).map(p => ({ ...p, _source: 'teacher' }));
@@ -420,6 +383,8 @@ export default function ManajemenRole(props) {
   const [activeView, setActiveView] = useState('organogram'); // 'organogram' | 'assignment'
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState('semua');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [isSaving, setIsSaving] = useState(false);
 
   // Modal State for edit assignment
@@ -428,6 +393,10 @@ export default function ManajemenRole(props) {
   const [selectedPersonId, setSelectedPersonId] = useState('');
   const [selectedPosition, setSelectedPosition] = useState('guru');
   const [resetConfirmPerson, setResetConfirmPerson] = useState(null);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, filterRole]);
 
   // Structured Position Hierarchy
   const positionGroups = useMemo(() => {
@@ -477,6 +446,12 @@ export default function ManajemenRole(props) {
         ]
       },
       {
+        groupLabel: 'Waka Hubungan Masyarakat',
+        options: [
+          { value: 'waka_humas', label: 'Waka Humas', role: 'waka', division: 'humas', subrole: '', desc: 'Publikasi, tampilan web, & kemitraan masyarakat' },
+        ]
+      },
+      {
         groupLabel: 'Pengajar & Wali Kelas',
         options: [
           { value: 'walikelas', label: 'Wali Kelas', role: 'guru', division: '', subrole: 'walikelas', desc: 'Laporan kelas binaan & catatan siswa' },
@@ -497,13 +472,13 @@ export default function ManajemenRole(props) {
       const customOpts = customKeys.map(k => ({
         value: k,
         label: rolePermissions[k]?.__label || k.replace('custom_', ''),
-        role: 'guru',
+        role: k,
         division: '',
         subrole: k,
         desc: 'Role kustom buatan administrator'
       }));
       groups.push({
-        groupLabel: 'Role Kustom Kustomisasi',
+        groupLabel: 'Role Kustom',
         options: customOpts
       });
     }
@@ -514,6 +489,10 @@ export default function ManajemenRole(props) {
   const flatPositionOptions = useMemo(() => {
     return positionGroups.flatMap(g => g.options);
   }, [positionGroups]);
+
+  const customRoleKeys = useMemo(() => {
+    return Object.keys(rolePermissions || {}).filter(k => k.startsWith('custom_'));
+  }, [rolePermissions]);
 
   const allPeople = useMemo(() => {
     const t = (teachers || []).map(p => ({ ...p, _source: 'teacher' }));
@@ -532,10 +511,15 @@ export default function ManajemenRole(props) {
     });
   }, [allPeople, search, filterRole, classes]);
 
+  const paginatedPeople = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredPeople.slice(start, start + itemsPerPage);
+  }, [filteredPeople, currentPage, itemsPerPage]);
+
   // Open modal for direct editing of a person
   const handleOpenEditRole = (person) => {
     setEditingPerson(person);
-    setSelectedPersonId(getPersonId(person));
+    setSelectedPersonId(getCompositePersonKey(person));
     setSelectedPosition(getCurrentPositionValue(person, classes));
     setModalOpen(true);
   };
@@ -544,13 +528,13 @@ export default function ManajemenRole(props) {
   const handleQuickAssignFromOrg = (defaultPositionValue) => {
     setSelectedPosition(defaultPositionValue || 'guru');
     setEditingPerson(null);
-    setSelectedPersonId(allPeople[0] ? getPersonId(allPeople[0]) : '');
+    setSelectedPersonId(allPeople[0] ? getCompositePersonKey(allPeople[0]) : '');
     setModalOpen(true);
   };
 
   // Save Role / Position assignment
   const handleSaveRole = async () => {
-    const targetPerson = editingPerson || allPeople.find(p => getPersonId(p) === selectedPersonId);
+    const targetPerson = editingPerson || allPeople.find(p => getCompositePersonKey(p) === selectedPersonId);
     if (!targetPerson) {
       showNotification('Silakan pilih personel staf/guru terlebih dahulu.', 'warning');
       return;
@@ -579,23 +563,21 @@ export default function ManajemenRole(props) {
     }
 
     try {
-      const isTeacher = (teachers || []).some(t => samePerson(t, targetPerson));
-      const isStaff = (staffs || []).some(s => samePerson(s, targetPerson));
+      const targetKey = getPersonId(targetPerson);
+      const isTargetStaff = targetPerson._source === 'staff';
 
       let nextTeachers = teachers || [];
       let nextStaffs = staffs || [];
 
-      if (isTeacher || targetPerson._source === 'teacher') {
+      if (!isTargetStaff) {
         nextTeachers = (teachers || []).map(t =>
-          samePerson(t, targetPerson) ? { ...t, ...changes } : t
+          getPersonId(t) === targetKey ? { ...t, ...changes } : t
         );
         await saveDatabaseNow({ teachers: nextTeachers }, 'memperbarui jabatan guru');
         if (setTeachers) setTeachers(nextTeachers);
-      }
-      
-      if (isStaff || targetPerson._source === 'staff') {
+      } else {
         nextStaffs = (staffs || []).map(s =>
-          samePerson(s, targetPerson) ? { ...s, ...changes } : s
+          getPersonId(s) === targetKey ? { ...s, ...changes } : s
         );
         await saveDatabaseNow({ staffs: nextStaffs }, 'memperbarui jabatan staf');
         if (setStaffs) setStaffs(nextStaffs);
@@ -622,10 +604,10 @@ export default function ManajemenRole(props) {
     if (!resetConfirmPerson) return;
     setIsSaving(true);
 
-    const isTeacher = (teachers || []).some(t => samePerson(t, resetConfirmPerson));
-    const isStaff = (staffs || []).some(s => samePerson(s, resetConfirmPerson));
+    const isTargetStaff = resetConfirmPerson._source === 'staff';
+    const targetKey = getPersonId(resetConfirmPerson);
 
-    const defaultChanges = isStaff 
+    const defaultChanges = isTargetStaff
       ? { role: 'karyawan', division: '', subrole: '' }
       : { role: 'guru', division: '', subrole: '' };
 
@@ -633,17 +615,15 @@ export default function ManajemenRole(props) {
       let nextTeachers = teachers || [];
       let nextStaffs = staffs || [];
 
-      if (isTeacher || resetConfirmPerson._source === 'teacher') {
+      if (!isTargetStaff) {
         nextTeachers = (teachers || []).map(t =>
-          samePerson(t, resetConfirmPerson) ? { ...t, ...defaultChanges } : t
+          getPersonId(t) === targetKey ? { ...t, ...defaultChanges } : t
         );
         await saveDatabaseNow({ teachers: nextTeachers }, 'reset jabatan guru');
         if (setTeachers) setTeachers(nextTeachers);
-      }
-
-      if (isStaff || resetConfirmPerson._source === 'staff') {
+      } else {
         nextStaffs = (staffs || []).map(s =>
-          samePerson(s, resetConfirmPerson) ? { ...s, ...defaultChanges } : s
+          getPersonId(s) === targetKey ? { ...s, ...defaultChanges } : s
         );
         await saveDatabaseNow({ staffs: nextStaffs }, 'reset jabatan staf');
         if (setStaffs) setStaffs(nextStaffs);
@@ -684,32 +664,49 @@ export default function ManajemenRole(props) {
     <div className="space-y-5 w-full animate-in fade-in duration-200">
       
       {/* Header with Navigation Tabs */}
-      <PageHeader
-        title="Struktur & Jabatan Staf"
-        description="Kelola susunan hierarki organisasi sekolah, tunjuk Waka, Tim Kurikulum, Kesiswaan, Tata Usaha, dan pembagian tugas staf."
-        icon={Shield}
-        tabs={setActiveTab ? [
-          { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
-          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
-          { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
-          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
-          { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
-        ] : [
-          { id: 'organogram', label: 'Bagan Struktur Sekolah', icon: Building2 },
-          { id: 'assignment', label: 'Daftar Penugasan Jabatan', icon: UserCog },
-        ]}
-        activeTab={setActiveTab ? (activeTab || "manajemen_role") : activeView}
-        onTabChange={setActiveTab || setActiveView}
-        customButtons={
+      {!props.hideHeader ? (
+        <PageHeader
+          title="Struktur & Jabatan Staf"
+          description="Kelola susunan hierarki organisasi sekolah, tunjuk Waka, Tim Kurikulum, Kesiswaan, Tata Usaha, dan pembagian tugas staf."
+          icon={Shield}
+          tabs={setActiveTab ? [
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
+            { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+            { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
+            { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+            { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
+            { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+          ] : [
+            { id: 'organogram', label: 'Bagan Struktur Sekolah', icon: Building2 },
+            { id: 'assignment', label: 'Daftar Penugasan Jabatan', icon: UserCog },
+          ]}
+          activeTab={setActiveTab ? (activeTab || "manajemen_role") : activeView}
+          onTabChange={setActiveTab || setActiveView}
+          customButtons={
+            <Button
+              type="button"
+              onClick={() => handleQuickAssignFromOrg('waka_kurikulum')}
+              className="text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
+            >
+              <UserPlus size={14} /> + Tugaskan Jabatan Baru
+            </Button>
+          }
+        />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 mb-1">
+          <div>
+            <h3 className="text-sm font-black text-slate-800 tracking-tight">Struktur Hierarki & Penugasan Jabatan</h3>
+            <p className="text-xs text-slate-500 font-medium">Susunan organisasi sekolah, Waka, Tim Kurikulum, Kesiswaan, Tata Usaha, dan pembagian tugas staf.</p>
+          </div>
           <Button
             type="button"
             onClick={() => handleQuickAssignFromOrg('waka_kurikulum')}
-            className="text-xs font-bold gap-1.5 shadow-xs cursor-pointer"
+            className="text-xs font-bold gap-1.5 shadow-xs cursor-pointer self-start sm:self-auto"
           >
             <UserPlus size={14} /> + Tugaskan Jabatan Baru
           </Button>
-        }
-      />
+        </div>
+      )}
 
       {/* Sub-view Switcher Toggle */}
       <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between gap-3 flex-wrap">
@@ -778,6 +775,33 @@ export default function ManajemenRole(props) {
               onResetPerson={setResetConfirmPerson}
             />
           ))}
+          {customRoleKeys.length > 0 && (
+            <OrgCard
+              key="custom_roles_group"
+              node={{
+                key: customRoleKeys[0],
+                title: 'Role Kustom',
+                icon: Sparkles,
+                gradient: 'from-indigo-900 via-slate-900 to-slate-900',
+                badgeTone: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                avatarTone: 'bg-indigo-600 text-white',
+                description: 'Daftar personel pada jabatan kustom buatan administrator.',
+                defaultAssignValue: customRoleKeys[0],
+                children: customRoleKeys.map(ck => ({
+                  key: ck,
+                  title: rolePermissions[ck]?.__label || ck.replace('custom_', ''),
+                  badge: 'Kustom',
+                  assignValue: ck
+                }))
+              }}
+              teachers={teachers}
+              staffs={staffs}
+              classes={classes}
+              onQuickAssign={handleQuickAssignFromOrg}
+              onEditPerson={handleOpenEditRole}
+              onResetPerson={setResetConfirmPerson}
+            />
+          )}
         </div>
       )}
 
@@ -812,11 +836,17 @@ export default function ManajemenRole(props) {
                 <option value="waka_kesiswaan">Waka Kesiswaan</option>
                 <option value="waka_hubin">Waka Hubin</option>
                 <option value="waka_sarpras">Waka Sarpras</option>
+                <option value="waka_humas">Waka Humas</option>
                 <option value="bpbk">Guru BP / BK</option>
                 <option value="pembina_osis">Pembina OSIS</option>
                 <option value="walikelas">Wali Kelas</option>
                 <option value="guru">Guru Biasa (Pengajar)</option>
                 <option value="karyawan">Karyawan / Staf Umum</option>
+                {customRoleKeys.map(ck => (
+                  <option key={ck} value={ck}>
+                    {rolePermissions[ck]?.__label || ck.replace('custom_', '')} (Kustom)
+                  </option>
+                ))}
               </UISelect>
 
               <Button
@@ -843,7 +873,7 @@ export default function ManajemenRole(props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
-                {filteredPeople.length === 0 ? (
+                {paginatedPeople.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-slate-400 bg-slate-50/30">
                       <Users size={32} className="mx-auto mb-2 opacity-30" />
@@ -852,15 +882,16 @@ export default function ManajemenRole(props) {
                     </td>
                   </tr>
                 ) : (
-                  filteredPeople.map((person, idx) => {
+                  paginatedPeople.map((person, idx) => {
+                    const rowNumber = (currentPage - 1) * itemsPerPage + idx + 1;
                     const currentPosVal = getCurrentPositionValue(person, classes);
                     const currentOpt = flatPositionOptions.find(opt => opt.value === currentPosVal) || { label: 'Guru Biasa' };
                     const isStaff = person._source === 'staff';
                     const hasSpecialPosition = currentPosVal !== 'guru' && currentPosVal !== 'karyawan';
 
                     return (
-                      <tr key={`${person._source}_${getPersonId(person)}`} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="px-3 py-2.5 text-center text-slate-400 font-bold">{idx + 1}</td>
+                      <tr key={getCompositePersonKey(person)} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-3 py-2.5 text-center text-slate-400 font-bold">{rowNumber}</td>
                         <td className="px-3 py-2.5 text-center font-mono font-black text-slate-700">
                           <span className="px-2 py-0.5 bg-slate-100 rounded text-[11px] border border-slate-200/60">{getPersonId(person)}</span>
                         </td>
@@ -923,10 +954,14 @@ export default function ManajemenRole(props) {
             </table>
           </div>
 
-          <div className="flex justify-between items-center text-[11px] text-slate-400 font-bold uppercase tracking-wider pt-2">
-            <span>Menampilkan {filteredPeople.length} personel</span>
-            <span>Total: {allPeople.length} Staf / Guru</span>
-          </div>
+          <PaginationControls
+            currentPage={currentPage}
+            totalItems={filteredPeople.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
+            pageSizeOptions={[10, 20]}
+          />
 
         </div>
       )}
@@ -968,14 +1003,14 @@ export default function ManajemenRole(props) {
                 >
                   <optgroup label="Daftar Guru Pengajar">
                     {teachers.map(t => (
-                      <option key={t.code || t.id} value={getPersonId(t)}>
+                      <option key={`teacher_${t.code || t.id}`} value={`teacher:${getPersonId(t)}`}>
                         [Guru {t.code}] {t.name || t.nama}
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label="Daftar Staf Karyawan">
                     {staffs.map(s => (
-                      <option key={s.code || s.staff_code || s.id} value={getPersonId(s)}>
+                      <option key={`staff_${s.code || s.staff_code || s.id}`} value={`staff:${getPersonId(s)}`}>
                         [Staf {s.code || s.staff_code}] {s.name || s.nama}
                       </option>
                     ))}

@@ -1,25 +1,37 @@
-import { useState } from'react';
-import { ClipboardList, Users, GraduationCap, Briefcase } from'lucide-react';
-import HikvisionTeacherReport from'./HikvisionTeacherReport.jsx';
-import HikvisionStaffReport from'./HikvisionStaffReport.jsx';
-import HikvisionStudentReport from'./HikvisionStudentReport.jsx';
-import { PageHeader } from'../../../components/monitoring/ui/index.js';
+import { useState, useEffect } from 'react';
+import { ClipboardList, Users, GraduationCap, Briefcase } from 'lucide-react';
+import HikvisionTeacherReport from './HikvisionTeacherReport.jsx';
+import HikvisionStaffReport from './HikvisionStaffReport.jsx';
+import HikvisionStudentReport from './HikvisionStudentReport.jsx';
+import { PageHeader } from '../../../components/monitoring/ui/index.js';
 
 
 export default function LaporanAbsensi({ classes = [], students = [], initialTab, activeTab: propActiveTab, setActiveTab: propSetActiveTab }) {
-  const validTabs = ["guru", "karyawan", "siswa"];
-  const defaultTab = validTabs.includes(initialTab)
-    ? initialTab
-    : (validTabs.includes(propActiveTab) ? propActiveTab : "guru");
-  const [internalTab, setInternalTab] = useState(defaultTab);
+  const mapTab = (tab) => {
+    if (!tab) return null;
+    const lower = String(tab).toLowerCase().trim();
+    if (lower === 'karyawan' || lower === 'hikvision_report_karyawan' || lower === 'staff') return 'karyawan';
+    if (lower === 'siswa' || lower === 'hikvision_report_siswa' || lower === 'student') return 'siswa';
+    if (lower === 'guru' || lower === 'hikvision_report_guru' || lower === 'teacher') return 'guru';
+    return null;
+  };
 
-  const activeTab = validTabs.includes(propActiveTab) ? propActiveTab : internalTab;
+  const resolvedInitial = mapTab(initialTab) || (propActiveTab !== 'laporan_absensi' ? mapTab(propActiveTab) : null) || 'guru';
+  const [internalTab, setInternalTab] = useState(resolvedInitial);
+
+  // Sinkronisasi internalTab jika initialTab atau propActiveTab berubah dari luar
+  useEffect(() => {
+    const matched = mapTab(initialTab) || (propActiveTab !== 'laporan_absensi' ? mapTab(propActiveTab) : null);
+    if (matched) {
+      setInternalTab(matched);
+    }
+  }, [initialTab, propActiveTab]);
 
   const handleTabChange = (tabId) => {
     setInternalTab(tabId);
-    if (propSetActiveTab) {
-      propSetActiveTab(tabId);
-    }
+    // CATATAN: DILARANG memanggil propSetActiveTab(tabId) dengan "guru", "karyawan", atau "siswa"
+    // karena route tersebut di AdminContentRouter mengarah ke Master Data (Data Pegawai/Siswa),
+    // yang akan meng-unmount LaporanAbsensi.
   };
 
   const tabs = [
@@ -35,15 +47,15 @@ export default function LaporanAbsensi({ classes = [], students = [], initialTab
         description="Pantau dan ekspor laporan kehadiran dari mesin absensi Hikvision."
         icon={ClipboardList}
         tabs={tabs}
-        activeTab={activeTab}
+        activeTab={internalTab}
         onTabChange={handleTabChange}
       />
 
       {/* Content Area */}
       <div className="w-full">
-        {activeTab ==="guru" && <HikvisionTeacherReport isNested={true} />}
-        {activeTab ==="karyawan" && <HikvisionStaffReport classes={classes} isNested={true} />}
-        {activeTab ==="siswa" && <HikvisionStudentReport classes={classes} students={students} isNested={true} />}
+        {internalTab === "guru" && <HikvisionTeacherReport isNested={true} />}
+        {internalTab === "karyawan" && <HikvisionStaffReport classes={classes} isNested={true} />}
+        {internalTab === "siswa" && <HikvisionStudentReport classes={classes} students={students} isNested={true} />}
       </div>
     </div>
   );

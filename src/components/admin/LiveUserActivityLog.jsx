@@ -340,7 +340,7 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
   if (!isAllowed) return null;
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] shadow-xs flex flex-col justify-between h-full overflow-hidden transition-all duration-200">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm flex flex-col justify-between h-full overflow-hidden transition-all duration-200">
       {/* ── Header ── */}
       <div className="px-4 pt-3.5 pb-3 border-b border-slate-100 bg-slate-50/60 flex flex-col justify-between gap-3">
         <div className="flex items-center justify-between gap-2.5 min-w-0">
@@ -349,23 +349,14 @@ export default function LiveUserActivityLog({ onNavigateTab }) {
               <Activity size={16} className="text-emerald-600" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight truncate">
-                  Log Aktivitas Pengguna
-                </h3>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs shrink-0">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  LIVE
-                </span>
-              </div>
+              <h3 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight truncate">
+                Log Aktivitas Pengguna
+              </h3>
             </div>
           </div>
 
           {onlineStats.totalUsers > 0 && (
-            <div className="inline-flex items-center gap-1.5 text-[9.5px] font-bold text-indigo-700 bg-indigo-50/90 px-2.5 py-1 rounded-full border border-indigo-200/70 shadow-2xs whitespace-nowrap shrink-0">
+            <div className="inline-flex items-center gap-1.5 text-[9.5px] font-bold text-indigo-700 bg-indigo-50/90 px-2.5 py-1 rounded-[var(--ui-radius-small)] border border-indigo-200/70 shadow-2xs whitespace-nowrap shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
               <span><span className="font-extrabold">{onlineStats.activeCount}</span>/{onlineStats.totalUsers} Aktif ({onlineStats.percentage}%)</span>
             </div>

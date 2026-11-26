@@ -2963,22 +2963,6 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               </div>
                             )}
                           </div>
-
-                          {/* Row 2: Rekap Akumulasi Bulan Ini (Sleek Inline Badges) */}
-                          <div className="flex items-center justify-between pt-1.5 mt-1.5 border-t border-slate-100 text-[10px]">
-                            <div className="flex items-center gap-1 font-black flex-wrap">
-                              <span className="text-slate-400 font-bold mr-0.5 uppercase text-[8px] tracking-wider">Rekap:</span>
-                              <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-100" title="Total Hadir">{d.total_hadir || 0}H</span>
-                              <span className="px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-100" title="Total Terlambat">{d.total_terlambat || 0}T</span>
-                              <span className="px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-800 border border-indigo-100" title="Total Izin">{d.total_izin || 0}I</span>
-                              <span className="px-1.5 py-0.2 rounded bg-sky-50 text-sky-800 border border-sky-100" title="Total Sakit">{d.total_sakit || 0}S</span>
-                              <span className="px-1.5 py-0.2 rounded bg-rose-50 text-rose-800 border border-rose-100" title="Total Alpa">{d.total_alpa || 0}A</span>
-                            </div>
-
-                            <span className="text-[9px] font-bold text-slate-400 hover:text-emerald-700 flex items-center gap-0.5 shrink-0">
-                              Detail &rsaquo;
-                            </span>
-                          </div>
                         </div>
                       );
                     })
@@ -3000,17 +2984,34 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                     <th className="px-2 sm:px-3 py-2.5 sm:py-3 font-black text-center border-r border-slate-200">ALP</th>
                     {daysToRender.map((dayNum) => {
                       const isTodayCol = isCurrentMonthYear && dayNum === todayNum;
+                      const colDate = new Date(filter.year, filter.month - 1, dayNum);
+                      const dayOfWeek = colDate.getDay();
+                      const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+                      const dayName = dayNames[dayOfWeek] || '';
+                      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
                       return (
                         <th
                           key={dayNum}
-                          className={`px-2 py-2 sm:py-3 font-black text-center min-w-[70px] border-r border-slate-200 transition-colors ${
-                            isTodayCol ? 'bg-emerald-100/90 text-emerald-950 font-black' : ''
+                          className={`px-1 py-2 font-black text-center min-w-[70px] border-r border-slate-200 transition-colors select-none ${
+                            isTodayCol 
+                              ? 'bg-emerald-100/95 text-emerald-950 font-black' 
+                              : isWeekend
+                              ? 'bg-rose-50/60 text-rose-700'
+                              : 'bg-slate-50/80 text-slate-700'
                           }`}
                         >
-                          <div className="flex flex-col items-center">
-                            <span className={isTodayCol ? 'text-xs font-black text-emerald-950' : ''}>{dayNum}</span>
+                          <div className="flex flex-col items-center justify-center leading-none">
+                            <span className={`text-[8.5px] uppercase font-bold tracking-tight mb-0.5 ${
+                              isTodayCol ? 'text-emerald-800' : isWeekend ? 'text-rose-500 font-extrabold' : 'text-slate-400'
+                            }`}>
+                              {dayName}
+                            </span>
+                            <span className={`text-xs ${isTodayCol ? 'font-black text-emerald-950 text-sm' : 'font-extrabold'}`}>
+                              {dayNum}
+                            </span>
                             {isTodayCol && (
-                              <span className="text-[7.5px] uppercase font-black tracking-tight text-emerald-800 bg-emerald-200/90 px-1 py-0.2 rounded mt-0.5 shadow-2xs">
+                              <span className="text-[7px] uppercase font-black tracking-tight text-emerald-800 bg-emerald-200/90 px-1 py-0.2 rounded mt-0.5 shadow-2xs">
                                 Hari Ini
                               </span>
                             )}
@@ -3100,7 +3101,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                                 <td 
                                   key={dayNum} 
                                   onClick={() => handleCellClick(d, dayNum)}
-                                  className="px-1 py-3 text-center border-r border-slate-100 text-[10px] text-slate-300 cursor-pointer hover:bg-slate-50"
+                                  className="px-1 py-3 text-center border-r border-slate-100 text-[10px] text-slate-300 cursor-pointer hover:bg-emerald-50/50 hover:text-emerald-700 transition-colors select-none"
+                                  title={`Klik untuk input izin/sakit/alpa (Tgl ${dayNum})`}
                                 >
                                   -
                                 </td>
@@ -3111,7 +3113,8 @@ export default function HikvisionStudentReport({ classes = [], students = [], is
                               <td
                                 key={dayNum}
                                 onClick={() => handleCellClick(d, dayNum)}
-                                className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors relative"
+                                className="px-1 py-2 text-center border-r border-slate-100 cursor-pointer hover:bg-emerald-50/60 hover:ring-1 hover:ring-emerald-300 transition-all relative group select-none"
+                                title={`Klik untuk lihat detail & kelola status (Tgl ${dayNum})`}
                               >
                                 {dayData?.pending_permission && (
                                   <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>

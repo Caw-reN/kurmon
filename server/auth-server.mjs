@@ -1568,6 +1568,9 @@ const initDb = async () => {
         CREATE INDEX IF NOT EXISTS idx_pkl_students_loc ON pkl_students (location_id);
         CREATE INDEX IF NOT EXISTS idx_pkl_students_teacher ON pkl_students (teacher_code);
         CREATE INDEX IF NOT EXISTS idx_pkl_kunjungan_teacher ON pkl_kunjungan_guru (teacher_code, created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_hik_monthly_recap ON hikvision_logs (employee_id, timestamp, device_id);
+        CREATE INDEX IF NOT EXISTS idx_app_sessions_user_token ON app_sessions (username, token);
+        CREATE INDEX IF NOT EXISTS idx_app_sessions_user_id ON app_sessions (user_id);
       `);
       console.log("Database indexes verified/created.");
     } catch (idxErr) {
@@ -1812,8 +1815,14 @@ const publicAdminUser = (adminUser) => ({
 });
 
 const getBearerToken = (req) => {
-  const auth = String(req.headers.authorization || "");
-  return auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  const auth = String(req?.headers?.authorization || "");
+  if (auth.startsWith("Bearer ")) return auth.slice(7).trim();
+  const cookieHeader = String(req?.headers?.cookie || "");
+  if (cookieHeader) {
+    const match = cookieHeader.match(/(?:^|;\s*)authToken=([^;]+)/);
+    if (match) return decodeURIComponent(match[1]).trim();
+  }
+  return "";
 };
 
 const getSession = (req) => sessions.get(getBearerToken(req));
@@ -1931,13 +1940,38 @@ const getRawBody = (req) => new Promise((resolveBody, rejectBody) => {
 
 const send = (req, res, statusCode, payload) => {
   const headers = getHeaders(req);
+  const existingSetCookie = res?.getHeader ? res.getHeader("Set-Cookie") : undefined;
+  if (existingSetCookie) {
+    headers["Set-Cookie"] = existingSetCookie;
+  }
   const jsonStr = JSON.stringify(payload);
-  const acceptEncoding = req.headers["accept-encoding"] || "";
+  const acceptEncoding = (req.headers["accept-encoding"] || "").toLowerCase();
 
-  if (acceptEncoding.includes("gzip")) {
+  // PERF: Gunakan Brotli (br) jika didukung klien (> 15-25% lebih hemat dari Gzip)
+  if (acceptEncoding.includes("br") && jsonStr.length > 512) {
     try {
-      const compressed = zlib.gzipSync(Buffer.from(jsonStr));
+      const compressed = zlib.brotliCompressSync(Buffer.from(jsonStr), {
+        params: {
+          [zlib.constants.BROTLI_PARAM_QUALITY]: 4,
+          [zlib.constants.BROTLI_PARAM_SIZE_HINT]: jsonStr.length,
+        }
+      });
+      headers["Content-Encoding"] = "br";
+      headers["Vary"] = headers["Vary"] ? `${headers["Vary"]}, Accept-Encoding` : "Accept-Encoding";
+      res.writeHead(statusCode, headers);
+      res.end(compressed);
+      return;
+    } catch (err) {
+      console.warn("Brotli compression failed:", err);
+    }
+  }
+
+  // Fallback ke Gzip jika klien tidak mendukung Brotli
+  if (acceptEncoding.includes("gzip") && jsonStr.length > 512) {
+    try {
+      const compressed = zlib.gzipSync(Buffer.from(jsonStr), { level: 6 });
       headers["Content-Encoding"] = "gzip";
+      headers["Vary"] = headers["Vary"] ? `${headers["Vary"]}, Accept-Encoding` : "Accept-Encoding";
       res.writeHead(statusCode, headers);
       res.end(compressed);
       return;
@@ -3205,7 +3239,7 @@ const server = createServer(async (req, res) => {
             sAbsQ += ` WHERE tanggal >= $1 `;
             sAbsP.push(startDate);
           }
-          sAbsQ += ` ORDER BY tanggal DESC, id DESC LIMIT 100 `;
+          sAbsQ += ` ORDER BY tanggal DESC, id DESC LIMIT 500 `;
           const sAbsRes = await dbPool.query(sAbsQ, sAbsP);
           studentAbsenceLogs = sAbsRes.rows
             .map(r => ({
@@ -3217,8 +3251,7 @@ const server = createServer(async (req, res) => {
               pelapor_nama: r.pelapor_nama,
               created_at: r.created_at || r.date
             }))
-            .filter(r => !isDateHoliday(r.date))
-            .slice(0, 20);
+            .filter(r => !isDateHoliday(r.date));
         } catch (e) {
           console.error("Failed to fetch studentAbsenceLogs:", e);
         }
@@ -3669,6 +3702,27 @@ const server = createServer(async (req, res) => {
           console.error("Error fetching today hikvision logs for dashboard:", e);
         }
 
+        let totalPklStudents = 0;
+        let totalPklLocations = 0;
+        let totalPklLogbooksPending = 0;
+        let totalModulAjar = 0;
+        try {
+          if (dbPool) {
+            const [pklSRes, pklLRes, pklJRes, maRes] = await Promise.all([
+              dbPool.query("SELECT COUNT(*) as cnt FROM pkl_students WHERE status = 'aktif'").catch(() => dbPool.query("SELECT COUNT(*) as cnt FROM pkl_students")),
+              dbPool.query("SELECT COUNT(*) as cnt FROM pkl_locations WHERE status = 'aktif' OR verified = true").catch(() => dbPool.query("SELECT COUNT(*) as cnt FROM pkl_locations")),
+              dbPool.query("SELECT COUNT(*) as cnt FROM pkl_logbooks WHERE status = 'pending'").catch(() => ({ rows: [{ cnt: 0 }] })),
+              dbPool.query("SELECT COUNT(*) as cnt FROM modul_ajar_guru").catch(() => ({ rows: [{ cnt: 0 }] }))
+            ]);
+            totalPklStudents = parseInt(pklSRes?.rows?.[0]?.cnt || 0, 10);
+            totalPklLocations = parseInt(pklLRes?.rows?.[0]?.cnt || 0, 10);
+            totalPklLogbooksPending = parseInt(pklJRes?.rows?.[0]?.cnt || 0, 10);
+            totalModulAjar = parseInt(maRes?.rows?.[0]?.cnt || 0, 10);
+          }
+        } catch (e) {
+          console.warn("Failed to fetch dashboard PKL/Modul counts:", e?.message);
+        }
+
         const responseData = {
           ok: true,
           data: { 
@@ -3688,7 +3742,11 @@ const server = createServer(async (req, res) => {
             attendanceConfig: hConfig,
             totalStudents: students.length,
             totalTeachers: teachers.length,
-            totalStaffs: staffs.length || 27
+            totalStaffs: staffs.length || (teachers.length > 0 ? Math.round(teachers.length * 0.5) : 27),
+            totalPklStudents,
+            totalPklLocations,
+            totalPklLogbooksPending,
+            totalModulAjar
           }
         };
         global._dashLogsCache.date = todayJktDate;

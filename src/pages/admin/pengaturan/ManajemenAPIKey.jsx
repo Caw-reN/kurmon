@@ -4,7 +4,7 @@ import {
   LayoutDashboard, KeyRound, DatabaseBackup, CheckCircle2, EyeOff, 
   Eye, RefreshCw, Edit2, Trash2, ShieldCheck, AlertCircle, 
   Plus, AlertTriangle, Copy, Check, Search, Shield, Server,
-  Sparkles, ExternalLink, Lock, Info
+  Sparkles, ExternalLink, Lock, Info, ArrowRight
 } from 'lucide-react';
 import useAuthStore from '../../../store/monitoring/authStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
@@ -121,7 +121,8 @@ const COLOR_MAP = {
   } 
 };
 
-export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveTab: setSystemTab }) {
+export default function ManajemenAPIKey(props) {
+  const { activeTab: activeSystemTab, setActiveTab: setSystemTab, hideHeader } = props || {};
   const [keys, setKeys] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -289,20 +290,23 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
 
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
-      <PageHeader 
-        title="Manajemen API Key & Integrasi"
-        description="Kelola seluruh kredensial, token pihak ketiga, dan integrasi cloud sekolah di satu tempat yang aman dan terpusat."
-        icon={Key}
-        tabs={[
-          { id: "fitur", label: "Fitur", icon: Settings },
-          { id: "tampilan", label: "Tampilan Web", icon: LayoutDashboard },
-          { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
-          { id: "api_keys", label: "API Key", icon: KeyRound },
-          { id: "gdrive_backup", label: "Backup", icon: DatabaseBackup }
-        ]}
-        activeTab={activeSystemTab}
-        onTabChange={setSystemTab}
-      />
+      {!props.hideHeader && (
+        <PageHeader 
+          title="Manajemen API Key & Integrasi"
+          description="Kelola seluruh kredensial, token pihak ketiga, dan integrasi cloud sekolah di satu tempat yang aman dan terpusat."
+          icon={Key}
+          tabs={[
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
+            { id: "fitur", label: "Fitur", icon: Settings },
+            { id: "tampilan", label: "Tampilan Web", icon: LayoutDashboard },
+            { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+            { id: "api_keys", label: "API Key", icon: KeyRound },
+            { id: "gdrive_backup", label: "Backup", icon: DatabaseBackup }
+          ]}
+          activeTab={activeSystemTab}
+          onTabChange={setSystemTab}
+        />
+      )}
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -414,7 +418,8 @@ export default function ManajemenAPIKey({ activeTab: activeSystemTab, setActiveT
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-400 group-hover:text-slate-600">
                   <span>ID: <code className="font-mono text-[10px] text-slate-500">{preset.service_name_prefix}</code></span>
                   <span className="flex items-center gap-1 text-emerald-600 group-hover:translate-x-0.5 transition-transform">
-                    Atur Kredensial &rarr;
+                    <span>Atur Kredensial</span>
+                    <ArrowRight size={12} />
                   </span>
                 </div>
               </button>

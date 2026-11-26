@@ -93,8 +93,31 @@ export async function handleDataRoutes(req, res, url, ctx) {
         payload.classes = classes.rows.map(r => r.payload);
         payload.rooms = rooms.rows.map(r => r.payload);
         payload.subjects = subjects.rows.map(r => r.payload);
-        // Remove passwords from teachers/students/staffs before sending to client
-        payload.teachers = teachers.rows.map(r => { const p = r.payload; if (p && p.password) delete p.password; return p; });
+        // Deduplicate and remove passwords from teachers/staffs/students before sending to client
+        const seenTeacherCodes = new Set();
+        payload.teachers = [];
+        for (const r of teachers.rows) {
+          const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+          if (!p) continue;
+          const c = String(p.code || p.nip || p.id || r.id || '').toLowerCase().trim();
+          if (!c || seenTeacherCodes.has(c)) continue;
+          seenTeacherCodes.add(c);
+          if (p.password) delete p.password;
+          payload.teachers.push(p);
+        }
+
+        const seenStaffCodes = new Set();
+        payload.staffs = [];
+        for (const r of staffs.rows) {
+          const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
+          if (!p) continue;
+          const c = String(p.code || p.staff_code || p.nip || p.id || r.id || '').toLowerCase().trim();
+          if (!c || seenStaffCodes.has(c)) continue;
+          seenStaffCodes.add(c);
+          if (p.password) delete p.password;
+          payload.staffs.push(p);
+        }
+
         payload.students = students.rows.map(r => { 
           const p = r.payload; 
           if (p && p.password) delete p.password; 
@@ -447,11 +470,13 @@ export async function handleDataRoutes(req, res, url, ctx) {
             const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
             return [String(r.id).toLowerCase(), p?.password];
           }));
+          const incomingIds = [];
           for (const item of items) {
             if (!item) continue;
             const code = String(item.code || item.nip || item.id || '').trim();
             const normalizedId = code.toLowerCase();
             if (!normalizedId) continue;
+            incomingIds.push(normalizedId);
             if (!item.password && dbMap.has(normalizedId)) {
               item.password = dbMap.get(normalizedId);
             }
@@ -460,6 +485,10 @@ export async function handleDataRoutes(req, res, url, ctx) {
                ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
               [normalizedId, JSON.stringify(item)]
             );
+          }
+          if (incomingIds.length > 0) {
+            const placeholders = incomingIds.map((_, i) => `$${i + 1}`).join(', ');
+            await client.query(`DELETE FROM mst_teachers WHERE LOWER(id) NOT IN (${placeholders})`, incomingIds);
           }
           await client.query('COMMIT');
         } catch (e) {
@@ -480,11 +509,13 @@ export async function handleDataRoutes(req, res, url, ctx) {
             const p = typeof r.payload === 'string' ? JSON.parse(r.payload) : r.payload;
             return [String(r.id).toLowerCase(), p?.password];
           }));
+          const incomingIds = [];
           for (const item of items) {
             if (!item) continue;
             const code = String(item.code || item.staff_code || item.nip || item.id || '').trim();
             const normalizedId = code.toLowerCase();
             if (!normalizedId) continue;
+            incomingIds.push(normalizedId);
             if (!item.password && dbMap.has(normalizedId)) {
               item.password = dbMap.get(normalizedId);
             }
@@ -493,6 +524,10 @@ export async function handleDataRoutes(req, res, url, ctx) {
                ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload`,
               [normalizedId, JSON.stringify(item)]
             );
+          }
+          if (incomingIds.length > 0) {
+            const placeholders = incomingIds.map((_, i) => `$${i + 1}`).join(', ');
+            await client.query(`DELETE FROM mst_staffs WHERE LOWER(id) NOT IN (${placeholders})`, incomingIds);
           }
           await client.query('COMMIT');
         } catch (e) {

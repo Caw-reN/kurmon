@@ -11,7 +11,7 @@ import { CustomSelect } from '../../components/CustomSelect.jsx';
 import { Modal, Button, TablePagination } from '../../components/ui.jsx';
 import { PageHeader } from '../../components/monitoring/ui/index.js';
 
-export default function RiwayatPrestasi({ students = [], classes = [] }) {
+export default function RiwayatPrestasi({ students = [], classes = [], getTabPermissionLevel }) {
   const currentUser = useAuthStore(state => state.user) || {};
   const userRole = String(currentUser?.role || '').toLowerCase().trim();
   const userSubrole = String(currentUser?.subrole || '').toLowerCase().trim();
@@ -24,8 +24,9 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
     userDiv.includes('kesiswaan') || userDiv.includes('bk') || userDiv.includes('bpbk') || userDiv.includes('osis') ||
     Boolean(currentUser?.isBK || currentUser?.isBPBK || currentUser?.isKesiswaan);
 
-  const canEditPrestasi = isKesiswaanOrBK;
-  const canViewPrestasi = isKesiswaanOrBK || ['kepsek', 'tu', 'tata_usaha'].includes(userRole) || userSubrole.includes('tu') || userDiv.includes('tu');
+  const permLevel = typeof getTabPermissionLevel === 'function' ? getTabPermissionLevel('riwayat_prestasi') : null;
+  const canEditPrestasi = isKesiswaanOrBK || permLevel === 'edit' || permLevel === 'full' || permLevel === 'otomatis';
+  const canViewPrestasi = canEditPrestasi || permLevel === 'view' || ['kepsek', 'tu', 'tata_usaha'].includes(userRole) || userSubrole.includes('tu') || userDiv.includes('tu');
 
   const [prestasiList, setPrestasiList] = useState([]);
   const [search, setSearch] = useState("");
@@ -382,8 +383,13 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
             <div className="p-8 text-center text-slate-400 text-xs font-semibold">Memuat data prestasi...</div>
           ) : paginatedPrestasi.length === 0 ? (
             <div className="p-10 text-center text-slate-400 space-y-2">
-              <div className="w-12 h-12 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto">
-                <Trophy size={24} />
+              <div className="w-28 h-24 mx-auto mb-2 flex items-center justify-center">
+                <img 
+                  src="/maskot/kara-gana/duo/angkat-piala.svg" 
+                  alt="Kara & Gana Prestasi Siswa" 
+                  className="w-full h-full object-contain drop-shadow-xs select-none"
+                  onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+                />
               </div>
               <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
               <p className="text-xs text-slate-400">Tidak ada catatan prestasi yang cocok dengan pencarian Anda.</p>
@@ -501,8 +507,13 @@ export default function RiwayatPrestasi({ students = [], classes = [] }) {
               ) : filteredPrestasi.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-6 py-16 text-center text-slate-400 space-y-2">
-                    <div className="w-14 h-14 rounded-[var(--ui-radius-card)] bg-amber-50 text-amber-500 border border-amber-100 flex items-center justify-center mx-auto shadow-xs">
-                      <Trophy size={28} />
+                    <div className="w-28 h-24 mx-auto mb-2 flex items-center justify-center">
+                      <img 
+                        src="/maskot/kara-gana/duo/angkat-piala.svg" 
+                        alt="Kara & Gana Prestasi Siswa" 
+                        className="w-full h-full object-contain drop-shadow-xs select-none"
+                        onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+                      />
                     </div>
                     <p className="font-extrabold text-sm text-slate-700">Belum Ada Data Prestasi</p>
                     <p className="text-xs text-slate-400">Tidak ada catatan prestasi yang cocok dengan filter pencarian Anda.</p>

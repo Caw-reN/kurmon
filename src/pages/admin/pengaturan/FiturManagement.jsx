@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   CheckCircle2, BookOpen, MapPin, FileBarChart2, BadgeCheck, UserCog, LayoutDashboard,
-  Users, GraduationCap, Settings, MessageSquare, KeyRound, 
+  Users, GraduationCap, Settings, MessageSquare, KeyRound, Palette, 
   DatabaseBackup, Info, AlertTriangle, RotateCcw, ShieldCheck, ToggleRight, Sparkles, Layers
 } from 'lucide-react';
 import useFiturStore, { FITUR_CONFIG } from '../../../store/monitoring/fiturStore';
@@ -66,8 +66,9 @@ const FiturManagement = ({ hideHeader = false, activeTab, setActiveTab }) => {
           title="Manajemen Fitur"
           description="Aktifkan atau nonaktifkan fitur untuk Panel Siswa dan Guru secara real-time."
           tabs={[
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
             { id: "fitur", label: "Fitur", icon: Settings },
-            { id: "tampilan", label: "Tampilan Web", icon: LayoutDashboard },
+            { id: "tampilan", label: "Tampilan Web", icon: Palette },
             { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
             { id: "api_keys", label: "API Key", icon: KeyRound },
             { id: "gdrive_backup", label: "Backup", icon: DatabaseBackup }

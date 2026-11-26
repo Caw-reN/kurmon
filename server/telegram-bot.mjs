@@ -236,6 +236,10 @@ export const MAIN_INLINE_KEYBOARD = {
       { text: '💬 WhatsApp Gateway', callback_data: '/wa' }
     ],
     [
+      { text: '🛡️ Audit Error & Anomali', callback_data: '/audit' },
+      { text: '🚨 Alert Keamanan', callback_data: '/alerts' }
+    ],
+    [
       { text: '💻 Status Server & CPU', callback_data: '/status' },
       { text: '🗄️ Info Database', callback_data: '/db' }
     ],
@@ -719,6 +723,17 @@ async function _handleUpdate(update) {
     switch (cmd) {
       case '/help':   await _cmdHelp(chatId); break;
       case '/status': await _cmdStatus(chatId); break;
+      case '/audit':
+      case '/anomali':
+      case '/cek_anomali':
+      case '/cekanomali':
+      case '/cek_sistem':
+      case '/ceksistem':
+      case '/cek_kesalahan':
+      case '/diagnosa':
+      case '/cek':
+        await _cmdAuditAnomali(chatId);
+        break;
       case '/logs':   await _cmdLogs(chatId, parseInt(args[0]) || 10); break;
       case '/backup': await _cmdBackup(chatId, from); break;
       case '/alerts': await _cmdAlerts(chatId); break;
@@ -858,6 +873,7 @@ async function _cmdHelp(chatId) {
     `• <b>/pkl</b> — Monitoring penempatan PKL\n\n` +
     `📟 <b>MESIN & SISTEM:</b>\n` +
     `• <b>/mesin</b> — Diagnosa status mesin absensi\n` +
+    `• <b>/audit</b> — Audit kesalahan & anomali sistem\n` +
     `• <b>/sync</b> — Sinkronisasi log mesin sekarang\n` +
     `• <b>/status</b> — Kesehatan server & uptime\n` +
     `• <b>/stats</b> — Statistik data sekolah\n` +
@@ -912,9 +928,175 @@ async function _cmdStatus(chatId) {
     `• <b>Database:</b> ${dbStatus}\n` +
     `• <b>Platform:</b> ${os.platform()} (Node ${process.version})\n` +
     `• <b>Waktu Server:</b> ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB\n\n` +
-    `💡 <i>Ketik <b>/mesin</b> untuk status mesin atau <b>/db</b> untuk info database.</i>`,
+    `💡 <i>Ketik <b>/audit</b> untuk cek anomali sistem atau <b>/mesin</b> untuk status perangkat.</i>`,
     { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD }
   );
+}
+
+/**
+ * Audit Menyeluruh Kesalahan & Anomali Sistem Kurmon
+ * Memeriksa:
+ * 1. Integritas Data Master (duplikasi ID/NIS/NIP, siswa tanpa kelas, password legacy)
+ * 2. Perangkat Mesin Absensi Hikvision (status offline, mesin tanpa log hari ini)
+ * 3. Log Kesalahan & Keamanan (gagal backup Google Drive, login failed/brute force)
+ * 4. Anomali Presensi Siswa & Guru (tidak absen pagi, anomali status, SP threshold)
+ * 5. Status Layanan Eksternal (WhatsApp gateway, database pool)
+ */
+async function _cmdAuditAnomali(chatId) {
+  if (!_dbPool) {
+    await _sendMessage(chatId, '❌ Database tidak tersedia.');
+    return;
+  }
+
+  await _sendMessage(chatId, '🔍 <i>Sedang melakukan audit komprehensif terhadap seluruh data, mesin, log error, dan anomali sistem... Mohon tunggu sebentar.</i>', { isHtml: true });
+
+  try {
+    const todayJkt = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const anomalies = [];
+    const warnings = [];
+    const healthy = [];
+
+    // 1. Audit Duplikasi Data Master (Guru & Siswa) & Password Legacy
+    const [dupTeachersRes, dupStudentsRes, noClassStudentsRes, legacyPwRes] = await Promise.all([
+      _dbPool.query('SELECT code, COUNT(*) as cnt FROM mst_teachers GROUP BY code HAVING COUNT(*) > 1').catch(() => ({ rows: [] })),
+      _dbPool.query('SELECT nis, COUNT(*) as cnt FROM mst_students GROUP BY nis HAVING COUNT(*) > 1').catch(() => ({ rows: [] })),
+      _dbPool.query("SELECT COUNT(*) as cnt FROM mst_students WHERE class_name IS NULL OR TRIM(class_name) = ''").catch(() => ({ rows: [{ cnt: 0 }] })),
+      _dbPool.query("SELECT COUNT(*) as cnt FROM users WHERE password NOT LIKE 'pbkdf2-sha256$%'").catch(() => ({ rows: [{ cnt: 0 }] }))
+    ]);
+
+    if (dupTeachersRes.rows.length > 0) {
+      anomalies.push(`<b>Duplikasi Kode Guru:</b> Ditemukan ${dupTeachersRes.rows.length} kode guru ganda (${dupTeachersRes.rows.map(r => `<code>${escapeHtml(r.code)}</code>: ${r.cnt}x`).join(', ')})`);
+    } else {
+      healthy.push(`Kode Guru Unik (Nihil duplikasi)`);
+    }
+
+    if (dupStudentsRes.rows.length > 0) {
+      anomalies.push(`<b>Duplikasi NIS Siswa:</b> Ditemukan ${dupStudentsRes.rows.length} NIS ganda (${dupStudentsRes.rows.slice(0, 5).map(r => `<code>${escapeHtml(r.nis)}</code>: ${r.cnt}x`).join(', ')}${dupStudentsRes.rows.length > 5 ? '...' : ''})`);
+    } else {
+      healthy.push(`NIS Siswa Unik (Nihil duplikasi)`);
+    }
+
+    const noClassCount = parseInt(noClassStudentsRes.rows[0]?.cnt || 0, 10);
+    if (noClassCount > 0) {
+      warnings.push(`Siswa Tanpa Kelas: Ada <b>${noClassCount} siswa</b> belum memiliki penempatan rombel kelas`);
+    }
+
+    const legacyPwCount = parseInt(legacyPwRes.rows[0]?.cnt || 0, 10);
+    if (legacyPwCount > 0) {
+      warnings.push(`Akun Pengguna: Ada <b>${legacyPwCount} akun</b> menggunakan format kata sandi lama (perlu login ulang untuk upgrade hash)`);
+    } else {
+      healthy.push(`Keamanan Akun: 100% menggunakan enkripsi PBKDF2-SHA256`);
+    }
+
+    // 2. Audit Mesin Absensi Hikvision
+    const { rows: devices } = await _dbPool.query('SELECT * FROM hikvision_devices ORDER BY id').catch(() => ({ rows: [] }));
+    if (devices.length > 0) {
+      const { rows: todayLogsPerDev } = await _dbPool.query(`
+        SELECT device_id, COUNT(*) as cnt 
+        FROM hikvision_logs 
+        WHERE timestamp::date = $1 
+        GROUP BY device_id
+      `, [todayJkt]).catch(() => ({ rows: [] }));
+      const devLogsMap = new Map(todayLogsPerDev.map(r => [r.device_id, parseInt(r.cnt, 10)]));
+
+      const offlineOrEmptyDevs = [];
+      devices.forEach(dev => {
+        const todayCnt = devLogsMap.get(dev.id) || 0;
+        const isOffline = dev.status === 'offline';
+        if (isOffline || todayCnt === 0) {
+          offlineOrEmptyDevs.push(`<code>${escapeHtml(dev.name || dev.ip_address)}</code> (${isOffline ? 'Offline' : '0 Log Hari Ini'})`);
+        }
+      });
+
+      if (offlineOrEmptyDevs.length > 0) {
+        warnings.push(`Mesin Absensi: ${offlineOrEmptyDevs.join(', ')}`);
+      } else {
+        healthy.push(`Mesin Absensi IoT: Semua unit aktif (${devices.length} unit) & merekam log hari ini`);
+      }
+    } else {
+      warnings.push(`Belum ada perangkat mesin absensi Hikvision yang didaftarkan`);
+    }
+
+    // 3. Audit Log Kesalahan & Keamanan
+    const [backupFailRes, loginFailRes, recentErrorLogs] = await Promise.all([
+      _dbPool.query("SELECT COUNT(*) as cnt FROM audit_logs WHERE action LIKE '%BACKUP%FAIL%' AND created_at >= NOW() - INTERVAL '7 days'").catch(() => ({ rows: [{ cnt: 0 }] })),
+      _dbPool.query("SELECT COUNT(*) as cnt FROM audit_logs WHERE action IN ('LOGIN_FAILED', 'BRUTE_FORCE', 'ACCOUNT_LOCKED') AND created_at >= NOW() - INTERVAL '24 hours'").catch(() => ({ rows: [{ cnt: 0 }] })),
+      _dbPool.query("SELECT action, detail, created_at FROM audit_logs WHERE action LIKE '%FAIL%' OR action LIKE '%ERROR%' ORDER BY created_at DESC LIMIT 3").catch(() => ({ rows: [] }))
+    ]);
+
+    const backupFails = parseInt(backupFailRes.rows[0]?.cnt || 0, 10);
+    if (backupFails > 0) {
+      anomalies.push(`<b>Kegagalan Backup Cloud:</b> Terdeteksi <b>${backupFails} kegagalan backup</b> dalam 7 hari terakhir. Periksa kuota Google Drive atau refresh token API.`);
+    } else {
+      healthy.push(`Pencadangan Cloud: Normal & nihil kegagalan dalam 7 hari`);
+    }
+
+    const loginFails = parseInt(loginFailRes.rows[0]?.cnt || 0, 10);
+    if (loginFails >= 5) {
+      warnings.push(`Aktivitas Login: Terdeteksi <b>${loginFails} kali percobaan login gagal</b> dalam 24 jam terakhir`);
+    } else {
+      healthy.push(`Aktivitas Keamanan Login: Normal & stabil`);
+    }
+
+    // 4. Audit Presensi & Keterlambatan Ekstrem
+    const { rows: extremeLateRes } = await _dbPool.query(`
+      SELECT siswa_nis, COUNT(*) as late_count 
+      FROM kedisiplinan_absensi 
+      WHERE status = 'Terlambat' AND tanggal >= date_trunc('month', CURRENT_DATE) 
+      GROUP BY siswa_nis 
+      HAVING COUNT(*) >= 5 
+      ORDER BY late_count DESC 
+      LIMIT 5
+    `).catch(() => ({ rows: [] }));
+
+    if (extremeLateRes.length > 0) {
+      warnings.push(`Kedisiplinan Siswa: <b>${extremeLateRes.length} siswa</b> mencapai ambang keterlambatan kronis (≥5x bulan ini, memerlukan tindak lanjut SP/BK)`);
+    }
+
+    // 5. Audit WhatsApp Gateway (Fonnte)
+    const { rows: waRows } = await _dbPool.query("SELECT is_active, api_key FROM api_keys WHERE service_name = 'whatsapp_fonnte' LIMIT 1").catch(() => ({ rows: [] }));
+    if (waRows.length === 0 || !waRows[0].is_active || !waRows[0].api_key) {
+      warnings.push(`WhatsApp Gateway (Fonnte) belum aktif atau belum memasukkan token`);
+    } else {
+      healthy.push(`Layanan WhatsApp Fonnte: Aktif & Terhubung`);
+    }
+
+    // Format Laporan
+    let report = `🛡️ <b>HASIL AUDIT SISTEM & DETEKSI ANOMALI</b>\n`;
+    report += `<i>Sistem Kurmon • Waktu: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB</i>\n\n`;
+
+    if (anomalies.length > 0) {
+      report += `🚨 <b>ANOMALI & KESALAHAN KRITIS (${anomalies.length}):</b>\n`;
+      anomalies.forEach((a, i) => { report += `${i + 1}. ${a}\n`; });
+      report += `\n`;
+    }
+
+    if (warnings.length > 0) {
+      report += `⚠️ <b>PERINGATAN & REKOMENDASI (${warnings.length}):</b>\n`;
+      warnings.forEach((w, i) => { report += `• ${w}\n`; });
+      report += `\n`;
+    }
+
+    if (healthy.length > 0) {
+      report += `✅ <b>KOMPONEN SEHAT & NORMAL:</b>\n`;
+      healthy.forEach((h) => { report += `• ${h}\n`; });
+      report += `\n`;
+    }
+
+    if (anomalies.length === 0 && warnings.length === 0) {
+      report += `🎉 <b>SELURUH SISTEM BEBAS DARI KESALAHAN & ANOMALI!</b>\nSemua parameter data master, mesin, dan keamanan dalam kondisi optimal.`;
+    } else {
+      report += `💡 <i>Gunakan perintah:</i>\n` +
+                `• <code>/mesin</code> untuk diagnosa hardware\n` +
+                `• <code>/backup</code> untuk pencadangan manual\n` +
+                `• <code>/alerts</code> untuk rincian insiden keamanan`;
+    }
+
+    await _sendMessage(chatId, report, { isHtml: true, reply_markup: BACK_TO_MENU_KEYBOARD });
+  } catch (err) {
+    console.error('[TelegramBot] Gagal melakukan audit sistem:', err);
+    await _sendMessage(chatId, `❌ Terjadi kendala saat melakukan audit: ${escapeHtml(err.message)}`, { isHtml: true });
+  }
 }
 
 /**
@@ -1713,6 +1895,7 @@ async function _registerBotCommands() {
       { command: 'rekap_kelas', description: 'Ringkasan presensi per kelas' },
       { command: 'kelas', description: 'Daftar seluruh kelas aktif' },
       { command: 'status', description: 'Status kesehatan server & sistem' },
+      { command: 'audit', description: 'Audit kesalahan & anomali sistem' },
       { command: 'stats', description: 'Statistik data sistem Kurmon' },
       { command: 'wa', description: 'Status layanan WhatsApp Gateway' },
       { command: 'db', description: 'Info kapasitas & tabel database' },
@@ -2200,6 +2383,26 @@ async function _handleSmartAssistant(chatId, queryText) {
     // 0.8 Pertanyaan umum lainnya seputar tanggal tersebut
     // Contoh: "tanggal 1 agustus 2026", "cek tanggal 1 agustus 2026", "ada apa tanggal 1 agustus"
     await _cmdRingkasanTanggal(chatId, dateInfo);
+    return;
+  }
+
+  // ── Audit Error, Anomali & Diagnosa Sistem ──
+  if (
+    q.includes('anomali') || 
+    q.includes('kesalahan') || 
+    q.includes('audit') || 
+    q.includes('cek sistem') || 
+    q.includes('cek error') || 
+    q.includes('ada masalah') || 
+    q.includes('diagnosa') || 
+    q.includes('periksa sistem') || 
+    q.includes('troubleshoot') || 
+    q.includes('error apa') || 
+    q.includes('ada error') || 
+    q.includes('cek anomali') ||
+    q.includes('cek kesalahan')
+  ) {
+    await _cmdAuditAnomali(chatId);
     return;
   }
 

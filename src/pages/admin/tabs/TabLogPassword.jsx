@@ -4,7 +4,7 @@ import {
   KeyRound, ShieldCheck, Shield, Key, History, Search, 
   RefreshCw, CheckCircle2, AlertTriangle, Download, 
   Lock, Copy, Check, Eye, EyeOff, User, GraduationCap, 
-  Briefcase, BookOpen, Clock, AlertCircle, Filter
+  Briefcase, BookOpen, Clock, AlertCircle, Filter, LayoutDashboard
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import useAuthStore from '../../../store/monitoring/authStore.js';
@@ -60,7 +60,7 @@ export default function TabLogPassword(props) {
 
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 50,
+    limit: 20,
     total: 0,
     totalPages: 1
   });
@@ -336,47 +336,50 @@ export default function TabLogPassword(props) {
     <div className="flex flex-col gap-4 w-full animate-in fade-in duration-300 relative z-10 pb-16">
       
       {/* ── PAGE HEADER ── */}
-      <PageHeader
-        title="Log & Status Ganti Password"
-        description="Pantau pengguna yang sudah memperbarui kata sandi mandiri dan akun yang masih menggunakan sandi bawaan (default). Hanya Admin yang memiliki hak akses."
-        icon={KeyRound}
-        tabs={[
-          { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
-          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
-          { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
-          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
-          { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
-        ]}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        customButtons={
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => fetchLogs(pagination.page)}
-              className="text-xs font-bold gap-1.5 bg-white shadow-2xs text-slate-700 hover:text-emerald-700"
-              title="Sinkronkan data dengan server"
-            >
-              <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : ""} />
-              <span>Sinkronkan Data</span>
-            </Button>
+      {!props.hideHeader && (
+        <PageHeader
+          title="Log & Status Ganti Password"
+          description="Pantau pengguna yang sudah memperbarui kata sandi mandiri dan akun yang masih menggunakan sandi bawaan (default). Hanya Admin yang memiliki hak akses."
+          icon={KeyRound}
+          tabs={[
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
+            { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+            { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
+            { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+            { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
+            { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          customButtons={
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fetchLogs(pagination.page)}
+                className="text-xs font-bold gap-1.5 bg-white shadow-2xs text-slate-700 hover:text-emerald-700"
+                title="Sinkronkan data dengan server"
+              >
+                <RefreshCw size={13} className={loading ? "animate-spin text-emerald-600" : ""} />
+                <span>Sinkronkan Data</span>
+              </Button>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleExportCSV}
-              className="text-xs font-bold gap-1.5 bg-white shadow-2xs text-slate-700 hover:text-indigo-700"
-              title="Ekspor CSV"
-            >
-              <Download size={13} />
-              <span>Ekspor CSV</span>
-            </Button>
-          </div>
-        }
-      />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleExportCSV}
+                className="text-xs font-bold gap-1.5 bg-white shadow-2xs text-slate-700 hover:text-indigo-700"
+                title="Ekspor CSV"
+              >
+                <Download size={13} />
+                <span>Ekspor CSV</span>
+              </Button>
+            </div>
+          }
+        />
+      )}
 
       {/* ── KPI STATS CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

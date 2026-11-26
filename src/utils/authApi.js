@@ -9,6 +9,7 @@ const requestJson = async (path, options = {}, retries = 2) => {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(`${AUTH_API_BASE}${path}`, {
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
           ...(options.headers || {}),

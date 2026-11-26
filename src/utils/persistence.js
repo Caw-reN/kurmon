@@ -31,6 +31,7 @@ export const saveToServer = (payload, authToken = "", options = {}) => {
     try {
       const res = await fetch("/api/data/save", {
         method: "POST",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
           ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
@@ -60,6 +61,7 @@ export const saveToServerNow = async (payload, authToken = "") => {
   }
   const res = await fetch("/api/data/save", {
     method: "POST",
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
@@ -76,6 +78,7 @@ export const saveToServerNow = async (payload, authToken = "") => {
 export const loadFromServer = async (authToken = "") => {
   const endpoint = authToken ? "/api/data/load" : "/api/data/public";
   const res = await fetch(endpoint, {
+    credentials: "same-origin",
     headers: {
       ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     },

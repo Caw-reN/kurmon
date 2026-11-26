@@ -3,11 +3,11 @@ import { Button, Modal, UISelect } from '../../../components/ui.jsx';
 import { 
   UserCog, KeyRound, ShieldCheck, Key, History, Shield, Save, RotateCcw, 
   Search, Sparkles, AlertCircle, Plus, Trash2, CheckCircle2, 
-  Eye, Edit3, XCircle, Info, Layers, Lock, Unlock, Check
+  Eye, Edit3, XCircle, Info, Layers, Lock, Unlock, Check, LayoutDashboard
 } from 'lucide-react';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { getRoleKeyLabel } from '../../../utils/constants.js';
-import { DEFAULT_ROLE_PERMISSIONS } from '../../../store/useAppStore.js';
+import { DEFAULT_ROLE_PERMISSIONS, useAppStore } from '../../../store/useAppStore.js';
 
 // ─── METADATA MODUL & MENU APLIKASI ──────────────────────────────────────────
 const ALL_TABS_METADATA = {
@@ -172,6 +172,7 @@ export default function TabHakAkses(props) {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleKey, setNewRoleKey] = useState('');
+  const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
   const [templateRoleKey, setTemplateRoleKey] = useState('guru');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -243,7 +244,11 @@ export default function TabHakAkses(props) {
   };
 
   const getPermissionState = (tab) => {
-    return localPermissions[tab] || 'nonaktif';
+    const raw = localPermissions[tab];
+    if (!raw || raw === 'nonaktif' || raw === 'none') return 'nonaktif';
+    if (raw === 'otomatis' || raw === 'full' || raw === 'edit') return 'edit';
+    if (raw === 'view') return 'view';
+    return 'nonaktif';
   };
 
   const handleToggleGroupLevel = (group, targetLevel) => {
@@ -297,6 +302,7 @@ export default function TabHakAkses(props) {
     try {
       const nextRolePermissions = { ...rolePermissions };
       delete nextRolePermissions[roleKeyToDelete];
+      useAppStore.getState().setRolePermissions(nextRolePermissions);
       await saveDatabaseNow({ rolePermissions: nextRolePermissions }, 'menghapus role custom');
       if (selectedRoleKey === roleKeyToDelete) setSelectedRoleKey('guru');
       showNotification(`Role kustom berhasil dihapus.`, 'success');
@@ -368,7 +374,13 @@ export default function TabHakAkses(props) {
 
   const handleCreateRole = async () => {
     const trimmedName = String(newRoleName || '').trim();
-    const trimmedKey = String(newRoleKey || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    const trimmedKey = String(newRoleKey || '')
+      .trim()
+      .toLowerCase()
+      .replace(/^custom_+/, '')
+      .replace(/[^a-z0-9_]/g, '_')
+      .replace(/_+/g, '_')
+      .replace(/^_|_$/g, '');
 
     if (!trimmedName) {
       showNotification('Nama role wajib diisi.', 'warning');
@@ -411,6 +423,7 @@ export default function TabHakAkses(props) {
       setCreateModalOpen(false);
       setNewRoleName('');
       setNewRoleKey('');
+      setIsKeyManuallyEdited(false);
       showNotification(`Role kustom "${trimmedName}" berhasil dibuat & disimpan!`, 'success');
     } catch (err) {
       console.error('Error creating custom role:', err);
@@ -427,29 +440,46 @@ export default function TabHakAkses(props) {
     <div className="space-y-5 w-full animate-in fade-in duration-200 relative pb-20">
       
       {/* Page Header */}
-      <PageHeader
-        title="Hak Akses & Matriks Izin"
-        description="Atur izin modul menu aplikasi (Bisa Edit, Hanya Lihat, atau Ditutup) untuk masing-masing jabatan/role."
-        icon={UserCog}
-        tabs={[
-          { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
-          { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
-          { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
-          { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
-          { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
-        ]}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        customButtons={
+      {!props.hideHeader ? (
+        <PageHeader
+          title="Hak Akses & Matriks Izin"
+          description="Atur izin modul menu aplikasi (Bisa Edit, Hanya Lihat, atau Ditutup) untuk masing-masing jabatan/role."
+          icon={UserCog}
+          tabs={[
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
+            { id: "hak_akses", label: "Hak Akses & Role", icon: ShieldCheck },
+            { id: "manajemen_role", label: "Struktur & Jabatan", icon: Shield },
+            { id: "pengaturanuser", label: "Akun Pengguna", icon: Key },
+            { id: "status_password", label: "Log Ganti Password", icon: KeyRound },
+            { id: "audit_log", label: "Audit Log & Aktivitas", icon: History }
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          customButtons={
+            <Button
+              type="button"
+              onClick={() => setCreateModalOpen(true)}
+              className="text-xs font-bold gap-1.5"
+            >
+              <Plus size={14} /> + Buat Role Kustom Baru
+            </Button>
+          }
+        />
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 mb-2">
+          <div>
+            <h3 className="text-sm font-black text-slate-800 tracking-tight">Matriks Hak Akses & Izin Modul</h3>
+            <p className="text-xs text-slate-500 font-medium">Atur izin modul (Bisa Edit, Hanya Lihat, atau Ditutup) untuk masing-masing jabatan/role.</p>
+          </div>
           <Button
             type="button"
             onClick={() => setCreateModalOpen(true)}
-            className="text-xs font-bold gap-1.5"
+            className="text-xs font-bold gap-1.5 self-start sm:self-auto cursor-pointer"
           >
             <Plus size={14} /> + Buat Role Kustom Baru
           </Button>
-        }
-      />
+        </div>
+      )}
 
       {/* Guide Banner */}
       <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -495,7 +525,7 @@ export default function TabHakAkses(props) {
                     const isSelected = selectedRoleKey === r.key;
                     const rolePermObj = rolePermissions?.[r.key] || DEFAULT_ROLE_PERMISSIONS?.[r.key] || {};
                     const count = typeof rolePermObj === 'object' && rolePermObj !== null
-                      ? Object.keys(rolePermObj).filter(k => k !== '__label' && rolePermObj[k] && rolePermObj[k] !== 'nonaktif').length
+                      ? Object.keys(rolePermObj).filter(k => ALL_TABS_METADATA[k] && rolePermObj[k] && rolePermObj[k] !== 'nonaktif' && rolePermObj[k] !== 'none').length
                       : 0;
 
                     return (
@@ -505,7 +535,7 @@ export default function TabHakAkses(props) {
                         onClick={() => setSelectedRoleKey(r.key)}
                         className={`w-full text-left px-3 py-2 rounded-lg transition-all flex items-center justify-between gap-2 border cursor-pointer ${
                           isSelected
-                            ? 'bg-[var(--ui-primary)] text-white border-indigo-600 font-black'
+                            ? 'bg-[var(--ui-primary)] text-white border-transparent font-black'
                             : 'bg-slate-50/70 hover:bg-slate-100 text-slate-700 border-slate-200/60'
                         }`}
                       >
@@ -771,7 +801,7 @@ export default function TabHakAkses(props) {
       {createModalOpen && (
         <Modal
           isOpen={true}
-          onClose={() => { setCreateModalOpen(false); setNewRoleName(''); setNewRoleKey(''); }}
+          onClose={() => { setCreateModalOpen(false); setNewRoleName(''); setNewRoleKey(''); setIsKeyManuallyEdited(false); }}
           title="Tambah Role Kustom Baru"
         >
           <div className="p-5 space-y-4 max-w-md w-full">
@@ -784,9 +814,10 @@ export default function TabHakAkses(props) {
                 placeholder="Contoh: Kepala Lab Komputer, Koordinator P5"
                 value={newRoleName}
                 onChange={e => {
-                  setNewRoleName(e.target.value);
-                  if (!newRoleKey) {
-                    setNewRoleKey(e.target.value.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, ''));
+                  const val = e.target.value;
+                  setNewRoleName(val);
+                  if (!isKeyManuallyEdited) {
+                    setNewRoleKey(val.toLowerCase().trim().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').replace(/_+/g, '_'));
                   }
                 }}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[var(--ui-primary)]/20"
@@ -801,7 +832,10 @@ export default function TabHakAkses(props) {
                 type="text"
                 placeholder="Contoh: kepala_lab"
                 value={newRoleKey}
-                onChange={e => setNewRoleKey(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
+                onChange={e => {
+                  setIsKeyManuallyEdited(true);
+                  setNewRoleKey(e.target.value.toLowerCase().replace(/^custom_+/, '').replace(/[^a-z0-9_]/g, '_'));
+                }}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-[var(--ui-radius-small)] text-xs font-mono font-semibold"
               />
               <p className="text-[10px] text-slate-400 mt-1">Sistem akan menyimpan sebagai `custom_{newRoleKey || 'kode'}`</p>

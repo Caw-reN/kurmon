@@ -10,7 +10,8 @@ import useAuthStore from '../../../store/monitoring/authStore.js';
 import { PageHeader } from '../../../components/monitoring/ui/index.js';
 import { Button } from '../../../components/ui.jsx';
 
-export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab: setSystemTab }) {
+export default function BackupGDrive(props) {
+  const { activeTab: activeSystemTab, setActiveTab: setSystemTab, hideHeader } = props || {};
   const [activeTab, setActiveTab] = useState('local'); // 'local' | 'gdrive' | 'r2' | 'telegram' | 'restore' | 'archive'
   
   const [isTelegramConfigured, setIsTelegramConfigured] = useState(false);
@@ -416,20 +417,23 @@ export default function BackupGDrive({ activeTab: activeSystemTab, setActiveTab:
 
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
-      <PageHeader 
-        title="Manajemen Backup & Arsip"
-        description="Pencadangan terpusat database sekolah ke berbagai platform (Lokal, Google Drive, Cloudflare R2, Telegram) serta pemulihan dan pembersihan data berkala."
-        icon={CloudUpload}
-        tabs={[
-          { id: "fitur", label: "Fitur", icon: Settings },
-          { id: "tampilan", label: "Tampilan Web", icon: LayoutDashboard },
-          { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
-          { id: "api_keys", label: "API Key", icon: KeyRound },
-          { id: "gdrive_backup", label: "Backup", icon: DatabaseBackup }
-        ]}
-        activeTab={activeSystemTab}
-        onTabChange={setSystemTab}
-      />
+      {!props.hideHeader && (
+        <PageHeader 
+          title="Manajemen Backup & Arsip"
+          description="Pencadangan terpusat database sekolah ke berbagai platform (Lokal, Google Drive, Cloudflare R2, Telegram) serta pemulihan dan pembersihan data berkala."
+          icon={CloudUpload}
+          tabs={[
+            { id: "konfigurasi_sistem", label: "Ringkasan", icon: LayoutDashboard },
+            { id: "fitur", label: "Fitur", icon: Settings },
+            { id: "tampilan", label: "Tampilan Web", icon: LayoutDashboard },
+            { id: "whatsapp", label: "WhatsApp", icon: MessageSquare },
+            { id: "api_keys", label: "API Key", icon: KeyRound },
+            { id: "gdrive_backup", label: "Backup", icon: DatabaseBackup }
+          ]}
+          activeTab={activeSystemTab}
+          onTabChange={setSystemTab}
+        />
+      )}
       
       {/* SEGMENTED TAB BAR */}
       <div className="bg-white p-1.5 rounded-xl border border-slate-200/80 shadow-xs">

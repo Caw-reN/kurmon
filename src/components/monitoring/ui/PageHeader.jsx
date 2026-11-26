@@ -30,7 +30,7 @@ export default function PageHeader({
   const isPlain = variant === "plain";
 
   return (
-    <div className={cn("relative z-20 flex flex-col gap-2.5", isPlain ? '-mb-2' : '')}>
+    <div className={cn("relative z-20 flex flex-col", compact ? "gap-1.5" : "gap-2.5", isPlain ? '-mb-2' : '')}>
       {/* Mobile Actions Bar (Only if actions exist, without duplicating header title/icon with AdminHeader) */}
       {!isPlain && actions && (
         <div className="sm:hidden flex items-center justify-end gap-2 px-1 py-0.5">
@@ -57,7 +57,7 @@ export default function PageHeader({
                   aria-selected={tab.isActive}
                   onClick={tab.onClick}
                   className={cn(
-                    "flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[42px] shadow-2xs",
+                    "flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer w-full text-center leading-tight min-h-[38px] shadow-2xs",
                     isLastOdd ? "col-span-2" : "",
                     tab.isActive
                       ? "text-white font-black shadow-xs border-transparent"
@@ -79,18 +79,18 @@ export default function PageHeader({
         className={cn(
           !isPlain 
             ? compact
-              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-xl w-full py-2.5 px-3.5 sm:py-3 sm:px-4 border border-slate-200/80 bg-white text-slate-900 shadow-2xs transition-all'
+              ? 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-xl w-full py-1.5 px-3 sm:py-2 sm:px-3.5 border border-slate-200/80 bg-white text-slate-900 shadow-2xs transition-all'
               : 'hidden sm:flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative rounded-2xl w-full p-4 sm:p-5 border border-slate-200/80 bg-white text-slate-900 shadow-xs transition-all'
             : 'flex flex-col md:flex-row items-start md:items-center justify-between gap-3 relative rounded-lg w-full p-0',
           className
         )}
       >
-        <div className="flex items-center gap-3 relative z-10 w-full md:w-auto min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 relative z-10 w-full md:w-auto min-w-0">
           {Icon && (
             <div 
               className={cn(
-                "rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-all",
-                compact ? "w-9 h-9" : "w-11 h-11"
+                "rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 border shadow-2xs transition-all",
+                compact ? "w-8 h-8" : "w-11 h-11"
               )}
               style={{
                 backgroundColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 12%, transparent)',
@@ -98,19 +98,19 @@ export default function PageHeader({
                 borderColor: 'color-mix(in srgb, var(--ui-primary, #064e3b) 25%, transparent)'
               }}
             >
-              <Icon size={compact ? 18 : 20} className="shrink-0" strokeWidth={2.2} />
+              <Icon size={compact ? 16 : 20} className="shrink-0" strokeWidth={2.2} />
             </div>
           )}
           <div className="min-w-0 flex-1">
             <h1 className={cn(
               "font-black tracking-tight leading-tight truncate text-slate-900",
-              compact ? "text-sm sm:text-base" : "text-base md:text-lg"
+              compact ? "text-sm" : "text-base md:text-lg"
             )}>
               {title}
             </h1>
             {description && (
               <p className={cn(
-                "font-medium leading-relaxed text-slate-500",
+                "font-medium leading-tight text-slate-500",
                 compact ? "text-[11px] mt-0.5 line-clamp-1" : "text-xs mt-0.5 line-clamp-2 md:line-clamp-none"
               )}>
                 {description}
@@ -139,7 +139,7 @@ export default function PageHeader({
                     onClick={tab.onClick}
                     className={cn(
                       "shrink-0 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center gap-1.5 shadow-2xs",
-                      compact ? "px-3 py-1.5" : "px-3.5 py-1.5",
+                      compact ? "px-2.5 py-1" : "px-3.5 py-1.5",
                       isActive
                         ? "text-white font-extrabold shadow-xs border-transparent"
                         : "bg-white text-slate-600 hover:text-slate-900 border-slate-200/80 hover:bg-slate-50"

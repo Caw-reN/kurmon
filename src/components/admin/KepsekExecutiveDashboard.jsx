@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import {
   Users, CheckCircle2, Calendar, BookOpen, FileText, TrendingUp,
-  Award, Briefcase, Building2, ChevronRight, Sparkles, Search,
+  Award, Briefcase, Building2, ChevronRight, ChevronLeft, Sparkles, Search,
   AlertTriangle, Clock, Megaphone, BarChart3, GraduationCap,
   ClipboardCheck, Zap, XCircle, Timer, RefreshCw, Bell,
-  TrendingDown, Eye, Shield, Phone, Star, Filter, X, Printer
+  TrendingDown, Eye, Shield, Phone, Star, Filter, X, Printer, ArrowRight,
+  ArrowLeft, LayoutDashboard
 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore.js';
 import { useDataStore } from '../../store/useDataStore.js';
@@ -30,40 +31,45 @@ const ProgressBar = ({ value, max, colorClass = 'bg-emerald-500', height = 4 }) 
 const KPICard = ({ icon, label, value, sub, badge, badgeColor, barColor, barPct, detail, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] p-2.5 sm:p-3 border cursor-pointer group transition-all flex flex-col justify-between
+    className={`bg-[var(--ui-card-bg,white)] rounded-2xl p-3 border cursor-pointer group transition-all duration-200 flex flex-col justify-between shadow-2xs hover:shadow-xs hover:-translate-y-0.5
       ${active
         ? 'border-[var(--ui-primary)] bg-[var(--ui-primary)]/5 shadow-xs'
-        : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] hover:border-[var(--ui-primary)]/30'}`}
+        : 'border-slate-200/80 hover:border-slate-300'}`}
   >
     <div>
-      <div className="flex items-center justify-between gap-1.5 mb-1.5">
-        <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-[var(--ui-radius-small)] flex items-center justify-center shrink-0 transition-transform group-hover:scale-105
-          ${active ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-50 border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'}`}>
+      <div className="flex items-center justify-between gap-1.5 mb-2">
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 shadow-2xs
+          ${active ? 'bg-[var(--ui-primary)] text-white' : 'bg-slate-50 border border-slate-200/80'}`}>
           <img src={icon} alt={label} className={`w-4 h-4 object-contain ${active ? 'invert brightness-0' : ''}`} />
         </div>
-        <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[var(--ui-radius-pill)] border whitespace-nowrap ${badgeColor}`}>
+        <span className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap shadow-2xs ${badgeColor}`}>
           {badge}
         </span>
       </div>
-      <p className="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{label}</p>
-      <div className="flex items-baseline gap-1 mb-1.5">
-        <span className="text-lg sm:text-xl font-black text-slate-800 tracking-tight leading-none">{value}</span>
-        {sub && <span className="text-[10px] text-slate-400 font-semibold truncate leading-none">{sub}</span>}
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{label}</p>
+      <div className="flex items-baseline gap-1.5 mb-2">
+        <span className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight leading-none">{value}</span>
+        {sub && <span className="text-[10.5px] text-slate-400 font-semibold truncate leading-none">{sub}</span>}
       </div>
     </div>
     <div>
-      <ProgressBar value={barPct} max={100} colorClass={barColor} height={4} />
-      {detail && <p className="text-[9px] text-slate-400 font-medium mt-1 truncate leading-tight">{detail}</p>}
+      <div className="w-full bg-slate-100 rounded-full overflow-hidden h-1.5 shadow-inner">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${pct(barPct, 100)}%` }}
+        />
+      </div>
+      {detail && <p className="text-[9.5px] text-slate-400 font-medium mt-1.5 truncate leading-tight">{detail}</p>}
     </div>
   </div>
 );
 
 const SectionCard = ({ title, subtitle, icon, action, onAction, children, accent = false, className = '' }) => (
-  <div className={`bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] ${accent ? 'border border-[var(--ui-primary)]/20' : 'border border-[var(--ui-card-border-color,theme(colors.slate.200/80))]'} p-4 sm:p-5 flex flex-col h-full ${className}`}>
+  <div className={`bg-[var(--ui-card-bg,white)] rounded-2xl ${accent ? 'border border-[var(--ui-primary)]/20' : 'border border-slate-200/80'} shadow-xs p-4 sm:p-5 flex flex-col h-full ${className}`}>
     <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 shrink-0 mb-4`}>
       <div className="flex items-center gap-3 min-w-0">
         {icon && (
-          <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-[var(--ui-card-bg,white)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-[var(--ui-card-bg,white)] border border-slate-200/80 shadow-2xs flex items-center justify-center shrink-0">
             <img src={icon} alt={title} className="w-4 h-4 object-contain" />
           </div>
         )}
@@ -105,13 +111,15 @@ const Pagination = ({ page, totalPages, total, pageSize, setPage }) => {
       <span className="text-[10px] font-semibold text-slate-400">Menampilkan {page * pageSize + 1}–{Math.min((page + 1) * pageSize, total)} dari {total}</span>
       <div className="flex items-center gap-1">
         <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-          ← Prev
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs">
+          <ChevronLeft size={12} />
+          <span>Prev</span>
         </button>
-        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[var(--ui-primary)] text-white">{page + 1}/{totalPages}</span>
+        <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[var(--ui-primary)] text-white shadow-2xs">{page + 1}/{totalPages}</span>
         <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
-          className="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
-          Next →
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs">
+          <span>Next</span>
+          <ChevronRight size={12} />
         </button>
       </div>
     </div>
@@ -159,11 +167,11 @@ export default function KepsekExecutiveDashboard({
   }, []);
   const greeting = currentHour < 11 ? 'Selamat Pagi' : currentHour < 15 ? 'Selamat Siang' : currentHour < 18 ? 'Selamat Sore' : 'Selamat Malam';
 
-  // Helper untuk menentukan batas jam masuk evaluasi Alpa
+  // Helper untuk menentukan batas jam masuk evaluasi Alpa (Sesuai AGENTS.md: Alpa hanya setelah jam masuk resmi berakhir)
   const getCutoffTime = (role = 'siswa') => {
     const cfg = dashLogs?.attendanceConfig;
     const roleCfg = cfg?.[role] || cfg;
-    const timeVal = roleCfg?.masuk_late || "07:01";
+    const timeVal = roleCfg?.masuk_end || roleCfg?.masuk_close || roleCfg?.terlambat_end || "11:00";
     return timeVal.length === 5 ? `${timeVal}:00` : timeVal;
   };
 
@@ -712,8 +720,8 @@ export default function KepsekExecutiveDashboard({
   const siswaPresentPct = pct(siswaPresentTotal, siswaDenom);
   const guruPresentPct = pct(guruStats.totalMasuk, guruStats.total);
   const karyawanPresentPct = pct(karyawanStats.totalMasuk, karyawanStats.total);
-  const pklCount = (dashLogs?.latestStudentLogs || []).length || 0;
-  const pklLocationCount = dashLogs?.totalLocations || Math.floor(pklCount / 4) || 0;
+  const pklCount = dashLogs?.totalPklStudents ?? (dashLogs?.latestStudentLogs || []).length ?? 0;
+  const pklLocationCount = dashLogs?.totalPklLocations ?? 0;
   const majorCount = useMemo(() => new Set((classes || []).map(c => c.major || c.jurusan || c.program).filter(Boolean)).size, [classes]);
 
   const pieColors = { Hadir: '#10b981', Terlambat: '#f59e0b', Izin: '#6366f1', Sakit: '#38bdf8', Alpa: '#f43f5e' };
@@ -748,22 +756,28 @@ export default function KepsekExecutiveDashboard({
     const totalTelat = (guruStats.Terlambat || 0) + (karyawanStats.Terlambat || 0) + (siswaStats.Terlambat || 0);
     const totalIzinSakit = (guruStats.Izin || 0) + (guruStats.Sakit || 0) + (karyawanStats.Izin || 0) + (karyawanStats.Sakit || 0) + (siswaStats.Izin || 0) + (siswaStats.Sakit || 0);
     const totalAlpa = (guruStats.Alpa || 0) + (karyawanStats.Alpa || 0) + (siswaStats.Alpa || 0);
+    const totalBelumAbsen = Math.max(0, totalPeople - (totalHadir + totalTelat + totalIzinSakit + totalAlpa));
     const overallPct = totalPeople > 0 ? Math.round(((totalHadir + totalTelat) / totalPeople) * 100) : 0;
 
     const chartData = [
       { name: 'Tepat Waktu', value: totalHadir, color: '#10b981' }, // emerald-500
       { name: 'Terlambat', value: totalTelat, color: '#f59e0b' }, // amber-500
       { name: 'Izin / Sakit', value: totalIzinSakit, color: '#0ea5e9' }, // sky-500
-      { name: 'Belum Absen', value: totalAlpa, color: '#f43f5e' }, // rose-500
+      { name: totalAlpa > 0 ? 'Alpa' : 'Belum Hadir', value: totalAlpa > 0 ? totalAlpa : totalBelumAbsen, color: totalAlpa > 0 ? '#f43f5e' : '#94a3b8' },
     ].filter(d => d.value > 0);
 
-    return { totalPeople, totalHadir, totalTelat, totalIzinSakit, totalAlpa, overallPct, chartData };
+    return { totalPeople, totalHadir, totalTelat, totalIzinSakit, totalAlpa, totalBelumAbsen, overallPct, chartData };
   }, [guruStats, karyawanStats, siswaStats, siswaDenom]);
 
+  const [activeDashboardTab, setActiveDashboardTab] = useState('ringkasan'); // 'ringkasan' | 'jam_ajar' | 'perangkat_ajar'
   const [isSyncing, setIsSyncing] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
-  const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [showSyllabusModal, setShowSyllabusModal] = useState(false);
+
+  // Native tab integration (bridges legacy modal state to unified dashboard tab)
+  const showScheduleModal = false;
+  const setShowScheduleModal = (val) => setActiveDashboardTab(val ? 'jam_ajar' : 'ringkasan');
+  const showSyllabusModal = false;
+  const setShowSyllabusModal = (val) => setActiveDashboardTab(val ? 'perangkat_ajar' : 'ringkasan');
 
   // Filter & Search states
   const [scheduleViewMode, setScheduleViewMode] = useState('teacher'); // 'teacher' | 'jam'
@@ -845,10 +859,13 @@ export default function KepsekExecutiveDashboard({
 
       {/* ═══════════════ HERO BANNER (1 BARIS DI DESKTOP, ICON GRID DI MOBILE) ═══════════════ */}
       <div
-        className="rounded-[var(--ui-radius-card)] text-white relative overflow-hidden border border-white/10"
-        style={{ background: 'linear-gradient(135deg, var(--ui-primary) 0%, color-mix(in srgb, var(--ui-primary) 55%, #000) 100%)' }}
+        className="rounded-2xl text-white relative overflow-hidden border border-white/20 shadow-sm"
+        style={{
+          background: 'linear-gradient(135deg, var(--ui-primary, #059669) 0%, color-mix(in srgb, var(--ui-primary, #059669) 85%, #047857) 45%, color-mix(in srgb, var(--ui-primary, #059669) 70%, #064e3b) 100%)'
+        }}
       >
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full blur-[60px] pointer-events-none -mr-20 -mt-20" />
+        <div className="absolute -top-24 -right-12 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 left-1/4 w-80 h-80 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="relative z-10 px-4 py-3 sm:px-6 sm:py-3.5">
           {/* 1 Baris Horizontal Penuh di Desktop */}
@@ -856,23 +873,33 @@ export default function KepsekExecutiveDashboard({
             
             {/* Kiri: Greeting & Nama Kepala Sekolah (1 Baris) */}
             <div className="flex items-center gap-3 flex-wrap min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white/80 font-semibold">{greeting},</span>
-                <h1 className="text-sm sm:text-base font-black tracking-tight text-white truncate">
-                  {currentUser?.name || 'Kepala Sekolah'}
-                </h1>
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-full bg-white/20 border border-white/30 p-0.5 shrink-0 flex items-center justify-center overflow-hidden shadow-2xs backdrop-blur-xs select-none">
+                  <img 
+                    src="/maskot/kara-gana/kara-avatar.svg" 
+                    alt="Kara Avatar" 
+                    className="w-full h-full object-cover hover:scale-110 transition-transform" 
+                    onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-bust.svg"; }}
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs text-white/80 font-semibold">{greeting},</span>
+                  <h1 className="text-sm sm:text-base font-black tracking-tight text-white truncate">
+                    {currentUser?.name || 'Kepala Sekolah'}
+                  </h1>
+                </div>
               </div>
 
               <span className="hidden xl:inline-block text-white/30 font-light">•</span>
 
-              <p className="text-[11px] text-white/70 font-medium truncate hidden xl:block">
+              <p className="text-[11px] text-white/80 font-medium truncate hidden xl:block">
                 Pusat pemantauan operasional sekolah realtime
               </p>
             </div>
 
             {/* Kanan: Tombol Jam Ajar, Perangkat Ajar, Cetak Laporan & Sinkron */}
             <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 text-white/90 text-[10px] font-extrabold border border-white/15 backdrop-blur-sm">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/25 text-white/95 text-[10px] font-bold border border-white/15 backdrop-blur-md shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {todayLong}
               </span>
@@ -880,9 +907,11 @@ export default function KepsekExecutiveDashboard({
               {/* Tombol Ringkasan Jam Ajar Hari Ini */}
               <button
                 type="button"
-                onClick={() => setShowScheduleModal(true)}
+                onClick={() => setActiveDashboardTab(activeDashboardTab === 'jam_ajar' ? 'ringkasan' : 'jam_ajar')}
                 title="Lihat jadwal mengajar guru & KBM hari ini"
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
+                className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full active:scale-95 text-white text-[10.5px] font-bold border backdrop-blur-md transition-all cursor-pointer shadow-2xs ${
+                  activeDashboardTab === 'jam_ajar' ? 'bg-amber-500/80 border-amber-300' : 'bg-white/15 hover:bg-white/25 border-white/20'
+                }`}
               >
                 <BookOpen size={11} className="text-amber-300" />
                 <span>Jam Ajar Guru</span>
@@ -891,9 +920,11 @@ export default function KepsekExecutiveDashboard({
               {/* Tombol Perangkat Ajar Guru */}
               <button
                 type="button"
-                onClick={() => setShowSyllabusModal(true)}
+                onClick={() => setActiveDashboardTab(activeDashboardTab === 'perangkat_ajar' ? 'ringkasan' : 'perangkat_ajar')}
                 title="Monitoring kelengkapan modul ajar & silabus guru"
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-extrabold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
+                className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full active:scale-95 text-white text-[10.5px] font-bold border backdrop-blur-md transition-all cursor-pointer shadow-2xs ${
+                  activeDashboardTab === 'perangkat_ajar' ? 'bg-teal-500/80 border-teal-300' : 'bg-white/15 hover:bg-white/25 border-white/20'
+                }`}
               >
                 <GraduationCap size={11} className="text-cyan-300" />
                 <span>Perangkat Ajar</span>
@@ -903,7 +934,7 @@ export default function KepsekExecutiveDashboard({
                 type="button"
                 onClick={handleManualSync}
                 title="Sinkronisasi seluruh data sistem realtime"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10px] font-bold border border-white/20 backdrop-blur-sm transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white text-[10.5px] font-bold border border-white/20 backdrop-blur-md transition-all cursor-pointer shadow-2xs"
               >
                 <RefreshCw size={11} className={isSyncing ? 'animate-spin text-emerald-300' : 'text-amber-300'} />
                 <span>{isSyncing ? 'Sinkron...' : 'Sinkron'}</span>
@@ -913,7 +944,7 @@ export default function KepsekExecutiveDashboard({
                 type="button"
                 onClick={() => setShowReportModal(true)}
                 title="Cetak Laporan Eksekutif Hari Ini"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-slate-900 hover:bg-slate-100 active:scale-95 text-[10px] font-black border border-white/30 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-slate-800 hover:bg-slate-50 active:scale-95 text-[10.5px] font-bold border border-white/40 shadow-xs transition-all cursor-pointer"
               >
                 <FileText size={11} className="text-emerald-600" />
                 <span>Cetak Laporan</span>
@@ -939,9 +970,9 @@ export default function KepsekExecutiveDashboard({
                   key={m.tab}
                   type="button"
                   onClick={() => gotoTab(m.tab)}
-                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-90 border border-white/20 backdrop-blur-md transition-all text-center cursor-pointer group"
+                  className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-90 border border-white/20 backdrop-blur-md transition-all text-center cursor-pointer group shadow-2xs"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center mb-1 group-active:scale-95 transition-transform">
+                  <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center mb-1 group-active:scale-95 transition-transform shadow-2xs">
                     <img src={m.icon} alt={m.label} className="w-4 h-4 object-contain" />
                   </div>
                   <span className="text-[9.5px] font-black text-white leading-tight truncate w-full text-center">
@@ -955,16 +986,88 @@ export default function KepsekExecutiveDashboard({
       </div>
 
 
-      {/* ═══════════════ 7 KPI PILLARS DI PALING ATAS ═══════════════ */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-2.5">
+      {/* ═══════════════ UNIFIED DASHBOARD TAB NAVIGATOR ═══════════════ */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 p-1.5 bg-white border border-slate-200/80 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setActiveDashboardTab('ringkasan')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeDashboardTab === 'ringkasan'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+            }`}
+          >
+            <LayoutDashboard size={14} />
+            <span>Ringkasan Eksekutif</span>
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setActiveDashboardTab('jam_ajar')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeDashboardTab === 'jam_ajar'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+            }`}
+          >
+            <BookOpen size={14} />
+            <span>Jam Ajar & KBM Hari Ini</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              activeDashboardTab === 'jam_ajar'
+                ? 'bg-white/20 text-white'
+                : 'bg-amber-100 text-amber-800'
+            }`}>
+              {totalGuruMengajarHariIni} Guru
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveDashboardTab('perangkat_ajar')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeDashboardTab === 'perangkat_ajar'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+            }`}
+          >
+            <GraduationCap size={14} />
+            <span>Perangkat Ajar Guru</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+              activeDashboardTab === 'perangkat_ajar'
+                ? 'bg-white/20 text-white'
+                : 'bg-teal-100 text-teal-800'
+            }`}>
+              {syllabusStatsPerTeacher.filter(t => t.completionPct >= 100).length}/{syllabusStatsPerTeacher.length} Lengkap
+            </span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowReportModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+          >
+            <FileText size={13} className="text-emerald-600" />
+            <span>Cetak Laporan</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ═══════════════ TAB VIEW 1: RINGKASAN EKSEKUTIF ═══════════════ */}
+      {activeDashboardTab === 'ringkasan' && (
+        <>
+          {/* ═══════════════ 7 KPI PILLARS DI PALING ATAS ═══════════════ */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-2 sm:gap-2.5">
         {[
-          { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.Alpa} belum absen`, onClick: () => gotoTab('hikvision_report_guru') },
-          { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Karyawan Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.Alpa} belum absen`, onClick: () => gotoTab('hikvision_report_karyawan') },
-          { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal || totalSiswaCount, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct || 88}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200', barColor: 'bg-emerald-500', barPct: siswaPresentPct || 88, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu`, onClick: () => gotoTab('hikvision_report_siswa') },
-          { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmittedCount, sub: `/ ${totalGuruMengajarHariIni} Guru`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${jurnalUnfilledCount} guru belum isi jurnal`, onClick: () => gotoTab('rekap_jurnal_kelas') },
-          { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini`, onClick: () => gotoTab('ruangan') },
-          { id: 'hubin', icon: '/icons/008-warehouse.svg', label: 'Peserta PKL', value: pklCount, sub: 'Aktif', badge: `${pklLocationCount} DUDI`, badgeColor: 'text-amber-700 bg-amber-50 border-amber-200', barColor: 'bg-amber-500', barPct: pct(pklCount, totalSiswaCount || 1), detail: `${pklLocationCount} mitra DUDI aktif`, onClick: () => gotoTab('pkl_dashboard') },
-          { id: 'kesiswaan_k', icon: '/icons/014-award.svg', label: 'Kedisiplinan', value: (dashLogs?.problematicStudentLogs?.length || 0), sub: 'Perlu Binaan', badge: `${dashLogs?.achievingStudentLogs?.length || 0} Prestasi`, badgeColor: 'text-purple-700 bg-purple-50 border-purple-200', barColor: 'bg-purple-500', barPct: pct(dashLogs?.achievingStudentLogs?.length || 0, totalSiswaCount || 1), detail: `${dashLogs?.achievingStudentLogs?.length || 0} siswa berprestasi`, onClick: () => gotoTab('kedisiplinan_hub') },
+          { id: 'sdm', icon: '/icons/045-account.svg', label: 'Guru Hadir', value: guruStats.totalMasuk, sub: `/ ${guruStats.total}`, badge: `${guruPresentPct}%`, badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200/80', barColor: 'bg-indigo-500', barPct: guruPresentPct, detail: `${guruStats.Terlambat} terlambat · ${guruStats.belumAbsen} belum hadir`, onClick: () => gotoTab('hikvision_report_guru') },
+          { id: 'sdm_karyawan', icon: '/icons/045-account.svg', label: 'Karyawan Hadir', value: karyawanStats.totalMasuk, sub: `/ ${karyawanStats.total}`, badge: `${karyawanPresentPct}%`, badgeColor: 'text-teal-700 bg-teal-50 border-teal-200/80', barColor: 'bg-teal-500', barPct: karyawanPresentPct, detail: `${karyawanStats.Terlambat} terlambat · ${karyawanStats.belumAbsen} belum hadir`, onClick: () => gotoTab('hikvision_report_karyawan') },
+          { id: 'kesiswaan', icon: '/icons/066-education.svg', label: 'Siswa Hadir', value: siswaPresentTotal, sub: `/ ${siswaDenom}`, badge: `${siswaPresentPct}%`, badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200/80', barColor: 'bg-emerald-500', barPct: siswaPresentPct, detail: `${siswaStats.Terlambat} terlambat · ${siswaStats.Hadir} tepat waktu`, onClick: () => gotoTab('hikvision_report_siswa') },
+          { id: 'kurikulum', icon: '/icons/011-schedule.svg', label: 'Jurnal KBM', value: jurnalSubmittedCount, sub: `/ ${totalGuruMengajarHariIni} Guru`, badge: `${jurnalPct}%`, badgeColor: 'text-sky-700 bg-sky-50 border-sky-200/80', barColor: 'bg-sky-500', barPct: jurnalPct, detail: `${jurnalUnfilledCount} guru belum isi jurnal`, onClick: () => gotoTab('rekap_jurnal_kelas') },
+          { id: 'sarpras', icon: '/icons/031-monitor.svg', label: 'Utilisasi Ruang', value: sarprasStats.terpakai, sub: `/ ${sarprasStats.total} Ruang`, badge: `${sarprasStats.utilisasi}%`, badgeColor: 'text-rose-700 bg-rose-50 border-rose-200/80', barColor: 'bg-rose-500', barPct: sarprasStats.utilisasi, detail: `${sarprasStats.kosong} ruang kosong saat ini`, onClick: () => gotoTab('ruangan') },
+          { id: 'hubin', icon: '/icons/008-warehouse.svg', label: 'Peserta PKL', value: pklCount, sub: 'Aktif', badge: `${pklLocationCount} DUDI`, badgeColor: 'text-amber-700 bg-amber-50 border-amber-200/80', barColor: 'bg-amber-500', barPct: pct(pklCount, totalSiswaCount || 1), detail: `${pklLocationCount} mitra DUDI aktif`, onClick: () => gotoTab('pkl_dashboard') },
+          { id: 'kesiswaan_k', icon: '/icons/014-award.svg', label: 'Kedisiplinan', value: (dashLogs?.problematicStudentLogs?.length || 0), sub: 'Perlu Binaan', badge: `${dashLogs?.achievingStudentLogs?.length || 0} Prestasi`, badgeColor: 'text-purple-700 bg-purple-50 border-purple-200/80', barColor: 'bg-purple-500', barPct: pct(dashLogs?.achievingStudentLogs?.length || 0, totalSiswaCount || 1), detail: `${dashLogs?.achievingStudentLogs?.length || 0} siswa berprestasi`, onClick: () => gotoTab('kedisiplinan_hub') },
         ].map((kpi, i) => (
           <KPICard key={i} {...kpi} />
         ))}
@@ -984,26 +1087,26 @@ export default function KepsekExecutiveDashboard({
 
         {/* Box 2 (4 Kolom): Persentase Donut + Presensi Live */}
         <div className="lg:col-span-4 flex flex-col h-full">
-          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
+          <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 p-3.5 sm:p-4 flex flex-col justify-between h-full">
             
             {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-1">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 flex items-center justify-center text-emerald-600 shrink-0">
-                  <PieChart size={14} />
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-1">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 shadow-2xs flex items-center justify-center text-emerald-600 shrink-0">
+                  <PieChart size={15} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-slate-800 leading-tight">Persentase & Presensi Live</h4>
-                  <p className="text-[9px] text-slate-400 font-medium">Proporsi presensi & gateway sekolah</p>
+                  <h4 className="text-xs sm:text-[13px] font-black text-slate-800 leading-tight">Persentase & Presensi Live</h4>
+                  <p className="text-[9.5px] text-slate-400 font-medium">Proporsi presensi & gateway sekolah</p>
                 </div>
               </div>
-              <span className="text-[9.5px] font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 shrink-0">
+              <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/80 shadow-2xs shrink-0">
                 {combinedAttendanceStats.overallPct}% Total
               </span>
             </div>
 
             {/* Middle: Mini Donut Chart + Legend Badges */}
-            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+            <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
               <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -1032,22 +1135,30 @@ export default function KepsekExecutiveDashboard({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-1 flex-1 text-[8.5px] font-bold">
-                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-emerald-700">Tepat Waktu</span>
-                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalHadir}</span>
+              <div className="grid grid-cols-2 gap-1.5 flex-1 text-[9px] font-bold">
+                <div className="bg-emerald-50/70 px-2 py-1 rounded-[var(--ui-radius-small)] border border-emerald-200/70 shadow-2xs flex items-center justify-between">
+                  <span className="text-emerald-800 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Tepat Waktu
+                  </span>
+                  <span className="text-emerald-950 font-black">{combinedAttendanceStats.totalHadir}</span>
                 </div>
-                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-amber-600">Terlambat</span>
-                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalTelat}</span>
+                <div className="bg-amber-50/70 px-2 py-1 rounded-[var(--ui-radius-small)] border border-amber-200/70 shadow-2xs flex items-center justify-between">
+                  <span className="text-amber-800 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Terlambat
+                  </span>
+                  <span className="text-amber-950 font-black">{combinedAttendanceStats.totalTelat}</span>
                 </div>
-                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-sky-600">Izin/Sakit</span>
-                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalIzinSakit}</span>
+                <div className="bg-sky-50/70 px-2 py-1 rounded-[var(--ui-radius-small)] border border-sky-200/70 shadow-2xs flex items-center justify-between">
+                  <span className="text-sky-800 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-500" /> Izin/Sakit
+                  </span>
+                  <span className="text-sky-950 font-black">{combinedAttendanceStats.totalIzinSakit}</span>
                 </div>
-                <div className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-rose-600">Belum Absen</span>
-                  <span className="text-slate-800 font-black">{combinedAttendanceStats.totalAlpa}</span>
+                <div className="bg-rose-50/70 px-2 py-1 rounded-[var(--ui-radius-small)] border border-rose-200/70 shadow-2xs flex items-center justify-between">
+                  <span className="text-rose-800 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" /> Belum Hadir
+                  </span>
+                  <span className="text-rose-950 font-black">{combinedAttendanceStats.totalBelumAbsen}</span>
                 </div>
               </div>
             </div>
@@ -1059,14 +1170,14 @@ export default function KepsekExecutiveDashboard({
                 { label: 'Karyawan', total: karyawanStats.total, hadir: karyawanStats.Hadir, telat: karyawanStats.Terlambat, izin: karyawanStats.Izin, sakit: karyawanStats.Sakit, alpa: karyawanStats.Alpa },
                 { label: 'Peserta Didik', total: siswaDenom, hadir: siswaStats.Hadir, telat: siswaStats.Terlambat, izin: siswaStats.Izin, sakit: siswaStats.Sakit, alpa: siswaStats.Alpa, isSiswa: true },
               ].filter(row => row.total > 0).map(row => (
-                <div key={row.label} className="bg-slate-50/80 rounded-[var(--ui-radius-small)] p-1.5 border border-slate-200/60">
-                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 mb-0.5">
+                <div key={row.label} className="bg-slate-50/80 rounded-xl p-2 border border-slate-200/70 shadow-2xs">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-slate-700 mb-1">
                     <span className="truncate">{row.label} ({row.total} org)</span>
                     <span className="text-emerald-700 font-black text-[9.5px]">
                       {pct(row.hadir + row.telat, row.total || 1)}% Hadir
                     </span>
                   </div>
-                  <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden flex">
+                  <div className="w-full h-1.5 bg-slate-200/80 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
                     <div className="h-full bg-emerald-500" style={{ width: `${pct(row.hadir, row.total)}%` }} />
                     <div className="h-full bg-amber-400" style={{ width: `${pct(row.telat, row.total)}%` }} />
                     <div className="h-full bg-rose-400" style={{ width: `${pct(row.alpa, row.total)}%` }} />
@@ -1076,10 +1187,10 @@ export default function KepsekExecutiveDashboard({
             </div>
 
             {/* Footer Live Badge */}
-            <div className="flex items-center gap-1 p-1 bg-emerald-50/80 border border-emerald-200/80 rounded-[var(--ui-radius-small)] text-[8.5px] text-emerald-800 font-semibold mt-1">
-              <CheckCircle2 size={10} className="text-emerald-600 shrink-0" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-50/80 border border-emerald-200/80 rounded-xl text-[9px] text-emerald-800 font-bold mt-1 shadow-2xs">
+              <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
               Gateway Hikvision Terhubung
-              <span className="ml-auto text-[7.5px] font-black uppercase bg-emerald-200 px-1 py-0.2 rounded-full text-emerald-900 shrink-0">Live</span>
+              <span className="ml-auto text-[8px] font-black uppercase bg-emerald-200/90 px-1.5 py-0.5 rounded-[var(--ui-radius-small)] text-emerald-900 shrink-0">Aktif</span>
             </div>
 
           </div>
@@ -1087,21 +1198,21 @@ export default function KepsekExecutiveDashboard({
 
         {/* Box 3 (3 Kolom): Jam Ajar Guru & KBM Hari Ini (Live Jam 1 - 7) */}
         <div className="lg:col-span-3 flex flex-col h-full">
-          <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-3 sm:p-3.5 flex flex-col justify-between h-full">
+          <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 p-3.5 sm:p-4 flex flex-col justify-between h-full">
             
             {/* Header */}
             <div>
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-[var(--ui-radius-small)] bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shrink-0">
-                    <BookOpen size={14} />
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-2.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 shadow-2xs flex items-center justify-center text-amber-600 shrink-0">
+                    <BookOpen size={15} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-slate-800 leading-tight">Jam Ajar & KBM Live</h4>
-                    <p className="text-[9px] text-slate-400 font-medium">Monitoring KBM (Maks. Jam 1-7)</p>
+                    <h4 className="text-xs sm:text-[13px] font-black text-slate-800 leading-tight">Jam Ajar & KBM Live</h4>
+                    <p className="text-[9.5px] text-slate-400 font-medium">Monitoring KBM (Maks. Jam 1-7)</p>
                   </div>
                 </div>
-                <span className="text-[9px] font-black text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80 shrink-0 flex items-center gap-1">
+                <span className="text-[9.5px] font-bold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/80 shadow-2xs shrink-0 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                   {currentActiveJam > 0 && currentActiveJam <= 7 ? `Jam Ke-${currentActiveJam}` : 'KBM Aktif'}
                 </span>
@@ -1109,33 +1220,33 @@ export default function KepsekExecutiveDashboard({
 
               {/* 3 KPI Compact Badges */}
               <div className="grid grid-cols-3 gap-1.5 mb-2.5">
-                <div className="p-1.5 bg-slate-50 rounded-lg border border-slate-200/70 text-center">
-                  <span className="text-[8.5px] text-slate-400 font-bold block uppercase">Guru Aktif</span>
-                  <span className="text-xs font-black text-slate-800 leading-tight block">{totalGuruMengajarHariIni}</span>
+                <div className="p-2 bg-slate-50/80 rounded-xl border border-slate-200/70 shadow-2xs text-center">
+                  <span className="text-[8.5px] text-slate-400 font-bold block uppercase tracking-wider">Guru Aktif</span>
+                  <span className="text-xs sm:text-sm font-black text-slate-800 leading-tight block mt-0.5">{totalGuruMengajarHariIni}</span>
                 </div>
-                <div className="p-1.5 bg-emerald-50/70 rounded-lg border border-emerald-200/60 text-center">
-                  <span className="text-[8.5px] text-emerald-600 font-bold block uppercase">Jurnal KBM</span>
-                  <span className="text-xs font-black text-emerald-700 leading-tight block">{jurnalPct}%</span>
+                <div className="p-2 bg-emerald-50/80 rounded-xl border border-emerald-200/70 shadow-2xs text-center">
+                  <span className="text-[8.5px] text-emerald-700 font-bold block uppercase tracking-wider">Jurnal KBM</span>
+                  <span className="text-xs sm:text-sm font-black text-emerald-800 leading-tight block mt-0.5">{jurnalPct}%</span>
                 </div>
-                <div className="p-1.5 bg-indigo-50/70 rounded-lg border border-indigo-200/60 text-center">
-                  <span className="text-[8.5px] text-indigo-600 font-bold block uppercase">Ruang/Lab</span>
-                  <span className="text-xs font-black text-indigo-700 leading-tight block">{sarprasStats.utilisasi}%</span>
+                <div className="p-2 bg-indigo-50/80 rounded-xl border border-indigo-200/70 shadow-2xs text-center">
+                  <span className="text-[8.5px] text-indigo-700 font-bold block uppercase tracking-wider">Ruang/Lab</span>
+                  <span className="text-xs sm:text-sm font-black text-indigo-800 leading-tight block mt-0.5">{sarprasStats.utilisasi}%</span>
                 </div>
               </div>
 
               {/* Timeline Mini Jam 1-7 Bar */}
-              <div className="space-y-1 mb-2">
-                <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block">Timeline Jam Belajar (1-7):</span>
+              <div className="space-y-1 mb-2.5">
+                <span className="text-[9.5px] font-black text-slate-500 uppercase tracking-wider block">Timeline Jam Belajar (1-7):</span>
                 <div className="grid grid-cols-7 gap-1">
                   {JAM_SLOTS.map(s => {
                     const isNow = currentActiveJam === s.num;
                     return (
                       <div 
                         key={s.num} 
-                        className={`text-center py-1 rounded text-[9px] font-black border transition-all ${
+                        className={`text-center py-1.5 rounded-lg text-[9px] font-black border transition-all shadow-2xs ${
                           isNow 
-                            ? 'bg-amber-500 text-white border-amber-600' 
-                            : 'bg-slate-50 text-slate-600 border-slate-200/70'
+                            ? 'bg-gradient-to-br from-amber-500 to-amber-600 text-white border-amber-600 shadow-xs ring-1 ring-amber-400/50' 
+                            : 'bg-slate-50/90 hover:bg-slate-100 text-slate-600 border-slate-200/70'
                         }`}
                         title={`${s.label}: ${s.time}`}
                       >
@@ -1151,26 +1262,26 @@ export default function KepsekExecutiveDashboard({
             <div className="flex flex-col gap-1.5 pt-2 border-t border-slate-100">
               <button
                 type="button"
-                onClick={() => setShowScheduleModal(true)}
-                className="w-full py-1.5 px-2.5 rounded-lg bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 text-amber-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer active:scale-98"
+                onClick={() => setActiveDashboardTab('jam_ajar')}
+                className="w-full py-2 px-3 rounded-xl bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200/80 text-amber-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer active:scale-98 shadow-2xs hover:shadow-xs"
               >
-                <div className="flex items-center gap-1.5">
-                  <BookOpen size={12} className="text-amber-600" />
+                <div className="flex items-center gap-2">
+                  <BookOpen size={13} className="text-amber-600" />
                   <span>Lihat Jam Ajar Guru (1-7)</span>
                 </div>
-                <ChevronRight size={12} className="text-amber-500" />
+                <ChevronRight size={13} className="text-amber-500" />
               </button>
 
               <button
                 type="button"
-                onClick={() => setShowSyllabusModal(true)}
-                className="w-full py-1.5 px-2.5 rounded-lg bg-teal-50 hover:bg-teal-100/80 border border-teal-200/80 text-teal-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer active:scale-98"
+                onClick={() => setActiveDashboardTab('perangkat_ajar')}
+                className="w-full py-2 px-3 rounded-xl bg-teal-50/80 hover:bg-teal-100/80 border border-teal-200/80 text-teal-900 text-[10.5px] font-black flex items-center justify-between transition-all cursor-pointer active:scale-98 shadow-2xs hover:shadow-xs"
               >
-                <div className="flex items-center gap-1.5">
-                  <GraduationCap size={12} className="text-teal-600" />
+                <div className="flex items-center gap-2">
+                  <GraduationCap size={13} className="text-teal-600" />
                   <span>Monitoring Perangkat Ajar</span>
                 </div>
-                <ChevronRight size={12} className="text-teal-500" />
+                <ChevronRight size={13} className="text-teal-500" />
               </button>
             </div>
 
@@ -1186,11 +1297,12 @@ export default function KepsekExecutiveDashboard({
           classes={classes} 
           dashLogs={dashLogs}
           siswaStats={siswaStats}
+          appSettings={appSettings}
         />
       </div>
 
-      {/* ═══════════════ BARIS 3: 3 BOX LOG & MONITOR AKTIVITAS SEJAJAR (RATA 100%) ═══════════════ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch content-deferred">
+      {/* ═══════════════ BARIS 3: AKTIVITAS & AUDIT SESI LOGIN (SEJAJAR 2 KOLOM) ═══════════════ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch content-deferred">
         {/* Box 1: Live Log Aktivitas Pengguna */}
         <div className="flex flex-col h-full">
           <LiveUserActivityLog onNavigateTab={gotoTab} />
@@ -1200,12 +1312,619 @@ export default function KepsekExecutiveDashboard({
         <div className="flex flex-col h-full">
           <UserLoginSessionTracker onNavigateTab={gotoTab} />
         </div>
-
-        {/* Box 3: Monitor & Aktivitas Pemantauan Sekolah */}
-        <div className="flex flex-col h-full md:col-span-2 lg:col-span-1">
-          <SharedDashboardLogs onLogsFetched={setDashLogs} />
-        </div>
       </div>
+
+      {/* ═══════════════ BARIS 4: MONITOR & AKTIVITAS PEMANTAUAN PRESENSI (LEBAR PENUH 100%) ═══════════════ */}
+      <div className="w-full content-deferred">
+        <SharedDashboardLogs onLogsFetched={setDashLogs} />
+      </div>
+        </>
+      )}
+
+      {/* ═══════════════ TAB VIEW 2: JAM AJAR GURU & KBM (NATIVE UNIFIED VIEW) ═══════════════ */}
+      {activeDashboardTab === 'jam_ajar' && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs w-full flex flex-col overflow-hidden animate-in fade-in duration-200">
+          
+          {/* Section Header */}
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs">
+                <BookOpen size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Ringkasan Jam Ajar Guru Hari Ini</h3>
+                <p className="text-[10.5px] text-slate-500 font-semibold">{todayLong} · Standar Jam Pelajaran 1 s/d 7 (07.00 - 13.45 WIB)</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveDashboardTab('ringkasan')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all shadow-2xs"
+              >
+                <ArrowLeft size={13} />
+                <span>Kembali ke Ringkasan</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => gotoTab('generate')}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-2xs group"
+              >
+                <Calendar size={13} />
+                <span>Buka Kelola Jadwal KBM</span>
+                <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick KPI Stats Summary */}
+          <div className="p-4 sm:p-5 pb-3 bg-slate-50/50 border-b border-slate-100">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="p-3 bg-gradient-to-br from-white to-slate-50/70 border border-slate-200/80 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Guru Mengajar Hari Ini</span>
+                  <Users size={13} className="text-slate-400" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-slate-800">{totalGuruMengajarHariIni}</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Guru Aktif</span>
+                </div>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-white to-emerald-50/50 border border-emerald-200/80 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block">Jurnal KBM Terisi</span>
+                  <CheckCircle2 size={13} className="text-emerald-500" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-emerald-700">{jurnalSubmittedCount}</span>
+                  <span className="text-[11px] text-emerald-600 font-bold">Guru ({jurnalPct}%)</span>
+                </div>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-white to-rose-50/50 border border-rose-200/80 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Belum Isi Jurnal</span>
+                  <AlertTriangle size={13} className="text-rose-500" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-rose-700">{jurnalUnfilledCount}</span>
+                  <span className="text-[11px] text-rose-500 font-medium">Guru Pengajar</span>
+                </div>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-white to-indigo-50/50 border border-indigo-200/80 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider block">Utilisasi Ruang & Lab</span>
+                  <Building2 size={13} className="text-indigo-500" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-indigo-700">{sarprasStats.terpakai} / {sarprasStats.total}</span>
+                  <span className="text-[11px] text-indigo-600 font-bold">({sarprasStats.utilisasi}%)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* View Switcher Tabs (Per Guru vs Per Jam Pelajaran 1-7) */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-200/60">
+              <div className="flex items-center p-1 bg-slate-100/90 rounded-xl border border-slate-200/60 w-full sm:w-auto shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setScheduleViewMode('teacher')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    scheduleViewMode === 'teacher'
+                      ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Users size={13} className="text-slate-600 shrink-0" />
+                  <span>Rekap Per Guru ({totalGuruMengajarHariIni})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScheduleViewMode('jam')}
+                  className={`flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    scheduleViewMode === 'jam'
+                      ? 'bg-white text-slate-800 shadow-xs border border-slate-200/60'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Clock size={13} className="text-slate-600 shrink-0" />
+                  <span>Timeline Jam 1 - 7</span>
+                </button>
+              </div>
+
+              {/* Search Bar (When in Teacher View) */}
+              {scheduleViewMode === 'teacher' && (
+                <div className="relative w-full sm:w-72">
+                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={scheduleSearch}
+                    onChange={(e) => setScheduleSearch(e.target.value)}
+                    placeholder="Cari nama guru, mapel, kelas..."
+                    className="w-full pl-8 pr-7 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 shadow-2xs transition-all"
+                  />
+                  {scheduleSearch && (
+                    <button
+                      onClick={() => setScheduleSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Jam 1 - 7 Selector Bar (When in Jam View) */}
+            {scheduleViewMode === 'jam' && (
+              <div className="grid grid-cols-2 sm:grid-cols-7 gap-1.5 mt-3 pt-2 border-t border-slate-200/50">
+                {JAM_SLOTS.map(slot => (
+                  <button
+                    key={slot.num}
+                    type="button"
+                    onClick={() => setSelectedJamFilter(slot.num)}
+                    className={`p-2 rounded-xl text-center border transition-all cursor-pointer shadow-2xs ${
+                      selectedJamFilter === slot.num
+                        ? 'bg-amber-500 border-amber-600 text-white font-bold scale-[1.02] shadow-xs'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold'
+                    }`}
+                  >
+                    <span className="text-[11px] block">{slot.label}</span>
+                    <span className={`text-[9px] block ${selectedJamFilter === slot.num ? 'text-white/90' : 'text-slate-400'}`}>
+                      {slot.time}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Status Filter Pills (When in Teacher View) */}
+            {scheduleViewMode === 'teacher' && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pt-2.5 pb-0.5">
+                {[
+                  { id: 'all', label: `Semua Guru (${totalGuruMengajarHariIni})` },
+                  { id: 'ongoing', label: 'Sedang Mengajar' },
+                  { id: 'done', label: 'Selesai Mengajar' },
+                  { id: 'filled', label: 'Jurnal Terisi' },
+                  { id: 'unfilled', label: 'Belum Isi Jurnal' },
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setScheduleStatusFilter(f.id)}
+                    className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer whitespace-nowrap border ${
+                      scheduleStatusFilter === f.id
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Table Area */}
+          <div className="p-4 sm:p-5 overflow-x-auto">
+            {scheduleViewMode === 'teacher' && (
+              <div className="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                      <th className="p-2.5 text-center w-10">No</th>
+                      <th className="p-2.5">Nama Guru Pengajar</th>
+                      <th className="p-2.5">Mata Pelajaran</th>
+                      <th className="p-2.5">Rombel & Ruang</th>
+                      <th className="p-2.5 text-center">Alokasi Jam (Maks. 1-7)</th>
+                      <th className="p-2.5 text-center">Status Sesi</th>
+                      <th className="p-2.5 text-center">Status Jurnal</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-[11px]">
+                    {filteredTeacherScheduleList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400">
+                          <p className="font-semibold text-xs">Tidak ada data guru yang sesuai filter.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredTeacherScheduleList.map((t, idx) => (
+                        <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
+                          <td className="p-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-black text-[10px] flex items-center justify-center shrink-0">
+                                {t.name.charAt(0)}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-bold text-slate-900 truncate">{t.name}</p>
+                                <span className="text-[9px] text-slate-400 font-mono">Kode: {t.code} · NIP: {t.nip}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-2.5 font-semibold text-slate-800">
+                            {t.subject}
+                          </td>
+                          <td className="p-2.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80 shadow-2xs">
+                                {String(t.className || '').trim().toLowerCase() === 'all' ? 'Semua Kelas' : (t.className || '-')}
+                              </span>
+                              <span className="text-slate-500 font-medium text-[10.5px]">{t.room}</span>
+                            </div>
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <div className="inline-flex items-center gap-1 bg-amber-50/90 border border-amber-200/80 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-amber-900 font-bold text-[10px] shadow-2xs">
+                              <Clock size={10} className="text-amber-700" />
+                              <span>{t.jamLabelText}</span>
+                              <span className="text-amber-700 font-extrabold">({t.totalJP} JP)</span>
+                            </div>
+                            <span className="text-[9px] text-slate-400 block mt-0.5">{t.timeRangeText}</span>
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-bold border shadow-2xs ${
+                              t.statusKBM === 'Sedang Mengajar' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                              t.statusKBM === 'Selesai Mengajar' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+                              'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}>
+                              {t.statusKBM === 'Sedang Mengajar' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
+                              {t.statusKBM}
+                            </span>
+                          </td>
+                          <td className="p-2.5 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-bold border shadow-2xs ${
+                              t.isJurnalFilled 
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                            }`}>
+                              {t.isJurnalFilled ? (
+                                <>
+                                  <CheckCircle2 size={11} className="text-emerald-600" />
+                                  <span>Sudah Terisi</span>
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle size={11} className="text-rose-600" />
+                                  <span>Belum Diisi</span>
+                                </>
+                              )}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {scheduleViewMode === 'jam' && (
+              <div className="space-y-3">
+                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-xl flex items-center justify-between text-xs shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <Clock size={16} className="text-amber-600" />
+                    <span className="font-bold text-slate-800">
+                      Jadwal Pembelajaran <strong>{JAM_SLOTS.find(s => s.num === selectedJamFilter)?.label}</strong> ({JAM_SLOTS.find(s => s.num === selectedJamFilter)?.time} WIB)
+                    </span>
+                  </div>
+                  <span className="font-extrabold text-amber-900 bg-amber-200/80 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[10.5px] border border-amber-300/80 shadow-2xs">
+                    {filteredJamScheduleList.length} Kelas Berlangsung
+                  </span>
+                </div>
+
+                <div className="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                        <th className="p-2.5 text-center w-10">No</th>
+                        <th className="p-2.5">Rombel Kelas</th>
+                        <th className="p-2.5">Guru Pengajar</th>
+                        <th className="p-2.5">Mata Pelajaran</th>
+                        <th className="p-2.5">Ruangan / Lab</th>
+                        <th className="p-2.5 text-center">Status Jurnal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-[11px]">
+                      {filteredJamScheduleList.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-slate-400">
+                            <p className="font-semibold text-xs">Tidak ada kelas aktif pada jam pelajaran ini.</p>
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredJamScheduleList.map((t, idx) => (
+                          <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
+                            <td className="p-2.5 font-black text-slate-900">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-[var(--ui-radius-small)] text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200/80 shadow-2xs">
+                                {t.className === 'All' ? 'Semua Kelas' : t.className}
+                              </span>
+                            </td>
+                            <td className="p-2.5 font-bold text-slate-800">
+                              {t.name}
+                              <span className="text-[9.5px] text-slate-400 font-mono block">Kode: {t.code}</span>
+                            </td>
+                            <td className="p-2.5 font-semibold text-slate-800">
+                              {t.subject}
+                            </td>
+                            <td className="p-2.5 text-slate-600 font-medium">
+                              {t.room}
+                            </td>
+                            <td className="p-2.5 text-center">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-bold border shadow-2xs ${
+                                t.isJurnalFilled 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                  : 'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}>
+                                {t.isJurnalFilled ? (
+                                  <>
+                                    <CheckCircle2 size={11} className="text-emerald-600" />
+                                    <span>Sudah Terisi</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle size={11} className="text-rose-600" />
+                                    <span>Belum Diisi</span>
+                                  </>
+                                )}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Section Footer */}
+          <div className="px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/90">
+            <span className="text-[10.5px] text-slate-500 font-medium">
+              {scheduleViewMode === 'teacher' 
+                ? `Menampilkan ${filteredTeacherScheduleList.length} dari ${totalGuruMengajarHariIni} guru pengajar hari ini` 
+                : `Menampilkan ${filteredJamScheduleList.length} kelas pada Jam Ke-${selectedJamFilter}`}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveDashboardTab('ringkasan')}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all shadow-2xs"
+              >
+                Kembali ke Ringkasan
+              </button>
+              <button
+                type="button"
+                onClick={() => gotoTab('generate')}
+                className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow-2xs group"
+              >
+                <Calendar size={13} />
+                <span>Buka Kelola Jadwal KBM</span>
+                <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════ TAB VIEW 3: PERANGKAT AJAR GURU (NATIVE UNIFIED VIEW) ═══════════════ */}
+      {activeDashboardTab === 'perangkat_ajar' && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs w-full flex flex-col overflow-hidden animate-in fade-in duration-200">
+          
+          {/* Section Header */}
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/80">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold shadow-xs">
+                <GraduationCap size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Monitoring Kelengkapan Perangkat Ajar Guru</h3>
+                <p className="text-[10.5px] text-slate-500 font-semibold">Silabus, Modul Ajar, ATP & RPP Kurikulum Merdeka</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveDashboardTab('ringkasan')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all shadow-2xs"
+              >
+                <ArrowLeft size={13} />
+                <span>Kembali ke Ringkasan</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => gotoTab('modul_ajar')}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-2xs group"
+              >
+                <FileText size={13} />
+                <span>Buka Kelola Silabus & Modul Ajar</span>
+                <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick KPI Overview */}
+          <div className="p-4 sm:p-5 pb-2 bg-slate-50/50 border-b border-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="p-3 bg-gradient-to-br from-white to-emerald-50/50 border border-emerald-200/90 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">Lengkap (100%)</span>
+                  <CheckCircle2 size={13} className="text-emerald-500" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-emerald-700">
+                    {syllabusStatsPerTeacher.filter(t => t.completionPct >= 100).length}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">dari {syllabusStatsPerTeacher.length} Guru</span>
+                </div>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-white to-amber-50/50 border border-amber-200/90 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider block">Dalam Progres (50-99%)</span>
+                  <Clock size={13} className="text-amber-500" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-amber-700">
+                    {syllabusStatsPerTeacher.filter(t => t.completionPct >= 50 && t.completionPct < 100).length}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">Guru Mengunggah</span>
+                </div>
+              </div>
+              <div className="p-3 bg-gradient-to-br from-white to-rose-50/50 border border-rose-200/90 rounded-xl shadow-2xs hover:shadow-xs transition-all relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-rose-700 font-bold uppercase tracking-wider block">Perlu Dilengkapi (&lt;50%)</span>
+                  <AlertTriangle size={13} className="text-rose-500" />
+                </div>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-lg font-black text-rose-700">
+                    {syllabusStatsPerTeacher.filter(t => t.completionPct < 50).length}
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">Perlu Tindak Lanjut</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Search & Status Filters */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 mt-3 pt-3 border-t border-slate-200/60">
+              <div className="relative w-full sm:w-72">
+                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={syllabusSearch}
+                  onChange={(e) => setSyllabusSearch(e.target.value)}
+                  placeholder="Cari nama guru, kode, mapel..."
+                  className="w-full pl-8 pr-7 py-1.5 bg-white rounded-xl border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 shadow-2xs transition-all"
+                />
+                {syllabusSearch && (
+                  <button
+                    onClick={() => setSyllabusSearch('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pt-1 pb-0.5">
+                {[
+                  { id: 'all', label: `Semua Guru (${syllabusStatsPerTeacher.length})` },
+                  { id: 'complete', label: 'Lengkap' },
+                  { id: 'progress', label: 'Progres' },
+                  { id: 'incomplete', label: 'Perlu Dilengkapi' },
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSyllabusStatusFilter(f.id)}
+                    className={`px-3 py-1 rounded-[var(--ui-radius-small)] text-[10.5px] font-bold transition-all cursor-pointer whitespace-nowrap border ${
+                      syllabusStatusFilter === f.id
+                        ? 'bg-teal-600 text-white border-teal-700 shadow-2xs'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Table Area */}
+          <div className="p-4 sm:p-5 overflow-x-auto">
+            <div className="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
+                    <th className="p-2.5 text-center w-10">No</th>
+                    <th className="p-2.5">Nama Guru Pengajar</th>
+                    <th className="p-2.5">Mata Pelajaran Diampu</th>
+                    <th className="p-2.5 text-center">Modul / Target</th>
+                    <th className="p-2.5" style={{ minWidth: 160 }}>Kelengkapan</th>
+                    <th className="p-2.5 text-center">Update Terakhir</th>
+                    <th className="p-2.5 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-[11px]">
+                  {filteredSyllabusList.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-slate-400">
+                        <p className="font-semibold text-xs">Tidak ada data perangkat ajar yang sesuai filter.</p>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredSyllabusList.map((t, idx) => (
+                      <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
+                        <td className="p-2.5">
+                          <p className="font-bold text-slate-900">{t.name}</p>
+                          <span className="text-[9px] text-slate-400 font-mono">Kode: {t.code}</span>
+                        </td>
+                        <td className="p-2.5 font-medium text-slate-700">
+                          {(t.uniqueSubjects || []).length > 0 
+                            ? t.uniqueSubjects.join(', ') 
+                            : <span className="text-slate-400 italic">Belum ada mapel</span>}
+                        </td>
+                        <td className="p-2.5 text-center font-bold text-slate-700">
+                          {t.totalUploaded} / {t.totalExpected}
+                        </td>
+                        <td className="p-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <ProgressBar 
+                                value={t.totalUploaded} 
+                                max={t.totalExpected} 
+                                colorClass={t.completionPct >= 100 ? 'bg-emerald-500' : t.completionPct >= 50 ? 'bg-amber-500' : 'bg-rose-500'} 
+                              />
+                            </div>
+                            <span className="text-[10.5px] font-bold text-slate-700 w-9 text-right">
+                              {t.completionPct}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-2.5 text-center text-slate-500 text-[10px]">
+                          {t.lastUpdatedText}
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-[var(--ui-radius-small)] text-[9.5px] font-bold border shadow-2xs ${
+                            t.status === 'Lengkap' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            t.status === 'Dalam Progres' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {t.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Section Footer */}
+          <div className="px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/90">
+            <span className="text-[10.5px] text-slate-500 font-medium">Kelengkapan dihitung berdasarkan silabus & modul ajar per rombel yang telah diunggah guru</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveDashboardTab('ringkasan')}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all shadow-2xs"
+              >
+                Kembali ke Ringkasan
+              </button>
+              <button
+                type="button"
+                onClick={() => gotoTab('modul_ajar')}
+                className="px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 shadow-2xs group"
+              >
+                <FileText size={13} />
+                <span>Buka Kelola Silabus & Modul Ajar</span>
+                <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ═══════════════ MODAL CETAK LAPORAN EKSEKUTIF RESMI ═══════════════ */}
       {showReportModal && (
@@ -1241,7 +1960,7 @@ export default function KepsekExecutiveDashboard({
             }
           `}</style>
 
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col overflow-hidden">
             
             {/* Modal Navigation Header (Screen Only) */}
             <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/90 no-print">
@@ -1498,569 +2217,6 @@ export default function KepsekExecutiveDashboard({
         </div>
       )}
 
-      {/* ═══════════════ MODAL RINGKASAN JAM AJAR GURU HARI INI (MAX JAM 1-7) ═══════════════ */}
-      {showScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
-            
-            {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-amber-500 text-white flex items-center justify-center font-bold">
-                  <BookOpen size={18} />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Ringkasan Jam Ajar Guru Hari Ini</h3>
-                  <p className="text-[10.5px] text-slate-500 font-semibold">{todayLong} · Standar Jam Pelajaran 1 s/d 7 (07.00 - 13.45 WIB)</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowScheduleModal(false)}
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-all hover:rotate-90"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            {/* Quick KPI Stats Summary */}
-            <div className="p-4 sm:p-5 pb-3 bg-slate-50/50 border-b border-slate-100">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div className="p-3 bg-white border border-slate-200/80 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Guru Mengajar Hari Ini</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-slate-800">{totalGuruMengajarHariIni}</span>
-                    <span className="text-[11px] text-slate-500 font-medium">Guru Aktif</span>
-                  </div>
-                </div>
-                <div className="p-3 bg-white border border-emerald-200/80 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider block">Jurnal KBM Terisi</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-emerald-700">{jurnalSubmittedCount}</span>
-                    <span className="text-[11px] text-emerald-600 font-bold">Guru ({jurnalPct}%)</span>
-                  </div>
-                </div>
-                <div className="p-3 bg-white border border-rose-200/80 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Belum Isi Jurnal</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-rose-700">{jurnalUnfilledCount}</span>
-                    <span className="text-[11px] text-rose-500 font-medium">Guru Pengajar</span>
-                  </div>
-                </div>
-                <div className="p-3 bg-white border border-indigo-200/80 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider block">Utilisasi Ruang & Lab</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-indigo-700">{sarprasStats.terpakai} / {sarprasStats.total}</span>
-                    <span className="text-[11px] text-indigo-600 font-bold">({sarprasStats.utilisasi}%)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* View Switcher Tabs (Per Guru vs Per Jam Pelajaran 1-7) */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-3 pt-3 border-t border-slate-200/60">
-                
-                {/* Switcher Mode */}
-                <div className="flex items-center p-1 bg-slate-200/70 rounded-lg w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => setScheduleViewMode('teacher')}
-                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      scheduleViewMode === 'teacher'
-                        ? 'bg-white text-slate-800'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Users size={13} className="text-slate-600 shrink-0" />
-                    <span>Rekap Per Guru ({totalGuruMengajarHariIni})</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setScheduleViewMode('jam')}
-                    className={`flex-1 sm:flex-initial px-3 py-1 rounded-md text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      scheduleViewMode === 'jam'
-                        ? 'bg-white text-slate-800'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Clock size={13} className="text-slate-600 shrink-0" />
-                    <span>Timeline Jam 1 - 7</span>
-                  </button>
-                </div>
-
-                {/* Search Bar (When in Teacher View) */}
-                {scheduleViewMode === 'teacher' && (
-                  <div className="relative w-full sm:w-72">
-                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      value={scheduleSearch}
-                      onChange={(e) => setScheduleSearch(e.target.value)}
-                      placeholder="Cari nama guru, mapel, kelas..."
-                      className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition-all"
-                    />
-                    {scheduleSearch && (
-                      <button
-                        onClick={() => setScheduleSearch('')}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Jam 1 - 7 Selector Bar (When in Jam View) */}
-              {scheduleViewMode === 'jam' && (
-                <div className="grid grid-cols-2 sm:grid-cols-7 gap-1.5 mt-3 pt-2 border-t border-slate-200/50">
-                  {JAM_SLOTS.map(slot => (
-                    <button
-                      key={slot.num}
-                      type="button"
-                      onClick={() => setSelectedJamFilter(slot.num)}
-                      className={`p-2 rounded-lg text-center border transition-all cursor-pointer ${
-                        selectedJamFilter === slot.num
-                          ? 'bg-amber-500 border-amber-600 text-white font-black scale-102'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100 font-bold'
-                      }`}
-                    >
-                      <span className="text-[11px] block">{slot.label}</span>
-                      <span className={`text-[9px] block ${selectedJamFilter === slot.num ? 'text-white/90' : 'text-slate-400'}`}>
-                        {slot.time}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Status Filter Pills (When in Teacher View) */}
-              {scheduleViewMode === 'teacher' && (
-                <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-0.5">
-                  {[
-                    { id: 'all', label: `Semua Guru (${totalGuruMengajarHariIni})` },
-                    { id: 'ongoing', label: 'Sedang Mengajar' },
-                    { id: 'done', label: 'Selesai Mengajar' },
-                    { id: 'filled', label: 'Jurnal Terisi' },
-                    { id: 'unfilled', label: 'Belum Isi Jurnal' },
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      onClick={() => setScheduleStatusFilter(f.id)}
-                      className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        scheduleStatusFilter === f.id
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-            </div>
-
-            {/* Scrollable Table Area */}
-            <div className="p-4 sm:p-5 overflow-y-auto flex-1">
-              
-              {/* VIEW 1: REKAP PER GURU MENGAJAR */}
-              {scheduleViewMode === 'teacher' && (
-                <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden">
-                  <table className="w-full text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
-                        <th className="p-2.5 text-center w-10">No</th>
-                        <th className="p-2.5">Nama Guru Pengajar</th>
-                        <th className="p-2.5">Mata Pelajaran</th>
-                        <th className="p-2.5">Rombel & Ruang</th>
-                        <th className="p-2.5 text-center">Alokasi Jam (Maks. 1-7)</th>
-                        <th className="p-2.5 text-center">Status Sesi</th>
-                        <th className="p-2.5 text-center">Status Jurnal</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-[11px]">
-                      {filteredTeacherScheduleList.length === 0 ? (
-                        <tr>
-                          <td colSpan={7} className="p-8 text-center text-slate-400">
-                            <p className="font-semibold text-xs">Tidak ada data guru yang sesuai filter.</p>
-                          </td>
-                        </tr>
-                      ) : (
-                        filteredTeacherScheduleList.map((t, idx) => (
-                          <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
-                            <td className="p-2.5">
-                              <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-black text-[10px] flex items-center justify-center shrink-0">
-                                  {t.name.charAt(0)}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="font-bold text-slate-900 truncate">{t.name}</p>
-                                  <span className="text-[9px] text-slate-400 font-mono">Kode: {t.code} · NIP: {t.nip}</span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-2.5 font-semibold text-slate-800">
-                              {t.subject}
-                            </td>
-                            <td className="p-2.5">
-                              <span className="font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded text-[10px] mr-1.5">
-                                {t.className}
-                              </span>
-                              <span className="text-slate-500 font-medium">{t.room}</span>
-                            </td>
-                            <td className="p-2.5 text-center">
-                              <div className="inline-block bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md text-amber-900 font-bold text-[10px]">
-                                {t.jamLabelText} <span className="text-amber-700 font-extrabold">({t.totalJP} JP)</span>
-                              </div>
-                              <span className="text-[9px] text-slate-400 block mt-0.5">{t.timeRangeText}</span>
-                            </td>
-                            <td className="p-2.5 text-center">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
-                                t.statusKBM === 'Sedang Mengajar' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                t.statusKBM === 'Selesai Mengajar' ? 'bg-slate-100 text-slate-600 border-slate-200' :
-                                'bg-amber-50 text-amber-700 border-amber-200'
-                              }`}>
-                                {t.statusKBM === 'Sedang Mengajar' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-                                {t.statusKBM}
-                              </span>
-                            </td>
-                            <td className="p-2.5 text-center">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
-                                t.isJurnalFilled 
-                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                  : 'bg-rose-50 text-rose-700 border-rose-200'
-                              }`}>
-                                {t.isJurnalFilled ? (
-                                  <>
-                                    <CheckCircle2 size={11} className="text-emerald-600" />
-                                    <span>Sudah Terisi</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <XCircle size={11} className="text-rose-600" />
-                                    <span>Belum Diisi</span>
-                                  </>
-                                )}
-                              </span>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-              {/* VIEW 2: TIMELINE PER JAM (1-7) */}
-              {scheduleViewMode === 'jam' && (
-                <div className="space-y-3">
-                  <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <Clock size={16} className="text-amber-600" />
-                      <span className="font-bold text-slate-800">
-                        Jadwal Pembelajaran <strong>{JAM_SLOTS.find(s => s.num === selectedJamFilter)?.label}</strong> ({JAM_SLOTS.find(s => s.num === selectedJamFilter)?.time} WIB)
-                      </span>
-                    </div>
-                    <span className="font-extrabold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded text-[10.5px]">
-                      {filteredJamScheduleList.length} Kelas Berlangsung
-                    </span>
-                  </div>
-
-                  <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
-                          <th className="p-2.5 text-center w-10">No</th>
-                          <th className="p-2.5">Rombel Kelas</th>
-                          <th className="p-2.5">Guru Pengajar</th>
-                          <th className="p-2.5">Mata Pelajaran</th>
-                          <th className="p-2.5">Ruangan / Lab</th>
-                          <th className="p-2.5 text-center">Status Jurnal</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[11px]">
-                        {filteredJamScheduleList.length === 0 ? (
-                          <tr>
-                            <td colSpan={6} className="p-8 text-center text-slate-400">
-                              <p className="font-semibold text-xs">Tidak ada kelas aktif pada jam pelajaran ini.</p>
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredJamScheduleList.map((t, idx) => (
-                            <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
-                              <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
-                              <td className="p-2.5 font-black text-slate-900">
-                                <span className="bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-xs">
-                                  {t.className}
-                                </span>
-                              </td>
-                              <td className="p-2.5 font-bold text-slate-800">
-                                {t.name}
-                                <span className="text-[9.5px] text-slate-400 font-mono block">Kode: {t.code}</span>
-                              </td>
-                              <td className="p-2.5 font-semibold text-slate-800">
-                                {t.subject}
-                              </td>
-                              <td className="p-2.5 text-slate-600 font-medium">
-                                {t.room}
-                              </td>
-                              <td className="p-2.5 text-center">
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
-                                  t.isJurnalFilled 
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                    : 'bg-rose-50 text-rose-700 border-rose-200'
-                                }`}>
-                                  {t.isJurnalFilled ? (
-                                    <>
-                                      <CheckCircle2 size={11} className="text-emerald-600" />
-                                      <span>Sudah Terisi</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <XCircle size={11} className="text-rose-600" />
-                                      <span>Belum Diisi</span>
-                                    </>
-                                  )}
-                                </span>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/90">
-              <span className="text-[10.5px] text-slate-500 font-medium">
-                {scheduleViewMode === 'teacher' 
-                  ? `Menampilkan ${filteredTeacherScheduleList.length} dari ${totalGuruMengajarHariIni} guru pengajar hari ini` 
-                  : `Menampilkan ${filteredJamScheduleList.length} kelas pada Jam Ke-${selectedJamFilter}`}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowScheduleModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all"
-                >
-                  Tutup
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowScheduleModal(false); gotoTab('generate'); }}
-                  className="px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-                >
-                  <Calendar size={13} />
-                  <span>Buka Kelola Jadwal KBM →</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════ MODAL MONITORING PERANGKAT AJAR GURU ═══════════════ */}
-      {showSyllabusModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="bg-white rounded-[var(--ui-radius-card)] border border-slate-200 w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
-            
-            {/* Modal Header */}
-            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[var(--ui-radius-small)] bg-teal-600 text-white flex items-center justify-center font-bold">
-                  <GraduationCap size={18} />
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight">Monitoring Kelengkapan Perangkat Ajar Guru</h3>
-                  <p className="text-[10.5px] text-slate-500 font-semibold">Silabus, Modul Ajar, ATP & RPP Kurikulum Merdeka</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowSyllabusModal(false)}
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-all hover:rotate-90"
-              >
-                <X size={15} />
-              </button>
-            </div>
-
-            {/* Quick KPI Overview */}
-            <div className="p-4 sm:p-5 pb-2 bg-slate-50/50 border-b border-slate-100">
-              <div className="grid grid-cols-3 gap-2.5">
-                <div className="p-3 bg-white border border-emerald-200/90 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-emerald-700 font-bold uppercase tracking-wider block">Lengkap (100%)</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-emerald-700">
-                      {syllabusStatsPerTeacher.filter(t => t.completionPct >= 100).length}
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium">dari {syllabusStatsPerTeacher.length} Guru</span>
-                  </div>
-                </div>
-                <div className="p-3 bg-white border border-amber-200/90 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider block">Dalam Progres (50-99%)</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-amber-700">
-                      {syllabusStatsPerTeacher.filter(t => t.completionPct >= 50 && t.completionPct < 100).length}
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium">Guru Mengunggah</span>
-                  </div>
-                </div>
-                <div className="p-3 bg-white border border-rose-200/90 rounded-[var(--ui-radius-small)]">
-                  <span className="text-[10px] text-rose-700 font-bold uppercase tracking-wider block">Perlu Dilengkapi (&lt;50%)</span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-lg font-black text-rose-700">
-                      {syllabusStatsPerTeacher.filter(t => t.completionPct < 50).length}
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium">Perlu Tindak Lanjut</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Search & Status Filters */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 mt-3 pt-3 border-t border-slate-200/60">
-                <div className="relative w-full sm:w-72">
-                  <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={syllabusSearch}
-                    onChange={(e) => setSyllabusSearch(e.target.value)}
-                    placeholder="Cari nama guru, kode, mapel..."
-                    className="w-full pl-8 pr-7 py-1.5 bg-white rounded-lg border border-slate-200 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-teal-500 transition-all"
-                  />
-                  {syllabusSearch && (
-                    <button
-                      onClick={() => setSyllabusSearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <X size={12} />
-                    </button>
-                  )}
-                </div>
-
-                {/* Filter Pills */}
-                <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-                  {[
-                    { id: 'all', label: `Semua Guru (${syllabusStatsPerTeacher.length})` },
-                    { id: 'complete', label: 'Lengkap' },
-                    { id: 'progress', label: 'Progres' },
-                    { id: 'incomplete', label: 'Perlu Dilengkapi' },
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      onClick={() => setSyllabusStatusFilter(f.id)}
-                      className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        syllabusStatusFilter === f.id
-                          ? 'bg-teal-600 text-white'
-                          : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Scrollable Table Area */}
-            <div className="p-4 sm:p-5 overflow-y-auto flex-1">
-              <div className="border border-slate-200/90 rounded-[var(--ui-radius-card)] overflow-hidden">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50/90 text-slate-700 font-bold border-b border-slate-200 text-[11px]">
-                      <th className="p-2.5 text-center w-10">No</th>
-                      <th className="p-2.5">Nama Guru Pengajar</th>
-                      <th className="p-2.5">Mata Pelajaran Diampu</th>
-                      <th className="p-2.5 text-center">Modul / Target</th>
-                      <th className="p-2.5 w-36">Kelengkapan</th>
-                      <th className="p-2.5 text-center">Update Terakhir</th>
-                      <th className="p-2.5 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-[11px]">
-                    {filteredSyllabusList.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="p-8 text-center text-slate-400">
-                          <p className="font-semibold text-xs">Tidak ada data guru yang sesuai filter.</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredSyllabusList.map((t, idx) => (
-                        <tr key={t.code || idx} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="p-2.5 text-center font-bold text-slate-400">{idx + 1}</td>
-                          <td className="p-2.5">
-                            <p className="font-bold text-slate-900 leading-tight">{t.name}</p>
-                            <span className="text-[9.5px] text-slate-400 font-mono">Kode: {t.code}</span>
-                          </td>
-                          <td className="p-2.5 text-slate-700 font-medium">
-                            {(t.uniqueSubjects || []).join(', ')}
-                          </td>
-                          <td className="p-2.5 text-center font-black text-slate-800">
-                            {t.uploadedModules} <span className="text-slate-400 font-normal">/ {t.targetModules}</span>
-                          </td>
-                          <td className="p-2.5">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
-                                <div 
-                                  className={`h-full rounded-full transition-all duration-500 ${
-                                    t.completionPct >= 100 ? 'bg-emerald-500' : t.completionPct >= 50 ? 'bg-amber-400' : 'bg-rose-500'
-                                  }`} 
-                                  style={{ width: `${Math.min(100, t.completionPct)}%` }} 
-                                />
-                              </div>
-                              <span className="text-[10px] font-black text-slate-700 w-8 text-right">{t.completionPct}%</span>
-                            </div>
-                          </td>
-                          <td className="p-2.5 text-center text-slate-500 font-medium">
-                            {t.latestUpload}
-                          </td>
-                          <td className="p-2.5 text-center">
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9.5px] font-black border ${
-                              t.status === 'Lengkap' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                              t.status === 'Dalam Progres' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                              'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}>
-                              {t.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between bg-slate-50/90">
-              <span className="text-[10.5px] text-slate-500 font-medium">Kelengkapan dihitung berdasarkan silabus & modul ajar per rombel</span>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSyllabusModal(false)}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-bold cursor-pointer transition-all"
-                >
-                  Tutup
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setShowSyllabusModal(false); gotoTab('modul_ajar'); }}
-                  className="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
-                >
-                  <FileText size={13} />
-                  <span>Buka Kelola Silabus & Modul Ajar →</span>
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      )}
 
     </div>
   );

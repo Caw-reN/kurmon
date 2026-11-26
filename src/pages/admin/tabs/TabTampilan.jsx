@@ -61,6 +61,13 @@ const Youtube = ({ size = 16, className ="", style = {} }) => (
 export default function TabTampilan(props) {
   const { activeTab, setActiveTab, tampilanTab, setTampilanTab, uiTheme, setUiTheme, resetToDefaultTheme, saveDatabaseNow, isSavingModal, setIsSavingModal, showNotification, appSettings: globalAppSettings, setAppSettings: globalSetAppSettings, MAJOR_ICON_OPTIONS, THEME_PRESETS, applyThemePreset: parentApplyThemePreset, applyAutoRecommendedTheme: parentApplyAutoRecommendedTheme, contrastRatio, autoFixContrast: parentAutoFixContrast, newPresetName, setNewPresetName, saveCurrentAsPreset: parentSaveCurrentAsPreset, customThemePresets, setCustomThemePresets, resetThemeDefaults: parentResetThemeDefaults, exportThemeJson: parentExportThemeJson, importThemeJson: parentImportThemeJson } = props;
 
+  const [internalTampilanTab, setInternalTampilanTab] = React.useState("umum");
+  const effectiveTampilanTab = tampilanTab || internalTampilanTab;
+  const handleSetTampilanTab = (tabId) => {
+    if (typeof setTampilanTab === "function") setTampilanTab(tabId);
+    setInternalTampilanTab(tabId);
+  };
+
   const [appSettings, setAppSettings] = React.useState(() => ({
     ...globalAppSettings,
     heroTitleColor: globalAppSettings.heroTitleColor ||"#1e293b",
@@ -396,20 +403,23 @@ export default function TabTampilan(props) {
 
   return (
     <div className="w-full flex flex-col gap-4 animate-in fade-in duration-300 relative z-10">
-            <PageHeader 
-              title="Kustomisasi Tampilan Web"
-              description="Personalisasi identitas, warna, dan informasi sekolah Anda."
-              icon={MonitorSmartphone}
-              tabs={[
-                { id:"fitur", label:"Fitur", icon: Settings },
-                { id:"tampilan", label:"Tampilan Web", icon: LayoutDashboard },
-                { id:"whatsapp", label:"WhatsApp", icon: MessageSquare },
-                { id:"api_keys", label:"API Key", icon: KeyRound },
-                { id:"gdrive_backup", label:"Backup", icon: DatabaseBackup }
-              ]}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
+            {!props.hideHeader && (
+              <PageHeader 
+                title="Kustomisasi Tampilan Web"
+                description="Personalisasi identitas, warna, dan informasi sekolah Anda."
+                icon={MonitorSmartphone}
+                tabs={[
+                  { id:"konfigurasi_sistem", label:"Ringkasan", icon: LayoutDashboard },
+                  { id:"fitur", label:"Fitur", icon: Settings },
+                  { id:"tampilan", label:"Tampilan Web", icon: LayoutDashboard },
+                  { id:"whatsapp", label:"WhatsApp", icon: MessageSquare },
+                  { id:"api_keys", label:"API Key", icon: KeyRound },
+                  { id:"gdrive_backup", label:"Backup", icon: DatabaseBackup }
+                ]}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+            )}
             <div className="ui-card rounded-[var(--ui-radius-card)] bg-white border border-[var(--ui-card-border-color,transparent)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] p-6 flex flex-col">
               <div className="space-y-6">
                 {/* Horizontal Tabs & Action Button - Modernized */}
@@ -424,12 +434,12 @@ export default function TabTampilan(props) {
                       { id:"tema", label:"Warna & Tema", icon: Palette },
                     ].map(tab => {
                       const Icon = tab.icon;
-                      const isActive = tampilanTab === tab.id;
+                      const isActive = effectiveTampilanTab === tab.id;
                       return (
                       <Button variant="outline"
                         key={tab.id}
                         type="button"
-                        onClick={() =>setTampilanTab(tab.id)}
+                        onClick={() => handleSetTampilanTab(tab.id)}
                         className={`flex items-center gap-2 ${isActive ?"bg-white text-[var(--ui-primary)] shadow-sm ring-1 ring-slate-200/50" :"text-slate-500 hover:text-slate-700 hover:bg-slate-100/50"}`}
                       >
                         <Icon size={15} className={isActive ?"text-[var(--ui-primary)]" :"text-slate-400"} />
@@ -457,7 +467,7 @@ export default function TabTampilan(props) {
                   {/* MAIN CONTENT AREA */}
                   <div className="lg:col-span-8 space-y-6">
                     {/* Identitas Brand */}
-                    {tampilanTab ==="umum" && (
+                    {effectiveTampilanTab ==="umum" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                           <div>
@@ -847,7 +857,7 @@ export default function TabTampilan(props) {
                     )}
 
                     {/* Menu Navbar */}
-                    {tampilanTab === "navbar" && (
+                    {effectiveTampilanTab === "navbar" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         {/* Header Box */}
                         <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
@@ -1758,7 +1768,7 @@ export default function TabTampilan(props) {
                     )}
 
                     {/* Menu Layanan */}
-                    {tampilanTab ==="layanan" && (
+                    {effectiveTampilanTab ==="layanan" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                           <div>
@@ -1875,7 +1885,7 @@ export default function TabTampilan(props) {
                     )}
 
                     {/* Informasi Jurusan */}
-                    {tampilanTab ==="footer" && (
+                    {effectiveTampilanTab ==="footer" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                       <div>
@@ -2083,7 +2093,7 @@ export default function TabTampilan(props) {
 
 
                     {/* KOLOM KANAN -> Footer & Kontak*/}
-                    {tampilanTab ==="footer" && (
+                    {effectiveTampilanTab ==="footer" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     {/* Kontak & Footer */}
                     <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
@@ -2136,7 +2146,7 @@ export default function TabTampilan(props) {
                     )}
 
                     {/* Mitra Kerjasama */}
-                    {tampilanTab ==="mitra" && (
+                    {effectiveTampilanTab ==="mitra" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
@@ -2226,7 +2236,7 @@ export default function TabTampilan(props) {
                     )}
 
                     {/* Pengaturan Tema */}
-                    {tampilanTab ==="tema" && (
+                    {effectiveTampilanTab ==="tema" && (
                       <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="border-none rounded-[var(--ui-radius-small)] p-5 bg-slate-50/50 space-y-4">
                       <div className="flex items-center justify-between gap-2 flex-wrap">

@@ -1756,8 +1756,8 @@ export default function App() {
         'sekretaris_hubin', 'anggota_hubin',
         'sekretaris_sarpras', 'anggota_sarpras',
         'sekretaris_tu', 'bendahara',
-        'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras',
-        'kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'osis'
+        'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras', 'waka_humas',
+        'kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'humas', 'osis'
       ];
       if (role.startsWith("custom_")) {
         effectiveKey = role;
@@ -1878,6 +1878,9 @@ export default function App() {
         }
         if (isKurikulumTeam && ['siswa', 'datasiswa', 'hikvision_report_siswa', 'laporan_absensi'].includes(tabId)) {
           return spLevel !== 'nonaktif';
+        }
+        if (effectiveKey.startsWith('custom_') || effectiveKey.startsWith('waka_') || ['sekretaris_tu', 'bendahara'].includes(effectiveKey)) {
+          return spLevel === 'edit' || spLevel === 'view' || spLevel === 'otomatis' || spLevel === 'full';
         }
         return false;
       }
@@ -2928,7 +2931,7 @@ export default function App() {
       'sekretaris_hubin', 'anggota_hubin',
       'sekretaris_sarpras', 'anggota_sarpras',
       'sekretaris_tu', 'bendahara',
-      'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras'
+      'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras', 'waka_humas'
     ];
 
     let effectiveRoleKey = roleKey;
@@ -3008,6 +3011,10 @@ export default function App() {
       }
       if (isKurikulumTeam && ['siswa', 'datasiswa', 'hikvision_report_siswa', 'laporan_absensi'].includes(tab)) {
         return 'view';
+      }
+      if (effectiveRoleKey.startsWith('custom_') || effectiveRoleKey.startsWith('waka_') || ['sekretaris_tu', 'bendahara'].includes(effectiveRoleKey)) {
+        if (spLevel === 'edit' || spLevel === 'full' || spLevel === 'otomatis') return 'edit';
+        if (spLevel === 'view') return 'view';
       }
       return 'none';
     }
@@ -3200,8 +3207,8 @@ export default function App() {
       'sekretaris_hubin', 'anggota_hubin',
       'sekretaris_sarpras', 'anggota_sarpras',
       'sekretaris_tu', 'bendahara',
-      'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras',
-      'kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'osis'
+      'waka_kurikulum', 'waka_kesiswaan', 'waka_hubin', 'waka_sarpras', 'waka_humas',
+      'kesiswaan', 'kurikulum', 'hubin', 'sarpras', 'humas', 'osis'
     ];
     if (activeRole.startsWith("custom_")) {
       effectiveKey = activeRole;
@@ -3253,6 +3260,10 @@ export default function App() {
 
     if (activeRole === "superadmin" || activeRole === "admin") {
       if (featureKey && !hasFeature(featureKey) && featureKey !== "attendance") return false;
+      return true;
+    }
+
+    if (checkId === "konfigurasi_sistem" && typeof hasAnyConfigAccess === "function" && hasAnyConfigAccess()) {
       return true;
     }
 
@@ -3361,6 +3372,9 @@ export default function App() {
       }
       if (isKurikulumTeam && ['siswa', 'datasiswa', 'hikvision_report_siswa', 'laporan_absensi'].includes(checkId)) {
         return spLevel !== 'nonaktif';
+      }
+      if (effectiveKey.startsWith('custom_') || effectiveKey.startsWith('waka_') || ['sekretaris_tu', 'bendahara'].includes(effectiveKey)) {
+        return spLevel === 'edit' || spLevel === 'view' || spLevel === 'otomatis' || spLevel === 'full';
       }
       return false;
     }
@@ -4640,7 +4654,7 @@ export default function App() {
     <main className="flex-1 flex flex-col min-w-0 h-screen h-[100dvh] overflow-hidden print:overflow-visible print:block relative z-0 bg-background">
       <AdminHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} toggleSidebar={toggleSidebar} isSidebarCollapsed={isSidebarCollapsed} onOpenProfile={() => { setFormData({ name: currentUser?.name || "", username: currentUser?.username || "", password: "", confirmPassword: "" }); setModalConfig({ isOpen: true, type: "profile_edit", action: "edit", data: null }); }} currentUser={currentUser} activeRoleLabel={activeRoleLabel} appSettings={appSettings} workspaceGuide={workspaceGuide} onOpenGuide={() => setShowGuideModal(true)} activeTab={activeTab} dashboardMessages={dashboardMessages} schedule={schedule} handleLogout={handleLogout} />
 
-      <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto px-2.5 sm:px-4 md:px-6 pb-[calc(84px+env(safe-area-inset-bottom,0px))] md:pb-6 pt-2.5 sm:pt-4 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
+      <div ref={mainContentRef} className={`app-content flex-1 overflow-y-auto px-2.5 sm:px-4 md:px-6 pb-[calc(84px+env(safe-area-inset-bottom,0px))] md:pb-6 pt-2 sm:pt-2.5 custom-scrollbar relative flex flex-col min-w-0 print:overflow-visible print:p-0`}>
         <div className="flex-1 flex flex-col w-full min-w-0">
 
           {databaseHydrated ? (

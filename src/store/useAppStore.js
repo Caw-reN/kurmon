@@ -81,7 +81,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
 
   // ─── KARYAWAN & TU ──────────────────────────────────────────────────────────
   karyawan: {
-    dashboard: "otomatis", absensiguru: "otomatis", akademik: "view", pesan: "view"
+    dashboard: "otomatis", absensiguru: "otomatis", akademik: "view", pesan: "view",
+    laporan_absensi: "view", hikvision_report_karyawan: "view"
   },
   tu: {
     dashboard: "otomatis", generate: "view", absensi: "otomatis", esurat: "otomatis",
@@ -439,6 +440,11 @@ export const useAppStore = create((set) => ({
         ...state.activityLogs,
       ].slice(0, 25),
     })),
+
+  setRolePermissions: (nextPermissions) =>
+    set({
+      rolePermissions: nextPermissions && typeof nextPermissions === "object" ? nextPermissions : {},
+    }),
 
   updateRolePermissions: (newPermissions) =>
     set((state) => ({

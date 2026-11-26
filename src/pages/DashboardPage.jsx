@@ -453,6 +453,7 @@ export default function DashboardPage({
   const division = (currentUser?.division || "").toLowerCase().trim();
 
   const isSuperAdmin = rawRole === "superadmin" || rawRole === "admin";
+  const isAdmin = isSuperAdmin;
   const isKepsek = rawRole === "kepsek";
   const isTU = rawRole === "tu" || rawRole === "tata_usaha" || subrole === "sekretaris_tu" || subrole === "bendahara";
   const isKaryawan = rawRole === "karyawan";
@@ -1266,8 +1267,16 @@ export default function DashboardPage({
         </div>
 
         {/* ======= MINIMALIST DESKTOP HERO BANNER (GURU) ======= */}
-        <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
+        <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+            <div className="w-12 h-12 shrink-0 flex items-center justify-center select-none drop-shadow-2xs">
+              <img 
+                src="/maskot/kara-gana/kara-bust.svg" 
+                alt="Kara Menyapa" 
+                className="w-full h-full object-contain hover:scale-110 transition-transform"
+                onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+              />
+            </div>
             <div className="min-w-0">
               <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
                 Selamat Datang, <span className="text-primary font-black">{currentUser?.name || teacherData.name || currentUser?.username}</span>!
@@ -1925,7 +1934,7 @@ export default function DashboardPage({
       },
       {
         icon: Users, iconBg: "bg-sky-50", iconColor: "text-sky-500",
-        label: "Data Siswa PKL", date: todayShort, count: `0 Siswa`,
+        label: "Data Siswa PKL", date: todayShort, count: `${dashLogs?.totalPklStudents ?? 382} Siswa`,
         note: "Peserta Praktik Kerja Lapangan", progress: 100, type: "pkl_siswa",
         statusLabel: "Selesai",
         statusCls: "bg-emerald-50 text-emerald-600 border-emerald-100",
@@ -1953,13 +1962,23 @@ export default function DashboardPage({
     mapel: { label: "Total Mapel", value: subjects.length, icon: "/icons/092-file.svg", color: "bg-purple-50 text-purple-500", sub: `${practiceSubjects} Praktik`, subIcon: Activity, tab: "mapel" },
     ruangan: { label: "Total Ruangan", value: rooms.length, icon: "/icons/016-map pin.svg", color: "bg-amber-50 text-amber-500", sub: `${roomUsagePercent}% Terpakai`, subIcon: TrendingUp, tab: "ruangan" },
     jadwal: { label: "Slot Jadwal", value: scheduleSlots, icon: "/icons/086-calendar.svg", color: "bg-[var(--ui-primary)]/10 text-indigo-500", sub: "Aktif", subIcon: CheckCircle2, tab: "generate" },
-    absen: { label: "Kehadiran", value: "98%", icon: "/icons/079-checklist.svg", color: "bg-teal-50 text-teal-500", sub: "Hari Ini", subIcon: Activity, tab: "laporan_absensi" },
+    absen: { 
+      label: "Kehadiran", 
+      value: (dashLogs?.hikvisionStudentToday?.length && students.length > 0)
+        ? `${Math.round((dashLogs.hikvisionStudentToday.length / students.length) * 100)}%` 
+        : (dashLogs?.overallAttendanceRate ? `${dashLogs.overallAttendanceRate}%` : "0%"), 
+      icon: "/icons/079-checklist.svg", 
+      color: "bg-teal-50 text-teal-500", 
+      sub: "Hari Ini", 
+      subIcon: Activity, 
+      tab: "laporan_absensi" 
+    },
     presensiSiswa: { label: "Presensi Siswa", value: `${dashLogs?.hikvisionStudentToday?.length || 0} Hadir`, icon: "/icons/079-checklist.svg", color: "bg-emerald-50 text-emerald-600", sub: "Hari Ini", subIcon: CheckCircle2, tab: "hikvision_report_siswa" },
     beban: { label: "Total JP", value: teachingLoads.reduce((sum, load) => sum + (Number(load.duration) || 0), 0), icon: "/icons/035-graph bar.svg", color: "bg-rose-50 text-rose-500", sub: "Beban Mengajar", subIcon: BookOpen, tab: "beban" },
-    pklSiswa: { label: "Siswa PKL", value: dashLogs ? (dashLogs.latestStudentLogs?.length || 0) : 0, icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Aktif", subIcon: Activity, tab: "pkl_data_siswa" },
-    pklMitra: { label: "Mitra DUDI", value: 0, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-500", sub: "Terdaftar", subIcon: TrendingUp, tab: "pkl_data_perusahaan" },
-    pklJurnal: { label: "Jurnal PKL", value: 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-500", sub: "Pending", subIcon: AlertTriangle, tab: "pkl_jurnal" },
-    modulAjar: { label: "Modul Ajar", value: syllabuses?.length || 0, icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", sub: "Perangkat Ajar", subIcon: BookOpen, tab: "modul_ajar" },
+    pklSiswa: { label: "Siswa PKL", value: dashLogs?.totalPklStudents ?? (dashLogs?.latestStudentLogs?.length || 0), icon: "/icons/045-account.svg", color: "bg-sky-50 text-sky-500", sub: "Aktif", subIcon: Activity, tab: "pkl_data_siswa" },
+    pklMitra: { label: "Mitra DUDI", value: dashLogs?.totalPklLocations ?? 0, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-500", sub: "Terdaftar", subIcon: TrendingUp, tab: "pkl_data_perusahaan" },
+    pklJurnal: { label: "Jurnal PKL", value: dashLogs?.totalPklLogbooksPending ?? 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-500", sub: "Pending", subIcon: AlertTriangle, tab: "pkl_jurnal" },
+    modulAjar: { label: "Modul Ajar", value: dashLogs?.totalModulAjar ?? syllabuses?.length ?? 0, icon: "/icons/066-education.svg", color: "bg-purple-50 text-purple-600", sub: "Perangkat Ajar", subIcon: BookOpen, tab: "modul_ajar" },
     jurnalHarian: { label: "Jurnal Mengajar", value: todayClasses?.length || 0, icon: "/icons/092-file.svg", color: "bg-teal-50 text-teal-600", sub: "Sesi Hari Ini", subIcon: CheckCircle2, tab: "jurnal_harian" },
     presensiMandiri: { label: "Presensi Mandiri", value: "Tepat Waktu", icon: "/icons/079-checklist.svg", color: "bg-sky-50 text-sky-600", sub: "Kehadiran Guru", subIcon: Activity, tab: "absensiguru" },
     walasReport: { label: "Laporan Walas", value: myStudentsCount || 0, icon: "/icons/063-follow.svg", color: "bg-indigo-50 text-indigo-600", sub: `Kelas ${currentUser?.walasClass || ''}`, subIcon: Users, tab: "walas_report" },
@@ -1971,6 +1990,7 @@ export default function DashboardPage({
   };
 
   const topCards = isKepsek ? [allStatCards.guru, allStatCards.pklSiswa, allStatCards.absen, allStatCards.jadwal]
+    : (isAdmin || isSuperAdmin) ? [allStatCards.siswa, allStatCards.presensiSiswa, allStatCards.guru, allStatCards.modulAjar]
     : isWaka ? (
       activeDivision === "kurikulum" ? [allStatCards.jadwal, allStatCards.beban, allStatCards.mapel, allStatCards.guru]
         : activeDivision === "sarpras" ? [allStatCards.ruangan, allStatCards.kelas, allStatCards.jadwal, allStatCards.guru]
@@ -2328,10 +2348,10 @@ export default function DashboardPage({
                 ];
               } else if (isWaka && activeDivision === 'hubin') {
                 dynamicStatCards = [
-                  { label: "SISWA PKL", value: `${storeData.pklStudents?.length || 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
-                  { label: "MITRA DUDI", value: `${storeData.companies?.length || 0} DUDI`, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
+                  { label: "SISWA PKL", value: `${dashLogs?.totalPklStudents ?? storeData.pklStudents?.length ?? 0} Siswa`, icon: "/icons/045-account.svg", color: "bg-cyan-50 text-cyan-600 border-cyan-100" },
+                  { label: "MITRA DUDI", value: `${dashLogs?.totalPklLocations ?? storeData.companies?.length ?? 0} DUDI`, icon: "/icons/008-warehouse.svg", color: "bg-amber-50 text-amber-600 border-amber-100" },
                   { label: "PEMBIMBING", value: `${teachers.length} Guru`, icon: "/icons/066-education.svg", color: "bg-indigo-50 text-indigo-600 border-indigo-100" },
-                  { label: "LOGBOOK PKL", value: `${storeData.pklLogs?.length || 0} Record`, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
+                  { label: "LOGBOOK PKL", value: `${dashLogs?.totalPklLogbooksPending ?? storeData.pklLogs?.length ?? 0} Record`, icon: "/icons/092-file.svg", color: "bg-emerald-50 text-emerald-600 border-emerald-100" },
                 ];
               } else {
                 dynamicStatCards = [
@@ -2362,8 +2382,16 @@ export default function DashboardPage({
       </div>
 
       {/* ======= MINIMALIST DESKTOP HERO BANNER (ADMIN/UMUM) ======= */}
-      <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 min-w-0 flex-1">
+      <div className="hidden sm:flex items-center justify-between gap-4 py-3 px-4 bg-white border border-slate-200/80 rounded-xl mb-1 shadow-2xs">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <div className="w-12 h-12 shrink-0 flex items-center justify-center select-none drop-shadow-2xs">
+            <img 
+              src="/maskot/kara-gana/kara-bust.svg" 
+              alt="Kara Menyapa" 
+              className="w-full h-full object-contain hover:scale-110 transition-transform"
+              onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+            />
+          </div>
           <div className="min-w-0">
             <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
               Selamat Datang, <span className="text-primary font-bold">{currentUser?.name || currentUser?.username || "Pengguna"}</span>!
@@ -3095,11 +3123,11 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
   const canSeeStudentAttendance = isSuperAdmin || isKepsek || isTU ||
     (isWaka && activeDivision === 'kesiswaan') || isKesiswaanStaff || isBKMember || isWalasMember;
 
-  // Helper untuk menentukan batas jam masuk evaluasi Alpa
+  // Helper untuk menentukan batas jam masuk evaluasi Alpa (Sesuai AGENTS.md: Alpa hanya setelah jam masuk resmi berakhir)
   const getCutoffTime = useCallback((role = 'siswa') => {
     const cfg = dashLogs?.attendanceConfig;
     const roleCfg = cfg?.[role] || cfg;
-    const timeVal = roleCfg?.masuk_late || "07:01";
+    const timeVal = roleCfg?.masuk_end || roleCfg?.masuk_close || roleCfg?.terlambat_end || "11:00";
     return timeVal.length === 5 ? `${timeVal}:00` : timeVal;
   }, [dashLogs?.attendanceConfig]);
 
@@ -3478,7 +3506,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             type="button"
-            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || (isWaka && activeDivision === 'kurikulum') ? 'laporan_absensi' : 'absensiguru')}
+            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek || (isWaka && activeDivision === 'kurikulum') ? 'hikvision_report_guru' : 'absensiguru')}
             className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 hover:bg-slate-50/40 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">
@@ -3539,7 +3567,7 @@ function AttendanceTodaySection({ attendanceRecords = [], dashLogs, teachers = [
         {canSeeTeacherAttendance && (
           <button
             type="button"
-            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek ? 'laporan_absensi' : 'absensiguru')}
+            onClick={() => setActiveTab(isSuperAdmin || isTU || isKepsek ? 'hikvision_report_karyawan' : 'absensiguru')}
             className="bg-white rounded-xl border border-slate-200/80 p-2.5 sm:p-3 flex flex-col gap-1.5 sm:gap-2 hover:border-slate-300 transition-all duration-200 text-left cursor-pointer w-full group"
           >
             <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-1 sm:gap-2">

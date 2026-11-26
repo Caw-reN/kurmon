@@ -111,8 +111,23 @@ export default class ErrorBoundary extends React.Component {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%)", fontFamily: '"Plus Jakarta Sans",sans-serif', padding: 24 }}>
         <div style={{ maxWidth: 480, width: "100%", background: "#fff", borderRadius: 24, padding: "40px 32px", boxShadow: "0 20px 60px -10px rgba(0,0,0,.10)", border: "1px solid #f1f5f9", textAlign: "center" }}>
-          <div style={{ width: 64, height: 64, borderRadius: "50%", background: isChunkError ? "#ecfdf5" : "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 28 }}>
-            {isChunkError ? <Rocket size={28} color="#10b981" /> : <AlertTriangle size={28} color="#f43f5e" />}
+          {/* Mascot Brand Avatar / Illustration */}
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
+            {isChunkError ? (
+              <img 
+                src="/maskot/kara-gana/gerak/kara-berlari.svg" 
+                alt="Kara Pembaruan Sistem" 
+                style={{ width: 96, height: 96, objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(16,185,129,0.15))" }}
+                onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+              />
+            ) : (
+              <img 
+                src="/maskot/kara-gana/ekspresi/kara-terkejut.svg" 
+                alt="Kara Perlu Perhatian" 
+                style={{ width: 96, height: 96, objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(244,63,94,0.15))" }}
+                onError={(e) => { e.currentTarget.src = "/maskot/kara-gana/kara-avatar.svg"; }}
+              />
+            )}
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 900, color: "#1e293b", marginBottom: 8, letterSpacing: "-0.5px" }}>
             {isChunkError ? "Pembaruan Aplikasi Tersedia" : "Halaman Mengalami Kesalahan"}

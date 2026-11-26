@@ -180,26 +180,20 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
   const paginatedSessions = filteredSessions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className="bg-[var(--ui-card-bg,white)] rounded-[var(--ui-radius-card)] shadow-[var(--ui-card-shadow,var(--ui-shadow-card))] border border-[var(--ui-card-border-color,theme(colors.slate.200/80))] p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
+    <div className="bg-[var(--ui-card-bg,white)] rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-sm transition-all duration-200 p-4 sm:p-5 flex flex-col justify-between h-full overflow-hidden">
       
       {/* ── Header ── */}
       <div>
         <div className="flex flex-col justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center justify-between gap-3 min-w-0">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-[var(--ui-radius-small)] bg-emerald-50 border border-emerald-200/80 shadow-xs flex items-center justify-center text-emerald-600 shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 shadow-2xs flex items-center justify-center text-emerald-600 shrink-0">
                 <LogIn size={16} />
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-black text-slate-800 tracking-tight truncate">
-                    Log Sesi & Durasi Login
-                  </h3>
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                    LIVE
-                  </span>
-                </div>
+                <h3 className="text-sm sm:text-base font-black text-slate-800 tracking-tight truncate">
+                  Log Sesi & Durasi Login
+                </h3>
                 <p className="text-[10px] text-slate-400 font-medium mt-0.5 truncate">
                   Pantau guru/staf yang login, frekuensi sesi, jam akses, dan durasi aktif
                 </p>
@@ -210,14 +204,14 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
               type="button"
               onClick={fetchAuditLogs}
               title="Perbarui data sesi login"
-              className="p-1.5 rounded-[var(--ui-radius-control)] bg-slate-50 hover:bg-white border border-slate-200 text-slate-500 hover:text-[var(--ui-primary)] cursor-pointer transition-colors shrink-0"
+              className="p-1.5 rounded-xl bg-slate-50 hover:bg-white border border-slate-200/80 text-slate-500 hover:text-[var(--ui-primary)] cursor-pointer transition-colors shrink-0 shadow-2xs"
             >
               <RefreshCw size={12} className={loading ? 'animate-spin text-[var(--ui-primary)]' : ''} />
             </button>
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-3 gap-2 p-2 bg-slate-50/80 rounded-[var(--ui-radius-small)] border border-slate-200/60 text-center">
+          <div className="grid grid-cols-3 gap-2 p-2.5 bg-slate-50/70 rounded-xl border border-slate-200/70 shadow-2xs text-center">
             <div>
               <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Tingkat Login</p>
               <p className="text-xs font-black text-slate-800 mt-0.5">
@@ -246,10 +240,10 @@ export default function UserLoginSessionTracker({ onNavigateTab }) {
                 key={f.id}
                 type="button"
                 onClick={() => { setFilterRole(f.id); setCurrentPage(1); }}
-                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-[var(--ui-radius-control)] border transition-all cursor-pointer flex items-center gap-1.5 ${
+                className={`whitespace-nowrap px-2.5 py-1 text-[10px] font-extrabold rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs ${
                   filterRole === f.id
-                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-sm'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-white'
+                    ? 'bg-[var(--ui-primary)] text-white border-[var(--ui-primary)] shadow-xs'
+                    : 'bg-slate-50 text-slate-600 border-slate-200/80 hover:bg-white'
                 }`}
               >
                 <span>{f.label}</span>

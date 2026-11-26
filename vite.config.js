@@ -155,11 +155,14 @@ export default defineConfig({
           if (id.includes('node_modules/recharts')) return 'charts';
           // Icon library
           if (id.includes('node_modules/lucide-react')) return 'icons';
-          // Heavy Excel/file libs — split into 2 to reduce individual chunk size
-          if (id.includes('node_modules/exceljs') || id.includes('node_modules/file-saver')) return 'fileHelper-excel';
+          // Heavy Excel/file libs — split into separate chunks for optimal caching
+          if (id.includes('node_modules/exceljs')) return 'fileHelper-excel';
           if (id.includes('node_modules/xlsx')) return 'fileHelper-xlsx';
-          // PDF generation
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/html2canvas') || id.includes('node_modules/pdf-lib')) return 'pdf';
+          if (id.includes('node_modules/file-saver')) return 'fileHelper-saver';
+          // PDF generation — split heavy tools so they are loaded on-demand only
+          if (id.includes('node_modules/jspdf')) return 'pdf-jspdf';
+          if (id.includes('node_modules/html2canvas')) return 'pdf-html2canvas';
+          if (id.includes('node_modules/pdf-lib')) return 'pdf-lib';
           // Map libraries
           if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) return 'maps';
           // TanStack virtual list

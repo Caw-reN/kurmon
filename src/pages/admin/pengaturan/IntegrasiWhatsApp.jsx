@@ -18,7 +18,8 @@ const TRIGGER_TEMPLATES = [
   { key:'pengumuman', label:'Pengumuman Sekolah', template:'Pengumuman dari {NAMA_SEKOLAH}: {ISI_PENGUMUMAN}' },
 ];
 
-export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiveTab: setSystemTab }) {
+export default function IntegrasiWhatsApp(props) {
+  const { activeTab: activeSystemTab, setActiveTab: setSystemTab, hideHeader } = props || {};
   const [logs, setLogs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
@@ -242,20 +243,23 @@ export default function IntegrasiWhatsApp({ activeTab: activeSystemTab, setActiv
 
   return (
     <div className="space-y-6 relative animate-in fade-in duration-300 z-10">
-      <PageHeader 
-        title="Integrasi WhatsApp Notification"
-        description="Kirim notifikasi otomatis/manual ke orang tua siswa via WhatsApp menggunakan API Fonnte."
-        icon={MessageSquare}
-        tabs={[
-          { id:"fitur", label:"Fitur", icon: Settings },
-          { id:"tampilan", label:"Tampilan Web", icon: LayoutDashboard },
-          { id:"whatsapp", label:"WhatsApp", icon: MessageSquare },
-          { id:"api_keys", label:"API Key", icon: KeyRound },
-          { id:"gdrive_backup", label:"Backup", icon: DatabaseBackup }
-        ]}
-        activeTab={activeSystemTab}
-        onTabChange={setSystemTab}
-      />
+      {!props.hideHeader && (
+        <PageHeader 
+          title="Integrasi WhatsApp Notification"
+          description="Kirim notifikasi otomatis/manual ke orang tua siswa via WhatsApp menggunakan API Fonnte."
+          icon={MessageSquare}
+          tabs={[
+            { id:"konfigurasi_sistem", label:"Ringkasan", icon: LayoutDashboard },
+            { id:"fitur", label:"Fitur", icon: Settings },
+            { id:"tampilan", label:"Tampilan Web", icon: LayoutDashboard },
+            { id:"whatsapp", label:"WhatsApp", icon: MessageSquare },
+            { id:"api_keys", label:"API Key", icon: KeyRound },
+            { id:"gdrive_backup", label:"Backup", icon: DatabaseBackup }
+          ]}
+          activeTab={activeSystemTab}
+          onTabChange={setSystemTab}
+        />
+      )}
 
       {/* ── MASTER SERVICE SWITCH CARD ── */}
       <div className={`p-5 md:p-6 rounded-[var(--ui-radius-card)] border shadow-xs transition-all ${

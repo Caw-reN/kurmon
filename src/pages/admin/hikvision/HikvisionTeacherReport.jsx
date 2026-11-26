@@ -1938,11 +1938,43 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                   <th className="px-3 py-3 font-black text-center border-r border-slate-200">Izn</th>
                   <th className="px-3 py-3 font-black text-center border-r border-slate-200">Skt</th>
                   <th className="px-3 py-3 font-black text-center border-r border-slate-200">Alp</th>
-                  {daysToRender.map((dayNum) => (
-                     <th key={dayNum} className="px-2 py-3 font-black text-center min-w-[70px] border-r border-slate-200">
-                       {dayNum}
-                     </th>
-                  ))}
+                  {daysToRender.map((dayNum) => {
+                    const isTodayCol = isCurrentMonthYear && dayNum === todayNum;
+                    const colDate = new Date(filter.year, filter.month - 1, dayNum);
+                    const dayOfWeek = colDate.getDay();
+                    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+                    const dayName = dayNames[dayOfWeek] || '';
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+                    return (
+                      <th
+                        key={dayNum}
+                        className={`px-1 py-2 font-black text-center min-w-[70px] border-r border-slate-200 transition-colors select-none ${
+                          isTodayCol 
+                            ? 'bg-emerald-100/95 text-emerald-950 font-black' 
+                            : isWeekend
+                            ? 'bg-rose-50/60 text-rose-700'
+                            : 'bg-slate-50/80 text-slate-700'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center leading-none">
+                          <span className={`text-[8.5px] uppercase font-bold tracking-tight mb-0.5 ${
+                            isTodayCol ? 'text-emerald-800' : isWeekend ? 'text-rose-500 font-extrabold' : 'text-slate-400'
+                          }`}>
+                            {dayName}
+                          </span>
+                          <span className={`text-xs ${isTodayCol ? 'font-black text-emerald-950 text-sm' : 'font-extrabold'}`}>
+                            {dayNum}
+                          </span>
+                          {isTodayCol && (
+                            <span className="text-[7px] uppercase font-black tracking-tight text-emerald-800 bg-emerald-200/90 px-1 py-0.2 rounded mt-0.5 shadow-2xs">
+                              Hari Ini
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody className="text-sm font-medium text-slate-700">
@@ -1990,8 +2022,8 @@ export default function HikvisionTeacherReport({ isNested = false }) {
                                 <td 
                                   key={dayNum} 
                                   onClick={() => handleCellClick(d, dayNum)}
-                                  className="px-1 py-2 text-center border-r border-slate-100 min-w-[70px] cursor-pointer hover:bg-slate-50 transition-colors relative"
-                                  title="Klik untuk input/edit surat izin atau sakit"
+                                  className="px-1 py-2 text-center border-r border-slate-100 min-w-[70px] cursor-pointer hover:bg-emerald-50/60 hover:ring-1 hover:ring-emerald-300 transition-all relative select-none"
+                                  title={`Klik untuk input/edit surat izin atau sakit (Tgl ${dayNum})`}
                                 >
                                    {dayData?.pending_permission && (
                                      <div className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full border border-white shadow-sm" title="Menunggu Persetujuan"></div>
